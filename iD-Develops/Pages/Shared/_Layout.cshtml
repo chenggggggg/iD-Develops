@@ -1,0 +1,246 @@
+@inject IViewLocalizer localizer
+@using System.Globalization
+
+@{
+    var currentCulture = CultureInfo.CurrentCulture.Name;
+
+    // RouteData may not contain "Page" in every situation, so guard it.
+    var currentPage = ViewContext?.RouteData?.Values?["Page"]?.ToString() ?? string.Empty;
+
+    var requestPath = Context?.Request?.Path.Value ?? string.Empty;
+    var usePublicNavigation = ViewData["UsePublicNavigation"] as bool? == true;
+    var isPortalPage = !usePublicNavigation
+        && (requestPath.Contains("/portal", StringComparison.OrdinalIgnoreCase)
+            || currentPage.StartsWith("/Portal", StringComparison.OrdinalIgnoreCase));
+    var isHomePage = currentPage.Equals("/Index", StringComparison.OrdinalIgnoreCase)
+        || requestPath.Equals("/", StringComparison.OrdinalIgnoreCase);
+
+    var usesLightNav =
+        currentPage.Equals("/Portal/Exams/Results", StringComparison.OrdinalIgnoreCase)
+        || isPortalPage;
+
+    var logoThemeClass = usesLightNav ? "public-nav-logo-light" : "public-nav-logo-dark";
+    var logoImage = usesLightNav ? "/images/iddevelops-navlogo-light.png" : "/images/iddevelops-navlogo-dark.png";
+    var languageLabel = currentCulture == "nl-NL" ? "Netherlands (Nederlands)" : "United States (English)";
+    var seoTitle = ViewData["SeoTitle"]?.ToString();
+    var documentTitle = string.IsNullOrWhiteSpace(seoTitle)
+        ? $"{ViewData["Title"]} | iD! Training & Development"
+        : seoTitle;
+    var metaDescription = ViewData["MetaDescription"]?.ToString();
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@documentTitle</title>
+    @if (!string.IsNullOrWhiteSpace(metaDescription))
+    {
+        <meta name="description" content="@metaDescription" />
+    }
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;500;600&family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/tailwind.generated.css" asp-append-version="true" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" rel="stylesheet">
+    <partial name="_CookiebotBanner" />
+    @await RenderSectionAsync("Styles", required: false)
+    <script src="~/js/set-language.js" asp-append-version="true"></script>
+</head>
+<body class="public-site @ViewData["BodyClass"]">
+
+    <main class="@(isHomePage ? "tw:!mt-0 tw:!pt-0" : string.Empty)" role="main">
+        <header class="public-header @(isHomePage ? "tw:!fixed" : string.Empty) tw:opacity-0 tw:-translate-y-full tw:transition-[opacity,translate] tw:duration-1000 tw:ease-out" data-reveal="load">
+            <div class="public-container">
+                <nav class="public-nav" aria-label="@localizer["Nav_Menu"]">
+                    <a class="public-nav-brand" asp-page="/index">
+                        <img src="@logoImage" class="public-nav-logo @logoThemeClass logo-image" alt="Logo" />
+                    </a>
+                    <button class="public-menu-toggle" type="button" data-public-menu-toggle aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="public-menu-toggle-bars" aria-hidden="true"></span>
+                    </button>
+                    <div class="tw:hidden tw:lg:contents" id="navbarSupportedContent">
+                        <ul class="public-nav-list">
+                            <li class="public-nav-item">
+                                <div class="tw:group tw:relative tw:flex tw:h-16 tw:items-center" data-services-menu data-open="false">
+                                    <button class="public-nav-link tw:border-0 tw:bg-transparent tw:p-0" type="button" aria-expanded="false" aria-controls="services-menu" data-services-toggle>@(currentCulture == "nl-NL" ? "Diensten" : "Services") <i class="fa-solid fa-chevron-down tw:transition-transform tw:duration-200 tw:group-hover:rotate-180 tw:group-focus-within:rotate-180 tw:group-data-[open=true]:rotate-180" aria-hidden="true"></i></button>
+                                    <ul class="tw:pointer-events-none tw:absolute tw:-left-4 tw:top-full tw:z-50 tw:m-0 tw:grid tw:min-w-64 tw:origin-top tw:scale-y-95 tw:list-none tw:border tw:border-[var(--serif-border)] tw:bg-[#FAFAF8]/[0.98] tw:px-4 tw:py-[0.65rem] tw:opacity-0 tw:transition-[opacity,transform] tw:duration-[180ms] tw:ease-out tw:group-hover:pointer-events-auto tw:group-hover:scale-y-100 tw:group-hover:opacity-100 tw:group-focus-within:pointer-events-auto tw:group-focus-within:scale-y-100 tw:group-focus-within:opacity-100 tw:group-data-[open=true]:pointer-events-auto tw:group-data-[open=true]:scale-y-100 tw:group-data-[open=true]:opacity-100" id="services-menu" data-services-panel>
+                                        <li><a class="tw:block tw:px-0 tw:py-[0.55rem] tw:text-left tw:text-xs tw:font-light tw:uppercase tw:tracking-[0.1em] tw:text-[#6B6B6B] tw:no-underline tw:transition-colors tw:hover:text-[#1A1A1A] tw:hover:no-underline tw:focus:text-[#1A1A1A] tw:focus:no-underline tw:[font-family:var(--serif-label)]" asp-page="/nt2-integration">@(currentCulture == "nl-NL" ? "NT2 & Integratie" : "NT2 & Integration")</a></li>
+                                        <li><a class="tw:block tw:px-0 tw:py-[0.55rem] tw:text-left tw:text-xs tw:font-light tw:uppercase tw:tracking-[0.1em] tw:text-[#6B6B6B] tw:no-underline tw:transition-colors tw:hover:text-[#1A1A1A] tw:hover:no-underline tw:focus:text-[#1A1A1A] tw:focus:no-underline tw:[font-family:var(--serif-label)]" asp-page="/personal-development">@(currentCulture == "nl-NL" ? "Persoonlijke Ontwikkeling" : "Personal Development")</a></li>
+                                        <li><a class="tw:block tw:px-0 tw:py-[0.55rem] tw:text-left tw:text-xs tw:font-light tw:uppercase tw:tracking-[0.1em] tw:text-[#6B6B6B] tw:no-underline tw:transition-colors tw:hover:text-[#1A1A1A] tw:hover:no-underline tw:focus:text-[#1A1A1A] tw:focus:no-underline tw:[font-family:var(--serif-label)]" asp-page="/Language-And-Communication/Index">@(currentCulture == "nl-NL" ? "Taal & Communicatie" : "Language & Communication")</a></li>
+                                    </ul>
+                                </div>
+                            </li>
+                            <li class="public-nav-item">
+                                <a class="public-nav-link" asp-page="/enterprise">@(currentCulture == "nl-NL" ? "Voor organisaties" : "For organizations")</a>
+                            </li>
+                            <li class="public-nav-item">
+                                <a class="public-nav-link" asp-page="/Pricing">@localizer["Nav_Products"]</a>
+                            </li>
+                            @if (isPortalPage)
+                            {
+                                <li class="public-nav-item">
+                                    <span class="public-nav-link">@localizer["Nav_PortalSection"]</span>
+                                </li>
+                            }
+                        </ul>
+                        <ul class="public-nav-actions">
+                            <partial name="_LoginPartial" />
+                            <li class="public-nav-item">
+                                <a class="public-nav-link public-nav-contact" asp-area="" asp-page="/contact">@localizer["Nav_Contact"] <i class="fas fa-arrow-right"></i></a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="public-menu-backdrop" data-public-menu-backdrop hidden></div>
+                    <div class="public-mobile-menu" tabindex="-1" id="sidebarMenu" aria-labelledby="sidebarMenuLabel" data-public-menu hidden>
+                        <div class="public-mobile-menu-header">
+                            <h2 class="tw:m-0 tw:text-xl tw:font-semibold tw:text-[#071f3d]" id="sidebarMenuLabel">@localizer["Nav_Menu"]</h2>
+                            <button type="button" class="public-menu-close" data-public-menu-close aria-label="Close">&times;</button>
+                        </div>
+                        <ul class="public-mobile-menu-list">
+                            <li class="public-mobile-menu-label">@(currentCulture == "nl-NL" ? "Diensten" : "Services")</li>
+                            <li class="public-nav-item">
+                                <a class="public-nav-link" asp-page="/nt2-integration">@(currentCulture == "nl-NL" ? "NT2 & Integratie" : "NT2 & Integration")</a>
+                            </li>
+                            <li class="public-nav-item">
+                                <a class="public-nav-link" asp-page="/personal-development">@(currentCulture == "nl-NL" ? "Persoonlijke Ontwikkeling" : "Personal Development")</a>
+                            </li>
+                            <li class="public-nav-item">
+                                <a class="public-nav-link" asp-page="/Language-And-Communication/Index">@(currentCulture == "nl-NL" ? "Taal & Communicatie" : "Language & Communication")</a>
+                            </li>
+                            <li class="public-nav-item">
+                                <a class="public-nav-link" asp-page="/enterprise">@(currentCulture == "nl-NL" ? "Voor organisaties" : "For organizations")</a>
+                            </li>
+                            <li class="public-nav-item">
+                                <a class="public-nav-link" asp-page="/Pricing">@localizer["Nav_Products"]</a>
+                            </li>
+                            <li class="public-nav-item">
+                                <a class="public-nav-link public-nav-contact" asp-area="" asp-page="/contact">@localizer["Nav_Contact"]</a>
+                            </li>
+                            <partial name="_LoginPartial" />
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+        </header>
+        @RenderBody()
+    </main>
+
+    <footer class="public-footer">
+        <div class="public-container">
+            @if (ViewData["HideFooterNavigation"] as bool? != true)
+            {
+                <div class="public-footer-grid">
+                    <div class="public-footer-brand">
+                        <div class="public-footer-logo">iD! Training &amp; Development</div>
+                        <p>@localizer["Footer_AboutUs_Description"]</p>
+                        <div class="public-footer-socials">
+                            <a href="https://www.linkedin.com/in/dominiqueheemels/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+                                <i class="fa-brands fa-linkedin"></i>
+                            </a>
+                            <a href="https://www.facebook.com/profile.php?id=61553944244076" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                                <i class="fa-brands fa-facebook"></i>
+                            </a>
+                            <a href="mailto:info@id-develops.com" aria-label="Email">
+                                <i class="fa-solid fa-envelope"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="public-footer-group">
+                        <h2>@localizer["Footer_Services"]</h2>
+                        <ul>
+                            <li><a asp-page="/Pricing">@localizer["Footer_Products"]</a></li>
+                            <li><a asp-page="/nt2-integration">@localizer["Footer_Nt2Integration"]</a></li>
+                            <li><a asp-page="/personal-development">@localizer["Footer_PersonalDevelopment"]</a></li>
+                            <li><a asp-page="/Language-And-Communication/Index">@(currentCulture == "nl-NL" ? "Taal & Communicatie" : "Language & Communication")</a></li>
+                            <li><a asp-page="/enterprise">@localizer["Footer_Enterprise"]</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="public-footer-group">
+                        <h2>@(currentCulture == "nl-NL" ? "Over iD!" : "About iD!")</h2>
+                        <ul>
+                            <li><a asp-page="/about">@(currentCulture == "nl-NL" ? "Over ons" : "About us")</a></li>
+                            <li><a asp-page="/contact">@localizer["Nav_Contact"]</a></li>
+                            <li><a href="https://koalendar.com/e/meet-with-id" target="_blank" rel="noopener noreferrer">@localizer["Footer_BookFreeConsultation"]</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="public-footer-group">
+                        <h2>@localizer["Footer_Legal"]</h2>
+                        <ul>
+                            <li><a asp-page="/terms-conditions">@localizer["Footer_Terms"]</a></li>
+                            <li><a asp-page="/privacy">@localizer["Footer_Privacy"]</a></li>
+                            <li><a asp-page="/cookie-policy">@localizer["Footer_Cookie"]</a></li>
+                            <li><a asp-page="/disclaimer">@localizer["Footer_Disclaimer"]</a></li>
+                            <li><a href="#" data-cookiebot-preferences>@localizer["Footer_Preferences"]</a></li>
+                        </ul>
+                    </div>
+                </div>
+            }
+
+            <div class="public-footer-bottom">
+                <p>&copy; 2026 iD! Training &amp; Development. All Rights Reserved.</p>
+                @if (ViewData["HideFooterNavigation"] as bool? != true)
+                {
+                    <div class="public-language-wrap">
+                        <a class="public-footer-language" id="footerLanguageSelector" role="button" data-public-language-toggle aria-expanded="false" href="#">
+                            <i class="fa-solid fa-globe" aria-hidden="true"></i>
+                            <span>@languageLabel</span>
+                        </a>
+                        <ul class="public-language-menu language-selector-dropdown footer-language-dropdown" aria-labelledby="footerLanguageSelector" data-public-language-menu hidden>
+                            <li>
+                                <a class="language-option @(currentCulture == "en-US" ? "active disabled" : "")" href="#" data-lang="en-US">
+                                    <img src="~/images/usa-flag.png" alt="" aria-hidden="true" />
+                                    <span>
+                                        <strong>United States</strong>
+                                        <small>English</small>
+                                    </span>
+                                    @if (currentCulture == "en-US")
+                                    {
+                                        <span class="tw:inline-flex tw:size-5 tw:items-center tw:justify-center tw:rounded-full tw:bg-[#071F3D] tw:text-white" aria-hidden="true">
+                                            <svg class="tw:size-3" viewBox="0 0 20 20" fill="none">
+                                                <path d="M4.5 10.25 8 13.5l7.5-7.25" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" />
+                                            </svg>
+                                        </span>
+                                    }
+                                </a>
+                            </li>
+                            <li>
+                                <a class="language-option @(currentCulture == "nl-NL" ? "active disabled" : "")" href="#" data-lang="nl-NL">
+                                    <img src="~/images/nl-flag.png" alt="" aria-hidden="true" />
+                                    <span>
+                                        <strong>Netherlands</strong>
+                                        <small>Nederlands</small>
+                                    </span>
+                                    @if (currentCulture == "nl-NL")
+                                    {
+                                        <span class="tw:inline-flex tw:size-5 tw:items-center tw:justify-center tw:rounded-full tw:bg-[#071F3D] tw:text-white" aria-hidden="true">
+                                            <svg class="tw:size-3" viewBox="0 0 20 20" fill="none">
+                                                <path d="M4.5 10.25 8 13.5l7.5-7.25" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" />
+                                            </svg>
+                                        </span>
+                                    }
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                }
+            </div>
+        </div>
+    </footer>
+
+    <script src="/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/js/home-reveal.js" asp-append-version="true"></script>
+    <script src="~/js/public-layout.js" asp-append-version="true"></script>
+    <script src="~/js/feature-slideshow.js" asp-append-version="true"></script>
+    <script src="~/js/display-messages.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

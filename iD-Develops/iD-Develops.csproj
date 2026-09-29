@@ -1,0 +1,316 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>aspnet-iD_Develops-F8418B07-385B-4897-8848-DE342F3DA677</UserSecretsId>
+    <RootNamespace>iD_Develops</RootNamespace>
+    <ResourceLocation>Resources</ResourceLocation>
+    <AssemblyName>iD_Develops</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="tests\**" />
+    <Content Remove="tests\**" />
+    <EmbeddedResource Remove="tests\**" />
+    <None Remove="tests\**" />
+    <Compile Remove="artifacts\**" />
+    <Content Remove="artifacts\**" />
+    <EmbeddedResource Remove="artifacts\**" />
+    <None Remove="artifacts\**" />
+    <Compile Remove="Data\Migrations.SqlServerArchive\**" />
+    <Content Remove="Data\Migrations.SqlServerArchive\**" />
+    <EmbeddedResource Remove="Data\Migrations.SqlServerArchive\**" />
+    <None Remove="Data\Migrations.SqlServerArchive\**" />
+    <Compile Remove="Resources\Pages\Admin\**" />
+    <Compile Remove="Resources\Pages\Dashboard\**" />
+    <Compile Remove="Resources\Pages\Examination\**" />
+    <Compile Remove="Resources\Pages\Language-And-Communication\**" />
+    <Compile Remove="Resources\Pages\My-Exams\**" />
+    <Content Remove="Resources\Pages\Admin\**" />
+    <Content Remove="Resources\Pages\Dashboard\**" />
+    <Content Remove="Resources\Pages\Examination\**" />
+    <Content Remove="Resources\Pages\Language-And-Communication\**" />
+    <Content Remove="Resources\Pages\My-Exams\**" />
+    <EmbeddedResource Remove="Resources\Pages\Admin\**" />
+    <EmbeddedResource Remove="Resources\Pages\Dashboard\**" />
+    <EmbeddedResource Remove="Resources\Pages\Examination\**" />
+    <EmbeddedResource Remove="Resources\Pages\Language-And-Communication\**" />
+    <EmbeddedResource Remove="Resources\Pages\My-Exams\**" />
+    <None Remove="Resources\Pages\Admin\**" />
+    <None Remove="Resources\Pages\Dashboard\**" />
+    <None Remove="Resources\Pages\Examination\**" />
+    <None Remove="Resources\Pages\Language-And-Communication\**" />
+    <None Remove="Resources\Pages\My-Exams\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="4.0.3.24" />
+    <PackageReference Include="AWSSDK.S3" Version="4.0.9.1" />
+    <PackageReference Include="AWSSDK.SecretsManager" Version="4.0.4.6" />
+    <PackageReference Include="EFCore.BulkExtensions.PostgreSql" Version="10.0.1" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.12" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="10.0.12" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.12" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="10.0.12" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="10.0.12" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="10.0.12" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.12">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
+    <PackageReference Include="MailKit" Version="4.17.0" />
+    <PackageReference Include="Polly" Version="8.4.1" />
+    <PackageReference Include="QuestPDF" Version="2024.3.6" />
+    <PackageReference Include="Razor.Templating.Core" Version="3.1.0" />
+    <PackageReference Include="Stripe.net" Version="50.4.1" />
+    <PackageReference Include="System.Drawing.Common" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\fonts\Roboto-Light.ttf" />
+    <None Include="wwwroot\lib\tinymce\icons\default\icons.min.js" />
+    <None Include="wwwroot\lib\tinymce\langs\README.md" />
+    <None Include="wwwroot\lib\tinymce\models\dom\model.min.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\accordion\plugin.min.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\advlist\plugin.min.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\anchor\plugin.min.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\autolink\plugin.min.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\autoresize\plugin.min.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\autosave\plugin.min.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\charmap\plugin.min.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\codesample\plugin.min.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\code\plugin.min.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\directionality\plugin.min.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\emoticons\js\emojiimages.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\emoticons\js\emojiimages.min.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\emoticons\js\emojis.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\emoticons\js\emojis.min.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\emoticons\plugin.min.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\fullscreen\plugin.min.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\ar.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\bg-BG.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\bg_BG.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\ca.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\cs.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\da.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\de.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\el.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\en.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\es.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\eu.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\fa.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\fi.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\fr-FR.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\fr_FR.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\he-IL.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\he_IL.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\hi.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\hr.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\hu-HU.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\hu_HU.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\id.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\it.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\ja.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\kk.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\ko-KR.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\ko_KR.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\ms.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\nb-NO.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\nb_NO.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\nl.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\pl.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\pt-BR.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\pt-PT.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\pt_BR.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\pt_PT.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\ro.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\ru.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\sk.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\sl-SI.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\sl_SI.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\sv-SE.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\sv_SE.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\th-TH.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\th_TH.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\tr.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\uk.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\vi.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\zh-CN.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\zh-TW.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\zh_CN.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\js\i18n\keynav\zh_TW.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\help\plugin.min.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\image\plugin.min.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\importcss\plugin.min.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\insertdatetime\plugin.min.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\link\plugin.min.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\lists\plugin.min.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\media\plugin.min.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\nonbreaking\plugin.min.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\pagebreak\plugin.min.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\preview\plugin.min.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\quickbars\plugin.min.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\save\plugin.min.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\searchreplace\plugin.min.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\table\plugin.min.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\visualblocks\plugin.min.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\visualchars\plugin.min.js" />
+    <None Include="wwwroot\lib\tinymce\plugins\wordcount\plugin.min.js" />
+    <None Include="wwwroot\lib\tinymce\skins\content\dark\content.js" />
+    <None Include="wwwroot\lib\tinymce\skins\content\default\content.js" />
+    <None Include="wwwroot\lib\tinymce\skins\content\document\content.js" />
+    <None Include="wwwroot\lib\tinymce\skins\content\tinymce-5-dark\content.js" />
+    <None Include="wwwroot\lib\tinymce\skins\content\tinymce-5\content.js" />
+    <None Include="wwwroot\lib\tinymce\skins\content\writer\content.js" />
+    <None Include="wwwroot\lib\tinymce\skins\ui\oxide-dark\content.inline.js" />
+    <None Include="wwwroot\lib\tinymce\skins\ui\oxide-dark\content.js" />
+    <None Include="wwwroot\lib\tinymce\skins\ui\oxide-dark\skin.js" />
+    <None Include="wwwroot\lib\tinymce\skins\ui\oxide-dark\skin.shadowdom.js" />
+    <None Include="wwwroot\lib\tinymce\skins\ui\oxide\content.inline.js" />
+    <None Include="wwwroot\lib\tinymce\skins\ui\oxide\content.js" />
+    <None Include="wwwroot\lib\tinymce\skins\ui\oxide\skin.js" />
+    <None Include="wwwroot\lib\tinymce\skins\ui\oxide\skin.shadowdom.js" />
+    <None Include="wwwroot\lib\tinymce\skins\ui\tinymce-5-dark\content.inline.js" />
+    <None Include="wwwroot\lib\tinymce\skins\ui\tinymce-5-dark\content.js" />
+    <None Include="wwwroot\lib\tinymce\skins\ui\tinymce-5-dark\skin.js" />
+    <None Include="wwwroot\lib\tinymce\skins\ui\tinymce-5-dark\skin.shadowdom.js" />
+    <None Include="wwwroot\lib\tinymce\skins\ui\tinymce-5\content.inline.js" />
+    <None Include="wwwroot\lib\tinymce\skins\ui\tinymce-5\content.js" />
+    <None Include="wwwroot\lib\tinymce\skins\ui\tinymce-5\skin.js" />
+    <None Include="wwwroot\lib\tinymce\skins\ui\tinymce-5\skin.shadowdom.js" />
+    <None Include="wwwroot\lib\tinymce\themes\silver\theme.min.js" />
+    <None Include="wwwroot\lib\tinymce\tinymce.min.js" />
+  </ItemGroup>
+
+
+
+
+
+
+
+
+
+<ItemGroup>
+    <Folder Include="wwwroot\images\flags\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Resources\Pages\Db_OfflineModel.en-US.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\Db_OfflineModel.nl-NL.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\DisclaimerModel.nl-NL.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\ErrorModel.en-US.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\ErrorModel.nl-NL.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\AboutModel.en-US.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\AboutModel.nl-NL.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\Communication_TrainingModel.en-US.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\Communication_TrainingModel.nl-NL.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\ContactModel.en-US.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\ContactModel.nl-NL.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\Cookie_PolicyModel.en-US.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\Cookie_PolicyModel.nl-NL.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\DisclaimerModel.en-US.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\EnterpriseModel.en-US.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\EnterpriseModel.nl-NL.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\Expat_SupportModel.en-US.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\Expat_SupportModel.nl-NL.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\IndexModel.en-US.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\IndexModel.nl-NL.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\Nt2IntegrationModel.en-US.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\Nt2IntegrationModel.nl-NL.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\Personal_DevelopmentModel.en-US.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\Personal_DevelopmentModel.nl-NL.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\PrivacyModel.en-US.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\PrivacyModel.nl-NL.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\Products.en-US.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\Products.nl-NL.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\ProductsModel.en-US.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\ProductsModel.nl-NL.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\Shared\_Layout.en-US.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\Shared\_Layout.nl-NL.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\Shared\_LoginPartial.nl-NL.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\Shared\_LoginPartial.en-US.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\Terms_ConditionsModel.en-US.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Pages\Terms_ConditionsModel.nl-NL.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

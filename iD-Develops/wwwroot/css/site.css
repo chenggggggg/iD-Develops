@@ -1,0 +1,96 @@
+@font-face {
+    font-family: 'Lato';
+    src: url('../fonts/Lato-Black.ttf') format('truetype'); /* Adjust format if necessary */
+    font-weight: 900;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Lato';
+    src: url('../fonts/Lato-Bold.ttf') format('truetype'); /* Adjust format if necessary */
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Lato';
+    src: url('../fonts/Lato-Light.ttf') format('truetype'); /* Adjust format if necessary */
+    font-weight: 300; /* Specify weight for light */
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Lato';
+    src: url('../fonts/Lato-LightItalic.ttf') format('truetype'); /* Adjust format if necessary */
+    font-weight: 300;
+    font-style: italic; /* Specify style for italics */
+}
+
+@font-face {
+    font-family: 'Lato';
+    src: url('../fonts/Lato-Regular.ttf') format('truetype'); /* Adjust format if necessary */
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Lato';
+    src: url('../fonts/Lato-Thin.ttf') format('truetype'); /* Adjust format if necessary */
+    font-weight: 100; /* Specify weight for thin */
+    font-style: normal;
+}
+
+:root {
+    --id-blue: #005190;
+    --id-blue-dark: #071f3d;
+    --id-blue-soft: #eef6fb;
+    --id-teal: #008a98;
+    --id-red: #ed1b2f;
+    --id-ink: #10224d;
+    --id-muted: #5d6b82;
+    --id-border: rgba(16, 34, 77, 0.12);
+    --id-surface-soft: #f6f9fc;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    font-family: Lato, sans-serif;
+}
+
+* {
+    scrollbar-color: rgba(26, 26, 26, 0.32) transparent;
+    scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background-color: rgba(26, 26, 26, 0.32);
+    background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(26, 26, 26, 0.44);
+}
+
+*::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+.create-exam-page {
+    background-color: #f7f8fa;
+}

@@ -1,0 +1,14 @@
+@using iD_Develops.Configuration
+@inject Microsoft.Extensions.Options.IOptions<TurnstileSettings> TurnstileOptions
+@{
+    var turnstile = TurnstileOptions.Value;
+    var isEnabled = turnstile.Enabled && !string.IsNullOrWhiteSpace(turnstile.SiteKey);
+}
+
+@if (isEnabled)
+{
+    <div class="turnstile-field">
+        <div class="cf-turnstile" data-sitekey="@turnstile.SiteKey"></div>
+    </div>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+}

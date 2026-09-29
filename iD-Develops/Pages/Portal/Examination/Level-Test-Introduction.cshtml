@@ -1,0 +1,126 @@
+@page
+@using System.Globalization
+@model iD_Develops.Pages.Portal.Examination.LevelTestIntroductionModel
+@{
+    Layout = "/Pages/Shared/_Layout.cshtml";
+    var isDutch = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.Equals("nl", StringComparison.OrdinalIgnoreCase);
+    var duration = $"{Model.DurationMinutes} {(isDutch ? "minuten" : "minutes")}";
+
+    ViewData["Title"] = isDutch ? "Gratis Nederlandse niveautest" : "Free Dutch level test";
+    ViewData["MetaDescription"] = isDutch
+        ? "Doe de gratis Nederlandse niveautest en ontdek of de online cursus Nederlands A1-A2 bij je past."
+        : "Take the free Dutch level test and find out whether the online Dutch A1-A2 course is right for you.";
+    ViewData["BodyClass"] = "level-test-introduction-page";
+    ViewData["UsePublicNavigation"] = true;
+}
+
+<section class="tw:border-b tw:border-[#D8D3CC] tw:bg-[#FAFAF8]">
+    <div class="public-container tw:grid tw:gap-12 tw:py-16 tw:md:py-24 tw:lg:grid-cols-[minmax(0,1fr)_20rem] tw:lg:items-end tw:lg:gap-20">
+        <div class="tw:max-w-4xl">
+            <p class="tw:mb-6 tw:text-xs tw:font-medium tw:uppercase tw:tracking-[0.22em] tw:text-[#B23A48] tw:[font-family:var(--serif-label)]">@(isDutch ? "Gratis Nederlandse niveautest" : "Free Dutch level test")</p>
+            <h1 class="tw:m-0 tw:max-w-[14ch] tw:text-[clamp(3rem,7vw,6rem)] tw:font-medium tw:leading-[0.98] tw:tracking-[-0.04em] tw:text-[#071F3D] tw:[font-family:var(--serif-heading)]">@(isDutch ? "Hoe goed is jouw Nederlands?" : "How strong is your Dutch?")</h1>
+            <p class="tw:mt-8 tw:mb-0 tw:max-w-[43rem] tw:text-lg tw:leading-[1.75] tw:text-[#535353] tw:md:text-xl">
+                @(isDutch
+                    ? "Deze niveautest geeft je een eerste, praktische indruk van je basiskennis. Zo ontdek je of de online cursus Nederlands A1-A2 een logische volgende stap voor je is."
+                    : "This level test gives you a practical first impression of your foundation. It helps you decide whether the online Dutch A1-A2 course is the right next step for you.")
+            </p>
+        </div>
+        <aside class="tw:border-t tw:border-[#071F3D] tw:pt-6 tw:lg:border-t-0 tw:lg:border-l tw:lg:pt-0 tw:lg:pl-10" aria-label="@(isDutch ? "Praktische informatie" : "Practical information")">
+            <p class="tw:m-0 tw:text-xs tw:font-medium tw:uppercase tw:tracking-[0.18em] tw:text-[#6B6B6B] tw:[font-family:var(--serif-label)]">@(isDutch ? "Reken op" : "Allow")</p>
+            <p class="tw:mt-3 tw:mb-0 tw:text-4xl tw:font-semibold tw:leading-none tw:text-[#071F3D] tw:[font-family:var(--serif-heading)]">@duration</p>
+            <p class="tw:mt-5 tw:mb-0 tw:text-sm tw:leading-6 tw:text-[#6B6B6B]">@(isDutch ? "De timer start zodra je de test opent. Je hebt geen account nodig." : "The timer starts when you open the test. You do not need an account.")</p>
+            <a href="#start-level-test" class="tw:mt-7 tw:inline-flex tw:items-center tw:gap-3 tw:text-sm tw:font-semibold tw:text-[#B23A48] tw:underline-offset-4 tw:hover:underline tw:focus-visible:outline-2 tw:focus-visible:outline-[#B23A48] tw:focus-visible:outline-offset-4">
+                @(isDutch ? "Lees verder en start" : "Read on and begin")
+                <i class="fa-solid fa-arrow-down-long" aria-hidden="true"></i>
+            </a>
+        </aside>
+    </div>
+</section>
+
+<section class="tw:bg-white tw:py-16 tw:md:py-24">
+    <div class="public-container tw:grid tw:gap-14 tw:lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.72fr)] tw:lg:gap-24">
+        <article>
+            <p class="tw:mb-4 tw:text-xs tw:font-medium tw:uppercase tw:tracking-[0.2em] tw:text-[#B23A48] tw:[font-family:var(--serif-label)]">@(isDutch ? "Wat je eraan hebt" : "What you will learn")</p>
+            <h2 class="tw:m-0 tw:max-w-[18ch] tw:text-[clamp(2.2rem,4.5vw,3.8rem)] tw:font-medium tw:leading-[1.08] tw:tracking-[-0.025em] tw:text-[#071F3D] tw:[font-family:var(--serif-heading)]">@(isDutch ? "Een helder vertrekpunt, geen definitief taalcertificaat" : "A clear starting point, not a formal language certificate")</h2>
+            <div class="tw:mt-8 tw:max-w-[45rem] tw:space-y-5 tw:text-[1.05rem] tw:leading-[1.8] tw:text-[#535353]">
+                <p class="tw:m-0">@(isDutch ? "De test kijkt naar de basis die je nodig hebt om verder te werken richting niveau A2. Na afloop zie je je score en lees je wat die score betekent voor jouw volgende stap." : "The test looks at the foundation you need to continue working towards level A2. At the end, you will see your score and what it means for your next step.")</p>
+                <p class="tw:m-0">@(isDutch ? "Gebruik de uitslag als praktisch advies. De test is bedoeld om je op weg te helpen en is geen officieel examen of erkend bewijs van je taalniveau." : "Use the result as practical guidance. The test is designed to help you move forward; it is not an official exam or recognised proof of your language level.")</p>
+            </div>
+        </article>
+        <aside class="tw:border-t tw:border-[#D8D3CC] tw:pt-8 tw:lg:border-t-0 tw:lg:border-l tw:lg:pt-0 tw:lg:pl-12">
+            <h2 class="tw:m-0 tw:text-2xl tw:font-semibold tw:text-[#071F3D] tw:[font-family:var(--serif-heading)]">@(isDutch ? "Voor je begint" : "Before you begin")</h2>
+            <ol class="tw:mt-8 tw:mb-0 tw:grid tw:list-none tw:gap-7 tw:p-0">
+                <li class="tw:grid tw:grid-cols-[2rem_1fr] tw:gap-4"><span class="tw:text-sm tw:font-semibold tw:text-[#B23A48]">01</span><div><h3 class="tw:m-0 tw:text-base tw:font-semibold tw:text-[#071F3D]">@(isDutch ? "Plan voldoende tijd" : "Set aside enough time")</h3><p class="tw:mt-2 tw:mb-0 tw:leading-7 tw:text-[#6B6B6B]">@(isDutch ? $"Houd ongeveer {duration} vrij en kies een moment waarop je niet gestoord wordt." : $"Set aside around {duration} and choose a time when you will not be interrupted.")</p></div></li>
+                <li class="tw:grid tw:grid-cols-[2rem_1fr] tw:gap-4"><span class="tw:text-sm tw:font-semibold tw:text-[#B23A48]">02</span><div><h3 class="tw:m-0 tw:text-base tw:font-semibold tw:text-[#071F3D]">@(isDutch ? "Werk zelfstandig" : "Work independently")</h3><p class="tw:mt-2 tw:mb-0 tw:leading-7 tw:text-[#6B6B6B]">@(isDutch ? "Gebruik geen woordenboek of vertaaltool. Dan geeft de uitslag het eerlijkste beeld." : "Do not use a dictionary or translation tool. That gives you the most useful result.")</p></div></li>
+                <li class="tw:grid tw:grid-cols-[2rem_1fr] tw:gap-4"><span class="tw:text-sm tw:font-semibold tw:text-[#B23A48]">03</span><div><h3 class="tw:m-0 tw:text-base tw:font-semibold tw:text-[#071F3D]">@(isDutch ? "Bekijk direct je uitslag" : "See your result immediately")</h3><p class="tw:mt-2 tw:mb-0 tw:leading-7 tw:text-[#6B6B6B]">@(isDutch ? "Na de laatste vraag krijg je je score en een advies voor het vervolg." : "After the final question, you will receive your score and guidance on what to do next.")</p></div></li>
+            </ol>
+        </aside>
+    </div>
+</section>
+
+<section id="score-guide" class="tw:border-y tw:border-[#C9D6DF] tw:bg-[#EEF4F7] tw:py-16 tw:md:py-24">
+    <div class="public-container">
+        <div class="tw:grid tw:gap-6 tw:md:grid-cols-[minmax(0,0.7fr)_minmax(0,1fr)] tw:md:items-end tw:md:gap-16">
+            <div>
+                <p class="tw:mb-4 tw:text-xs tw:font-medium tw:uppercase tw:tracking-[0.2em] tw:text-[#B23A48] tw:[font-family:var(--serif-label)]">@(isDutch ? "Scoregids" : "Score guide")</p>
+                <h2 class="tw:m-0 tw:text-[clamp(2.2rem,4.5vw,3.8rem)] tw:font-medium tw:leading-[1.08] tw:text-[#071F3D] tw:[font-family:var(--serif-heading)]">@(isDutch ? "Zo lees je de uitslag" : "How to read your result")</h2>
+            </div>
+            <p class="tw:m-0 tw:max-w-[40rem] tw:text-lg tw:leading-8 tw:text-[#535353]">@(isDutch ? "Je score helpt je inschatten hoeveel basis je al hebt en hoeveel ondersteuning of herhaling voor jou prettig is." : "Your score helps you estimate how much foundation you already have and how much support or revision may be useful.")</p>
+        </div>
+
+        <div class="tw:mt-12 tw:border-t tw:border-[#9FB1BD]">
+            <article class="tw:grid tw:gap-4 tw:border-b tw:border-[#9FB1BD] tw:py-7 tw:md:grid-cols-[13rem_1fr] tw:md:gap-12">
+                <div>
+                    <p class="tw:m-0 tw:text-2xl tw:font-semibold tw:text-[#071F3D] tw:[font-family:var(--serif-heading)]">@(isDutch ? "51 punten of meer" : "51 points or more")</p>
+                    <p class="tw:mt-2 tw:mb-0 tw:text-xs tw:font-semibold tw:uppercase tw:tracking-[0.16em] tw:text-[#39705F]">@(isDutch ? "A1-basis bereikt" : "A1 foundation reached")</p>
+                </div>
+                <p class="tw:m-0 tw:max-w-[48rem] tw:text-[1.05rem] tw:leading-8 tw:text-[#3F505A]">@(isDutch ? "Je beheerst de basis van niveau A1. De cursus Nederlands A1-A2 is een passende volgende stap." : "You have a solid A1 foundation. The Dutch A1-A2 course is a suitable next step.")</p>
+            </article>
+            <article class="tw:grid tw:gap-4 tw:border-b tw:border-[#9FB1BD] tw:py-7 tw:md:grid-cols-[13rem_1fr] tw:md:gap-12">
+                <div>
+                    <p class="tw:m-0 tw:text-2xl tw:font-semibold tw:text-[#071F3D] tw:[font-family:var(--serif-heading)]">@(isDutch ? "45 tot 50 punten" : "45 to 50 points")</p>
+                    <p class="tw:mt-2 tw:mb-0 tw:text-xs tw:font-semibold tw:uppercase tw:tracking-[0.16em] tw:text-[#A46722]">@(isDutch ? "Bijna op A1" : "Close to A1")</p>
+                </div>
+                <p class="tw:m-0 tw:max-w-[48rem] tw:text-[1.05rem] tw:leading-8 tw:text-[#3F505A]">@(isDutch ? "De cursus kan goed bij je passen. Neem wel de tijd voor herhaling en doorloop alle uitleg en opdrachten zorgvuldig." : "The course can still be a good fit. Make time for revision and work through every explanation and assignment carefully.")</p>
+            </article>
+            <article class="tw:grid tw:gap-4 tw:border-b tw:border-[#9FB1BD] tw:py-7 tw:md:grid-cols-[13rem_1fr] tw:md:gap-12">
+                <div>
+                    <p class="tw:m-0 tw:text-2xl tw:font-semibold tw:text-[#071F3D] tw:[font-family:var(--serif-heading)]">@(isDutch ? "Minder dan 45 punten" : "Below 45 points")</p>
+                    <p class="tw:mt-2 tw:mb-0 tw:text-xs tw:font-semibold tw:uppercase tw:tracking-[0.16em] tw:text-[#B23A48]">@(isDutch ? "Eerst de basis versterken" : "Strengthen the basics first")</p>
+                </div>
+                <p class="tw:m-0 tw:max-w-[48rem] tw:text-[1.05rem] tw:leading-8 tw:text-[#3F505A]">
+                    @(isDutch ? "Je basis heeft waarschijnlijk nog wat aandacht nodig. Mail ons voor persoonlijk advies via " : "Your foundation probably needs some attention first. Email us for personal advice at ")
+                    <a class="tw:font-semibold tw:text-[#8F2D3A] tw:underline tw:decoration-[#B23A48]/40 tw:underline-offset-4 hover:tw:decoration-[#B23A48]" href="mailto:info@id-develops.com">info@id-develops.com</a>.
+                </p>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section id="start-level-test" class="tw:bg-[#071F3D] tw:py-16 tw:text-white tw:md:py-24">
+    <div class="public-container tw:grid tw:gap-10 tw:md:grid-cols-[minmax(0,1fr)_auto] tw:md:items-end tw:md:gap-16">
+        <div>
+            <p class="tw:mb-4 tw:text-xs tw:font-medium tw:uppercase tw:tracking-[0.2em] tw:text-[#F4C8CD] tw:[font-family:var(--serif-label)]">@(isDutch ? "Klaar om te beginnen?" : "Ready to begin?")</p>
+            <h2 class="tw:m-0 tw:max-w-[16ch] tw:text-[clamp(2.5rem,5vw,4.5rem)] tw:font-medium tw:leading-[1.02] tw:tracking-[-0.03em] tw:text-white tw:[font-family:var(--serif-heading)]">@(isDutch ? "Neem de tijd en ontdek waar je staat." : "Take your time and discover where you stand.")</h2>
+            <p class="tw:mt-6 tw:mb-0 tw:max-w-[39rem] tw:text-lg tw:leading-8 tw:text-white/70">@(isDutch ? $"De test duurt ongeveer {duration}. Zodra je start, begint de timer." : $"The test takes around {duration}. The timer begins as soon as you start.")</p>
+        </div>
+
+        <div>
+            @if (Model.IsLevelTestAvailable)
+            {
+                <form method="post" asp-page-handler="CreateRecord">
+                    <button type="submit" class="public-btn public-btn-primary tw:min-h-14 tw:border-[#B23A48] tw:bg-[#B23A48] tw:px-7 tw:text-white tw:shadow-[0_12px_28px_rgba(0,0,0,0.22)] tw:hover:border-[#C84E5F] tw:hover:bg-[#C84E5F] tw:focus:border-[#C84E5F] tw:focus:bg-[#C84E5F]">
+                        @(isDutch ? "Start de niveautest" : "Start the level test")
+                        <i class="fa-solid fa-arrow-right-long" aria-hidden="true"></i>
+                    </button>
+                </form>
+            }
+            else
+            {
+                <div class="tw:max-w-md tw:border tw:border-white/20 tw:bg-white/10 tw:p-5 tw:text-sm tw:leading-6 tw:text-white" role="alert">
+                    @(isDutch ? "De openbare niveautest is op dit moment niet beschikbaar. Probeer het later opnieuw." : "The public level test is currently unavailable. Please try again later.")
+                </div>
+            }
+        </div>
+    </div>
+</section>

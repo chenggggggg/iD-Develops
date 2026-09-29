@@ -1,0 +1,61 @@
+@page
+@model ContactModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<ContactModel> localizer
+@{
+    ViewData["Title"] = localizer["Title"];
+}
+
+<section class="public-page">
+    <div class="public-container">
+        <div class="public-contact-grid">
+            <div>
+                <p class="public-eyebrow public-eyebrow-left">@localizer["Title"]</p>
+                <h1 class="public-page-title">@localizer["HeroTitle"]</h1>
+                <p class="public-copy">@localizer["HeroDescription"]</p>
+            </div>
+            <div class="public-contact-card">
+                <form method="post" class="public-form">
+                    <div class="public-form-row">
+                        <label for="DisplayName" class="public-label">@localizer["NameLabel"]</label>
+                        <input type="text" class="public-field contact-field @(Html.ViewData.ModelState["DisplayName"]?.Errors.Count > 0 ? "is-invalid" : "")" id="DisplayName" name="DisplayName" placeholder="@localizer["NamePlaceholder"]">
+                        <div class="public-invalid-feedback">@Html.ValidationMessageFor(model => model.DisplayName)</div>
+                    </div>
+
+                    <div class="public-form-row">
+                        <label for="From" class="public-label">@localizer["EmailLabel"]</label>
+                        <input type="email" class="public-field contact-field @(Html.ViewData.ModelState["From"]?.Errors.Count > 0 ? "is-invalid" : "")" id="From" name="From" placeholder="@localizer["EmailPlaceholder"]">
+                        <div class="public-invalid-feedback">@Html.ValidationMessageFor(model => model.From)</div>
+                    </div>
+
+                    <div class="public-form-row">
+                        <label for="Subject" class="public-label">@localizer["SubjectLabel"]</label>
+                        <input type="text" class="public-field contact-field @(Html.ViewData.ModelState["Subject"]?.Errors.Count > 0 ? "is-invalid" : "")" id="Subject" name="Subject" placeholder="@localizer["SubjectPlaceholder"]">
+                        <div class="public-invalid-feedback">@Html.ValidationMessageFor(model => model.Subject)</div>
+                    </div>
+
+                    <div class="public-form-row">
+                        <label for="Body" class="public-label">@localizer["MessageLabel"]</label>
+                        <textarea class="public-field contact-field contact-message-field @(Html.ViewData.ModelState["Body"]?.Errors.Count > 0 ? "is-invalid" : "")" id="Body" name="Body" placeholder="@localizer["MessagePlaceholder"]"></textarea>
+                        <div class="public-invalid-feedback">@Html.ValidationMessageFor(model => model.Body)</div>
+                    </div>
+
+                    <div class="public-form-actions">
+                        <partial name="_Turnstile" />
+                        <button type="submit" class="public-btn public-btn-primary">
+                            @localizer["SubmitButton"] <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </form>
+
+                @if (Model.EmailIsSent == "success")
+                {
+                    <span class="public-status-success">@localizer["EmailSuccessMessage"]</span>
+                }
+                else if (Model.EmailIsSent == "failed")
+                {
+                    <span class="public-status-error">@localizer["EmailFailureMessage"]</span>
+                }
+            </div>
+        </div>
+    </div>
+</section>

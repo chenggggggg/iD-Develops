@@ -1,0 +1,238 @@
+@page "/portal/courses/{courseId:int}/manage"
+@model iD_Develops.Pages.Portal.Courses.ManageModel
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = $"Manage {Model.CourseAccess.CourseName}";
+    var assignedRoleCount = Model.CourseAccess.Users
+        .Select(user => user.Role)
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .Count();
+}
+
+<section class="portal-page-shell portal-data-page course-access-page">
+    <div class="portal-page-header">
+        <div class="portal-page-header-copy">
+            <a class="course-access-back" asp-page="/Portal/Courses/Index">
+                <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+                Courses
+            </a>
+            <p class="portal-eyebrow">Course access</p>
+            <h1 class="portal-title-sm">@Model.CourseAccess.CourseName</h1>
+        </div>
+        <div class="portal-page-header-actions">
+            <button class="portal-btn portal-btn-primary"
+                    type="button"
+                    data-portal-dialog-open="assignCourseUserDialog"
+                    @(Model.CourseAccess.AssignableUsers.Count == 0 ? "disabled" : null)>
+                <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+                Assign user
+            </button>
+        </div>
+    </div>
+
+    @if (TempData["StatusMessage"] is string statusMessage)
+    {
+        <div class="public-alert public-alert-success" role="status">@statusMessage</div>
+    }
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="public-alert public-alert-danger" role="alert">
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(value => value.Errors))
+            {
+                <div>@error.ErrorMessage</div>
+            }
+        </div>
+    }
+
+    <div class="tw:mb-4 tw:grid tw:flex-none tw:gap-3 tw:sm:grid-cols-3" aria-label="Course access overview">
+        <article class="tw:flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-[#dfe5ec] tw:bg-white tw:px-4 tw:py-3 tw:shadow-[0_1px_2px_rgba(2,7,47,0.04)]"><span class="tw:grid tw:size-9 tw:flex-none tw:place-items-center tw:rounded-md tw:bg-[#eaf3fa] tw:text-[#005190]" aria-hidden="true"><i class="fa-solid fa-users"></i></span><span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">Assigned users</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@Model.CourseAccess.Users.Count</strong></span></article>
+        <article class="tw:flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-[#dfe5ec] tw:bg-white tw:px-4 tw:py-3 tw:shadow-[0_1px_2px_rgba(2,7,47,0.04)]"><span class="tw:grid tw:size-9 tw:flex-none tw:place-items-center tw:rounded-md tw:bg-[#eef6f4] tw:text-[#287a55]" aria-hidden="true"><i class="fa-solid fa-user-plus"></i></span><span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">Available to assign</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@Model.CourseAccess.AssignableUsers.Count</strong></span></article>
+        <article class="tw:flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-[#dfe5ec] tw:bg-white tw:px-4 tw:py-3 tw:shadow-[0_1px_2px_rgba(2,7,47,0.04)]"><span class="tw:grid tw:size-9 tw:flex-none tw:place-items-center tw:rounded-md tw:bg-[#f7eff1] tw:text-[#B23A48]" aria-hidden="true"><i class="fa-solid fa-user-shield"></i></span><span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">Roles represented</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@assignedRoleCount</strong></span></article>
+    </div>
+
+    <div class="course-access-toolbar">
+        <form method="get" class="course-access-search" role="search">
+            <input type="hidden" name="sort" value="@Model.Sort" />
+            <input type="hidden" name="direction" value="@Model.Direction" />
+            <label class="course-access-search-field">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <span class="tw:sr-only">Search course access</span>
+                <input type="search"
+                       name="search"
+                       value="@Model.Search"
+                       placeholder="Search by name, email, or role"
+                       autocomplete="off" />
+            </label>
+            <button class="portal-btn portal-btn-outline" type="submit">Search</button>
+            @if (!string.IsNullOrWhiteSpace(Model.Search))
+            {
+                <a class="portal-btn portal-btn-outline"
+                   asp-page="/Portal/Courses/Manage"
+                   asp-route-courseId="@Model.CourseAccess.CourseId"
+                   asp-route-sort="@Model.Sort"
+                   asp-route-direction="@Model.Direction">Clear</a>
+            }
+        </form>
+        <span class="course-access-count">@Model.CourseAccess.Users.Count user@(Model.CourseAccess.Users.Count == 1 ? string.Empty : "s")</span>
+    </div>
+
+    <div class="portal-table-card course-access-table-card">
+        <div class="portal-table-wrap">
+            <table class="portal-exams-table course-access-table">
+                <thead>
+                    <tr>
+                        <th scope="col">
+                            <a class="course-sort-link"
+                               asp-route-courseId="@Model.CourseAccess.CourseId"
+                               asp-route-search="@Model.Search"
+                               asp-route-sort="name"
+                               asp-route-direction="@Model.NextDirection("name")">
+                                Name
+                                <i class="@Model.SortIcon("name")" aria-hidden="true"></i>
+                            </a>
+                        </th>
+                        <th scope="col">
+                            <a class="course-sort-link"
+                               asp-route-courseId="@Model.CourseAccess.CourseId"
+                               asp-route-search="@Model.Search"
+                               asp-route-sort="role"
+                               asp-route-direction="@Model.NextDirection("role")">
+                                Role
+                                <i class="@Model.SortIcon("role")" aria-hidden="true"></i>
+                            </a>
+                        </th>
+                        <th scope="col">
+                            <a class="course-sort-link"
+                               asp-route-courseId="@Model.CourseAccess.CourseId"
+                               asp-route-search="@Model.Search"
+                               asp-route-sort="registered"
+                               asp-route-direction="@Model.NextDirection("registered")">
+                                Registered on
+                                <i class="@Model.SortIcon("registered")" aria-hidden="true"></i>
+                            </a>
+                        </th>
+                        <th scope="col">Assigned by</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.CourseAccess.Users.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="4" class="portal-empty-table-cell">
+                                @(string.IsNullOrWhiteSpace(Model.Search)
+                                    ? "No users have been assigned to this course."
+                                    : "No course users match your search.")
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var user in Model.CourseAccess.Users)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="course-access-name-cell">
+                                        <div>
+                                            <div class="portal-exam-name">@user.Name</div>
+                                            <div class="portal-table-meta">@user.Email</div>
+                                        </div>
+                                        @if (user.IsOwner)
+                                        {
+                                            <span class="course-owner-pill">Creator</span>
+                                        }
+                                        else
+                                        {
+                                            <form method="post"
+                                                  asp-page-handler="Remove"
+                                                  asp-route-courseId="@Model.CourseAccess.CourseId"
+                                                  asp-route-userId="@user.UserId"
+                                                  class="tw:m-0">
+                                                <input type="hidden" asp-for="Search" />
+                                                <input type="hidden" asp-for="Sort" />
+                                                <input type="hidden" asp-for="Direction" />
+                                                <button class="course-access-remove"
+                                                        type="submit"
+                                                        title="Remove access"
+                                                        aria-label="Remove @user.Name from this course">
+                                                    <i class="fa-solid fa-user-minus" aria-hidden="true"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </td>
+                                <td><span class="course-role-pill" data-role="@user.Role">@user.Role</span></td>
+                                <td><time datetime="@user.GrantedAtUtc.ToString("O")">@user.GrantedAtUtc.ToString("dd MMM yyyy, HH:mm") UTC</time></td>
+                                <td><span class="course-assignment-source" data-source="@user.AssignedBy">@user.AssignedBy</span></td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<div class="portal-dialog-backdrop" data-portal-dialog-backdrop="assignCourseUserDialog" hidden></div>
+<div class="portal-dialog course-access-dialog"
+     id="assignCourseUserDialog"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="assignCourseUserDialogTitle"
+     tabindex="-1"
+     hidden>
+    <section class="course-access-dialog-card">
+        <div class="portal-dialog-header">
+            <div>
+                <p class="portal-eyebrow">Course access</p>
+                <h2 class="portal-title-sm" id="assignCourseUserDialogTitle">Assign user</h2>
+            </div>
+            <button type="button"
+                    class="portal-dialog-close"
+                    data-portal-dialog-close="assignCourseUserDialog"
+                    aria-label="Close">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <form method="post" asp-page-handler="Assign" asp-route-courseId="@Model.CourseAccess.CourseId">
+            <input type="hidden" asp-for="Search" />
+            <input type="hidden" asp-for="Sort" />
+            <input type="hidden" asp-for="Direction" />
+            <div class="portal-dialog-body">
+                <label class="course-access-search-field course-assignee-search">
+                    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                    <span class="tw:sr-only">Search users to assign</span>
+                    <input type="search" placeholder="Find a user" autocomplete="off" data-course-assignee-search />
+                </label>
+
+                <div class="course-assignee-list" data-course-assignee-list>
+                    @foreach (var user in Model.CourseAccess.AssignableUsers)
+                    {
+                        <label class="course-assignee-option" data-course-assignee="@($"{user.Name} {user.Email} {user.Role}".ToLowerInvariant())" hidden>
+                            <input type="radio" asp-for="SelectedUserId" value="@user.UserId" />
+                            <span>
+                                <strong>@user.Name</strong>
+                                <small>@user.Email</small>
+                            </span>
+                            <span class="course-role-pill" data-role="@user.Role">@user.Role</span>
+                        </label>
+                    }
+                    <div class="course-assignee-empty" data-course-assignee-empty>Use search to find a user.</div>
+                </div>
+                <span class="portal-validation-message" asp-validation-for="SelectedUserId"></span>
+            </div>
+            <div class="course-access-dialog-actions">
+                <button type="button" class="portal-btn portal-btn-outline" data-portal-dialog-close="assignCourseUserDialog">Cancel</button>
+                <button type="submit" class="portal-btn portal-btn-primary">
+                    <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+                    Assign access
+                </button>
+            </div>
+        </form>
+    </section>
+</div>
+
+@section Scripts {
+    <script src="~/js/course-access.js" asp-append-version="true"></script>
+}

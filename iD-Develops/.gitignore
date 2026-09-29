@@ -1,0 +1,3 @@
+Properties/PublishProfiles/*.pubxml.user
+node_modules/
+App_Data/DataProtection-Keys/

@@ -1,0 +1,299 @@
+@page
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@model iD_Develops.Pages.Portal.Exams.ListModel
+@{
+    Layout = "_PortalLayout";
+    @if (User.IsInRole("Teacher") || (User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
+    {
+        ViewData["Title"] = "Exams";
+    }
+    else
+    {
+        ViewData["Title"] = "Exams";        
+    }
+    var requestToken = Antiforgery.GetAndStoreTokens(Model.HttpContext).RequestToken;
+    var canManageExams = User.IsInRole("Teacher") || User.IsInRole("Admin") || User.IsInRole("SuperAdmin");
+    var publishedExamCount = Model.Exams.Count(exam => exam.PublishStatus == iD_Develops.Models.ExamPublishStatus.Published);
+    var draftExamCount = Model.Exams.Count(exam => exam.PublishStatus == iD_Develops.Models.ExamPublishStatus.Draft);
+    var timedExamCount = Model.Exams.Count(exam => exam.TimeLimit.HasValue);
+    var difficultyCount = Model.Exams.Select(exam => exam.Difficulty).Distinct().Count();
+}
+
+<div class="portal-page-shell portal-data-page">
+    <input id="RequestVerificationToken" type="hidden" value="@requestToken" />
+
+    @if (TempData["ExamLaunchError"] is string launchError)
+    {
+        <div class="portal-exam-launch-error-banner" role="alert">
+            <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+            <span>@launchError</span>
+        </div>
+    }
+
+    @if (TempData["ExamActionSuccess"] is string actionSuccess)
+    {
+        <div class="tw:mb-4 tw:rounded-xl tw:border tw:border-emerald-200 tw:bg-emerald-50 tw:p-4 tw:text-sm tw:text-emerald-900" role="status">
+            <i class="fa-solid fa-circle-check tw:mr-2" aria-hidden="true"></i>@actionSuccess
+        </div>
+    }
+
+    @if (TempData["ExamActionError"] is string actionError)
+    {
+        <div class="tw:mb-4 tw:rounded-xl tw:border tw:border-red-200 tw:bg-red-50 tw:p-4 tw:text-sm tw:text-red-900" role="alert">
+            <i class="fa-solid fa-circle-exclamation tw:mr-2" aria-hidden="true"></i>@actionError
+        </div>
+    }
+
+    @if(User.IsInRole("Teacher") || (User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
+    {
+        <div class="portal-page-header">
+            <div class="portal-page-header-copy">
+                <p class="portal-eyebrow">Exams</p>
+                <h1 class="portal-title-sm">View, edit, and organize your exams</h1>
+                <p class="portal-copy">Keep your examination library up to date and jump into editing whenever you need to make changes.</p>
+            </div>
+            <div class="portal-page-header-actions">
+                <a class="portal-btn portal-btn-outline" asp-page="/Portal/Exams/Transfer">
+                    <i class="fa-solid fa-file-import" aria-hidden="true"></i>
+                    Import exam
+                </a>
+                <a class="portal-btn portal-btn-primary" asp-page="/Portal/Exams/Create">
+                    Create new exam
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="portal-page-header">
+            <div class="portal-page-header-copy">
+                <p class="portal-eyebrow">Exams</p>
+                <h1 class="portal-title-sm">Your assigned exams in one place</h1>
+                <p class="portal-copy">Open an exam when you are ready, or come back later and continue from the portal.</p>
+            </div>
+        </div>
+    }
+
+    <div class="tw:mb-4 tw:grid tw:flex-none tw:gap-3 tw:sm:grid-cols-3" aria-label="Exam overview">
+        <article class="tw:flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-[#dfe5ec] tw:bg-white tw:px-4 tw:py-3 tw:shadow-[0_1px_2px_rgba(2,7,47,0.04)]">
+            <span class="tw:grid tw:size-9 tw:flex-none tw:place-items-center tw:rounded-md tw:bg-[#eaf3fa] tw:text-[#005190]" aria-hidden="true"><i class="fa-solid fa-file-lines"></i></span>
+            <span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">@(canManageExams ? "Total exams" : "Assigned exams")</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@Model.Exams.Count</strong></span>
+        </article>
+        <article class="tw:flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-[#dfe5ec] tw:bg-white tw:px-4 tw:py-3 tw:shadow-[0_1px_2px_rgba(2,7,47,0.04)]">
+            <span class="tw:grid tw:size-9 tw:flex-none tw:place-items-center tw:rounded-md tw:bg-[#eef6f4] tw:text-[#287a55]" aria-hidden="true"><i class="fa-solid @(canManageExams ? "fa-circle-check" : "fa-clock")"></i></span>
+            <span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">@(canManageExams ? "Published" : "Timed exams")</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@(canManageExams ? publishedExamCount : timedExamCount)</strong></span>
+        </article>
+        <article class="tw:flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-[#dfe5ec] tw:bg-white tw:px-4 tw:py-3 tw:shadow-[0_1px_2px_rgba(2,7,47,0.04)]">
+            <span class="tw:grid tw:size-9 tw:flex-none tw:place-items-center tw:rounded-md tw:bg-[#f7eff1] tw:text-[#B23A48]" aria-hidden="true"><i class="fa-solid @(canManageExams ? "fa-pen-ruler" : "fa-layer-group")"></i></span>
+            <span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">@(canManageExams ? "Drafts" : "Levels")</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@(canManageExams ? draftExamCount : difficultyCount)</strong></span>
+        </article>
+    </div>
+
+    <div class="tw:mb-2 tw:flex tw:flex-none tw:items-end tw:justify-between tw:gap-4">
+        <div><p class="tw:m-0 tw:text-sm tw:font-semibold tw:text-[#071f3d]">@(canManageExams ? "Exam library" : "Your exams")</p><p class="tw:m-0 tw:text-xs tw:text-[#64748b]">@(canManageExams ? "Start, edit, export, or archive an examination." : "Choose an exam when you are ready to begin.")</p></div>
+        <span class="tw:text-xs tw:font-medium tw:text-[#64748b]">@Model.Exams.Count total</span>
+    </div>
+
+    <div class="portal-table-card portal-exams-table-card">
+        <div class="portal-table-wrap">
+        <table class="portal-exams-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Level</th>
+                    <th>Time limit</th>
+                    @if ((User.IsInRole("Admin") || User.IsInRole("SuperAdmin")) || User.IsInRole("Teacher"))
+                    {
+                        <th>Status</th>
+                    }
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var exam in Model.Exams)
+                {
+                    <tr>
+                        <td>
+                            <div class="portal-exam-name">@exam.Name</div>
+                        </td>
+                        <td>
+                            <span class="portal-table-pill">@exam.Difficulty</span>
+                        </td>
+                        @if (exam.TimeLimit.HasValue)
+                        {
+                            <td>
+                                <span class="portal-table-meta">@exam.TimeLimit</span>
+                            </td>
+                        }
+                        else
+                        {
+                            <td>
+                                <span class="portal-table-meta">No time limit</span>
+                            </td>
+                        }
+                        @if ((User.IsInRole("Admin") || User.IsInRole("SuperAdmin")) || User.IsInRole("Teacher"))
+                        {
+                            <td>
+                                <span class="portal-table-pill portal-table-pill-status">@exam.PublishStatus</span>
+                            </td>
+                        }
+                        <td class="portal-exams-table-actions">
+                            <button type="button"
+                                    class="portal-btn portal-btn-primary portal-btn-sm portal-exam-start-btn"
+                                    data-portal-dialog-open="examLaunchDialog"
+                                    data-exam-launch
+                                    data-exam-id="@exam.Id"
+                                    title="Start exam">
+                                <i class="fa-solid fa-play" aria-hidden="true"></i>
+                                <span>Start</span>
+                            </button>
+                            @if (User.IsInRole("Teacher") || (User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
+                            {
+                                <a class="portal-btn portal-btn-sm portal-btn-icon portal-exam-action-edit"
+                                   role="button"
+                                   asp-page="/Portal/Examination/Edit"
+                                   asp-route-examId="@exam.Id"
+                                   title="Edit">
+                                    <i class="fa-solid fa-pencil"></i>
+                                </a>
+
+                                <a class="portal-btn portal-btn-sm portal-btn-icon"
+                                   asp-page="/Portal/Exams/Transfer"
+                                   asp-page-handler="Export"
+                                   asp-route-examId="@exam.Id"
+                                   title="Export">
+                                    <i class="fa-solid fa-file-export" aria-hidden="true"></i>
+                                </a>
+
+                                @if (exam.PublishStatus != iD_Develops.Models.ExamPublishStatus.Archived)
+                                {
+                                    <form method="post"
+                                          asp-page-handler="ArchiveExam"
+                                          asp-route-examId="@exam.Id"
+                                          class="tw:inline-flex tw:m-0"
+                                          onsubmit="return confirm('Archive this exam? Existing attempts and results will remain available.');">
+                                        <button type="submit"
+                                                class="portal-btn portal-btn-sm portal-btn-icon"
+                                                title="Archive">
+                                            <i class="fa-solid fa-box-archive" aria-hidden="true"></i>
+                                        </button>
+                                    </form>
+                                }
+
+                                <a class="portal-btn portal-btn-sm portal-btn-icon portal-exam-action-delete"
+                                   title="Delete"
+                                   data-delete-url="@Url.Page("/Portal/Exams/List", "DeleteExam", new { examId = exam.Id })"
+                                   data-exam-id="@exam.Id"
+                                   data-delete-exam>
+                                    <i class="fa-solid fa-trash"></i>
+                                </a>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+
+<div class="portal-dialog-backdrop" data-portal-dialog-backdrop="examLaunchDialog" hidden></div>
+<div class="portal-dialog portal-exam-launch-dialog"
+     id="examLaunchDialog"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="examLaunchDialogTitle"
+     tabindex="-1"
+     hidden>
+    <section class="portal-exam-launch-dialog-card">
+        <div class="portal-dialog-header">
+            <div>
+                <p class="portal-eyebrow" data-exam-launch-eyebrow>Before you begin</p>
+                <h2 class="portal-title-sm" id="examLaunchDialogTitle" data-exam-launch-title>Exam details</h2>
+            </div>
+            <button type="button"
+                    class="portal-dialog-close"
+                    data-portal-dialog-close="examLaunchDialog"
+                    aria-label="Close">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <div class="portal-dialog-body portal-exam-launch-body">
+            <div class="portal-exam-launch-loading" data-exam-launch-loading role="status">
+                <span class="portal-exam-launch-spinner" aria-hidden="true"></span>
+                <span>Loading exam details...</span>
+            </div>
+
+            <div class="portal-exam-launch-error" data-exam-launch-error role="alert" hidden>
+                <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                <span data-exam-launch-error-text>Exam details could not be loaded.</span>
+            </div>
+
+            <div data-exam-launch-content hidden>
+                <div class="portal-exam-launch-meta" aria-label="Exam information">
+                    <div class="portal-exam-launch-meta-item">
+                        <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+                        <div>
+                            <span>Course</span>
+                            <strong data-exam-launch-course>-</strong>
+                        </div>
+                    </div>
+                    <div class="portal-exam-launch-meta-item">
+                        <i class="fa-regular fa-clock" aria-hidden="true"></i>
+                        <div>
+                            <span>Time limit</span>
+                            <strong data-exam-launch-time>-</strong>
+                        </div>
+                    </div>
+                    <div class="portal-exam-launch-meta-item">
+                        <i class="fa-solid fa-rotate" aria-hidden="true"></i>
+                        <div>
+                            <span>Attempts</span>
+                            <strong data-exam-launch-attempts>-</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="portal-exam-launch-introduction" data-exam-launch-introduction></div>
+
+                <div class="portal-exam-launch-state" data-exam-launch-state hidden>
+                    <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                    <span data-exam-launch-state-text></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="portal-exam-launch-footer">
+            <button type="button"
+                    class="portal-btn portal-btn-outline"
+                    data-portal-dialog-close="examLaunchDialog">
+                Cancel
+            </button>
+
+            <form method="post" asp-page-handler="LaunchExam" class="portal-exam-launch-form" data-exam-launch-restart-form hidden>
+                <input type="hidden" name="examId" data-exam-launch-restart-id />
+                <input type="hidden" name="launchAction" value="restart" />
+                <button type="submit" class="portal-btn portal-btn-outline">
+                    <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
+                    Restart
+                </button>
+            </form>
+
+            <form method="post" asp-page-handler="LaunchExam" class="portal-exam-launch-form" data-exam-launch-primary-form hidden>
+                <input type="hidden" name="examId" data-exam-launch-primary-id />
+                <input type="hidden" name="launchAction" data-exam-launch-action />
+                <button type="submit" class="portal-btn portal-btn-primary" data-exam-launch-submit>
+                    <i class="fa-solid fa-play" aria-hidden="true" data-exam-launch-submit-icon></i>
+                    <span data-exam-launch-submit-label>Start exam</span>
+                </button>
+            </form>
+        </div>
+    </section>
+</div>
+
+@section Scripts {
+    <script src="/js/display-messages.js"></script>
+    <script src="/js/exam-table.js"></script>
+    <script src="~/js/exams-list.js" asp-append-version="true"></script>
+}

@@ -1,0 +1,241 @@
+@page
+@model iD_Develops.Pages.Portal.Exams.RecordModel
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = "Record";
+}
+
+<div class="portal-page-shell">
+    @if (Model.Summary == null)
+    {
+        <div class="public-alert public-alert-warning">
+            The requested record could not be loaded.
+        </div>
+    }
+    else
+    {
+        <div class="portal-page-header">
+            <div class="portal-page-header-copy">
+                <p class="portal-eyebrow">Results</p>
+                <h1 class="portal-title-sm">@Model.Summary.ExamName</h1>
+                <p class="portal-copy">Review your performance, check the correct answers, and learn from the feedback attached to each question.</p>
+            </div>
+            <div class="portal-page-header-actions">
+                <a class="portal-btn portal-btn-outline" asp-page="/Portal/Exams/Results">
+                    <i class="fa-solid fa-arrow-left-long" aria-hidden="true"></i>Back to results
+                </a>
+            </div>
+        </div>
+
+        <div class="record-summary-grid">
+            <div>
+                <div class="portal-table-card record-card">
+                    <p class="portal-eyebrow">Score</p>
+                    <div class="record-stat-value">@Model.Summary.Score.ToString("0.##") / @Model.Summary.MaxScore.ToString("0.##")</div>
+                    <p class="portal-copy">@Model.Summary.CorrectAnswers of @Model.Summary.TotalQuestions questions correct</p>
+                </div>
+            </div>
+            <div>
+                <div class="portal-table-card record-card">
+                    <p class="portal-eyebrow">@Model.Summary.GradeLabel</p>
+                    <div class="record-stat-value">@Model.Summary.GradeValue</div>
+                    <p class="portal-copy">Displayed according to the grading mode configured for this exam.</p>
+                </div>
+            </div>
+            <div>
+                <div class="portal-table-card record-card">
+                    <p class="portal-eyebrow">Exam Details</p>
+                    <p class="portal-copy"><strong>Status:</strong> @Model.Summary.ExamStatus</p>
+                    <p class="portal-copy"><strong>Version:</strong> @(Model.Summary.ExamVersionNumber.HasValue ? $"v{Model.Summary.ExamVersionNumber}" : "Legacy")</p>
+                    <p class="portal-copy"><strong>Completed:</strong> @((Model.Summary.EndDateTime ?? Model.Summary.StartDateTime).ToLocalTime().ToString("dd MMM yyyy"))</p>
+                </div>
+            </div>
+            <div>
+                <div class="portal-table-card record-card">
+                    <p class="portal-eyebrow">Timeline</p>
+                    <p class="portal-copy"><strong>Started:</strong> @Model.Summary.StartDateTime.ToLocalTime().ToString("dd MMM yyyy HH:mm")</p>
+                    <p class="portal-copy"><strong>Finished:</strong> @((Model.Summary.EndDateTime ?? Model.Summary.StartDateTime).ToLocalTime().ToString("dd MMM yyyy HH:mm"))</p>
+                </div>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Summary.CompletionText))
+        {
+            <div class="portal-table-card record-feedback-card">
+                <p class="portal-eyebrow">Exam Feedback</p>
+                <div class="record-content-muted">@Html.Raw(Model.Summary.CompletionText)</div>
+            </div>
+        }
+
+        <div class="portal-table-card portal-card-lg">
+            <div class="record-review-header">
+                <div>
+                    <p class="portal-eyebrow">Question Review</p>
+                    <h2 class="portal-title-sm">Questions @(((Model.PageNumber - 1) * iD_Develops.Pages.Portal.Exams.RecordModel.PageSize) + 1) - @(Math.Min(Model.PageNumber * iD_Develops.Pages.Portal.Exams.RecordModel.PageSize, Model.TotalQuestions))</h2>
+                </div>
+                @if (Model.TotalPages > 1)
+                {
+                    <div class="record-pagination-actions">
+                        <a class="portal-btn portal-btn-outline @(Model.PageNumber <= 1 ? "disabled" : null)"
+                           asp-page="/Portal/Exams/Record"
+                           asp-route-recordId="@Model.RecordId"
+                           asp-route-pageNumber="@(Model.PageNumber - 1)"
+                           aria-disabled="@(Model.PageNumber <= 1)">
+                            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>Previous
+                        </a>
+                        <a class="portal-btn portal-btn-outline @(Model.PageNumber >= Model.TotalPages ? "disabled" : null)"
+                           asp-page="/Portal/Exams/Record"
+                           asp-route-recordId="@Model.RecordId"
+                           asp-route-pageNumber="@(Model.PageNumber + 1)"
+                           aria-disabled="@(Model.PageNumber >= Model.TotalPages)">
+                            Next<i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                }
+            </div>
+
+            <div class="record-question-list">
+                @foreach (var question in Model.Questions)
+                {
+                    <section class="record-question-card">
+                        <div class="record-question-header">
+                            <div>
+                                <span class="portal-table-pill">Question @question.QuestionNumber</span>
+                            </div>
+                            <div class="record-question-meta">
+                                <span class="portal-table-pill">@question.AwardedScore.ToString("0.##") / @question.QuestionScore.ToString("0.##") pts</span>
+                                <span class="record-result-pill @question.ResultBadgeClass">
+                                    @question.ResultLabel
+                                </span>
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(question.ScenarioHtml))
+                        {
+                            <div class="record-content-muted tw:mt-4">@Html.Raw(question.ScenarioHtml)</div>
+                        }
+
+                        <div class="tw:mt-4">@Html.Raw(question.QuestionHtml)</div>
+
+                        @if (!string.IsNullOrWhiteSpace(question.ImageUrl))
+                        {
+                            <div class="record-question-image-card tw:mt-4">
+                                <p class="portal-eyebrow">Question image</p>
+                                <img src="@question.ImageUrl" class="record-question-image" alt="Question image" />
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(question.MessageBeforeQuestionHtml))
+                        {
+                            <div class="record-note tw:mt-4">
+                                @Html.Raw(question.MessageBeforeQuestionHtml)
+                            </div>
+                        }
+
+                        <div class="record-answer-grid tw:mt-4">
+                            <div>
+                                <div class="record-answer-card">
+                                    <p class="portal-eyebrow">Your answer</p>
+                                    @if (question.MultipleChoiceOptions.Count > 0)
+                                    {
+                                        <div class="record-option-list">
+                                            @foreach (var option in question.MultipleChoiceOptions)
+                                            {
+                                                var optionClass = option.IsSelected
+                                                    ? "record-option-chip record-option-chip-selected"
+                                                    : "record-option-chip";
+
+                                                <div class="@optionClass">
+                                                    <div class="record-option-row">
+                                                        <div>
+                                                            <span class="record-option-key">@option.Key</span>
+                                                            <span>@option.Text</span>
+                                                        </div>
+                                                        <div class="record-option-badges">
+                                                            @if (option.IsSelected)
+                                                            {
+                                                                <span class="record-result-pill portal-table-pill-status-in-progress">Selected</span>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <p class="portal-copy">@question.SubmittedAnswer</p>
+                                    }
+                                </div>
+                            </div>
+                            <div>
+                                <div class="record-answer-card">
+                                    <p class="portal-eyebrow">Correct answer</p>
+                                    @if (question.MultipleChoiceOptions.Count > 0)
+                                    {
+                                        <div class="record-option-list">
+                                            @foreach (var option in question.MultipleChoiceOptions)
+                                            {
+                                                var optionClass = option.IsCorrect
+                                                    ? "record-option-chip record-option-chip-correct"
+                                                    : "record-option-chip";
+
+                                                <div class="@optionClass">
+                                                    <div class="record-option-row">
+                                                        <div>
+                                                            <span class="record-option-key">@option.Key</span>
+                                                            <span>@option.Text</span>
+                                                        </div>
+                                                        <div class="record-option-badges">
+                                                            @if (option.IsCorrect)
+                                                            {
+                                                                <span class="record-result-pill portal-table-pill-status-completed">Correct answer</span>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <p class="portal-copy">@question.CorrectAnswer</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="record-answer-grid record-answer-grid-spaced">
+                            <div>
+                                <div class="record-answer-card">
+                                    <p class="portal-eyebrow">Feedback</p>
+                                    @if (string.IsNullOrWhiteSpace(question.FeedbackHtml))
+                                    {
+                                        <p class="portal-copy">No feedback was added for this question.</p>
+                                    }
+                                    else
+                                    {
+                                        <div>@Html.Raw(question.FeedbackHtml)</div>
+                                    }
+                                </div>
+                            </div>
+                            <div>
+                                <div class="record-answer-card">
+                                    <p class="portal-eyebrow">Fun fact</p>
+                                    @if (string.IsNullOrWhiteSpace(question.FunFactHtml))
+                                    {
+                                        <p class="portal-copy">No additional note was added for this question.</p>
+                                    }
+                                    else
+                                    {
+                                        <div>@Html.Raw(question.FunFactHtml)</div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                }
+            </div>
+        </div>
+    }
+</div>

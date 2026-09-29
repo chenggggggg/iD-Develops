@@ -1,0 +1,194 @@
+@using iD_Develops.Models
+@model PaginationModel
+
+<div class="exam-pagination-bar">
+
+    <!-- LEFT: question navigation (takes all remaining space) -->
+    <div class="exam-pagination-left">
+        @if (Model.Mode != PaginationMode.Start)
+        {
+            <div class="question-button-group" role="group" aria-label="Question navigation">
+                @* Existing questions (Exam + Editing) *@
+                @if (Model.QuestionsMetadata?.Count > 0)
+                {
+                    @foreach (var questionMeta in Model.QuestionsMetadata)
+                    {
+                        var isActive = questionMeta.QuestionId == Model.CurrentQuestionId;
+
+                        <button type="button"
+                                class="question-nav-btn @(isActive ? "is-active" : "")"
+                                data-question-id="@questionMeta.QuestionId"
+                                data-action="load-question"
+                                aria-current="@(isActive ? "page" : null)">
+                            @questionMeta.QuestionNumber
+                        </button>
+                    }
+                }
+                else if (Model.Mode == PaginationMode.Exam)
+                {
+                    <div class="exam-pagination-empty">
+                        No questions
+                    </div>
+                }
+
+                @if (Model.Mode == PaginationMode.Editing)
+                {
+                    <details class="question-add-menu">
+                        <summary class="question-add-btn" aria-label="Add question">
+                            +
+                        </summary>
+
+                        <div class="question-add-menu-list">
+                            <button type="button" class="question-add-menu-item js-add-draft" data-question-type="Open">Open question</button>
+                            <button type="button" class="question-add-menu-item js-add-draft" data-question-type="MultipleChoice">Multiple choice</button>
+                            <button type="button" class="question-add-menu-item js-add-draft" data-question-type="TrueOrFalse">True / False</button>
+                        </div>
+                    </details>
+                }
+            </div>
+        }
+    </div>
+
+
+    <!-- RIGHT: action buttons (ALWAYS pinned right) -->
+    <div class="exam-pagination-right">
+        @if (Model.Mode == PaginationMode.Exam)
+        {
+            var hasQuestions = Model.QuestionsMetadata?.Count > 0;
+            <button type="button"
+                    id="submitExam"
+                    class="exam-action-btn exam-action-primary"
+                    disabled="@(!hasQuestions)">
+                Submit
+            </button>
+        }
+        else if (Model.Mode == PaginationMode.Editing)
+        {
+            <div class="exam-publish-status @(Model.IsPublished ? "is-published" : "is-draft")"
+                 data-publish-status
+                 role="status">
+                <span class="exam-publish-status-dot" aria-hidden="true"></span>
+                <span>Status:</span>
+                <span class="exam-publish-status-value" data-publish-status-label>
+                    @(Model.IsPublished ? "Published" : "Not published")
+                </span>
+            </div>
+
+            <button type="button"
+                    id="publishExamBtn"
+                    class="exam-action-btn exam-publish-toggle @(Model.IsPublished ? "is-published" : "is-draft")"
+                    data-published="@(Model.IsPublished ? "true" : "false")"
+                    onclick="toggleExamPublishState()"
+                    aria-label="@(Model.IsPublished ? "Unpublish exam" : "Publish exam")">
+                <i class="fa-regular fa-share-from-square tw:inline-flex tw:size-4 tw:flex-none tw:items-center tw:justify-center @(Model.IsPublished ? "exam-hidden" : "")" data-publish-icon></i>
+                <i class="fa-solid fa-eye-slash tw:inline-flex tw:size-4 tw:flex-none tw:items-center tw:justify-center @(!Model.IsPublished ? "exam-hidden" : "")" data-unpublish-icon></i>
+                <span class="exam-spinner tw:inline-flex tw:size-4 tw:flex-none tw:items-center tw:justify-center exam-hidden"
+                      role="status"
+                      aria-hidden="true"
+                      data-publish-spinner></span>
+                <span data-publish-label>@(Model.IsPublished ? "Unpublish" : "Publish")</span>
+            </button>
+        }
+        else if (Model.Mode == PaginationMode.Start)
+        {
+            var isPublished = Model.IsPublished;
+            var hasInProgress = Model.InProgressRecordId.HasValue;
+
+            // Unlimited attempts: MaxAttempts == -1
+            var isUnlimited = Model.MaxAttempts == -1;
+
+            // For unlimited, AttemptsLeft may be int.MaxValue in your state model.
+            // For UI logic, treat unlimited as always having attempts left.
+            var hasAttemptsLeft = isUnlimited || Model.AttemptsLeft > 0;
+
+            // If no attempts left AND no in-progress, Start must be disabled.
+            var disableStart = !isPublished || (!hasAttemptsLeft && !hasInProgress);
+
+            <div class="exam-pagination-start-actions">
+
+                @* CONTINUE (only if there is an in-progress record) *@
+                @if (hasInProgress)
+                {
+                    <form method="post"
+                          asp-page-handler="Continue"
+                          class="tw:m-0 exam-pagination-form">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="examId" value="@Model.ExamId" />
+
+                        <button type="submit"
+                                class="exam-action-btn exam-action-secondary"
+                                disabled="@(!isPublished)">
+                            Continue
+                        </button>
+                    </form>
+                }
+
+                @* START / RESTART *@
+                @if (!hasInProgress)
+                {
+                    @* Normal Start (no in-progress exists) *@
+                    <form method="post"
+                          asp-page-handler="CreateRecord"
+                          class="tw:m-0 exam-pagination-form">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="examId" value="@Model.ExamId" />
+
+                        <button type="submit"
+                                class="exam-action-btn exam-action-primary"
+                                disabled="@disableStart">
+                            Start
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    @* In-progress exists: allow restart if attempts left (or unlimited). *@
+                    <form method="post"
+                          asp-page-handler="Restart"
+                          class="tw:m-0 exam-pagination-form">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="examId" value="@Model.ExamId" />
+
+                        <button type="submit"
+                                class="exam-action-btn exam-action-primary"
+                                disabled="@(!isPublished || !hasAttemptsLeft)"
+                                onclick="return confirm('Restarting will abandon your current attempt. Your in-progress attempt will be cancelled and you will start a new one. Continue?');">
+                            Restart
+                        </button>
+                    </form>
+                }
+
+                @* Optional: small status text (recommended) *@
+                <div class="exam-pagination-status">
+                    @if (!isPublished)
+                    {
+                        <span>Publish before starting.</span>
+                    }
+                    else if (isUnlimited)
+                    {
+                        <span>Attempts: Unlimited</span>
+                    }
+                    else
+                    {
+                        <span>Attempts left: @Model.AttemptsLeft</span>
+                    }
+
+                    @if (!hasAttemptsLeft && !hasInProgress && !isUnlimited)
+                    {
+                        <span class="tw:ml-2">(No attempts remaining)</span>
+                    }
+                </div>
+
+            </div>
+        }
+
+    </div>
+</div>
+
+
+
+
+
+
+
+

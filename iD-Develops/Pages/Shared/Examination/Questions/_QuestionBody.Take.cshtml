@@ -1,0 +1,157 @@
+@using iD_Develops.Models
+@using iD_Develops.Pages.Shared.Examination.Questions
+@model QuestionShellModel
+@inject iD_Develops.Services.IStoragePublicUrlService StoragePublicUrlService
+
+@{
+    var question = Model.Question;
+    var imageRef = (question.ImageReference ?? "").Trim().TrimStart('/');
+    var audioRef = (question.AudioReference ?? "").Trim().TrimStart('/');
+
+    var hasImage = !string.IsNullOrWhiteSpace(imageRef);
+    var hasAudio = !string.IsNullOrWhiteSpace(audioRef);
+
+    var imageUrl = hasImage ? StoragePublicUrlService.ResolvePublicUrl(imageRef) : null;
+    var audioUrl = hasAudio ? StoragePublicUrlService.ResolvePublicUrl(audioRef) : null;
+
+    var hasHelpText = !string.IsNullOrWhiteSpace(question.MessageBeforeQuestion);
+    var savedAnswer = (Model.SavedAnswerText ?? string.Empty).Trim();
+    var normalizedSavedAnswer = savedAnswer.ToUpperInvariant() switch
+    {
+        "ANSWERA" => "A",
+        "ANSWERB" => "B",
+        "ANSWERC" => "C",
+        "ANSWERD" => "D",
+        "TRUE" => "True",
+        "FALSE" => "False",
+        _ => savedAnswer
+    };
+}
+
+<form id="question-form" class="question-take-form" autocomplete="off">
+    <input type="hidden" id="questionId" name="questionId" value="@question.Id" />
+
+    <div class="question-narrow">
+            <div class="question-grid @(hasImage ? "question-grid-has-media" : null)">
+                <div>
+                    @if (!string.IsNullOrWhiteSpace(question.Scenario))
+                    {
+                        <div class="tw:mb-4">
+                            @Html.Raw(question.Scenario)
+                        </div>
+                    }
+
+                    @if (hasAudio)
+                    {
+                        <div class="tw:mb-4">
+                            <audio src="@audioUrl" class="tw:w-full" controls preload="metadata"></audio>
+                        </div>
+                    }
+
+                    <div class="tw:mb-4 tw:flex tw:items-baseline tw:font-bold take-question-line">
+                        <span class="tw:mr-2 take-question-no">@question.QuestionNumber.</span>
+                        <div class="take-question-text">@Html.Raw(question.Text)</div>
+
+                        @if (hasHelpText)
+                        {
+                            <details class="take-help-details">
+                                <summary class="take-help-btn" aria-label="Question help">?</summary>
+                                <div class="take-help-panel">
+                                    @Html.Raw(question.MessageBeforeQuestion)
+                                </div>
+                            </details>
+                        }
+                    </div>
+                </div>
+
+                @if (hasImage)
+                {
+                    <div>
+                        <img src="@imageUrl" class="question-media-preview" alt="Question image" />
+                    </div>
+                }
+            </div>
+
+            <div class="tw:mt-6">
+                <div class="question-answer-narrow">
+                    <div id="question-answers">
+                        @if (question is MultipleChoiceQuestion multipleChoiceQuestion)
+                        {
+                            var textA = multipleChoiceQuestion.MultipleChoiceAnswer?.AnswerA;
+                            var textB = multipleChoiceQuestion.MultipleChoiceAnswer?.AnswerB;
+                            var textC = multipleChoiceQuestion.MultipleChoiceAnswer?.AnswerC;
+                            var textD = multipleChoiceQuestion.MultipleChoiceAnswer?.AnswerD;
+
+                            <div class="mcq-card">
+                                <div class="record-option-list">
+                                    <div>
+                                        <input class="question-choice-input" type="radio" name="answer" id="question@(question.QuestionNumber)_A" value="A" autocomplete="off" checked="@(normalizedSavedAnswer == "A")">
+                                        <label class="mcq-option-label" for="question@(question.QuestionNumber)_A">
+                                            <span class="mcq-option-letter">A</span>
+                                            @if (!string.IsNullOrWhiteSpace(textA))
+                                            {
+                                                <span class="mcq-option-text">@textA</span>
+                                            }
+                                        </label>
+                                    </div>
+                                    <div>
+                                        <input class="question-choice-input" type="radio" name="answer" id="question@(question.QuestionNumber)_B" value="B" autocomplete="off" checked="@(normalizedSavedAnswer == "B")">
+                                        <label class="mcq-option-label" for="question@(question.QuestionNumber)_B">
+                                            <span class="mcq-option-letter">B</span>
+                                            @if (!string.IsNullOrWhiteSpace(textB))
+                                            {
+                                                <span class="mcq-option-text">@textB</span>
+                                            }
+                                        </label>
+                                    </div>
+                                    <div>
+                                        <input class="question-choice-input" type="radio" name="answer" id="question@(question.QuestionNumber)_C" value="C" autocomplete="off" checked="@(normalizedSavedAnswer == "C")">
+                                        <label class="mcq-option-label" for="question@(question.QuestionNumber)_C">
+                                            <span class="mcq-option-letter">C</span>
+                                            @if (!string.IsNullOrWhiteSpace(textC))
+                                            {
+                                                <span class="mcq-option-text">@textC</span>
+                                            }
+                                        </label>
+                                    </div>
+                                    <div>
+                                        <input class="question-choice-input" type="radio" name="answer" id="question@(question.QuestionNumber)_D" value="D" autocomplete="off" checked="@(normalizedSavedAnswer == "D")">
+                                        <label class="mcq-option-label" for="question@(question.QuestionNumber)_D">
+                                            <span class="mcq-option-letter">D</span>
+                                            @if (!string.IsNullOrWhiteSpace(textD))
+                                            {
+                                                <span class="mcq-option-text">@textD</span>
+                                            }
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else if (question is OpenQuestion)
+                        {
+                            <textarea class="public-field" id="question@(question.QuestionNumber)_openAnswer" name="answer" rows="6">@normalizedSavedAnswer</textarea>
+                        }
+                        else if (question is TrueOrFalseQuestion)
+                        {
+                            <div class="question-boolean-group" role="group" aria-label="True or False answer">
+                                <input class="question-choice-input" type="radio" name="answer"
+                                       id="question@(question.QuestionNumber)_true" value="True" autocomplete="off" checked="@(normalizedSavedAnswer == "True")">
+                                <label class="question-boolean-label" for="question@(question.QuestionNumber)_true">True</label>
+
+                                <input class="question-choice-input" type="radio" name="answer"
+                                       id="question@(question.QuestionNumber)_false" value="False" autocomplete="off" checked="@(normalizedSavedAnswer == "False")">
+                                <label class="question-boolean-label" for="question@(question.QuestionNumber)_false">False</label>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+    </div>
+</form>
+
+
+
+
+
+
+

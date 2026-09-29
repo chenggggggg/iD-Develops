@@ -1,0 +1,52 @@
+﻿@using iD_Develops.Models
+@model EmailConfirmationModel
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Confirm Your Email</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body style="font-family: 'Lato', sans-serif; color: #333; margin: 0; padding: 0;">
+    <div style="display:none; font-size:1px; color:#ffffff; max-height:0px; max-width:0px; opacity:0; overflow:hidden;">
+        Hello @Model.DisplayName, Please confirm your email address to complete your registration and unlock access to all our resources and features.
+    </div>
+
+    <div class="image-container" style="background-color: #fff; padding-top: 10px;">
+        <img src="@Model.Branding.LogoUrl" alt="@Model.Branding.SiteName" style="display: block; margin: 0 auto; width: 75%; max-width: 475px;">
+    </div>
+
+    <div class="header" style="background-color: #005190; color: white; text-align: center;">
+        <h1 style="margin: 0; font-weight: 700; padding: 10px 0;">Confirm Your Email</h1>
+    </div>
+
+    <div class="centered-div" style="width: 75%; max-width: 475px; margin: 20px auto; padding: 20px;">
+        <div class="content-container" style="padding: 20px;">
+            <p style="text-align: left;">Hello @Model.DisplayName,</p>
+            <p style="text-align: left;">Thank you for registering with us! Please confirm your email address by clicking the button below to complete your registration.</p>
+
+            <div style="text-align: center; margin: 20px 0;">
+                <a href="@Model.ConfirmationLink" class="button" style="background-color: #005190; color: white; padding: 12px 24px; text-align: center; display: inline-block; border-radius: 5px; text-decoration: none; font-weight: 700;">Confirm Email</a>
+            </div>
+
+            <p style="text-align: left;">If you did not create an account with us, please ignore this email.</p>
+            <p style="text-align: left;">If you have any questions or need assistance, feel free to contact us at <a href="mailto:@Model.Branding.SupportEmail" style="color:#005190;">@Model.Branding.SupportEmail</a>.</p>
+
+            <p style="text-align: left;">Best regards,</p>
+            <p style="text-align: left;">iD! Training &amp; Development</p>
+        </div>
+    </div>
+
+    <div class="footer" style="background-color: #f5f5f5; text-align: center; padding-top: 10px; padding-bottom: 30px;">
+        <p class="footer-text" style="font-size: 0.9em; color: #888;">
+            Follow us on:
+        </p>
+        <p style="font-size: 0.9em;">
+            <a href="@Model.Branding.LinkedInUrl" target="_blank" style="color: #005190; text-decoration: none; margin: 0 8px;">LinkedIn</a>
+            <a href="@Model.Branding.FacebookUrl" target="_blank" style="color: #005190; text-decoration: none; margin: 0 8px;">Facebook</a>
+        </p>
+    </div>
+</body>
+</html>

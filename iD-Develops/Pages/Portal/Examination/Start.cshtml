@@ -1,0 +1,26 @@
+﻿@page
+@using iD_Develops.Models
+@model iD_Develops.Pages.Portal.Examination.StartModel
+@{
+    Layout = "/Pages/Shared/Examination/_ExaminationLayout.cshtml";
+    ViewData["Title"] = "Examination introduction";
+}
+
+<partial name="/Pages/Shared/Examination/_ExaminationHeader.cshtml"
+         model="Model.PageState.Header" />
+
+<div class="exam-start-page">
+    <div class="tw:mx-auto tw:w-[min(100%_-_2rem,1180px)] tw:py-4 tw:lg:py-5">
+        <section class="exam-start-intro-card tw:mb-4 tw:p-4 tw:lg:p-5">
+            <div class="exam-start-intro-content">
+                @Html.Raw(string.IsNullOrWhiteSpace(Model.PageState.IntroductionPrimary)
+                    ? Model.PageState.IntroductionSecondary
+                    : Model.PageState.IntroductionPrimary)
+            </div>
+        </section>
+
+        <div class="exam-start-pagination">
+            <partial name="/Pages/Shared/Examination/_Pagination.cshtml" model="Model.Pagination" />
+        </div>
+    </div>
+</div>

@@ -1,0 +1,224 @@
+@page "/portal/schedule"
+@model iD_Develops.Pages.Portal.Schedule.IndexModel
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = "Calendar";
+    ViewData["BodyClass"] = "portal-schedule-page";
+}
+
+<section class="portal-page-shell portal-data-page schedule-page"
+         data-schedule-root
+         data-can-manage="@Model.CanEditDisplayedCalendar.ToString().ToLowerInvariant()"
+         data-is-staff-calendar="@(Model.CanManageSchedule && !Model.ViewingStudentCalendar ? "true" : "false")"
+         data-calendar-view="@Model.CalendarView">
+    <header class="portal-page-header schedule-page-header">
+        <div class="portal-page-header-copy">
+            <p class="portal-eyebrow">Calendar</p>
+            <h1 class="portal-title-sm">@Model.DisplayedCalendarName</h1>
+            <p class="portal-copy">@(Model.ViewingStudentCalendar ? "Booked meetings on this student's calendar." : "Your meetings and course classes that are currently available to book.")</p>
+        </div>
+        <div class="portal-page-header-actions">
+            <label class="schedule-display-zone">
+                <span>Display time</span>
+                <select data-schedule-display-zone>
+                    <option value="local">Local time</option>
+                    <option value="Europe/Amsterdam">Amsterdam time</option>
+                </select>
+            </label>
+            @if (Model.CanManageSchedule)
+            {
+                <form method="get" class="schedule-calendar-view-form">
+                    <label for="scheduleCalendarView">Calendar</label>
+                    <select id="scheduleCalendarView" name="CalendarView" onchange="this.form.submit()">
+                        <option value="mine" selected="@(Model.CalendarView == "mine" ? "selected" : null)">My calendar</option>
+                        <option value="all" selected="@(Model.CalendarView == "all" ? "selected" : null)">All calendars</option>
+                        <optgroup label="Teachers">
+                            @foreach (var teacher in Model.Teachers)
+                            {
+                                var value = $"teacher:{teacher.Id}";
+                                <option value="@value" selected="@(Model.CalendarView == value ? "selected" : null)">@teacher.Name (@teacher.Email)</option>
+                            }
+                        </optgroup>
+                        <optgroup label="Students">
+                            @foreach (var student in Model.Students)
+                            {
+                                var value = $"student:{student.Id}";
+                                <option value="@value" selected="@(Model.CalendarView == value ? "selected" : null)">@student.Email</option>
+                            }
+                        </optgroup>
+                    </select>
+                </form>
+                <a class="portal-btn portal-btn-primary" asp-page="/Portal/Schedule/Roster">
+                    <i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>
+                    Manage roster
+                </a>
+                <a class="portal-btn" asp-page="/Portal/Schedule/Appointments">
+                    <i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>
+                    Appointment types
+                </a>
+            }
+            else
+            {
+                <a class="portal-btn portal-btn-primary" asp-page="/Portal/Schedule/Book">
+                    <i class="fa-solid fa-calendar-check" aria-hidden="true"></i>
+                    Book private session
+                </a>
+            }
+        </div>
+    </header>
+
+    @if (TempData["StatusMessage"] is string statusMessage)
+    {
+        <div class="schedule-notice is-success" role="status">@statusMessage</div>
+    }
+    @if (TempData["ErrorMessage"] is string errorMessage)
+    {
+        <div class="schedule-notice is-error" role="alert">@errorMessage</div>
+    }
+
+    <div class="schedule-summary" aria-label="Schedule summary">
+        <div><span>Upcoming</span><strong data-schedule-upcoming-count>@Model.Overview.UpcomingCount</strong></div>
+        <div><span>@(Model.CanManageSchedule && !Model.ViewingStudentCalendar ? "Scheduled" : "Booked")</span><strong data-schedule-booked-count>@(Model.CanManageSchedule && !Model.ViewingStudentCalendar ? Model.Overview.UpcomingCount : Model.Overview.BookedCount)</strong></div>
+    </div>
+
+    <div class="schedule-workspace">
+        <section class="schedule-calendar-panel" aria-label="Calendar">
+            <div class="schedule-calendar-legend" aria-label="Calendar legend">
+                @if (Model.CanManageSchedule && !Model.ViewingStudentCalendar)
+                {
+                    <span><i class="is-managed"></i> Scheduled</span>
+                    <span><i class="is-cancelled"></i> Cancelled</span>
+                }
+                else if (Model.ViewingStudentCalendar)
+                {
+                    <span><i class="is-booked"></i> Booked</span>
+                    <span><i class="is-cancelled"></i> Cancelled</span>
+                }
+                else
+                {
+                    <span><i class="is-booked"></i> Booked</span>
+                    <span><i class="is-available"></i> Available</span>
+                }
+            </div>
+            <div id="portalScheduleCalendar" class="schedule-calendar"></div>
+        </section>
+
+        <aside class="schedule-upcoming" aria-labelledby="schedule-upcoming-title">
+            <div class="schedule-upcoming-heading">
+                <p class="portal-eyebrow">Calendar</p>
+                <h2 id="schedule-upcoming-title">Your events</h2>
+            </div>
+            @if (!Model.CanManageSchedule)
+            {
+                <div class="schedule-upcoming-tabs" role="tablist" aria-label="Event lists">
+                    <button type="button" class="is-active" role="tab" aria-selected="true"
+                            aria-controls="scheduleParticipatingEvents" data-schedule-panel-tab="upcoming">Upcoming</button>
+                    <button type="button" role="tab" aria-selected="false"
+                            aria-controls="scheduleAvailableEvents" data-schedule-panel-tab="available">Available events</button>
+                </div>
+            }
+            <div id="scheduleParticipatingEvents" role="tabpanel" data-schedule-panel="upcoming">
+                <div class="schedule-upcoming-list" data-schedule-upcoming-list>
+                    @if (Model.Overview.UpcomingItems.Count == 0)
+                    {
+                        <p class="schedule-empty">No upcoming meetings you participate in.</p>
+                    }
+                    @foreach (var item in Model.Overview.UpcomingItems)
+                    {
+                        <button type="button" class="schedule-upcoming-item"
+                                data-schedule-event-id="@item.Id"
+                                data-schedule-event-start="@item.Start.ToString("O")"
+                                data-schedule-event-end="@item.End.ToString("O")">
+                            <time datetime="@item.Start.ToString("O")">
+                                <strong>@item.Start.ToString("dd")</strong>
+                                <span>@item.Start.ToString("MMM")</span>
+                            </time>
+                            <span>
+                                <strong>@item.Title</strong>
+                                <small data-schedule-upcoming-meta>@item.Start.ToString("HH:mm") UTC &middot; @item.TeacherName</small>
+                            </span>
+                        </button>
+                    }
+                </div>
+            </div>
+            @if (!Model.CanManageSchedule)
+            {
+                <div id="scheduleAvailableEvents" role="tabpanel" data-schedule-panel="available" hidden>
+                    <div class="schedule-upcoming-list" data-schedule-available-list>
+                        @if (Model.Overview.AvailableItems.Count == 0)
+                        {
+                            <p class="schedule-empty">No events are currently available to book.</p>
+                        }
+                        @foreach (var item in Model.Overview.AvailableItems)
+                        {
+                            <button type="button" class="schedule-upcoming-item"
+                                    data-schedule-event-id="@item.Id"
+                                    data-schedule-event-start="@item.Start.ToString("O")"
+                                    data-schedule-event-end="@item.End.ToString("O")">
+                                <time datetime="@item.Start.ToString("O")">
+                                    <strong>@item.Start.ToString("dd")</strong>
+                                    <span>@item.Start.ToString("MMM")</span>
+                                </time>
+                                <span>
+                                    <strong>@item.Title</strong>
+                                    <small data-schedule-upcoming-meta>@item.Start.ToString("HH:mm") UTC &middot; @item.TeacherName</small>
+                                </span>
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+        </aside>
+    </div>
+
+    <form method="post" data-schedule-token-form hidden>
+        @Html.AntiForgeryToken()
+    </form>
+
+    <dialog class="schedule-dialog" data-schedule-dialog>
+        <div class="schedule-dialog-header">
+            <span class="schedule-dialog-icon" data-schedule-dialog-icon aria-hidden="true">
+                <i class="fa-solid fa-video"></i>
+            </span>
+            <button type="button" class="schedule-dialog-close" data-schedule-dialog-close aria-label="Close">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="schedule-dialog-body">
+            <p class="portal-eyebrow" data-schedule-dialog-course></p>
+            <h2 data-schedule-dialog-title></h2>
+            <dl class="schedule-dialog-details">
+                <div><dt><i class="fa-regular fa-clock" aria-hidden="true"></i> Time</dt><dd data-schedule-dialog-time></dd></div>
+                <div><dt><i class="fa-solid fa-chalkboard-user" aria-hidden="true"></i> Teacher</dt><dd data-schedule-dialog-teacher></dd></div>
+                <div><dt><i class="fa-solid fa-users" aria-hidden="true"></i> Availability</dt><dd data-schedule-dialog-capacity></dd></div>
+                <div data-schedule-dialog-location-row><dt><i class="fa-solid fa-location-dot" aria-hidden="true"></i> Location</dt><dd data-schedule-dialog-location></dd></div>
+            </dl>
+            <p class="schedule-dialog-message" data-schedule-dialog-message></p>
+        </div>
+        <div class="schedule-dialog-actions">
+            <a class="portal-btn schedule-join-button" data-schedule-join target="_blank" rel="noopener" hidden>
+                <i class="fa-solid fa-video" aria-hidden="true"></i>
+                Join Zoom
+            </a>
+            <button type="button" class="portal-btn portal-btn-primary" data-schedule-book hidden>
+                <i class="fa-solid fa-calendar-check" aria-hidden="true"></i>
+                Book meeting
+            </button>
+            <button type="button" class="portal-btn portal-btn-danger schedule-cancel-booking" data-schedule-cancel-booking hidden>
+                <i class="fa-regular fa-calendar-xmark" aria-hidden="true"></i>
+                Cancel booking
+            </button>
+            <button type="button" class="portal-btn portal-btn-danger schedule-cancel-event" data-schedule-cancel-event hidden>
+                <i class="fa-solid fa-ban" aria-hidden="true"></i>
+                Cancel meeting
+            </button>
+        </div>
+    </dialog>
+
+    <div class="schedule-toast" data-schedule-toast role="status" hidden></div>
+</section>
+
+@section Scripts {
+    <script src="~/lib/fullcalendar/index.global.min.js"></script>
+    <script src="~/js/schedule.js" asp-append-version="true"></script>
+}

@@ -1,0 +1,28 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - iD-Develops</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/tailwind.generated.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/portal.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/examination.css" asp-append-version="true" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" rel="stylesheet">
+    @await RenderSectionAsync("Styles", required: false)
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/display-messages.js" asp-append-version="true"></script>
+    <script src="~/lib/tinymce/tinymce.min.js"></script>
+    <script src="~/shared/tinymce-helpers.js" asp-append-version="true"></script>
+</head>
+@{
+    var bodyClass = ViewData["ExaminationBodyClass"] as string;
+}
+<body class="@(ViewData.ContainsKey("ExaminationBodyClass") ? bodyClass : "examination-body")">
+    @RenderBody()
+
+    @RenderSection("Head", required: false)
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,219 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="BeginYourDutchJourneyHeading" xml:space="preserve">
+    <value>Begin je Nederlandse reis</value>
+  </data>
+  <data name="BeginYourDutchJourneyParagraph" xml:space="preserve">
+    <value>Klaar om de Nederlandse cultuur te ontdekken, contact te maken met de lokale bevolking en nieuwe kansen te ontsluiten? Of je nu net bent aangekomen of je wortels hier wilt verdiepen, het beheersen van de Nederlandse taal is je toegangspoort. Van het halen van je inburgeringsexamens tot je thuis voelen in Nederland, wij staan voor je klaar. Doe mee en begin vandaag nog met zelfvertrouwen Nederlands te spreken!</value>
+  </data>
+  <data name="BookConsultationButton" xml:space="preserve">
+    <value>Boek gratis consultatie</value>
+  </data>
+  <data name="BookYourFreeConsultation" xml:space="preserve">
+    <value>Boek je gratis consult</value>
+  </data>
+  <data name="CareerOpportunitiesHeading" xml:space="preserve">
+    <value>Carrièremogelijkheden</value>
+  </data>
+  <data name="CareerOpportunitiesParagraph" xml:space="preserve">
+    <value>Vloeiend Nederlands spreken vergroot je kansen op werk en integratie op de werkplek aanzienlijk, waardoor je een aantrekkelijkere kandidaat wordt op de arbeidsmarkt.</value>
+  </data>
+  <data name="ComprehensiveSupportHeading" xml:space="preserve">
+    <value>Uitgebreide ondersteuning</value>
+  </data>
+  <data name="ComprehensiveSupportParagraph" xml:space="preserve">
+    <value>We zijn er niet alleen voor taallessen, maar ook om je te begeleiden bij elke uitdaging, inclusief de voorbereiding op je inburgeringsexamen. Onze ondersteunende gemeenschap en deskundige instructeurs bieden de aanmoediging en middelen die je nodig hebt om elke hindernis met gemak en plezier te overwinnen.</value>
+  </data>
+  <data name="EngagementConfidenceHeading" xml:space="preserve">
+    <value>Betrokkenheid en vertrouwen</value>
+  </data>
+  <data name="EngagementConfidenceParagraph" xml:space="preserve">
+    <value>Vanaf de allereerste les zul je genieten van het leren van Nederlands, waarbij je elke kans om te spreken, schrijven en de taal te begrijpen omarmt. We zorgen voor een ondersteunende omgeving, waardoor leren een plezierige ervaring wordt - zelfs als het een noodzaak voor je is.</value>
+  </data>
+  <data name="EnhancedSocialIntegrationHeading" xml:space="preserve">
+    <value>Verbeterde sociale integratie</value>
+  </data>
+  <data name="EnhancedSocialIntegrationParagraph" xml:space="preserve">
+    <value>Effectief communiceren in het Nederlands opent een schat aan sociale interacties, waardoor een diepere band met de gemeenschap en de Nederlandse cultuur mogelijk wordt.</value>
+  </data>
+  <data name="FreeResourcesHeading" xml:space="preserve">
+    <value>Gratis bronnen</value>
+  </data>
+  <data name="FreeResourcesParagraph" xml:space="preserve">
+    <value>Begin je reis vol vertrouwen, te beginnen met een gratis intakegesprek en niveautest. Ontdek hoe we de leerervaring kunnen afstemmen op je behoeften en ambities.</value>
+  </data>
+  <data name="GetStartedButton" xml:space="preserve">
+    <value>Aan de slag</value>
+  </data>
+  <data name="HeroHeading" xml:space="preserve">
+    <value>Hulp bij het leren van Nederlands voor integratie</value>
+  </data>
+  <data name="HeroParagraph" xml:space="preserve">
+    <value>Vooraanstaande expats kiezen onze Nederlandse programma's voor succesvolle integratie, snelle aanpassing aan de lokale cultuur en het bereiken van taalbeheersing voor groei.</value>
+  </data>
+  <data name="IndependentLivingHeading" xml:space="preserve">
+    <value>Onafhankelijk leven</value>
+  </data>
+  <data name="IndependentLivingParagraph" xml:space="preserve">
+    <value>Van dagelijkse taken zoals winkelen en openbaar vervoer tot belangrijke zaken zoals gezondheidszorg en overheidsdiensten, beheersing van het Nederlands zorgt ervoor dat je zelfstandig en gemakkelijk kunt leven in Nederland.</value>
+  </data>
+  <data name="IntegrationExamPreparationHeading" xml:space="preserve">
+    <value>Voorbereiding op het inburgeringsexamen</value>
+  </data>
+  <data name="IntegrationExamPreparationParagraph" xml:space="preserve">
+    <value>Het slagen voor de inburgeringsexamens is een wettelijke vereiste voor veel expats. Beheersing van het Nederlands is niet alleen een vereiste, maar ook een boost voor je zelfvertrouwen bij deze examens.</value>
+  </data>
+  <data name="LearningDutchEssentialHeading" xml:space="preserve">
+    <value>Nederlands leren is essentieel voor</value>
+  </data>
+  <data name="MoreInfoHeading" xml:space="preserve">
+    <value>Meer informatie nodig?</value>
+  </data>
+  <data name="MoreInfoParagraph" xml:space="preserve">
+    <value>Ontdek hoe onze op maat gemaakte begeleiding je kan helpen je doelen te bereiken met een gratis consult van 30 minuten.</value>
+  </data>
+  <data name="OurCommitmentHeading" xml:space="preserve">
+    <value>Onze toewijding</value>
+  </data>
+  <data name="OurCommitmentParagraph1" xml:space="preserve">
+    <value>Bij NT2/Integratie begrijpen we het belang van niet alleen Nederlands leren, maar echt integreren in de Nederlandse samenleving. Onze programma's zijn op maat gemaakt om je door elke stap van deze reis te begeleiden, met uitgebreide ondersteuning die zowel de taal als de culturele nuances aanpakt die essentieel zijn voor je succes.</value>
+  </data>
+  <data name="OurCommitmentParagraph2" xml:space="preserve">
+    <value>Omarm de reis naar vloeiendheid en integratie. Ontdek hoe onze NT2-programma's je ervaring in Nederland kunnen transformeren, waardoor het rijker, voller en bevredigender wordt.</value>
+  </data>
+  <data name="PersonalizedLearningHeading" xml:space="preserve">
+    <value>Gepersonaliseerd leren</value>
+  </data>
+  <data name="PersonalizedLearningParagraph" xml:space="preserve">
+    <value>Duik in het leren van Nederlands met een programma dat je unieke reis viert. Of je nu de basis onder de knie hebt of je vloeiendheid verbetert, onze op maat gemaakte aanpak past zich aan je schema en leerstijl aan.</value>
+  </data>
+  <data name="Title" xml:space="preserve">
+    <value>Bloeien in Nederland: Nederlandse Taal- &amp; Integratiecursussen</value>
+  </data>
+  <data name="TryLevelTest" xml:space="preserve">
+    <value>Probeer gratis de niveautest</value>
+  </data>
+  <data name="UnderstandingNT2Heading" xml:space="preserve">
+    <value>Begrijpen van NT2</value>
+  </data>
+  <data name="UnderstandingNT2Paragraph" xml:space="preserve">
+    <value>NT2, of 'Nederlands als Tweede Taal', staat voor Nederlands als tweede taal. Het verwijst naar gespecialiseerde programma's die zijn ontworpen voor mensen die geen moedertaalsprekers van het Nederlands zijn, maar die vloeiend Nederlands willen beheersen. Beheersing van de Nederlandse taal is niet alleen een vaardigheid - het is een cruciale stap om volledig te integreren in de Nederlandse samenleving, wat persoonlijke en professionele groei mogelijk maakt.</value>
+  </data>
+</root>

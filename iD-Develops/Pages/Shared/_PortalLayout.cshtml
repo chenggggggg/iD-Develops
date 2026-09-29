@@ -1,0 +1,183 @@
+@using Microsoft.AspNetCore.Identity
+@using iD_Develops.Models
+@inject UserManager<ApplicationUser> UserManager
+@{
+    var title = ViewData["Title"]?.ToString() ?? "Portal";
+    var portalUser = User.Identity?.IsAuthenticated == true
+        ? await UserManager.GetUserAsync(User)
+        : null;
+    var portalDisplayName = portalUser?.FullName ?? User.Identity?.Name ?? "Portal user";
+    var portalUserName = !string.IsNullOrWhiteSpace(portalUser?.UserName) && !string.IsNullOrWhiteSpace(portalUser?.Email) && !string.Equals(portalUser.UserName, portalUser.Email, StringComparison.OrdinalIgnoreCase)
+        ? $"{portalUser.UserName} ({portalUser.Email})"
+        : portalUser?.Email ?? portalUser?.UserName ?? User.Identity?.Name ?? string.Empty;
+    var portalRoles = portalUser != null
+        ? await UserManager.GetRolesAsync(portalUser)
+        : Array.Empty<string>();
+    var rolePriority = new[] { "SuperAdmin", "Admin", "Teacher", "Student" };
+    var portalRole = rolePriority.FirstOrDefault(role => portalRoles.Any(userRole => string.Equals(userRole, role, StringComparison.OrdinalIgnoreCase)))
+        ?? portalRoles.FirstOrDefault()
+        ?? "Portal user";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@title | Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;500;600&family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/tailwind.generated.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/portal.css" asp-append-version="true" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" rel="stylesheet">
+    <partial name="_CookiebotBanner" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="portal-layout @ViewData["BodyClass"]">
+    <div class="portal-shell">
+        <header class="portal-mobile-bar">
+            <div class="portal-mobile-bar-inner">
+                <div class="portal-profile">
+                    <button class="portal-profile-trigger" type="button" data-portal-profile-toggle aria-expanded="false">
+                        <span class="portal-profile-icon" aria-hidden="true">
+                            <i class="fa-solid fa-user"></i>
+                        </span>
+                        <span class="portal-profile-summary">
+                            <strong>@portalDisplayName</strong>
+                            <small>@portalRole</small>
+                        </span>
+                        <i class="fa-solid fa-chevron-down portal-profile-chevron" aria-hidden="true"></i>
+                    </button>
+                    <div class="portal-profile-menu" data-portal-profile-menu hidden>
+                        <div class="portal-profile-menu-header">
+                            <span class="portal-profile-menu-icon" aria-hidden="true">
+                                <i class="fa-solid fa-user"></i>
+                            </span>
+                            <div>
+                                <strong>@portalDisplayName</strong>
+                                <small>@portalUserName</small>
+                            </div>
+                        </div>
+                        <div class="portal-profile-menu-divider"></div>
+                        <a class="portal-profile-menu-item" asp-page="/Portal/Settings/Index">
+                            <i class="fa-solid fa-gear" aria-hidden="true"></i>
+                            <span>Settings</span>
+                        </a>
+                        <form method="post" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/Index", new { area = "" })">
+                            <button type="submit" class="portal-profile-menu-item portal-profile-menu-button portal-profile-menu-danger">
+                                <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
+                                <span>Log Out</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <button class="portal-mobile-toggle" type="button" data-portal-sidebar-toggle aria-controls="portalSidebarMobile" aria-expanded="false" aria-label="Open portal navigation">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+        </header>
+
+        <aside class="portal-sidebar">
+            <div class="portal-sidebar-inner">
+                <div class="portal-profile">
+                    <button class="portal-profile-trigger" type="button" data-portal-profile-toggle aria-expanded="false">
+                        <span class="portal-profile-icon" aria-hidden="true">
+                            <i class="fa-solid fa-user"></i>
+                        </span>
+                        <span class="portal-profile-summary">
+                            <strong>@portalDisplayName</strong>
+                            <small>@portalRole</small>
+                        </span>
+                        <i class="fa-solid fa-chevron-down portal-profile-chevron" aria-hidden="true"></i>
+                    </button>
+                    <div class="portal-profile-menu" data-portal-profile-menu hidden>
+                        <div class="portal-profile-menu-header">
+                            <span class="portal-profile-menu-icon" aria-hidden="true">
+                                <i class="fa-solid fa-user"></i>
+                            </span>
+                            <div>
+                                <strong>@portalDisplayName</strong>
+                                <small>@portalUserName</small>
+                            </div>
+                        </div>
+                        <div class="portal-profile-menu-divider"></div>
+                        <a class="portal-profile-menu-item" asp-page="/Portal/Settings/Index">
+                            <i class="fa-solid fa-gear" aria-hidden="true"></i>
+                            <span>Settings</span>
+                        </a>
+                        <form method="post" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/Index", new { area = "" })">
+                            <button type="submit" class="portal-profile-menu-item portal-profile-menu-button portal-profile-menu-danger">
+                                <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
+                                <span>Log Out</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <nav class="portal-nav">
+                    <partial name="_PortalSidebarNav" />
+                </nav>
+            </div>
+        </aside>
+
+        <div class="portal-sidebar-backdrop" data-portal-sidebar-backdrop hidden></div>
+        <div class="portal-offcanvas" tabindex="-1" id="portalSidebarMobile" aria-labelledby="portalSidebarMobileLabel" data-portal-sidebar hidden>
+            <div class="portal-offcanvas-header">
+                <div class="portal-profile" id="portalSidebarMobileLabel">
+                    <button class="portal-profile-trigger" type="button" data-portal-profile-toggle aria-expanded="false">
+                        <span class="portal-profile-icon" aria-hidden="true">
+                            <i class="fa-solid fa-user"></i>
+                        </span>
+                        <span class="portal-profile-summary">
+                            <strong>@portalDisplayName</strong>
+                            <small>@portalRole</small>
+                        </span>
+                        <i class="fa-solid fa-chevron-down portal-profile-chevron" aria-hidden="true"></i>
+                    </button>
+                    <div class="portal-profile-menu" data-portal-profile-menu hidden>
+                        <div class="portal-profile-menu-header">
+                            <span class="portal-profile-menu-icon" aria-hidden="true">
+                                <i class="fa-solid fa-user"></i>
+                            </span>
+                            <div>
+                                <strong>@portalDisplayName</strong>
+                                <small>@portalUserName</small>
+                            </div>
+                        </div>
+                        <div class="portal-profile-menu-divider"></div>
+                        <a class="portal-profile-menu-item" asp-page="/Portal/Settings/Index">
+                            <i class="fa-solid fa-gear" aria-hidden="true"></i>
+                            <span>Settings</span>
+                        </a>
+                        <form method="post" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/Index", new { area = "" })">
+                            <button type="submit" class="portal-profile-menu-item portal-profile-menu-button portal-profile-menu-danger">
+                                <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
+                                <span>Log Out</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <button type="button" class="portal-offcanvas-close" data-portal-sidebar-close aria-label="Close">&times;</button>
+            </div>
+            <div class="portal-offcanvas-body">
+                <partial name="_PortalSidebarNav" />
+            </div>
+        </div>
+
+        <main class="portal-content">
+            <div class="portal-content-inner">
+                @RenderBody()
+            </div>
+        </main>
+    </div>
+
+    <script src="/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/js/portal-layout.js" asp-append-version="true"></script>
+    <script src="~/js/portal-schedule-time.js" asp-append-version="true"></script>
+    <script src="~/js/display-messages.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

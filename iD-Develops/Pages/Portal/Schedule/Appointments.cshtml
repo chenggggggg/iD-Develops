@@ -1,0 +1,78 @@
+@page "/portal/schedule/appointment-types"
+@using System.Text.Json
+@model iD_Develops.Pages.Portal.Schedule.AppointmentsModel
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = "Appointment types";
+}
+
+<section class="portal-page-shell appointment-page" data-appointment-admin>
+    <header class="portal-page-header schedule-page-header">
+        <div>
+            <a class="roster-back-link" asp-page="/Portal/Schedule/Index"><i class="fa-solid fa-arrow-left"></i> Calendar</a>
+            <p class="portal-eyebrow">Private scheduling</p>
+            <h1 class="portal-title-sm">Appointment types</h1>
+            <p class="portal-copy">Define which private sessions students can book with credits.</p>
+        </div>
+        <button type="button" class="portal-btn portal-btn-primary" data-appointment-new><i class="fa-solid fa-plus"></i> New appointment type</button>
+    </header>
+
+    @if (TempData["StatusMessage"] is string status) { <div class="schedule-notice" role="status">@status</div> }
+    @if (TempData["ErrorMessage"] is string error) { <div class="schedule-notice is-error" role="alert">@error</div> }
+    @if (!ViewData.ModelState.IsValid) { <div class="schedule-notice is-error" asp-validation-summary="All"></div> }
+
+    <div class="appointment-admin-grid">
+        <div class="appointment-type-list">
+            @if (Model.Data.AppointmentTypes.Count == 0) { <p class="appointment-empty">No private appointment types yet.</p> }
+            @foreach (var item in Model.Data.AppointmentTypes)
+            {
+                var json = JsonSerializer.Serialize(new
+                {
+                    id = item.Id,
+                    name = item.Name,
+                    durationMinutes = item.DurationMinutes,
+                    requiredCreditTypeId = item.RequiredCreditTypeId,
+                    creditCost = item.CreditCost,
+                    creditConsumptionPolicyId = item.CreditConsumptionPolicyId,
+                    teacherUserIds = item.Teachers.Select(teacher => teacher.Id),
+                    isActive = item.IsActive
+                });
+                <article class="appointment-type-card @(item.IsActive ? null : "is-inactive")">
+                    <div><strong>@item.Name</strong><span>@item.DurationMinutes minutes · @item.CreditCost @item.CreditLabel</span><small>@string.Join(", ", item.Teachers.Select(t => t.Name))</small></div>
+                    @if (item.CanEdit)
+                    {
+                        <div class="appointment-card-actions">
+                            <button type="button" data-appointment-edit data-appointment='@json' aria-label="Edit @item.Name"><i class="fa-solid fa-pencil"></i></button>
+                            @if (item.IsActive) { <form method="post" asp-page-handler="Deactivate"><input type="hidden" name="appointmentTypeId" value="@item.Id" /><button type="submit" aria-label="Deactivate @item.Name"><i class="fa-solid fa-ban"></i></button></form> }
+                        </div>
+                    }
+                </article>
+            }
+        </div>
+
+        <aside class="appointment-editor" data-appointment-editor hidden>
+            <div class="appointment-editor-heading"><h2 data-appointment-editor-title>New appointment type</h2><button type="button" data-appointment-close aria-label="Close">×</button></div>
+            <form method="post" asp-page-handler="Save" class="appointment-form">
+                <input type="hidden" asp-for="Input.Id" data-field="id" />
+                <label><span>Name</span><input asp-for="Input.Name" data-field="name" required /></label>
+                <label><span>Duration</span><select asp-for="Input.DurationMinutes" data-field="duration"><option value="30">30 minutes</option><option value="45">45 minutes</option><option value="60">60 minutes</option><option value="90">90 minutes</option><option value="120">120 minutes</option></select></label>
+                <label><span>Required credit</span><select asp-for="Input.RequiredCreditTypeId" data-field="credit" required><option value="">Select credit</option>@foreach (var credit in Model.Data.CreditTypes) { <option value="@credit.Id">@credit.Name</option> }</select></label>
+                <label><span>Credit cost</span><input asp-for="Input.CreditCost" data-field="cost" type="number" min="1" max="1000" /></label>
+                <label><span>Credit policy</span><select asp-for="Input.CreditConsumptionPolicyId" data-field="policy" required><option value="">Select policy</option>@foreach (var policy in Model.Data.CreditPolicies) { <option value="@policy.Id">@policy.Name</option> }</select></label>
+                @if (Model.IsAdmin)
+                {
+                    <fieldset><legend>Assigned teachers</legend>@foreach (var teacher in Model.Data.Teachers) { <label class="appointment-teacher-check"><input type="checkbox" name="Input.TeacherUserIds" value="@teacher.Id" data-teacher-id="@teacher.Id" /><span>@teacher.Name <small>@teacher.Email</small></span></label> }</fieldset>
+                }
+                else
+                {
+                    @foreach (var teacher in Model.Data.Teachers) { <input type="hidden" name="Input.TeacherUserIds" value="@teacher.Id" /> }
+                }
+                <label class="appointment-active"><input asp-for="Input.IsActive" data-field="active" /> Available for students</label>
+                <button class="portal-btn portal-btn-primary" type="submit">Save appointment type</button>
+            </form>
+        </aside>
+    </div>
+</section>
+
+@section Styles { <link rel="stylesheet" href="~/css/appointments.css" asp-append-version="true" /> }
+@section Scripts { <script src="~/js/appointment-admin.js" asp-append-version="true"></script> }

@@ -1,0 +1,303 @@
+@page
+@using iD_Develops.Enums
+@model iD_Develops.Pages.Portal.Admin.CreditsModel
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = "Credits";
+
+    static string ValidityLabel(iD_Develops.Models.CreditType creditType)
+        => creditType.DefaultValidityValue.HasValue && creditType.DefaultValidityUnit.HasValue
+            ? $"{creditType.DefaultValidityValue} {creditType.DefaultValidityUnit.ToString()!.ToLowerInvariant()}"
+            : "No expiry";
+
+    static string ActionLabel(CreditResolutionAction action)
+        => action == CreditResolutionAction.Return ? "Return credit" : "Consume credit";
+}
+
+<section class="portal-page-shell credit-admin-page">
+    <header class="portal-page-header">
+        <div>
+            <p class="portal-eyebrow">Admin settings</p>
+            <h1 class="portal-title-sm">Credits</h1>
+            <p class="credit-admin-intro">Create reusable booking credits and decide how cancellations and attendance affect them.</p>
+        </div>
+    </header>
+
+    @if (TempData["StatusMessage"] is string statusMessage)
+    {
+        <div class="credit-admin-notice is-success" role="status">@statusMessage</div>
+    }
+    @if (TempData["ErrorMessage"] is string errorMessage)
+    {
+        <div class="credit-admin-notice is-error" role="alert">@errorMessage</div>
+    }
+
+    <div asp-validation-summary="All" class="portal-validation-summary"></div>
+
+    <section class="credit-admin-section" aria-labelledby="credit-types-title">
+        <div class="credit-admin-section-header">
+            <div>
+                <h2 id="credit-types-title">Credit types</h2>
+                <p>Names and validity defaults used by products and classes.</p>
+            </div>
+            <details class="credit-admin-create" open="@Model.OpenCreditTypeCreateForm">
+                <summary class="portal-btn portal-btn-primary">
+                    <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                    Add credit type
+                </summary>
+                <form method="post" asp-page-handler="CreateCreditType" class="credit-admin-form">
+                    <div class="credit-admin-form-grid">
+                        <label class="credit-admin-field credit-admin-field-wide">
+                            <span>Name</span>
+                            <input asp-for="CreditTypeInput.Name" placeholder="Private session credit" maxlength="150" required />
+                            <span asp-validation-for="CreditTypeInput.Name" class="credit-admin-validation"></span>
+                        </label>
+                        <label class="credit-admin-field credit-admin-field-wide">
+                            <span>Description</span>
+                            <input asp-for="CreditTypeInput.Description" placeholder="Used for one-to-one sessions" maxlength="1000" />
+                        </label>
+                        <label class="credit-admin-field">
+                            <span>Singular label</span>
+                            <input asp-for="CreditTypeInput.SingularLabel" maxlength="80" required />
+                            <span asp-validation-for="CreditTypeInput.SingularLabel" class="credit-admin-validation"></span>
+                        </label>
+                        <label class="credit-admin-field">
+                            <span>Plural label</span>
+                            <input asp-for="CreditTypeInput.PluralLabel" maxlength="80" required />
+                            <span asp-validation-for="CreditTypeInput.PluralLabel" class="credit-admin-validation"></span>
+                        </label>
+                        <label class="credit-admin-field">
+                            <span>Default validity</span>
+                            <input asp-for="CreditTypeInput.DefaultValidityValue" type="number" min="1" max="3650" placeholder="No expiry" />
+                        </label>
+                        <label class="credit-admin-field">
+                            <span>Validity unit</span>
+                            <select asp-for="CreditTypeInput.DefaultValidityUnit">
+                                <option value="">None</option>
+                                <option value="@CreditValidityUnit.Days">Days</option>
+                                <option value="@CreditValidityUnit.Weeks">Weeks</option>
+                                <option value="@CreditValidityUnit.Months">Months</option>
+                            </select>
+                        </label>
+                    </div>
+                    <label class="credit-admin-check">
+                        <input asp-for="CreditTypeInput.IsActive" />
+                        <span>Active</span>
+                    </label>
+                    <div class="credit-admin-form-actions">
+                        <button type="submit" class="portal-btn portal-btn-primary">
+                            <i class="fa-solid fa-check" aria-hidden="true"></i>
+                            Create credit type
+                        </button>
+                    </div>
+                </form>
+            </details>
+        </div>
+
+        <div class="credit-admin-list">
+            @if (Model.CreditTypes.Count == 0)
+            {
+                <div class="credit-admin-empty">No credit types have been created yet.</div>
+            }
+            @foreach (var item in Model.CreditTypes)
+            {
+                var creditType = item.CreditType;
+                <details class="credit-admin-item">
+                    <summary>
+                        <span class="credit-admin-item-icon"><i class="fa-solid fa-ticket" aria-hidden="true"></i></span>
+                        <span class="credit-admin-item-copy">
+                            <strong>@creditType.Name</strong>
+                            <small>@ValidityLabel(creditType) · @item.ProductGrantCount product grants · @item.CourseClassCount classes</small>
+                        </span>
+                        <span class="credit-admin-status @(creditType.IsActive ? "is-active" : null)">@(creditType.IsActive ? "Active" : "Inactive")</span>
+                        <i class="fa-solid fa-chevron-down credit-admin-chevron" aria-hidden="true"></i>
+                    </summary>
+                    <form method="post" asp-page-handler="UpdateCreditType" class="credit-admin-form">
+                        <input type="hidden" name="CreditTypeInput.Id" value="@creditType.Id" />
+                        <div class="credit-admin-form-grid">
+                            <label class="credit-admin-field credit-admin-field-wide">
+                                <span>Name</span>
+                                <input name="CreditTypeInput.Name" value="@creditType.Name" maxlength="150" required />
+                            </label>
+                            <label class="credit-admin-field credit-admin-field-wide">
+                                <span>Description</span>
+                                <input name="CreditTypeInput.Description" value="@creditType.Description" maxlength="1000" />
+                            </label>
+                            <label class="credit-admin-field">
+                                <span>Singular label</span>
+                                <input name="CreditTypeInput.SingularLabel" value="@creditType.SingularLabel" maxlength="80" required />
+                            </label>
+                            <label class="credit-admin-field">
+                                <span>Plural label</span>
+                                <input name="CreditTypeInput.PluralLabel" value="@creditType.PluralLabel" maxlength="80" required />
+                            </label>
+                            <label class="credit-admin-field">
+                                <span>Default validity</span>
+                                <input name="CreditTypeInput.DefaultValidityValue" value="@creditType.DefaultValidityValue" type="number" min="1" max="3650" placeholder="No expiry" />
+                            </label>
+                            <label class="credit-admin-field">
+                                <span>Validity unit</span>
+                                <select name="CreditTypeInput.DefaultValidityUnit">
+                                    <option value="">None</option>
+                                    @foreach (var unit in Enum.GetValues<CreditValidityUnit>())
+                                    {
+                                        <option value="@unit" selected="@(creditType.DefaultValidityUnit == unit)">@unit</option>
+                                    }
+                                </select>
+                            </label>
+                        </div>
+                        <label class="credit-admin-check">
+                            <input type="checkbox" name="CreditTypeInput.IsActive" value="true" checked="@creditType.IsActive" />
+                            <input type="hidden" name="CreditTypeInput.IsActive" value="false" />
+                            <span>Active</span>
+                        </label>
+                        <div class="credit-admin-form-actions">
+                            <button type="submit" class="portal-btn portal-btn-primary">
+                                <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+                                Save changes
+                            </button>
+                        </div>
+                    </form>
+                </details>
+            }
+        </div>
+    </section>
+
+    <section class="credit-admin-section" aria-labelledby="policies-title">
+        <div class="credit-admin-section-header">
+            <div>
+                <h2 id="policies-title">Consumption policies</h2>
+                <p>Reusable rules for booking, attendance, no-shows, and cancellations.</p>
+            </div>
+            <details class="credit-admin-create" open="@Model.OpenPolicyCreateForm">
+                <summary class="portal-btn portal-btn-primary">
+                    <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                    Add policy
+                </summary>
+                <form method="post" asp-page-handler="CreatePolicy" class="credit-admin-form">
+                    <div class="credit-admin-form-grid">
+                        <label class="credit-admin-field credit-admin-field-wide">
+                            <span>Name</span>
+                            <input asp-for="PolicyInput.Name" placeholder="24-hour cancellation" maxlength="150" required />
+                            <span asp-validation-for="PolicyInput.Name" class="credit-admin-validation"></span>
+                        </label>
+                        <label class="credit-admin-field credit-admin-field-wide">
+                            <span>Description</span>
+                            <input asp-for="PolicyInput.Description" placeholder="Returns a credit when cancelled at least 24 hours before" maxlength="1000" />
+                        </label>
+                        <label class="credit-admin-field">
+                            <span>Reserve credit</span>
+                            <select asp-for="PolicyInput.ConsumptionTiming">
+                                <option value="@CreditConsumptionTiming.OnBooking">On booking</option>
+                                <option value="@CreditConsumptionTiming.OnAttendance">Until attendance</option>
+                            </select>
+                        </label>
+                        <label class="credit-admin-field">
+                            <span>Cancellation window (hours)</span>
+                            <input asp-for="PolicyInput.CancellationWindowHours" type="number" min="0" max="8760" />
+                        </label>
+                        @foreach (var field in new[] {
+                            ("Attended", "AttendedAction", Model.PolicyInput.AttendedAction),
+                            ("No-show", "NoShowAction", Model.PolicyInput.NoShowAction),
+                            ("Early cancellation", "EarlyCancellationAction", Model.PolicyInput.EarlyCancellationAction),
+                            ("Late cancellation", "LateCancellationAction", Model.PolicyInput.LateCancellationAction),
+                            ("Staff cancellation", "StaffCancellationAction", Model.PolicyInput.StaffCancellationAction) })
+                        {
+                            <label class="credit-admin-field">
+                                <span>@field.Item1</span>
+                                <select name="PolicyInput.@field.Item2">
+                                    <option value="@CreditResolutionAction.Consume" selected="@(field.Item3 == CreditResolutionAction.Consume)">Consume credit</option>
+                                    <option value="@CreditResolutionAction.Return" selected="@(field.Item3 == CreditResolutionAction.Return)">Return credit</option>
+                                </select>
+                            </label>
+                        }
+                    </div>
+                    <label class="credit-admin-check">
+                        <input asp-for="PolicyInput.IsActive" />
+                        <span>Active</span>
+                    </label>
+                    <div class="credit-admin-form-actions">
+                        <button type="submit" class="portal-btn portal-btn-primary">
+                            <i class="fa-solid fa-check" aria-hidden="true"></i>
+                            Create policy
+                        </button>
+                    </div>
+                </form>
+            </details>
+        </div>
+
+        <div class="credit-admin-list">
+            @if (Model.Policies.Count == 0)
+            {
+                <div class="credit-admin-empty">No consumption policies have been created yet.</div>
+            }
+            @foreach (var item in Model.Policies)
+            {
+                var policy = item.Policy;
+                <details class="credit-admin-item">
+                    <summary>
+                        <span class="credit-admin-item-icon"><i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i></span>
+                        <span class="credit-admin-item-copy">
+                            <strong>@policy.Name</strong>
+                            <small>@policy.CancellationWindowHours hour window · @item.CourseClassCount classes · No-show: @ActionLabel(policy.NoShowAction)</small>
+                        </span>
+                        <span class="credit-admin-status @(policy.IsActive ? "is-active" : null)">@(policy.IsActive ? "Active" : "Inactive")</span>
+                        <i class="fa-solid fa-chevron-down credit-admin-chevron" aria-hidden="true"></i>
+                    </summary>
+                    <form method="post" asp-page-handler="UpdatePolicy" class="credit-admin-form">
+                        <input type="hidden" name="PolicyInput.Id" value="@policy.Id" />
+                        <div class="credit-admin-form-grid">
+                            <label class="credit-admin-field credit-admin-field-wide">
+                                <span>Name</span>
+                                <input name="PolicyInput.Name" value="@policy.Name" maxlength="150" required />
+                            </label>
+                            <label class="credit-admin-field credit-admin-field-wide">
+                                <span>Description</span>
+                                <input name="PolicyInput.Description" value="@policy.Description" maxlength="1000" />
+                            </label>
+                            <label class="credit-admin-field">
+                                <span>Reserve credit</span>
+                                <select name="PolicyInput.ConsumptionTiming">
+                                    @foreach (var timing in Enum.GetValues<CreditConsumptionTiming>())
+                                    {
+                                        <option value="@timing" selected="@(policy.ConsumptionTiming == timing)">@(timing == CreditConsumptionTiming.OnBooking ? "On booking" : "Until attendance")</option>
+                                    }
+                                </select>
+                            </label>
+                            <label class="credit-admin-field">
+                                <span>Cancellation window (hours)</span>
+                                <input name="PolicyInput.CancellationWindowHours" value="@policy.CancellationWindowHours" type="number" min="0" max="8760" required />
+                            </label>
+                            @foreach (var field in new[] {
+                                ("Attended", "AttendedAction", policy.AttendedAction),
+                                ("No-show", "NoShowAction", policy.NoShowAction),
+                                ("Early cancellation", "EarlyCancellationAction", policy.EarlyCancellationAction),
+                                ("Late cancellation", "LateCancellationAction", policy.LateCancellationAction),
+                                ("Staff cancellation", "StaffCancellationAction", policy.StaffCancellationAction) })
+                            {
+                                <label class="credit-admin-field">
+                                    <span>@field.Item1</span>
+                                    <select name="PolicyInput.@field.Item2">
+                                        <option value="@CreditResolutionAction.Consume" selected="@(field.Item3 == CreditResolutionAction.Consume)">Consume credit</option>
+                                        <option value="@CreditResolutionAction.Return" selected="@(field.Item3 == CreditResolutionAction.Return)">Return credit</option>
+                                    </select>
+                                </label>
+                            }
+                        </div>
+                        <label class="credit-admin-check">
+                            <input type="checkbox" name="PolicyInput.IsActive" value="true" checked="@policy.IsActive" />
+                            <input type="hidden" name="PolicyInput.IsActive" value="false" />
+                            <span>Active</span>
+                        </label>
+                        <div class="credit-admin-form-actions">
+                            <button type="submit" class="portal-btn portal-btn-primary">
+                                <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+                                Save changes
+                            </button>
+                        </div>
+                    </form>
+                </details>
+            }
+        </div>
+    </section>
+</section>

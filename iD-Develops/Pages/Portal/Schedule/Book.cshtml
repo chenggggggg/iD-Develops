@@ -1,0 +1,36 @@
+@page "/portal/schedule/book-private-session"
+@using System.Text.Json
+@model iD_Develops.Pages.Portal.Schedule.BookModel
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = "Book a private session";
+}
+
+<section class="portal-page-shell appointment-page" data-appointment-booking>
+    <header class="portal-page-header schedule-page-header">
+        <div><a class="roster-back-link" asp-page="/Portal/Schedule/Index"><i class="fa-solid fa-arrow-left"></i> Calendar</a><p class="portal-eyebrow">Private scheduling</p><h1 class="portal-title-sm">Book a private session</h1><p class="portal-copy">Choose a session, teacher, and an available time.</p></div>
+    </header>
+    @if (TempData["ErrorMessage"] is string error) { <div class="schedule-notice is-error">@error</div> }
+    <script type="application/json" data-appointment-options>@Html.Raw(JsonSerializer.Serialize(Model.Options, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }))</script>
+
+    <div class="appointment-booking-layout">
+        <aside class="appointment-booking-steps">
+            <label><span>1. Session</span><select data-appointment-type><option value="">Select a private session</option>@foreach (var option in Model.Options) { <option value="@option.Id">@option.Name</option> }</select></label>
+            <div class="appointment-selection-detail" data-appointment-detail hidden><strong data-detail-name></strong><span><i class="fa-regular fa-clock"></i> <span data-detail-duration></span></span><span><i class="fa-solid fa-ticket"></i> <span data-detail-credit></span></span><small data-detail-balance></small></div>
+            <label><span>2. Teacher</span><select data-appointment-teacher disabled><option value="">Select a session first</option></select></label>
+            <label><span>3. Starting date</span><input type="date" data-appointment-start-date /></label>
+        </aside>
+        <section class="appointment-slot-panel" aria-live="polite">
+            <div class="appointment-slot-heading"><div><p class="portal-eyebrow">Availability</p><h2>Choose a time</h2></div><span data-appointment-time-zone></span></div>
+            <div class="appointment-slot-days" data-appointment-slots><p class="appointment-empty">Select a session and teacher to see available times.</p></div>
+        </section>
+    </div>
+    <form method="post" asp-page-handler="Book" data-appointment-book-form hidden>
+        <input type="hidden" name="appointmentTypeId" data-book-type />
+        <input type="hidden" name="teacherUserId" data-book-teacher />
+        <input type="hidden" name="startUtc" data-book-start />
+    </form>
+</section>
+
+@section Styles { <link rel="stylesheet" href="~/css/appointments.css" asp-append-version="true" /> }
+@section Scripts { <script src="~/js/appointment-booking.js" asp-append-version="true"></script> }

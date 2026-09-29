@@ -1,0 +1,67 @@
+@page
+@using iD_Develops.Models
+@using iD_Develops.Pages.Shared.Examination.Questions
+@model iD_Develops.Pages.Portal.Examination.IndexModel
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+
+@{
+    Layout = "/Pages/Shared/Examination/_ExaminationLayout.cshtml";
+    ViewData["Title"] = "Examination";
+    var requestToken = Antiforgery.GetAndStoreTokens(Model.HttpContext).RequestToken;
+}
+
+<partial name="/Pages/Shared/Examination/_ExaminationHeader.cshtml"
+         model="Model.PageState.Header" />
+
+@if (Model.PageState.ExamStatus == ExamStatus.InProgress)
+{
+    <div class="exam-container">
+        <input id="RequestVerificationToken" type="hidden" value="@requestToken" />
+        <input id="ExamId" type="hidden" value="@Model.PageState.ExamId" />
+        <input id="RecordId" type="hidden" value="@Model.PageState.RecordId" />
+
+        @* If the exam is in-progress but has no questions (or a question failed to load), handle gracefully *@
+        @if (Model.PageState.QuestionsMetadata == null || !Model.PageState.QuestionsMetadata.Any() || Model.PageState.CurrentQuestion == null)
+        {
+            <div class="exam-empty-state">
+                <div class="public-alert public-alert-warning" role="alert">
+                    <h5 class="tw:mb-1">No questions available</h5>
+                    <div class="tw:text-sm tw:text-[#64748b]">
+                        This examination cannot be started because it does not contain any questions, or the first question could not be loaded.
+                        Please contact your teacher/administrator.
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div id="question-container" class="exam-question-wrap">
+                <div id="questionHost" class="exam-question-host">
+                    @Html.AntiForgeryToken()
+
+                    <partial name="/Pages/Shared/Examination/Questions/_QuestionShell.cshtml"
+                             model="new QuestionShellModel { Question = Model.PageState.CurrentQuestion!, SavedAnswerText = Model.PageState.CurrentSavedAnswerText, Mode = QuestionRenderMode.Take }" />
+                </div>
+            </div>
+        }
+    </div>
+
+    <partial name="/Pages/Shared/Examination/_Pagination.cshtml" model="Model.Pagination" />
+}
+else
+{
+    <div class="exam-invalid-state">
+        <div>
+            <h2>This examination is no longer valid.</h2>
+            <p>Please restart the examination or contact administrator.</p>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script src="~/js/question-body-take.js" asp-append-version="true"></script>
+    <script src="~/js/timer.js" asp-append-version="true"></script>
+    <script src="~/js/exam-connectivity.js"></script>
+    <script src="~/js/exam-pagination.js" asp-append-version="true"></script>
+}
+

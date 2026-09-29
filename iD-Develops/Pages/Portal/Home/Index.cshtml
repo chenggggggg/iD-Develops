@@ -1,0 +1,41 @@
+@page
+@model iD_Develops.Pages.Portal.Home.IndexModel
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = "Portal";
+    ViewData["HideFooterNavigation"] = true;
+}
+<section class="portal-section">
+    <div class="portal-page-shell">
+        <div class="portal-grid portal-grid-main-aside">
+            <div>
+                <div class="portal-card portal-card-lg">
+                    <p class="portal-eyebrow">Portal</p>
+                    <h1 class="portal-title">Your workspace for exams, learners, and admin tools.</h1>
+                    <p class="portal-copy">
+                        The public website stays focused on product and company information. Everything that requires an account now starts here in the Portal.
+                    </p>
+                </div>
+            </div>
+            <div>
+                <div class="portal-card">
+                    <h2 class="portal-title-sm">Quick access</h2>
+                    <div class="portal-actions-stack">
+                        <a class="portal-btn portal-btn-primary" asp-page="/Portal/Exams/List">Go to exams</a>
+                        <a class="portal-btn portal-btn-outline" asp-page="/Portal/Settings/Index">Open settings</a>
+                        @if (User.IsInRole("Teacher") || (User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
+                        {
+                            <a class="portal-btn portal-btn-outline" asp-page="/Portal/Exams/Create">Create exam</a>
+                        }
+                        @if ((User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
+                        {
+                            <a class="portal-btn portal-btn-outline" asp-page="/Portal/Admin/Index">Admin</a>
+                            <a class="portal-btn portal-btn-outline" asp-page="/Portal/Admin/Users">Manage users</a>
+                            <a class="portal-btn portal-btn-outline" asp-page="/Portal/Admin/Roles">Manage roles</a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,58 @@
+@using iD_Develops.Models
+@model CatalogProductSubmissionEmailModel
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@Model.Product.Name</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body style="font-family: 'Lato', sans-serif; color: #333; margin: 0; padding: 0;">
+    <div class="image-container" style="background-color: #fff; padding-top: 10px;">
+        <img src="@Model.Branding.LogoUrl" alt="@Model.Branding.SiteName" style="display: block; margin: 0 auto; width: 75%; max-width: 475px;">
+    </div>
+
+    <div class="header" style="background-color: #005190; color: white; text-align: center;">
+        <h1 style="margin: 0; font-weight: 700; padding: 10px 0;">@Model.Product.Name</h1>
+    </div>
+
+    <div class="centered-div" style="width: 75%; max-width: 475px; margin: 20px auto; padding: 20px;">
+        <div class="content-container" style="padding: 20px;">
+            @Html.Raw(Model.IntroHtml)
+
+            <p style="text-align: left;"><strong>Quantity:</strong> @Model.OrderQuantity</p>
+            <p style="text-align: left;"><strong>Participants:</strong> @Model.ParticipantCount</p>
+
+            <table style="width: 100%; border-collapse: collapse; margin-top: 24px;">
+                <tbody>
+                @foreach (var item in Model.SubmittedValues.OrderBy(k => k.Key))
+                {
+                    <tr>
+                        <td style="padding: 10px 12px; border-top: 1px solid #e7ecf2; width: 35%; vertical-align: top;">
+                            <strong>@item.Key</strong>
+                        </td>
+                        <td style="padding: 10px 12px; border-top: 1px solid #e7ecf2;">
+                            @item.Value
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+
+            <p style="text-align: left; margin-top: 20px;">Best regards,</p>
+            <p style="text-align: left;">@Model.Branding.SiteName</p>
+        </div>
+    </div>
+
+    <div class="footer" style="background-color: #f5f5f5; text-align: center; padding-top: 10px; padding-bottom: 30px;">
+        <p class="footer-text" style="font-size: 0.9em; color: #888;">Follow us on:</p>
+        <p style="font-size: 0.9em;">
+            <a href="@Model.Branding.LinkedInUrl" target="_blank" style="color: #005190; text-decoration: none; margin: 0 8px;">LinkedIn</a>
+            <a href="@Model.Branding.FacebookUrl" target="_blank" style="color: #005190; text-decoration: none; margin: 0 8px;">Facebook</a>
+        </p>
+    </div>
+</body>
+</html>

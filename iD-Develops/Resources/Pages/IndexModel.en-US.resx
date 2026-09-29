@@ -1,0 +1,219 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AssessmentInvitation" xml:space="preserve">
+    <value>Wondering what level you currently are?</value>
+  </data>
+  <data name="AssessmentText" xml:space="preserve">
+    <value>Skip the guesswork and pinpoint your skills in minutes. Find out exactly where you stand so you can jump into the right course with total confidence.</value>
+  </data>
+  <data name="AssessmentEyebrow" xml:space="preserve">
+    <value>Assessment</value>
+  </data>
+  <data name="BeginAssessment" xml:space="preserve">
+    <value>Begin Assessment</value>
+  </data>
+  <data name="BookConsultation" xml:space="preserve">
+    <value>Book Your Free Consultation</value>
+  </data>
+  <data name="CommunicationTrainingDescription" xml:space="preserve">
+    <value>Enhance verbal and non-verbal communication skills for personal and professional success. Our courses adapt to workplace communication or personal development needs.</value>
+  </data>
+  <data name="CommunicationTrainingTitle" xml:space="preserve">
+    <value>Communication Training</value>
+  </data>
+  <data name="ConsultationText" xml:space="preserve">
+    <value>Discover how our tailored guidance can help you achieve your goals with a free 30-minute consultation.</value>
+  </data>
+  <data name="ConsultationEyebrow" xml:space="preserve">
+    <value>Assistance</value>
+  </data>
+  <data name="Contact" xml:space="preserve">
+    <value>Contact</value>
+  </data>
+  <data name="CulturalAwarenessDescription" xml:space="preserve">
+    <value>Equip yourself with cultural competence to interact respectfully and effectively with diverse backgrounds. Enhance personal and organizational capability to thrive in a multicultural environment.</value>
+  </data>
+  <data name="CulturalAwarenessTitle" xml:space="preserve">
+    <value>Cultural Awareness &amp; Diversity Management</value>
+  </data>
+  <data name="ExpatSupportDescription" xml:space="preserve">
+    <value>Comprehensive expat support and mentoring for settling in the Netherlands. From 'inburgering' to finding work and schools, personalized guidance for a smooth transition.</value>
+  </data>
+  <data name="ExpatSupportTitle" xml:space="preserve">
+    <value>Expat Support &amp; Mentoring</value>
+  </data>
+  <data name="ExploreMore" xml:space="preserve">
+    <value>Explore more</value>
+  </data>
+  <data name="HeroDescription" xml:space="preserve">
+    <value>Learn Dutch online with practical lessons, clear guidance, and support for everyday life, work, and integration in the Netherlands.</value>
+  </data>
+  <data name="HeroEyebrow" xml:space="preserve">
+    <value>Practical Dutch for everyday life</value>
+  </data>
+  <data name="HeroTitle" xml:space="preserve">
+    <value>Learn Dutch online</value>
+  </data>
+  <data name="LanguageTrainingDescription" xml:space="preserve">
+    <value>Tailored Dutch language training for seamless integration into the Netherlands. From beginners to advanced learners, our NT2 programs focus on practical language skills for daily life, work, and social interactions.</value>
+  </data>
+  <data name="LanguageTrainingTitle" xml:space="preserve">
+    <value>Language Training (Dutch/NT2)</value>
+  </data>
+  <data name="NeedMoreInfo" xml:space="preserve">
+    <value>Need help choosing your next step?</value>
+  </data>
+  <data name="ExpertiseIntro" xml:space="preserve">
+    <value>Focused guidance, practical training, and people-first support designed to help you grow with confidence.</value>
+  </data>
+  <data name="OurExpertise" xml:space="preserve">
+    <value>Expertise</value>
+  </data>
+  <data name="OurStory" xml:space="preserve">
+    <value>Our Story</value>
+  </data>
+  <data name="OurStoryParagraph1" xml:space="preserve">
+    <value>iD! Training &amp; Development is the result of a successful partnership between Dominique Heemels and Patrick Stritzko. Though we come from different backgrounds, our collaboration has proven that we complement each other, creating a strong, focused, and effective team. Our differences help us identify and address gaps in our own approaches—just as we do for others.</value>
+  </data>
+  <data name="OurStoryParagraph2" xml:space="preserve">
+    <value>We work with businesses, teams, and individuals to uncover blind spots and facilitate growth. Our varied experiences, both personal and professional, have shaped us, and we’re passionate about sharing the lessons we've learned to help others avoid unnecessary challenges. We believe every experience is a gift, and we’re here to guide you through your journey of development.</value>
+  </data>
+  <data name="ReadOurStory" xml:space="preserve">
+    <value>Read our full story</value>
+  </data>
+  <data name="TeamBuildingDescription" xml:space="preserve">
+    <value>Cultivate strong, cohesive teams capable of navigating change effectively. Interactive workshops promoting teamwork, leadership, and resilience.</value>
+  </data>
+  <data name="TeamBuildingTitle" xml:space="preserve">
+    <value>Team Building / Change Management</value>
+  </data>
+  <data name="TestYourLevel" xml:space="preserve">
+    <value>Test your level</value>
+  </data>
+  <data name="Title" xml:space="preserve">
+    <value>Empowering Your Professional Growth</value>
+  </data>
+  <data name="TrainingProgramDevelopmentDescription" xml:space="preserve">
+    <value>Customized training programs tailored to individual and organizational needs. Impactful learning experiences driving growth, improving performance, and fostering professional development.</value>
+  </data>
+  <data name="TrainingProgramDevelopmentTitle" xml:space="preserve">
+    <value>Training Program Development</value>
+  </data>
+</root>

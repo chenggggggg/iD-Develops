@@ -1,0 +1,62 @@
+@inject Microsoft.Extensions.Configuration.IConfiguration AppConfiguration
+@{
+    var enabledValue = AppConfiguration["Cookiebot:Enabled"];
+    var enabled = !bool.TryParse(enabledValue, out var parsedEnabled) || parsedEnabled;
+    var cbid = AppConfiguration["Cookiebot:Cbid"];
+    var blockingMode = AppConfiguration["Cookiebot:BlockingMode"];
+    var dataBlockingMode = string.Equals(blockingMode, "auto", StringComparison.OrdinalIgnoreCase) ? "auto" : null;
+}
+
+@if (enabled && !string.IsNullOrWhiteSpace(cbid))
+{
+    <script id="Cookiebot" src="https://consent.cookiebot.com/uc.js" data-cbid="@cbid" data-blockingmode="@dataBlockingMode" type="text/javascript"></script>
+    <script type="text/javascript">
+        (function () {
+            var maxAttempts = 40;
+
+            var hasCookiebotConsent = function () {
+                return document.cookie.split(";").some(function (cookie) {
+                    return cookie.trim().indexOf("CookieConsent=") === 0;
+                });
+            };
+
+            var openCookiebotDialog = function () {
+            var attempts = 0;
+            var openPreferences = function () {
+                if (window.Cookiebot && typeof window.Cookiebot.renew === "function") {
+                    window.Cookiebot.renew();
+                    return;
+                }
+
+                    if (attempts < maxAttempts) {
+                    attempts += 1;
+                    window.setTimeout(openPreferences, 150);
+                }
+            };
+
+            openPreferences();
+            };
+
+            window.openCookiebotPreferences = openCookiebotDialog;
+
+            var openOnFirstVisit = function () {
+                if (!hasCookiebotConsent()) {
+                    openCookiebotDialog();
+                }
+            };
+
+            window.addEventListener("CookiebotOnLoad", openOnFirstVisit);
+            window.setTimeout(openOnFirstVisit, 1200);
+
+        document.addEventListener("click", function (event) {
+            var trigger = event.target.closest("[data-cookiebot-preferences]");
+            if (!trigger) {
+                return;
+            }
+
+            event.preventDefault();
+                openCookiebotDialog();
+        });
+        })();
+    </script>
+}

@@ -1,0 +1,44 @@
+name: iddev-development
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: iddev_web_development
+    ports:
+      - "5003:8080"
+    env_file:
+      - .env
+      - .env.development
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ConnectionStrings__ApplicationDbContextConnection: "Host=postgres;Port=5432;Database=${DEVELOPMENT_DB_NAME:-iddevelops_development};Username=${LOCAL_POSTGRES_USER:-postgres};Password=${LOCAL_POSTGRES_PASSWORD:-LocalDevPassw0rd!};"
+      Storage__Provider: "R2"
+      Storage__Prefix: "${Storage__Prefix:-development}"
+    volumes:
+      - data_protection_development_keys:/app/App_Data/DataProtection-Keys
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: iddev_postgres_development
+    environment:
+      POSTGRES_DB: "${DEVELOPMENT_DB_NAME:-iddevelops_development}"
+      POSTGRES_USER: "${LOCAL_POSTGRES_USER:-postgres}"
+      POSTGRES_PASSWORD: "${LOCAL_POSTGRES_PASSWORD:-LocalDevPassw0rd!}"
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_development_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  postgres_development_data:
+  data_protection_development_keys:

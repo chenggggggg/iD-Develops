@@ -1,0 +1,111 @@
+@page
+@model Communication_TrainingModel
+@using System.Globalization
+@inject IStringLocalizer<Communication_TrainingModel> localizer
+@{
+    var levelTestUrl = $"/{CultureInfo.CurrentCulture.Name.ToLowerInvariant()}/level-test";
+    ViewData["Title"] = localizer["Title"];
+}
+
+<section class="public-hero-page">
+    <div class="public-container">
+        <div class="public-content-narrow">
+            <p class="public-eyebrow public-eyebrow-left">Communication training</p>
+            <h1 class="public-hero-title tw:mx-0">@localizer["HeroTitle"]</h1>
+            <p class="public-hero-copy tw:mx-0">@localizer["HeroDescription"]</p>
+            <p class="public-hero-copy tw:mx-0">@localizer["HeroDescription2"]</p>
+            <div class="public-actions tw:justify-start">
+                <a href="https://koalendar.com/e/meet-with-id" target="_blank" rel="noopener noreferrer" class="public-btn public-btn-primary">@localizer["FreeConsultation"] <i class="fas fa-arrow-right"></i></a>
+                <a asp-page="/contact" class="public-btn public-btn-outline">@localizer["Contact"] <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="public-section">
+    <div class="public-container">
+        <div class="public-section-heading public-section-heading-center">
+            <p class="public-eyebrow">@localizer["ImprovementsTitle"]</p>
+            <h2 class="public-section-title">@localizer["ImprovementsTitle"]</h2>
+            <p class="public-copy">@localizer["ImprovementsDescription"]</p>
+        </div>
+        <div class="public-icon-feature-grid">
+            <article class="public-icon-feature-card">
+                <i class="fa-regular fa-comments"></i>
+                <div>
+                    <div class="public-icon-feature-title">@localizer["EffectiveCommunication"]</div>
+                    <div class="public-icon-feature-description">@localizer["EffectiveCommunicationDescription"]</div>
+                </div>
+            </article>
+            <article class="public-icon-feature-card">
+                <i class="fa-regular fa-pen-to-square"></i>
+                <div>
+                    <div class="public-icon-feature-title">@localizer["FeedbackSkills"]</div>
+                    <div class="public-icon-feature-description">@localizer["FeedbackSkillsDescription"]</div>
+                </div>
+            </article>
+            <article class="public-icon-feature-card">
+                <i class="fa-solid fa-language"></i>
+                <div>
+                    <div class="public-icon-feature-title">@localizer["CommunicationStyles"]</div>
+                    <div class="public-icon-feature-description">@localizer["CommunicationStylesDescription"]</div>
+                </div>
+            </article>
+            <article class="public-icon-feature-card">
+                <i class="fa-solid fa-hands-asl-interpreting"></i>
+                <div>
+                    <div class="public-icon-feature-title">@localizer["NonVerbalSignals"]</div>
+                    <div class="public-icon-feature-description">@localizer["NonVerbalSignalsDescription"]</div>
+                </div>
+            </article>
+            <article class="public-icon-feature-card">
+                <i class="fa-regular fa-face-laugh"></i>
+                <div>
+                    <div class="public-icon-feature-title">@localizer["ExpressingNeeds"]</div>
+                    <div class="public-icon-feature-description">@localizer["ExpressingNeedsDescription"]</div>
+                </div>
+            </article>
+            <article class="public-icon-feature-card">
+                <i class="fa-solid fa-gavel"></i>
+                <div>
+                    <div class="public-icon-feature-title">@localizer["ConflictHandling"]</div>
+                    <div class="public-icon-feature-description">@localizer["ConflictHandlingDescription"]</div>
+                </div>
+            </article>
+            <article class="public-icon-feature-card">
+                <i class="fa-regular fa-handshake"></i>
+                <div>
+                    <div class="public-icon-feature-title">@localizer["StrengthenRelationships"]</div>
+                    <div class="public-icon-feature-description">@localizer["StrengthenRelationshipsDescription"]</div>
+                </div>
+            </article>
+            <article class="public-icon-feature-card">
+                <i class="fa-solid fa-file-pen"></i>
+                <div>
+                    <div class="public-icon-feature-title">@localizer["EffectiveWriting"]</div>
+                    <div class="public-icon-feature-description">@localizer["EffectiveWritingDescription"]</div>
+                </div>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="public-section public-section-soft">
+    <div class="public-container">
+        <div class="public-editorial-cta">
+            <img src="~/images/iddevelops-icon.png" alt="" aria-hidden="true" />
+            <h2>@localizer["NeedMoreInfo"]</h2>
+            <p class="public-copy">@localizer["ConsultationText"]</p>
+            <a class="public-btn public-btn-primary" href="https://koalendar.com/e/meet-with-id" target="_blank" rel="noopener noreferrer">@localizer["BookYourFreeConsultation"] <i class="fas fa-arrow-right"></i></a>
+        </div>
+    </div>
+</section>
+
+<section class="public-band-blue">
+    <div class="public-container">
+        <img src="~/images/iddevelops-icon.png" alt="" aria-hidden="true" />
+        <h2>@localizer["BeginYourDutchJourney"]</h2>
+        <p class="public-copy">@localizer["DutchJourneyText"]</p>
+        <a href="@levelTestUrl" class="public-btn public-btn-light">@localizer["TryLevelTestForFree"] <i class="fas fa-arrow-right"></i></a>
+    </div>
+</section>

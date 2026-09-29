@@ -1,0 +1,12 @@
+{
+  "private": true,
+  "scripts": {
+    "tailwind:build": "tailwindcss -i ./wwwroot/css/tailwind.input.css -o ./wwwroot/css/tailwind.generated.css --minify",
+    "tailwind:watch": "tailwindcss -i ./wwwroot/css/tailwind.input.css -o ./wwwroot/css/tailwind.generated.css --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.0",
+    "fullcalendar": "6.1.21",
+    "tailwindcss": "^4.3.0"
+  }
+}

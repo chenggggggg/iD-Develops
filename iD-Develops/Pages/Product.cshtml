@@ -1,0 +1,1731 @@
+@page "{slug}"
+@using iD_Develops.Enums
+@using iD_Develops.Models
+@model iD_Develops.Pages.ProductModel
+@{
+    ViewData["Title"] = Model.Product?.Name ?? "Product";
+
+    string submitText = Model.Product!.WorkflowType switch
+    {
+        _ when Model.Product.ProductType == CatalogProductType.FreeDownload => Model.Product.ExternalBookingButtonText ?? "Download",
+        CatalogWorkflowType.FormThenExternalBooking => Model.Product.ExternalBookingButtonText ?? "Continue to booking",
+        CatalogWorkflowType.FormThenStripeCheckout => "Continue to payment",
+        CatalogWorkflowType.ExternalBookingOnly => Model.Product.ExternalBookingButtonText ?? "Book now",
+        _ => "Send request"
+    };
+
+    string submitIconClass = Model.Product.WorkflowType switch
+    {
+        _ when Model.Product.ProductType == CatalogProductType.FreeDownload => "fa-solid fa-download",
+        CatalogWorkflowType.FormThenExternalBooking => "fa-regular fa-calendar-check",
+        CatalogWorkflowType.FormThenStripeCheckout => "fa-solid fa-cart-shopping",
+        CatalogWorkflowType.ExternalBookingOnly => "fa-regular fa-calendar-check",
+        _ => "fa-solid fa-arrow-right"
+    };
+
+    var activeVariants = Model.Product.Variants
+        .Where(v => v.IsActive)
+        .OrderBy(v => v.SortOrder)
+        .ThenBy(v => v.Name)
+        .ToList();
+
+    var initialVariant = activeVariants.FirstOrDefault(v => Model.SelectedVariantId == v.Id)
+        ?? activeVariants.FirstOrDefault(v => !Model.SelectedVariantId.HasValue && v.IsDefault)
+        ?? activeVariants.FirstOrDefault();
+
+    var unitPrice = initialVariant?.Price ?? Model.Product.BasePrice;
+    var unitCurrency = initialVariant?.Currency ?? Model.Product.Currency ?? "EUR";
+    var showPricing = unitPrice.HasValue;
+    var displayUnitPrice = unitPrice.GetValueOrDefault();
+    var totalPrice = displayUnitPrice * Model.OrderQuantity;
+    var hasFormFields = Model.Product.FormFields.Any();
+    var showStandaloneBookingAction = Model.Product.WorkflowType == CatalogWorkflowType.ExternalBookingOnly && !hasFormFields;
+    var standaloneActionUrl = Model.Product.ProductType == CatalogProductType.FreeDownload
+        ? Model.ResolvedAttachmentUrl
+        : Model.Product.ExternalBookingUrl;
+    var initialUnitPriceValue = (unitPrice ?? 0m).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+    var displayProductName = ProductModel.IsDraftPlaceholderName(Model.Product.Name) ? "Product Title" : Model.Product.Name;
+    var isDraft = Model.Product.Status == CatalogProductStatus.Draft;
+    var isPublished = Model.Product.Status == CatalogProductStatus.Published;
+    var isArchived = Model.Product.Status == CatalogProductStatus.Archived;
+}
+
+<section class="public-page product-page-shell @(Model.IsAdminEditMode ? "product-edit-mode-shell" : null)">
+    <div class="public-container">
+    @if (!Model.IsAdminEditMode && Model.IsPreviewMode)
+    {
+        <div class="public-alert public-alert-warning product-page-alert">
+            <div>
+                Preview mode: this product is not published yet, so only admins can open this preview link.
+            </div>
+        </div>
+    }
+
+    @if (TempData["StatusMessage"] is string statusMessage)
+    {
+        <div class="public-alert public-alert-success product-page-alert">@statusMessage</div>
+    }
+
+    @if (!Model.IsPreviewMode && !Model.Product.IsSalesActive)
+    {
+        <div class="public-alert public-alert-warning product-page-alert">
+            This offer is currently visible by direct link, but new signups and purchases are paused for now.
+        </div>
+    }
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="public-alert public-alert-danger product-page-alert">
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <div>@error.ErrorMessage</div>
+            }
+        </div>
+    }
+
+    @if (Model.IsAdminEditMode)
+    {
+        <div class="product-edit-command-row">
+            <a class="public-btn public-btn-outline public-btn-sm" asp-page="/Portal/Admin/Products/Index">
+                <i class="fa-solid fa-arrow-left-long" aria-hidden="true"></i>Products
+            </a>
+
+            <div class="product-edit-command-actions">
+                <span class="product-edit-status-pill">@Model.Product.Status</span>
+                <button type="submit" class="public-btn public-btn-primary public-btn-sm" form="product-edit-form">
+                    <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>Save
+                </button>
+
+                @if (!isPublished)
+                {
+                    <button type="submit"
+                            class="public-btn public-btn-outline public-btn-sm"
+                            form="product-edit-form"
+                            name="targetStatus"
+                            value="@CatalogProductStatus.Published">
+                        <i class="fa-solid fa-bullhorn" aria-hidden="true"></i>Publish
+                    </button>
+                }
+
+                @if (!isDraft)
+                {
+                    <form method="post" asp-page-handler="SetStatus" asp-route-slug="@Model.Product.Slug" class="tw:m-0">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="status" value="@CatalogProductStatus.Draft" />
+                        <button type="submit" class="public-btn public-btn-outline public-btn-sm">
+                            <i class="fa-solid fa-file-lines" aria-hidden="true"></i>Draft
+                        </button>
+                    </form>
+                }
+
+                @if (!isArchived)
+                {
+                    <form method="post" asp-page-handler="SetStatus" asp-route-slug="@Model.Product.Slug" class="tw:m-0">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="status" value="@CatalogProductStatus.Archived" />
+                        <button type="submit" class="public-btn public-btn-danger public-btn-sm">
+                            <i class="fa-solid fa-box-archive" aria-hidden="true"></i>Archive
+                        </button>
+                    </form>
+                }
+            </div>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" id="product-edit-form" asp-page-handler="SaveContent" asp-route-slug="@Model.Product.Slug" asp-route-preview="true" data-product-slug="@Model.Product.Slug">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="targetStatus" value="" data-target-status />
+
+            <div class="product-page-header product-edit-page-header">
+                <div class="product-edit-header-content">
+                    <div class="product-id-label">ProductID: @Model.Product.Id</div>
+                    <div class="product-editable-field product-editable-title">
+                        <input class="product-editable-input"
+                               asp-for="EditInput.Name"
+                               aria-label="Product title"
+                               placeholder="Product Title" />
+                        <i class="fa-solid fa-pencil product-editable-icon" aria-hidden="true"></i>
+                    </div>
+                    <span class="product-validation-message" asp-validation-for="EditInput.Name"></span>
+
+                    <div class="product-editable-field product-editable-summary product-subtitle-field">
+                        <textarea class="product-editable-textarea"
+                                  asp-for="EditInput.Summary"
+                                  aria-label="Product subtitle"
+                                  rows="2"
+                                  maxlength="150"
+                                  data-character-limit="150"
+                                  placeholder="Subtitle"></textarea>
+                        <i class="fa-solid fa-pencil product-editable-icon" aria-hidden="true"></i>
+                        <span class="product-character-counter" data-character-counter-for="EditInput_Summary">0/150</span>
+                    </div>
+                    <span class="product-validation-message" asp-validation-for="EditInput.Summary"></span>
+                </div>
+            </div>
+
+            <div class="product-edit-grid">
+                <div>
+                    <ul class="product-edit-tabs" role="tablist">
+                        <li role="presentation">
+                            <button class="product-edit-tab is-active" type="button" role="tab" data-product-tab data-product-tab-target="product-description-tab-pane" aria-controls="product-description-tab-pane" aria-selected="true">Description</button>
+                        </li>
+                        <li role="presentation">
+                            <button class="product-edit-tab" type="button" role="tab" data-product-tab data-product-tab-target="product-details-tab-pane" aria-controls="product-details-tab-pane" aria-selected="false">Product details</button>
+                        </li>
+                    </ul>
+
+                    <div class="product-edit-tab-content">
+                        <div id="product-description-tab-pane" role="tabpanel" tabindex="0" data-product-tab-panel>
+                            <div class="product-editable-field product-editable-summary product-html-editable-field" data-lazy-editor-field>
+                                <div class="product-html-preview" data-html-preview role="button" tabindex="0">
+                                    @if (string.IsNullOrWhiteSpace(Model.EditInput.Description))
+                                    {
+                                        <span class="product-html-placeholder">Enter description here...</span>
+                                    }
+                                    else
+                                    {
+                                        @Html.Raw(Model.EditInput.Description)
+                                    }
+                                </div>
+                                <textarea class="product-editable-textarea product-rich-editor"
+                                          asp-for="EditInput.Description"
+                                          aria-label="Product description"
+                                          rows="8"
+                                          placeholder="Enter description here..."
+                                          data-lazy-tinymce="true"></textarea>
+                                <i class="fa-solid fa-pencil product-editable-icon" aria-hidden="true"></i>
+                            </div>
+                        </div>
+                        <div id="product-details-tab-pane" role="tabpanel" tabindex="0" data-product-tab-panel hidden>
+                            <div class="product-editable-field product-editable-long product-html-editable-field" data-lazy-editor-field>
+                                <div class="product-html-preview" data-html-preview role="button" tabindex="0">
+                                    @if (string.IsNullOrWhiteSpace(Model.EditInput.FullDescriptionHtml))
+                                    {
+                                        <span class="product-html-placeholder">Enter product details here...</span>
+                                    }
+                                    else
+                                    {
+                                        @Html.Raw(Model.EditInput.FullDescriptionHtml)
+                                    }
+                                </div>
+                                <textarea class="product-editable-textarea product-rich-editor"
+                                          asp-for="EditInput.FullDescriptionHtml"
+                                          aria-label="More product details"
+                                          rows="14"
+                                          placeholder="Enter product details here..."
+                                          data-lazy-tinymce="true"></textarea>
+                                <i class="fa-solid fa-pencil product-editable-icon" aria-hidden="true"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <section class="product-form-builder" data-form-builder>
+                        <div class="product-form-builder-header">
+                            <div>
+                                <div class="product-section-label">Signup form</div>
+                                @if (Model.Product.ProductType == CatalogProductType.Signup)
+                                {
+                                    <p>Build the form users will complete on this signup product.</p>
+                                }
+                                else
+                                {
+                                    <p>Add a form when this product needs user details before checkout or booking.</p>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="product-form-builder-list" data-form-field-list>
+                            @for (var index = 0; index < Model.EditInput.FormFields.Count; index++)
+                            {
+                                var field = Model.EditInput.FormFields[index];
+                                <div class="product-form-builder-item" data-form-field-item>
+                                    <input type="hidden" asp-for="EditInput.FormFields[index].Id" />
+                                    <input type="hidden" asp-for="EditInput.FormFields[index].Key" />
+                                    <input type="hidden" asp-for="EditInput.FormFields[index].SortOrder" data-form-field-sort />
+                                    <div class="product-form-builder-item-top">
+                                        <div class="product-form-builder-label" data-form-section="question">
+                                            <input class="public-field product-admin-field" asp-for="EditInput.FormFields[index].Label" placeholder="Question" />
+                                        </div>
+                                        <div data-form-section="answer-type">
+                                            <label class="public-label product-admin-label" asp-for="EditInput.FormFields[index].FieldType">Answer Type</label>
+                                            <select class="public-field product-admin-field" asp-for="EditInput.FormFields[index].FieldType" data-form-field-type>
+                                                <option value="@CatalogFormFieldType.Note" hidden>Note</option>
+                                                <option value="@CatalogFormFieldType.Text">Text</option>
+                                                <option value="@CatalogFormFieldType.Email">Email</option>
+                                                <option value="@CatalogFormFieldType.Tel">Phone</option>
+                                                <option value="@CatalogFormFieldType.Textarea">Long text</option>
+                                                <option value="@CatalogFormFieldType.Checkbox">Checkbox</option>
+                                                <option value="@CatalogFormFieldType.NumberedList">List</option>
+                                            </select>
+                                        </div>
+                                        <button type="button" class="product-icon-button product-icon-button-danger product-form-builder-remove" data-remove-form-field aria-label="Remove form field">
+                                            <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                                        </button>
+                                    </div>
+                                    <div class="product-form-builder-list-count" data-form-section="list-count">
+                                        <input class="public-field product-admin-field" asp-for="EditInput.FormFields[index].ListItemCount" type="number" min="2" placeholder="Number" />
+                                    </div>
+                                    <div class="product-form-builder-note-row" data-form-section="note">
+                                        <input class="public-field product-admin-field" asp-for="EditInput.FormFields[index].HelpText" placeholder="Note" />
+                                        <span class="product-form-input-marker" aria-hidden="true">*</span>
+                                    </div>
+                                    <div class="product-form-builder-note-editor" data-form-section="note-editor" data-lazy-editor-field>
+                                        <textarea class="public-field product-admin-field product-rich-editor"
+                                                  asp-for="EditInput.FormFields[index].HelpText"
+                                                  rows="5"
+                                                  placeholder="Enter note here..."
+                                                  data-lazy-tinymce="true"></textarea>
+                                    </div>
+                                    <div class="product-form-builder-character" data-form-section="character-limit">
+                                        <input class="public-field product-admin-field" asp-for="EditInput.FormFields[index].CharacterLimit" type="number" min="1" placeholder="Character limit" />
+                                        <span class="product-form-input-marker" aria-hidden="true">*</span>
+                                    </div>
+                                    <div class="product-form-builder-options" data-form-section="checkbox-options">
+                                        <input type="hidden" asp-for="EditInput.FormFields[index].OptionsText" data-options-text />
+                                        <div class="product-checkbox-option-list" data-checkbox-option-list></div>
+                                        <div class="product-checkbox-option-actions">
+                                            <button type="button" class="public-btn public-btn-outline public-btn-sm" data-add-checkbox-option="plain">
+                                                <i class="fa-solid fa-square-check" aria-hidden="true"></i>Add checkbox
+                                            </button>
+                                            <button type="button" class="public-btn public-btn-outline public-btn-sm" data-add-checkbox-option="text">
+                                                <i class="fa-solid fa-keyboard" aria-hidden="true"></i>Add checkbox with text
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="product-form-builder-toggles">
+                                        <label class="product-check">
+                                            <input class="product-check-input" asp-for="EditInput.FormFields[index].IsRequired" />
+                                            <span>Required</span>
+                                        </label>
+                                        <label class="product-check" data-form-section="multiple">
+                                            <input class="product-check-input" asp-for="EditInput.FormFields[index].AllowMultipleOptions" />
+                                            <span>Multiple</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="product-form-builder-placeholders">
+                            <button type="button" class="product-form-builder-placeholder" data-add-form-field="input">
+                                <i class="fa-solid fa-keyboard" aria-hidden="true"></i>
+                                <span>Add input</span>
+                            </button>
+                            <button type="button" class="product-form-builder-placeholder" data-add-form-field="note">
+                                <i class="fa-solid fa-note-sticky" aria-hidden="true"></i>
+                                <span>Add note</span>
+                            </button>
+                        </div>
+                    </section>
+                </div>
+
+                <div>
+                    <div class="product-edit-side-panel">
+                        <div class="product-image-upload">
+                            <button type="button"
+                                    class="product-image-picker"
+                                    data-upload-trigger="image"
+                                    aria-label="Select product image">
+                                @if (!string.IsNullOrWhiteSpace(Model.ResolvedImageUrl))
+                                {
+                                    <img src="@Model.ResolvedImageUrl" alt="@displayProductName" data-image-preview />
+                                }
+                                <span class="product-image-picker-copy" data-upload-label="image">Select image</span>
+                            </button>
+                            <input class="product-hidden" type="file" accept="@Model.ImageAccept" data-upload-input="image" />
+                            <input type="hidden" asp-for="EditInput.ImageObjectKey" data-upload-key="image" />
+                            <div class="product-upload-status" data-upload-status="image"></div>
+                        </div>
+
+                        <div class="product-price-settings">
+                            <label class="product-price-label" asp-for="EditInput.BasePrice">Price</label>
+                            <div class="product-price-editable-field product-price-inline-edit">
+                                <div class="product-price-input-row">
+                                    <span>@unitCurrency</span>
+                                    <input class="product-editable-input"
+                                           asp-for="EditInput.BasePrice"
+                                           type="number"
+                                           min="0"
+                                           step="0.01"
+                                           placeholder="0.00"
+                                           data-price-calculator="base"
+                                           aria-label="Product price" />
+                                </div>
+                                <i class="fa-solid fa-pencil product-editable-icon" aria-hidden="true"></i>
+                            </div>
+
+                            <div class="product-fee-grid">
+                                <div class="product-fee-editable-field">
+                                    <label class="public-label product-admin-label" asp-for="EditInput.VatPercentage">VAT %</label>
+                                    <div class="product-fee-input-row">
+                                        <input class="product-editable-input"
+                                               asp-for="EditInput.VatPercentage"
+                                               type="number"
+                                               min="0"
+                                               max="100"
+                                               step="0.01"
+                                               data-price-calculator="vat"
+                                               placeholder="0" />
+                                        <span>%</span>
+                                    </div>
+                                </div>
+                                <div class="product-fee-editable-field">
+                                    <label class="public-label product-admin-label" asp-for="EditInput.RegistrationFee">Registration fee</label>
+                                    <div class="product-fee-input-row">
+                                        <span>@unitCurrency</span>
+                                        <input class="product-editable-input"
+                                               asp-for="EditInput.RegistrationFee"
+                                               type="number"
+                                               min="0"
+                                               step="0.01"
+                                               data-price-calculator="registration"
+                                               placeholder="0.00" />
+                                    </div>
+                                </div>
+                                <div class="product-fee-editable-field">
+                                    <label class="public-label product-admin-label" asp-for="EditInput.TransactionFee">Transaction fee</label>
+                                    <div class="product-fee-input-row">
+                                        <span>@unitCurrency</span>
+                                        <input class="product-editable-input"
+                                               asp-for="EditInput.TransactionFee"
+                                               type="number"
+                                               min="0"
+                                               step="0.01"
+                                               data-price-calculator="transaction"
+                                               placeholder="0.00" />
+                                    </div>
+                                </div>
+                                <div class="product-fee-editable-field">
+                                    <label class="public-label product-admin-label" asp-for="EditInput.ServiceFee">Service fee</label>
+                                    <div class="product-fee-input-row">
+                                        <span>@unitCurrency</span>
+                                        <input class="product-editable-input"
+                                               asp-for="EditInput.ServiceFee"
+                                               type="number"
+                                               min="0"
+                                               step="0.01"
+                                               data-price-calculator="service"
+                                               placeholder="0.00" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <dl class="product-price-summary">
+                                <div>
+                                    <dt>Subtotal</dt>
+                                    <dd data-price-summary="subtotal">@unitCurrency 0.00</dd>
+                                </div>
+                                <div>
+                                    <dt>Fees</dt>
+                                    <dd data-price-summary="fees">@unitCurrency 0.00</dd>
+                                </div>
+                                <div>
+                                    <dt>VAT</dt>
+                                    <dd data-price-summary="vat">@unitCurrency 0.00</dd>
+                                </div>
+                                <div class="product-price-summary-total">
+                                    <dt>Total</dt>
+                                    <dd data-price-summary="total">@unitCurrency 0.00</dd>
+                                </div>
+                            </dl>
+                        </div>
+
+                        <button type="button" class="public-btn public-btn-primary product-cta" disabled>
+                            <i class="@submitIconClass"></i>
+                            @submitText
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-advanced-separator">
+                <span>Advanced Settings</span>
+            </div>
+
+            <div class="product-advanced-settings">
+                @if (Model.Product.ProductType != CatalogProductType.FreeDownload &&
+                     (Model.Product.WorkflowType == CatalogWorkflowType.ExternalBookingOnly ||
+                      Model.Product.WorkflowType == CatalogWorkflowType.FormThenExternalBooking))
+                {
+                    <div class="product-advanced-field product-advanced-field-full">
+                        <label class="public-label product-admin-label" asp-for="EditInput.ExternalBookingUrl">Koalendar URL</label>
+                        <input class="public-field product-admin-field" asp-for="EditInput.ExternalBookingUrl" placeholder="https://..." />
+                    </div>
+                }
+
+                <div class="product-advanced-field">
+                    <label class="public-label product-admin-label" asp-for="EditInput.GrantedCourseId">Attached course</label>
+                    <select class="public-field product-admin-field" asp-for="EditInput.GrantedCourseId">
+                        <option value="">No course</option>
+                        @foreach (var course in Model.CourseOptions)
+                        {
+                            <option value="@course.Id">@course.Name</option>
+                        }
+                    </select>
+                </div>
+                @if (Model.Product.ProductType == CatalogProductType.Credit)
+                {
+                <section class="product-credit-settings product-advanced-field-full" data-product-credit-grants>
+                    <div class="product-credit-settings-header">
+                        <div>
+                            <span class="public-label product-admin-label">Included credits</span>
+                            <p>Define the credits this product should issue through purchase fulfillment.</p>
+                        </div>
+                        <button type="button" class="public-btn public-btn-outline public-btn-sm" data-add-credit-grant>
+                            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                            Add credit
+                        </button>
+                    </div>
+                    <div class="product-credit-grant-list" data-credit-grant-list>
+                        @for (var index = 0; index < Model.EditInput.CreditGrants.Count; index++)
+                        {
+                            var grant = Model.EditInput.CreditGrants[index];
+                            <div class="product-credit-grant" data-credit-grant-row>
+                                <input type="hidden" asp-for="EditInput.CreditGrants[index].Id" />
+                                <label class="product-credit-field product-credit-field-type">
+                                    <span>Credit type</span>
+                                    <select asp-for="EditInput.CreditGrants[index].CreditTypeId" data-credit-type required>
+                                        <option value="">Select credit</option>
+                                        @foreach (var creditType in Model.CreditTypeOptions)
+                                        {
+                                            <option value="@creditType.Id">@creditType.Name@(!creditType.IsActive ? " (inactive)" : string.Empty)</option>
+                                        }
+                                    </select>
+                                </label>
+                                <label class="product-credit-field">
+                                    <span>Quantity</span>
+                                    <input asp-for="EditInput.CreditGrants[index].Quantity" type="number" min="1" max="100000" required />
+                                </label>
+                                <label class="product-credit-field">
+                                    <span>Valid for</span>
+                                    <input asp-for="EditInput.CreditGrants[index].ValidityValue" type="number" min="1" max="3650" placeholder="Default" />
+                                </label>
+                                <label class="product-credit-field">
+                                    <span>Validity unit</span>
+                                    <select asp-for="EditInput.CreditGrants[index].ValidityUnit">
+                                        <option value="">Credit default</option>
+                                        <option value="@CreditValidityUnit.Days">Days</option>
+                                        <option value="@CreditValidityUnit.Weeks">Weeks</option>
+                                        <option value="@CreditValidityUnit.Months">Months</option>
+                                    </select>
+                                </label>
+                                <label class="product-credit-field">
+                                    <span>Scope</span>
+                                    <select asp-for="EditInput.CreditGrants[index].Scope" data-credit-scope>
+                                        <option value="@CreditGrantScope.Global">Any matching class</option>
+                                        <option value="@CreditGrantScope.Course">Specific course</option>
+                                        <option value="@CreditGrantScope.CourseClass">Specific class</option>
+                                    </select>
+                                </label>
+                                <label class="product-credit-field" data-credit-course-field>
+                                    <span>Course</span>
+                                    <select asp-for="EditInput.CreditGrants[index].CourseId">
+                                        <option value="">Select course</option>
+                                        @foreach (var course in Model.CourseOptions)
+                                        {
+                                            <option value="@course.Id">@course.Name</option>
+                                        }
+                                    </select>
+                                </label>
+                                <label class="product-credit-field product-credit-field-wide" data-credit-class-field>
+                                    <span>Class</span>
+                                    <select asp-for="EditInput.CreditGrants[index].CourseClassId">
+                                        <option value="">Select class</option>
+                                        @foreach (var courseClass in Model.CourseClassOptions)
+                                        {
+                                            <option value="@courseClass.Id">@courseClass.CourseName / @courseClass.SectionTitle / @courseClass.ClassTitle</option>
+                                        }
+                                    </select>
+                                </label>
+                                <button type="button" class="product-credit-remove" data-remove-credit-grant aria-label="Remove credit grant" title="Remove credit grant">
+                                    <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        }
+                    </div>
+                    <template data-credit-grant-template>
+                        <div class="product-credit-grant" data-credit-grant-row>
+                            <input type="hidden" name="EditInput.CreditGrants[__index__].Id" value="0" />
+                            <label class="product-credit-field product-credit-field-type">
+                                <span>Credit type</span>
+                                <select name="EditInput.CreditGrants[__index__].CreditTypeId" data-credit-type required>
+                                    <option value="">Select credit</option>
+                                    @foreach (var creditType in Model.CreditTypeOptions.Where(item => item.IsActive))
+                                    {
+                                        <option value="@creditType.Id">@creditType.Name</option>
+                                    }
+                                </select>
+                            </label>
+                            <label class="product-credit-field"><span>Quantity</span><input name="EditInput.CreditGrants[__index__].Quantity" value="1" type="number" min="1" max="100000" required /></label>
+                            <label class="product-credit-field"><span>Valid for</span><input name="EditInput.CreditGrants[__index__].ValidityValue" type="number" min="1" max="3650" placeholder="Default" /></label>
+                            <label class="product-credit-field">
+                                <span>Validity unit</span>
+                                <select name="EditInput.CreditGrants[__index__].ValidityUnit"><option value="">Credit default</option><option value="Days">Days</option><option value="Weeks">Weeks</option><option value="Months">Months</option></select>
+                            </label>
+                            <label class="product-credit-field">
+                                <span>Scope</span>
+                                <select name="EditInput.CreditGrants[__index__].Scope" data-credit-scope><option value="Global">Any matching class</option><option value="Course">Specific course</option><option value="CourseClass">Specific class</option></select>
+                            </label>
+                            <label class="product-credit-field" data-credit-course-field>
+                                <span>Course</span>
+                                <select name="EditInput.CreditGrants[__index__].CourseId"><option value="">Select course</option>@foreach (var course in Model.CourseOptions) { <option value="@course.Id">@course.Name</option> }</select>
+                            </label>
+                            <label class="product-credit-field product-credit-field-wide" data-credit-class-field>
+                                <span>Class</span>
+                                <select name="EditInput.CreditGrants[__index__].CourseClassId"><option value="">Select class</option>@foreach (var courseClass in Model.CourseClassOptions) { <option value="@courseClass.Id">@courseClass.CourseName / @courseClass.SectionTitle / @courseClass.ClassTitle</option> }</select>
+                            </label>
+                            <button type="button" class="product-credit-remove" data-remove-credit-grant aria-label="Remove credit grant" title="Remove credit grant"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
+                        </div>
+                    </template>
+                    @if (Model.CreditTypeOptions.Count == 0)
+                    {
+                        <a class="product-credit-empty" asp-page="/Portal/Admin/Credits">Create a credit type before adding product credits.</a>
+                    }
+                </section>
+                }
+                else if (Model.Product.ProductType != CatalogProductType.FreeDownload)
+                {
+                    <section class="product-advanced-field-full rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                        <div class="mb-4">
+                            <span class="public-label product-admin-label">Included Credit Products</span>
+                            <p class="mt-1 text-sm text-slate-600">Select reusable credit packages delivered with this product. Configure quantities, validity, and scope on each Credit Product.</p>
+                        </div>
+                        @if (Model.CreditProductOptions.Count == 0)
+                        {
+                            <p class="rounded-xl border border-dashed border-slate-300 bg-white px-4 py-3 text-sm text-slate-600">No Credit Products exist yet. Create one from Products, then return here to include it.</p>
+                        }
+                        else
+                        {
+                            <div class="grid gap-3 sm:grid-cols-2">
+                                @foreach (var creditProduct in Model.CreditProductOptions)
+                                {
+                                    var isSelected = Model.EditInput.IncludedCreditProductIds.Contains(creditProduct.Id);
+                                    <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-white p-4 transition hover:border-sky-300 hover:bg-sky-50/50">
+                                        <input type="checkbox"
+                                               name="EditInput.IncludedCreditProductIds"
+                                               value="@creditProduct.Id"
+                                               checked="@(isSelected ? "checked" : null)"
+                                               class="mt-1 h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500" />
+                                        <span>
+                                            <span class="block text-sm font-semibold text-slate-900">@creditProduct.Name</span>
+                                            <span class="mt-1 block text-xs text-slate-500">
+                                                @(creditProduct.HideFromProductsPage ? "Private / hidden from Products" : "Listed on Products")
+                                            </span>
+                                        </span>
+                                    </label>
+                                }
+                            </div>
+                        }
+                    </section>
+                }
+                <div class="product-advanced-field">
+                    <label class="product-check">
+                        <input class="product-check-input" asp-for="EditInput.HideFromProductsPage" />
+                        <span>Don't display publicly</span>
+                    </label>
+                </div>
+                <div class="product-advanced-field">
+                    <label class="public-label product-admin-label">Attached file</label>
+                    <div class="product-file-upload">
+                        <button type="button"
+                                class="public-btn public-btn-outline public-btn-sm"
+                                data-upload-trigger="attachment">
+                            <i class="fa-solid fa-paperclip" aria-hidden="true"></i>
+                            <span data-upload-label="attachment">Select attached file</span>
+                        </button>
+                        <input class="product-hidden" type="file" accept="@Model.DownloadAccept" data-upload-input="attachment" />
+                        <input type="hidden" asp-for="EditInput.AttachmentObjectKey" data-upload-key="attachment" />
+                        @if (!string.IsNullOrWhiteSpace(Model.ResolvedAttachmentUrl))
+                        {
+                            <a class="public-link product-current-attachment-link" href="@Model.ResolvedAttachmentUrl" target="_blank" rel="noopener" data-current-attachment-link>
+                                <i class="fa-solid fa-paperclip" aria-hidden="true"></i>
+                                Current file
+                            </a>
+                        }
+                        <div class="product-upload-status" data-upload-status="attachment"></div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    }
+    else
+    {
+        <div class="product-page-header">
+            <h1 class="product-page-title">@Model.Product.Name</h1>
+            @if (!string.IsNullOrWhiteSpace(Model.Product.Summary))
+            {
+                <div class="product-page-summary">@Html.Raw(Model.Product.Summary)</div>
+            }
+        </div>
+
+        <div class="product-edit-grid product-live-grid">
+            <div>
+                <ul class="product-edit-tabs" role="tablist">
+                    <li role="presentation">
+                        <button class="product-edit-tab is-active"
+                                type="button"
+                                role="tab"
+                                data-product-tab
+                                data-product-tab-target="product-description-tab-pane"
+                                aria-controls="product-description-tab-pane"
+                                aria-selected="true">
+                            Description
+                        </button>
+                    </li>
+                    <li role="presentation">
+                        <button class="product-edit-tab"
+                                type="button"
+                                role="tab"
+                                data-product-tab
+                                data-product-tab-target="product-details-tab-pane"
+                                aria-controls="product-details-tab-pane"
+                                aria-selected="false">
+                            Product details
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="product-edit-tab-content product-live-tab-content">
+                    <div id="product-description-tab-pane"
+                         class="product-inline-description"
+                         role="tabpanel"
+                         tabindex="0"
+                         data-product-tab-panel>
+                        @if (!string.IsNullOrWhiteSpace(Model.Product.Description))
+                        {
+                            @Html.Raw(Model.Product.Description)
+                        }
+                        else
+                        {
+                            <p class="product-help-text">More information will be added here soon.</p>
+                        }
+                    </div>
+                    <div id="product-details-tab-pane"
+                         class="product-inline-description"
+                         role="tabpanel"
+                         tabindex="0"
+                         data-product-tab-panel
+                         hidden>
+                        @if (!string.IsNullOrWhiteSpace(Model.Product.FullDescriptionHtml))
+                        {
+                            @Html.Raw(Model.Product.FullDescriptionHtml)
+                        }
+                        else
+                        {
+                            <p class="product-help-text">No additional product details are available.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="product-purchase-card">
+                    @if (!string.IsNullOrWhiteSpace(Model.ResolvedImageUrl))
+                    {
+                        <img src="@Model.ResolvedImageUrl" alt="@Model.Product.Name" class="product-hero-image" />
+                    }
+
+                    @if (showStandaloneBookingAction)
+                    {
+                        if (!string.IsNullOrWhiteSpace(Model.Product.ExternalBookingButtonText))
+                        {
+                            <div class="product-section-label">@Model.Product.ExternalBookingButtonText</div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="product-section-label">Your selection</div>
+                    }
+
+                    @if (!showStandaloneBookingAction)
+                    {
+                    <form method="post"
+                          id="product-submit-form"
+                          data-default-unit-price="@initialUnitPriceValue"
+                          data-default-currency="@unitCurrency">
+                        @Html.AntiForgeryToken()
+                        @if (!string.IsNullOrWhiteSpace(Model.AccessToken))
+                        {
+                            <input type="hidden" name="access" value="@Model.AccessToken" />
+                        }
+
+                        @if (activeVariants.Any())
+                        {
+                            <div class="product-variant-list">
+                                @foreach (var variant in activeVariants)
+                                {
+                                    var selected = Model.SelectedVariantId == variant.Id || (!Model.SelectedVariantId.HasValue && variant.IsDefault) || (variant == initialVariant && !Model.SelectedVariantId.HasValue && !activeVariants.Any(v => v.IsDefault));
+                                    <label class="product-variant-option">
+                                        <span class="product-variant-copy">
+                                            <input type="radio"
+                                                   name="selectedVariantId"
+                                                   value="@variant.Id"
+                                                   data-price="@variant.Price.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)"
+                                                   data-currency="@variant.Currency"
+                                                   @(selected ? "checked" : null) />
+                                            <span>
+                                                <span class="product-variant-name">@variant.Name</span>
+                                            </span>
+                                        </span>
+                                        <span class="product-variant-price">@variant.Currency @variant.Price.ToString("0.00")</span>
+                                    </label>
+                                }
+                            </div>
+                        }
+
+                        @if (showPricing)
+                        {
+                            <div class="product-price-board">
+                                <div class="product-price-row">
+                                    <span>Price</span>
+                                    <strong id="product-unit-price">@unitCurrency @displayUnitPrice.ToString("0.00")</strong>
+                                </div>
+                                <div class="product-price-row total">
+                                    <span>Total</span>
+                                    <strong id="product-total-price">@unitCurrency @totalPrice.ToString("0.00")</strong>
+                                </div>
+                            </div>
+                        }
+
+                        @{
+                            var sharedFields = Model.Product.FormFields
+                                .OrderBy(f => f.SortOrder)
+                                .ThenBy(f => f.Label)
+                                .ToList();
+                        }
+
+                        @if (sharedFields.Count > 0)
+                        {
+                            <hr class="product-rule" />
+                            <div class="product-section-label">Customer details</div>
+                        }
+
+                        @foreach (var field in sharedFields)
+                        {
+                            <div class="public-form-row product-customer-field">
+                                <label class="public-label" for="@ProductModel.GetFieldName(field, null)">@field.Label</label>
+                                @if (!string.IsNullOrWhiteSpace(field.HelpText))
+                                {
+                                    <div class="product-help-text">@field.HelpText</div>
+                                }
+                                @switch (field.FieldType)
+                                {
+                                    case CatalogFormFieldType.Note:
+                                        <div class="product-form-note">
+                                            @if (!string.IsNullOrWhiteSpace(field.HelpText))
+                                            {
+                                                @field.HelpText
+                                            }
+                                            else
+                                            {
+                                                @field.Label
+                                            }
+                                        </div>
+                                        break;
+                                    case CatalogFormFieldType.Textarea:
+                                        <textarea class="public-field"
+                                                  id="@ProductModel.GetFieldName(field, null)"
+                                                  name="@ProductModel.GetFieldName(field, null)"
+                                                  placeholder="@field.Placeholder"
+                                                  maxlength="@field.CharacterLimit"
+                                                  rows="4">@Request.Form[ProductModel.GetFieldName(field, null)]</textarea>
+                                        break;
+                                    case CatalogFormFieldType.Select:
+                                        <select class="public-field" id="@ProductModel.GetFieldName(field, null)" name="@ProductModel.GetFieldName(field, null)">
+                                            <option value="">Select an option</option>
+                                            @foreach (var option in field.Options)
+                                            {
+                                                if (Request.Form[ProductModel.GetFieldName(field, null)] == option)
+                                                {
+                                                    <option value="@option" selected>@option</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@option">@option</option>
+                                                }
+                                            }
+                                        </select>
+                                        break;
+                                    case CatalogFormFieldType.Checkbox:
+                                        <div class="product-checkbox-option-group">
+                                            @for (var optionIndex = 0; optionIndex < field.Options.Count; optionIndex++)
+                                            {
+                                                var parts = field.Options[optionIndex].Split('\t');
+                                                var optionKind = parts.Length > 0 ? parts[0] : "plain";
+                                                var optionLabel = parts.Length > 1 ? parts[1] : field.Options[optionIndex];
+                                                var optionLimit = parts.Length > 2 ? parts[2] : null;
+                                                var optionName = field.AllowMultipleOptions ? $"{ProductModel.GetFieldName(field, null)}_{optionIndex}" : ProductModel.GetFieldName(field, null);
+                                                var optionId = $"{ProductModel.GetFieldName(field, null)}_{optionIndex}";
+                                                var optionInputType = field.AllowMultipleOptions ? "checkbox" : "radio";
+                                                var optionChecked = Request.Form[optionName] == optionLabel || Request.Form[optionName] == "on";
+                                                <div class="product-checkbox-with-text">
+                                                    <label class="product-check">
+                                                        <input class="product-check-input" type="@optionInputType" id="@optionId" name="@optionName" value="@optionLabel" @(optionChecked ? "checked" : null) />
+                                                        <span>@optionLabel</span>
+                                                    </label>
+                                                    @if (optionKind == "text")
+                                                    {
+                                                        <input class="public-field" type="text" name="@(optionId)_text" value="@Request.Form[$"{optionId}_text"]" maxlength="@optionLimit" placeholder="Please specify" />
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                        break;
+                                    case CatalogFormFieldType.NumberedList:
+                                        <ol class="product-numbered-input-list">
+                                            @for (var optionIndex = 0; optionIndex < Math.Max(2, field.ListItemCount ?? 2); optionIndex++)
+                                            {
+                                                var optionLabel = $"Item {optionIndex + 1}";
+                                                var optionName = $"{ProductModel.GetFieldName(field, null)}_{optionIndex}";
+                                                <li>
+                                                    <label class="product-visually-hidden" for="@optionName">@optionLabel</label>
+                                                    <input class="public-field" id="@optionName" name="@optionName" value="@Request.Form[optionName]" placeholder="@optionLabel" />
+                                                </li>
+                                            }
+                                        </ol>
+                                        break;
+                                    default:
+                                        var inputType = field.FieldType switch
+                                        {
+                                            CatalogFormFieldType.Email => "email",
+                                            CatalogFormFieldType.Tel => "tel",
+                                            _ => "text"
+                                        };
+                                        <input class="public-field"
+                                               type="@inputType"
+                                               id="@ProductModel.GetFieldName(field, null)"
+                                               name="@ProductModel.GetFieldName(field, null)"
+                                               value="@Request.Form[ProductModel.GetFieldName(field, null)]"
+                                               placeholder="@field.Placeholder" />
+                                        break;
+                                }
+                            </div>
+                        }
+
+                        @if (Model.CanTakeAction)
+                        {
+                            <partial name="_Turnstile" />
+                            <button type="submit" class="public-btn public-btn-primary product-cta">
+                                <i class="@submitIconClass"></i>
+                                @submitText
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="button" class="public-btn public-btn-primary product-cta" disabled>
+                                <i class="@submitIconClass"></i>
+                                @submitText
+                            </button>
+                        }
+                    </form>
+                }
+                else
+                {
+                    if (showPricing)
+                    {
+                        <div class="product-price-board">
+                            <div class="product-price-row">
+                                <span>Price</span>
+                                <strong>@unitCurrency @displayUnitPrice.ToString("0.00")</strong>
+                            </div>
+                            <div class="product-price-row total">
+                                <span>Total</span>
+                                <strong>@unitCurrency @displayUnitPrice.ToString("0.00")</strong>
+                            </div>
+                        </div>
+                    }
+
+                    if (Model.CanTakeAction && !string.IsNullOrWhiteSpace(standaloneActionUrl))
+                    {
+                        if (Model.RequiresAuthenticatedAccount)
+                        {
+                            <form method="post" id="product-submit-form">
+                                @Html.AntiForgeryToken()
+                                @if (!string.IsNullOrWhiteSpace(Model.AccessToken))
+                                {
+                                    <input type="hidden" name="access" value="@Model.AccessToken" />
+                                }
+                                <partial name="_Turnstile" />
+                                <button type="submit" class="public-btn public-btn-primary product-cta">
+                                    <i class="@submitIconClass"></i>
+                                    @submitText
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <a href="@standaloneActionUrl" class="public-btn public-btn-primary product-cta" target="_blank" rel="noopener">
+                                <i class="@submitIconClass"></i>
+                                @submitText
+                            </a>
+                        }
+                    }
+                    else
+                    {
+                        <button type="button" class="public-btn public-btn-primary product-cta" disabled>
+                            <i class="@submitIconClass"></i>
+                            @submitText
+                        </button>
+                    }
+                }
+                </div>
+            </div>
+        </div>
+    }
+    </div>
+</section>
+
+@if (Model.IsAdminEditMode)
+{
+    <input type="hidden" id="ProductUploadsEnabled" value="@Model.UploadsEnabled.ToString().ToLowerInvariant()" />
+    <input type="hidden" id="ProductMaxImageBytes" value="@Model.MaxImageBytes" />
+    <input type="hidden" id="ProductMaxDownloadBytes" value="@Model.MaxDownloadBytes" />
+
+    <div class="product-edit-mode-bar" role="status">
+        <div class="product-edit-mode-bar-inner">
+            <div class="product-edit-mode-bar-copy">
+                <span class="product-edit-mode-dot" aria-hidden="true"></span>
+                <span>You are in edit mode.</span>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    @if (Model.IsAdminEditMode)
+    {
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const uploadsEnabled = document.getElementById("ProductUploadsEnabled")?.value === "true";
+                const maxImageBytes = Number(document.getElementById("ProductMaxImageBytes")?.value || 0);
+                const maxDownloadBytes = Number(document.getElementById("ProductMaxDownloadBytes")?.value || 0);
+                const form = document.getElementById("product-edit-form");
+                const stagedFiles = {};
+                let tinyMceLoadPromise = null;
+                let hasUnsavedChanges = false;
+                let isSubmittingProductEdit = false;
+
+                function markDirty() {
+                    if (!isSubmittingProductEdit) {
+                        hasUnsavedChanges = true;
+                    }
+                }
+
+                function updateCharacterCounter(textarea) {
+                    const limit = Number(textarea?.dataset.characterLimit || 0);
+                    if (!textarea || !limit) {
+                        return;
+                    }
+
+                    const counter = form?.querySelector(`[data-character-counter-for="${textarea.id}"]`);
+                    if (counter) {
+                        counter.textContent = `${textarea.value.length}/${limit}`;
+                    }
+                }
+
+                function parseMoneyInput(selector) {
+                    const value = form?.querySelector(selector)?.value;
+                    const parsed = Number.parseFloat(String(value || "").replace(",", "."));
+                    return Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
+                }
+
+                function formatMoney(value) {
+                    return `${@Json.Serialize(unitCurrency)} ${value.toFixed(2)}`;
+                }
+
+                function updatePriceSummary() {
+                    const basePrice = parseMoneyInput('[data-price-calculator="base"]');
+                    const vatPercentage = Math.min(100, parseMoneyInput('[data-price-calculator="vat"]'));
+                    const registrationFee = parseMoneyInput('[data-price-calculator="registration"]');
+                    const transactionFee = parseMoneyInput('[data-price-calculator="transaction"]');
+                    const serviceFee = parseMoneyInput('[data-price-calculator="service"]');
+                    const fees = registrationFee + transactionFee + serviceFee;
+                    const subtotal = basePrice + fees;
+                    const vatAmount = subtotal * (vatPercentage / 100);
+                    const total = subtotal + vatAmount;
+
+                    const values = {
+                        subtotal,
+                        fees,
+                        vat: vatAmount,
+                        total
+                    };
+
+                    Object.entries(values).forEach(function ([key, value]) {
+                        const target = form?.querySelector(`[data-price-summary="${key}"]`);
+                        if (target) {
+                            target.textContent = formatMoney(value);
+                        }
+                    });
+                }
+
+                function updatePriceInputWidth(input) {
+                    if (!input) {
+                        return;
+                    }
+
+                    const value = input.value || input.placeholder || "0.00";
+                    const characterWidth = input.classList.contains("product-editable-input") ? 0.88 : 0.75;
+                    const width = Math.min(8, Math.max(4.25, value.length * characterWidth + 1.2));
+                    input.style.setProperty("--price-input-width", `${width}rem`);
+                }
+
+                function updatePriceInputWidths() {
+                    form?.querySelectorAll("[data-price-calculator]").forEach(updatePriceInputWidth);
+                }
+
+                function getEditorContentOrTextareaValue(textarea) {
+                    const editor = textarea?.id ? window.tinymce?.get?.(textarea.id) : null;
+                    if (editor) {
+                        editor.save();
+                    }
+
+                    return textarea?.value || "";
+                }
+
+                function syncHtmlPreview(textarea) {
+                    const field = textarea?.closest("[data-lazy-editor-field]");
+                    const preview = field?.querySelector("[data-html-preview]");
+                    if (!textarea || !preview) {
+                        return;
+                    }
+
+                    const value = getEditorContentOrTextareaValue(textarea).trim();
+                    if (value) {
+                        preview.innerHTML = value;
+                    } else {
+                        preview.innerHTML = `<span class="product-html-placeholder">${textarea.getAttribute("placeholder") || "Enter content here..."}</span>`;
+                    }
+                }
+
+                function closeTinyMceEditor(textarea) {
+                    const currentEditor = textarea?.id ? window.tinymce?.get?.(textarea.id) : null;
+                    if (currentEditor) {
+                        currentEditor.save();
+                        currentEditor.remove();
+                    }
+
+                    syncHtmlPreview(textarea);
+                    textarea.dataset.tinyReady = "false";
+                    textarea.closest("[data-lazy-editor-field]")?.classList.remove("is-editing");
+                }
+
+                function focusTinyMceEditor(textarea) {
+                    const editor = textarea?.id ? window.tinymce?.get?.(textarea.id) : null;
+                    if (!editor) {
+                        return false;
+                    }
+
+                    editor.focus();
+                    const body = editor.getBody?.();
+                    if (body && !body.textContent?.trim()) {
+                        editor.selection?.setCursorLocation(body, 0);
+                    }
+
+                    return true;
+                }
+
+                function fieldTypeOptions(selectedType) {
+                    const options = [
+                        ["@CatalogFormFieldType.Text", "Text"],
+                        ["@CatalogFormFieldType.Email", "Email"],
+                        ["@CatalogFormFieldType.Tel", "Phone"],
+                        ["@CatalogFormFieldType.Textarea", "Long text"],
+                        ["@CatalogFormFieldType.Checkbox", "Checkbox"],
+                        ["@CatalogFormFieldType.NumberedList", "List"]
+                    ];
+
+                    const optionMarkup = options.map(function ([value, label]) {
+                        return `<option value="${value}"${value === selectedType ? " selected" : ""}>${label}</option>`;
+                    }).join("");
+
+                    return selectedType === "@CatalogFormFieldType.Note"
+                        ? `<option value="@CatalogFormFieldType.Note" selected hidden>Note</option>${optionMarkup}`
+                        : `<option value="@CatalogFormFieldType.Note" hidden>Note</option>${optionMarkup}`;
+                }
+
+                function createFormFieldItem(type) {
+                    const selectedType = type === "note" ? "@CatalogFormFieldType.Note" : "@CatalogFormFieldType.Text";
+                    const labelValue = type === "note" ? "Note" : "";
+                    return `
+                        <div class="product-form-builder-item" data-form-field-item>
+                            <input type="hidden" name="EditInput.FormFields[0].Id" value="0" />
+                            <input type="hidden" name="EditInput.FormFields[0].Key" value="" />
+                            <input type="hidden" name="EditInput.FormFields[0].SortOrder" value="0" data-form-field-sort />
+                            <div class="product-form-builder-item-top">
+                                <div class="product-form-builder-label" data-form-section="question">
+                                    <input class="public-field product-admin-field" name="EditInput.FormFields[0].Label" value="${labelValue}" placeholder="Question" />
+                                </div>
+                                <div data-form-section="answer-type">
+                                    <label class="public-label product-admin-label">Answer Type</label>
+                                    <select class="public-field product-admin-field" name="EditInput.FormFields[0].FieldType" data-form-field-type>${fieldTypeOptions(selectedType)}</select>
+                                </div>
+                                <button type="button" class="product-icon-button product-icon-button-danger product-form-builder-remove" data-remove-form-field aria-label="Remove form field">
+                                    <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                            <div class="product-form-builder-list-count" data-form-section="list-count">
+                                <input class="public-field product-admin-field" name="EditInput.FormFields[0].ListItemCount" type="number" min="2" placeholder="Number" />
+                            </div>
+                            <div class="product-form-builder-note-row" data-form-section="note">
+                                <input class="public-field product-admin-field" name="EditInput.FormFields[0].HelpText" value="" placeholder="Note" />
+                                <span class="product-form-input-marker" aria-hidden="true">*</span>
+                            </div>
+                            <div class="product-form-builder-note-editor" data-form-section="note-editor" data-lazy-editor-field>
+                                <textarea class="public-field product-admin-field product-rich-editor" name="EditInput.FormFields[0].HelpText" rows="5" placeholder="Enter note here..." data-lazy-tinymce="true"></textarea>
+                            </div>
+                            <div class="product-form-builder-character" data-form-section="character-limit">
+                                <input class="public-field product-admin-field" name="EditInput.FormFields[0].CharacterLimit" type="number" min="1" placeholder="Character limit" />
+                                <span class="product-form-input-marker" aria-hidden="true">*</span>
+                            </div>
+                            <div class="product-form-builder-options" data-form-section="checkbox-options">
+                                <input type="hidden" name="EditInput.FormFields[0].OptionsText" value="" data-options-text />
+                                <div class="product-checkbox-option-list" data-checkbox-option-list></div>
+                                <div class="product-checkbox-option-actions">
+                                    <button type="button" class="public-btn public-btn-outline public-btn-sm" data-add-checkbox-option="plain">
+                                        <i class="fa-solid fa-square-check" aria-hidden="true"></i>Add checkbox
+                                    </button>
+                                    <button type="button" class="public-btn public-btn-outline public-btn-sm" data-add-checkbox-option="text">
+                                        <i class="fa-solid fa-keyboard" aria-hidden="true"></i>Add checkbox with text
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="product-form-builder-toggles">
+                                <label class="product-check">
+                                    <input class="product-check-input" type="checkbox" name="EditInput.FormFields[0].IsRequired" value="true" />
+                                    <input type="hidden" name="EditInput.FormFields[0].IsRequired" value="false" />
+                                    <span>Required</span>
+                                </label>
+                                <label class="product-check" data-form-section="multiple">
+                                    <input class="product-check-input" type="checkbox" name="EditInput.FormFields[0].AllowMultipleOptions" value="true" checked />
+                                    <input type="hidden" name="EditInput.FormFields[0].AllowMultipleOptions" value="false" />
+                                    <span>Multiple</span>
+                                </label>
+                            </div>
+                        </div>`;
+                }
+
+                function parseCheckboxOptions(value) {
+                    return String(value || "")
+                        .split(/\r?\n/)
+                        .filter(Boolean)
+                        .map(function (line) {
+                            const [kind, label, limit] = line.split("\t");
+                            return {
+                                kind: kind === "text" ? "text" : "plain",
+                                label: label || "",
+                                limit: limit || ""
+                            };
+                        });
+                }
+
+                function encodeCheckboxOptions(item) {
+                    const options = [...item.querySelectorAll("[data-checkbox-option]")].map(function (option) {
+                        const kind = option.dataset.checkboxOption === "text" ? "text" : "plain";
+                        const label = option.querySelector("[data-checkbox-option-label]")?.value?.trim() || "";
+                        const limit = option.querySelector("[data-checkbox-option-limit]")?.value?.trim() || "";
+                        return label ? `${kind}\t${label}\t${limit}` : "";
+                    }).filter(Boolean);
+
+                    const hidden = item.querySelector("[data-options-text]");
+                    if (hidden) {
+                        hidden.value = options.join("\n");
+                    }
+                }
+
+                function createCheckboxOption(kind, label, limit) {
+                    const isText = kind === "text";
+                    return `
+                        <div class="product-checkbox-option" data-checkbox-option="${isText ? "text" : "plain"}">
+                            <input class="public-field product-admin-field" type="text" value="${label || ""}" placeholder="Checkbox label" data-checkbox-option-label />
+                            ${isText ? '<div class="product-checkbox-option-limit"><input class="public-field product-admin-field" type="number" min="1" value="' + (limit || "") + '" placeholder="Character limit" data-checkbox-option-limit /><span class="product-form-input-marker" aria-hidden="true">*</span></div>' : ""}
+                            <button type="button" class="product-icon-button product-icon-button-danger" data-remove-checkbox-option aria-label="Remove checkbox option">
+                                <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                            </button>
+                        </div>`;
+                }
+
+                function hydrateCheckboxOptions(item) {
+                    const list = item.querySelector("[data-checkbox-option-list]");
+                    const hidden = item.querySelector("[data-options-text]");
+                    if (!list || list.dataset.hydrated === "true") {
+                        return;
+                    }
+
+                    const options = parseCheckboxOptions(hidden?.value);
+                    list.innerHTML = options.map(option => createCheckboxOption(option.kind, option.label, option.limit)).join("");
+                    list.dataset.hydrated = "true";
+                }
+
+                function updateFormFieldCard(item) {
+                    const type = item.querySelector("[data-form-field-type]")?.value;
+                    hydrateCheckboxOptions(item);
+
+                    item.querySelectorAll("[data-form-section]").forEach(function (section) {
+                        const sectionName = section.dataset.formSection;
+                        const visible =
+                            (sectionName === "question" && type !== "@CatalogFormFieldType.Note" && type !== "@CatalogFormFieldType.Email" && type !== "@CatalogFormFieldType.Tel") ||
+                            (sectionName === "answer-type" && type !== "@CatalogFormFieldType.Note") ||
+                            (sectionName === "note" && type !== "@CatalogFormFieldType.Note" && type !== "@CatalogFormFieldType.Email" && type !== "@CatalogFormFieldType.Tel") ||
+                            (sectionName === "note-editor" && type === "@CatalogFormFieldType.Note") ||
+                            (sectionName === "character-limit" && type === "@CatalogFormFieldType.Textarea") ||
+                            (sectionName === "checkbox-options" && type === "@CatalogFormFieldType.Checkbox") ||
+                            (sectionName === "multiple" && type === "@CatalogFormFieldType.Checkbox") ||
+                            (sectionName === "list-count" && type === "@CatalogFormFieldType.NumberedList");
+
+                        section.classList.toggle("product-hidden", !visible);
+                        section.querySelectorAll("input, textarea, select").forEach(function (control) {
+                            control.disabled = !visible;
+                        });
+                    });
+
+                    const requiredToggle = item.querySelector('input[name$=".IsRequired"]');
+                    if (requiredToggle) {
+                        requiredToggle.closest(".product-check")?.classList.toggle("product-hidden", type === "@CatalogFormFieldType.Note");
+                    }
+                }
+
+                function updateFormBuilderEmptyState() {
+                }
+
+                function reindexFormBuilder() {
+                    const items = form?.querySelectorAll("[data-form-field-item]") || [];
+                    items.forEach(function (item, index) {
+                        item.querySelectorAll("[name]").forEach(function (element) {
+                            element.name = element.name.replace(/EditInput\.FormFields\[\d+\]/, `EditInput.FormFields[${index}]`);
+                        });
+
+                        item.querySelectorAll("[id]").forEach(function (element) {
+                            element.id = element.id.replace(/EditInput_FormFields_\d+__/, `EditInput_FormFields_${index}__`);
+                        });
+
+                        item.querySelectorAll("[for]").forEach(function (element) {
+                            element.htmlFor = element.htmlFor.replace(/EditInput_FormFields_\d+__/, `EditInput_FormFields_${index}__`);
+                        });
+
+                        const sort = item.querySelector("[data-form-field-sort]");
+                        if (sort) {
+                            sort.value = String(index * 10);
+                        }
+
+                        updateFormFieldCard(item);
+                        encodeCheckboxOptions(item);
+                    });
+
+                    updateFormBuilderEmptyState();
+                }
+
+                function getToken() {
+                    return form?.querySelector('input[name="__RequestVerificationToken"]')?.value || "";
+                }
+
+                function loadScriptOnce(src) {
+                    return new Promise(function (resolve, reject) {
+                        const existing = document.querySelector(`script[src="${src}"]`);
+                        if (existing) {
+                            existing.addEventListener("load", resolve, { once: true });
+                            existing.addEventListener("error", reject, { once: true });
+                            if (existing.dataset.loaded === "true") {
+                                resolve();
+                            }
+                            return;
+                        }
+
+                        const script = document.createElement("script");
+                        script.src = src;
+                        script.dataset.loaded = "false";
+                        script.onload = function () {
+                            script.dataset.loaded = "true";
+                            resolve();
+                        };
+                        script.onerror = reject;
+                        document.head.appendChild(script);
+                    });
+                }
+
+                async function ensureTinyMce(textarea) {
+                    if (!textarea || textarea.dataset.tinyReady === "true") {
+                        textarea?.closest("[data-lazy-editor-field]")?.classList.add("is-editing");
+                        focusTinyMceEditor(textarea);
+                        return;
+                    }
+
+                    if (!tinyMceLoadPromise) {
+                        tinyMceLoadPromise = loadScriptOnce("@Url.Content("~/lib/tinymce/tinymce.min.js")")
+                            .then(function () { return loadScriptOnce("@Url.Content("~/shared/tinymce-helpers.js")"); });
+                    }
+
+                    await tinyMceLoadPromise;
+                    if (!window.TinyMceHelpers) {
+                        return;
+                    }
+
+                    if (!textarea.id) {
+                        textarea.id = `product-rich-editor-${Math.random().toString(36).slice(2)}`;
+                    }
+
+                    textarea.closest("[data-lazy-editor-field]")?.classList.add("is-editing");
+
+                    window.TinyMceHelpers.initEditors([`#${CSS.escape(textarea.id)}`], {
+                        height: 260,
+                        min_height: 180,
+                        plugins: "lists link paste",
+                        toolbar: "bold italic underline | bullist numlist | link | removeformat",
+                        content_style: "body { font-size: 15px; line-height: 1.65; } p { margin: 0 0 0.85em; }",
+                        setup: function (editor) {
+                            editor.on("init", function () {
+                                window.setTimeout(function () {
+                                    focusTinyMceEditor(textarea);
+                                }, 0);
+                            });
+                            editor.on("Change KeyUp Undo Redo SetContent", markDirty);
+                            editor.on("blur", function () {
+                                window.setTimeout(function () {
+                                    const currentEditor = window.tinymce?.get?.(textarea.id);
+                                    if (!currentEditor) {
+                                        textarea.dataset.tinyReady = "false";
+                                        textarea.closest("[data-lazy-editor-field]")?.classList.remove("is-editing");
+                                        return;
+                                    }
+
+                                    const activeElement = document.activeElement;
+                                    const editorContainer = currentEditor.getContainer?.();
+                                    if (currentEditor.hasFocus() || (editorContainer && activeElement && editorContainer.contains(activeElement))) {
+                                        return;
+                                    }
+
+                                    closeTinyMceEditor(textarea);
+                                }, 120);
+                            });
+                        }
+                    });
+                    textarea.dataset.tinyReady = "true";
+                }
+
+                function setStatus(kind, message, isError, isLoading) {
+                    const status = form?.querySelector(`[data-upload-status="${kind}"]`);
+                    if (!status) {
+                        return;
+                    }
+
+                    if (isLoading) {
+                        status.innerHTML = '<span class="product-upload-loading"><span class="product-upload-spinner" aria-hidden="true"></span><span>Verifying file...</span></span>';
+                    } else {
+                        status.textContent = message || "";
+                    }
+
+                    status.classList.toggle("is-error", !!isError);
+                }
+
+                function formatBytes(bytes) {
+                    if (bytes >= 1024 * 1024) {
+                        return `${Math.round(bytes / 1024 / 1024)} MB`;
+                    }
+
+                    return `${Math.round(bytes / 1024)} KB`;
+                }
+
+                async function postUploadMetadata(handler, kind, file) {
+                    const fd = new FormData();
+                    fd.append("slug", form?.dataset.productSlug || "");
+                    fd.append("fileName", file.name);
+                    fd.append("contentType", file.type || "");
+                    fd.append("fileSize", String(file.size));
+
+                    const token = getToken();
+                    if (token) {
+                        fd.append("__RequestVerificationToken", token);
+                    }
+
+                    const res = await fetch(`${window.location.pathname}?handler=${handler}`, {
+                        method: "POST",
+                        headers: token ? { "RequestVerificationToken": token } : {},
+                        credentials: "same-origin",
+                        body: fd
+                    });
+
+                    const json = await res.json().catch(function () { return null; });
+                    if (!res.ok || !json?.success) {
+                        throw new Error(json?.errorMessage || "File could not be processed.");
+                    }
+
+                    return json;
+                }
+
+                async function putFile(putUrl, file, cacheControl) {
+                    const res = await fetch(putUrl, {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": file.type || "application/octet-stream",
+                            ...(cacheControl ? { "Cache-Control": cacheControl } : {})
+                        },
+                        body: file
+                    });
+
+                    if (!res.ok) {
+                        throw new Error("Upload failed while sending the file.");
+                    }
+                }
+
+                async function uploadStagedFile(kind) {
+                    const file = stagedFiles[kind];
+                    if (!file) {
+                        return;
+                    }
+
+                    setStatus(kind, kind === "image" ? "Uploading image..." : "Uploading file...", false, false);
+                    const handler = kind === "image" ? "CreateImageUpload" : "CreateAttachmentUpload";
+                    const upload = await postUploadMetadata(handler, kind, file);
+                    await putFile(upload.putUrl, file, upload.cacheControl || "");
+
+                    const keyInput = form?.querySelector(`[data-upload-key="${kind}"]`);
+                    if (keyInput) {
+                        keyInput.value = upload.objectKey;
+                    }
+
+                    stagedFiles[kind] = null;
+                    setStatus(kind, "", false, false);
+                }
+
+                document.addEventListener("focusin", function (event) {
+                    const limitedTextarea = event.target.closest("[data-character-limit]");
+                    if (limitedTextarea) {
+                        updateCharacterCounter(limitedTextarea);
+                    }
+
+                    const textarea = event.target.closest("[data-lazy-tinymce]");
+                    if (textarea) {
+                        ensureTinyMce(textarea);
+                    }
+                });
+
+                document.addEventListener("click", function (event) {
+                    const richField = event.target.closest("[data-lazy-editor-field]");
+                    const textarea = richField?.querySelector("[data-lazy-tinymce]");
+                    if (textarea) {
+                        ensureTinyMce(textarea);
+                    }
+
+                    const addFormField = event.target.closest("[data-add-form-field]");
+                    if (addFormField) {
+                        event.preventDefault();
+                        const list = form?.querySelector("[data-form-field-list]");
+                        list?.insertAdjacentHTML("beforeend", createFormFieldItem(addFormField.dataset.addFormField));
+                        reindexFormBuilder();
+                        markDirty();
+                        return;
+                    }
+
+                    const removeFormField = event.target.closest("[data-remove-form-field]");
+                    if (removeFormField) {
+                        event.preventDefault();
+                        removeFormField.closest("[data-form-field-item]")?.remove();
+                        reindexFormBuilder();
+                        markDirty();
+                        return;
+                    }
+
+                    const addCheckboxOption = event.target.closest("[data-add-checkbox-option]");
+                    if (addCheckboxOption) {
+                        event.preventDefault();
+                        const item = addCheckboxOption.closest("[data-form-field-item]");
+                        const list = item?.querySelector("[data-checkbox-option-list]");
+                        list?.insertAdjacentHTML("beforeend", createCheckboxOption(addCheckboxOption.dataset.addCheckboxOption));
+                        encodeCheckboxOptions(item);
+                        markDirty();
+                        return;
+                    }
+
+                    const removeCheckboxOption = event.target.closest("[data-remove-checkbox-option]");
+                    if (removeCheckboxOption) {
+                        event.preventDefault();
+                        const item = removeCheckboxOption.closest("[data-form-field-item]");
+                        removeCheckboxOption.closest("[data-checkbox-option]")?.remove();
+                        encodeCheckboxOptions(item);
+                        markDirty();
+                        return;
+                    }
+
+                    const trigger = event.target.closest("[data-upload-trigger]");
+                    if (!trigger) {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    const kind = trigger.dataset.uploadTrigger;
+                    const input = form?.querySelector(`[data-upload-input="${kind}"]`);
+
+                    if (!uploadsEnabled) {
+                        setStatus(kind, "Uploads are disabled in local development.", true, false);
+                        return;
+                    }
+
+                    input?.click();
+                });
+
+                document.addEventListener("change", function (event) {
+                    const input = event.target.closest("[data-upload-input]");
+                    if (!input) {
+                        return;
+                    }
+
+                    const file = input.files && input.files[0];
+                    const kind = input.dataset.uploadInput;
+                    const maxBytes = kind === "image" ? maxImageBytes : maxDownloadBytes;
+
+                    if (!file) {
+                        return;
+                    }
+
+                    if (maxBytes > 0 && file.size > maxBytes) {
+                        input.value = "";
+                        setStatus(kind, `File is too large. Maximum size is ${formatBytes(maxBytes)}.`, true, false);
+                        return;
+                    }
+
+                    markDirty();
+
+                    (async function () {
+                        const trigger = form?.querySelector(`[data-upload-trigger="${kind}"]`);
+                        const label = form?.querySelector(`[data-upload-label="${kind}"]`);
+
+                        try {
+                            setStatus(kind, "", false, true);
+                            if (trigger) {
+                                trigger.disabled = true;
+                            }
+
+                            const handler = kind === "image" ? "VerifyImageUpload" : "VerifyAttachmentUpload";
+                            const verifiedFile = await postUploadMetadata(handler, kind, file);
+                            stagedFiles[kind] = file;
+
+                            if (label) {
+                                label.textContent = verifiedFile.fileName || file.name;
+                            }
+
+                            if (kind === "image") {
+                                let preview = form?.querySelector("[data-image-preview]");
+                                if (!preview) {
+                                    preview = document.createElement("img");
+                                    preview.alt = "Product image preview";
+                                    preview.dataset.imagePreview = "";
+                                    form?.querySelector("[data-upload-trigger='image']")?.prepend(preview);
+                                }
+
+                                if (preview) {
+                                    preview.src = URL.createObjectURL(file);
+                                }
+                            }
+
+                            setStatus(kind, "", false, false);
+                        } catch (error) {
+                            input.value = "";
+                            stagedFiles[kind] = null;
+                            setStatus(kind, error?.message || "File could not be verified.", true, false);
+                        } finally {
+                            if (trigger) {
+                                trigger.disabled = false;
+                            }
+                        }
+                    })();
+                });
+
+                form?.querySelectorAll("[data-character-limit]").forEach(updateCharacterCounter);
+                form?.querySelectorAll("[data-html-preview]").forEach(function (preview) {
+                    const textarea = preview.closest("[data-lazy-editor-field]")?.querySelector("[data-lazy-tinymce]");
+                    if (textarea) {
+                        preview.dataset.emptyText = textarea.getAttribute("placeholder") || "";
+                    }
+                });
+                updatePriceSummary();
+                updatePriceInputWidths();
+                reindexFormBuilder();
+
+                form?.addEventListener("input", function (event) {
+                    const limitedTextarea = event.target.closest("[data-character-limit]");
+                    if (limitedTextarea) {
+                        updateCharacterCounter(limitedTextarea);
+                    }
+
+                    if (event.target.closest("[data-price-calculator]")) {
+                        updatePriceInputWidth(event.target);
+                        updatePriceSummary();
+                    }
+
+                    if (event.target.closest("[data-lazy-tinymce]")) {
+                        syncHtmlPreview(event.target);
+                    }
+
+                    const optionItem = event.target.closest("[data-form-field-item]");
+                    if (optionItem && event.target.closest("[data-checkbox-option]")) {
+                        encodeCheckboxOptions(optionItem);
+                    }
+
+                    markDirty();
+                });
+
+                form?.addEventListener("change", function (event) {
+                    if (event.target.closest("[data-price-calculator]")) {
+                        updatePriceInputWidth(event.target);
+                        updatePriceSummary();
+                    }
+
+                    const fieldItem = event.target.closest("[data-form-field-item]");
+                    if (fieldItem && event.target.closest("[data-form-field-type]")) {
+                        updateFormFieldCard(fieldItem);
+                    }
+
+                    if (fieldItem && event.target.closest("[data-checkbox-option]")) {
+                        encodeCheckboxOptions(fieldItem);
+                    }
+
+                    markDirty();
+                });
+
+                window.addEventListener("beforeunload", function (event) {
+                    if (!hasUnsavedChanges || isSubmittingProductEdit) {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    event.returnValue = "";
+                });
+
+                form?.addEventListener("submit", function (event) {
+                    event.preventDefault();
+                    const clickedSubmitter = event.submitter;
+                    const targetStatusInput = form.querySelector("[data-target-status]");
+                    if (targetStatusInput && clickedSubmitter?.name === "targetStatus") {
+                        targetStatusInput.value = clickedSubmitter.value || "";
+                    }
+
+                    (async function () {
+                        const submitButton = clickedSubmitter || document.querySelector('[form="product-edit-form"][type="submit"]');
+                        try {
+                            if (submitButton) {
+                                submitButton.disabled = true;
+                                submitButton.innerHTML = '<span class="product-upload-spinner" aria-hidden="true"></span>Saving';
+                            }
+
+                            await uploadStagedFile("image");
+                            await uploadStagedFile("attachment");
+                            window.tinymce?.triggerSave?.();
+                            form?.querySelectorAll("[data-form-field-item]").forEach(encodeCheckboxOptions);
+                            hasUnsavedChanges = false;
+                            isSubmittingProductEdit = true;
+                            HTMLFormElement.prototype.submit.call(form);
+                        } catch (error) {
+                            isSubmittingProductEdit = false;
+                            setStatus("attachment", `Save failed. ${error?.message || "Upload failed while saving."}`, true, false);
+                            if (submitButton) {
+                                submitButton.disabled = false;
+                                submitButton.innerHTML = '<i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>Save';
+                            }
+                        }
+                    })();
+                });
+            });
+        </script>
+    }
+    <script src="~/js/product-credit-grants.js" asp-append-version="true"></script>
+    <script src="~/js/product-page.js" asp-append-version="true"></script>
+}

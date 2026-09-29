@@ -1,0 +1,105 @@
+@model iD_Develops.Pages.Portal.Examination.CompletedModel
+
+<div class="tw:flex tw:min-h-screen tw:w-full">
+    <div class="content-panel tw:flex tw:flex-col tw:items-center tw:justify-center">
+        <div class="content-panel-inner">
+            @if (!string.IsNullOrWhiteSpace(Model.LevelTestSuccessMessage))
+            {
+                <div class="tw:text-center">
+                    <p class="completion-message tw:m-0 tw:text-center">
+                        @Model.LevelTestSuccessMessage
+                    </p>
+
+                    @if (Model.IsSignedInPortalUser)
+                    {
+                        <p class="tw:m-0">
+                            <a asp-page="/Portal/Profile/Index" class="completion-link">Return to your profile</a>
+                        </p>
+                    }
+                    else
+                    {
+                        <div class="completion-help tw:my-6 tw:text-center">
+                            <p class="tw:m-0">
+                                Didn't receive an email? Check your spam folder or
+                            </p>
+
+                            <form method="post" asp-page-handler="Resend" class="completion-resend-form">
+                                <input type="hidden" name="RecordId" value="@Model.RecordId" />
+                                <button type="submit" class="completion-inline-button">click here to resend</button>.
+                            </form>
+
+                            <p class="completion-divider tw:my-1">or</p>
+
+                            <p class="tw:mb-4">
+                                Contact us at <a class="completion-link" href="mailto:@Model.SupportEmail">@Model.SupportEmail</a>
+                            </p>
+                        </div>
+
+                        <p class="tw:m-0">
+                            <a asp-page="/Index" class="completion-link">Return to the home page</a>
+                        </p>
+                    }
+                </div>
+            }
+            else
+            {
+                <h2 class="tw:text-center">Dutch Language Awaits!</h2>
+                <p class="subtitle tw:text-center">
+                    Well done on completing your level test!
+                    <br />Your results are just around the corner.
+                    @if (!Model.IsSignedInPortalUser)
+                    {
+                        <text>Simply leave your name and email to receive detailed results and feedback on your test.</text>
+                    }
+                    else
+                    {
+                        <text>You're already signed in, so we can send the next steps straight to your account email.</text>
+                    }
+                    <br />Ready to explore the Dutch language?
+                </p>
+
+                @if (!string.IsNullOrWhiteSpace(Model.LevelTestErrorMessage))
+                {
+                    <div class="public-alert public-alert-danger" role="alert">
+                        @Model.LevelTestErrorMessage
+                    </div>
+                }
+
+                <div class="tw:flex tw:justify-center tw:pt-2">
+                    <form method="post" asp-page-handler="SubmitForm" class="completed-form">
+                        <input type="hidden" name="RecordId" value="@Model.RecordId" />
+
+                        @if (!Model.IsSignedInPortalUser)
+                        {
+                            <label asp-for="Name" class="tw:sr-only">Name:</label>
+                            <input asp-for="Name" placeholder="Name" />
+
+                            <label asp-for="Email" class="tw:sr-only">Email:</label>
+                            <input asp-for="Email" placeholder="Email" />
+                        }
+
+                        @if (!Model.IsSignedInPortalUser)
+                        {
+                            <div class="tw:mt-4 tw:flex tw:items-start tw:gap-2">
+                                <input class="tw:mt-1" asp-for="SubscribeNewsletter" type="checkbox" />
+                                <label class="consent-label tw:font-light" asp-for="SubscribeNewsletter">
+                                    I would like to receive newsletters and updates.
+                                </label>
+                            </div>
+
+                        }
+
+                        @if (!Model.IsSignedInPortalUser)
+                        {
+                            <partial name="_Turnstile" />
+                        }
+
+                        <input type="submit" value="@(Model.IsSignedInPortalUser ? "View my results!" : "Send my results!")" class="submit-button tw:mt-4" />
+
+                        <div asp-validation-summary="All" class="public-invalid-feedback tw:mt-4"></div>
+                    </form>
+                </div>
+            }
+        </div>
+    </div>
+</div>

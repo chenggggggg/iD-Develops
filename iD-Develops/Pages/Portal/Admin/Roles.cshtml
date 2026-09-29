@@ -1,0 +1,23 @@
+@page
+@model iD_Develops.Pages.Portal.Admin.RolesModel
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = "Manage roles";
+}
+
+<div class="portal-page-shell">
+    <p class="portal-eyebrow">Admin</p>
+    <h1 class="portal-title-sm">Manage roles</h1>
+
+    <div class="portal-card portal-card-narrow">
+            <p class="portal-copy portal-copy-spaced">
+                This application uses a fixed role model. Only these built-in roles are supported:
+            </p>
+            <ul class="tw:m-0 tw:pl-5">
+                @foreach (var role in iD_Develops.Pages.Portal.Admin.RolesModel.FixedRoles)
+                {
+                    <li><strong>@role</strong></li>
+                }
+            </ul>
+    </div>
+</div>

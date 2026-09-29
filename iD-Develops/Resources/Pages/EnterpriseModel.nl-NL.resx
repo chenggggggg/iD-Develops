@@ -1,0 +1,189 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="BenefitAccessibilityDescription" xml:space="preserve">
+    <value>Zorg ervoor dat training, coaching en motivatie voor alle teamleden altijd beschikbaar zijn.</value>
+  </data>
+  <data name="BenefitAccessibilityTitle" xml:space="preserve">
+    <value>Toegankelijkheid</value>
+  </data>
+  <data name="BenefitAutonomyDescription" xml:space="preserve">
+    <value>Behoud volledige controle over het trainings- en ontwikkelingsproces.</value>
+  </data>
+  <data name="BenefitAutonomyTitle" xml:space="preserve">
+    <value>Autonomie</value>
+  </data>
+  <data name="BenefitCostEffectivenessDescription" xml:space="preserve">
+    <value>Bereik uw trainingsdoelen op de lange termijn betaalbaarder.</value>
+  </data>
+  <data name="BenefitCostEffectivenessTitle" xml:space="preserve">
+    <value>Kosteneffectiviteit</value>
+  </data>
+  <data name="BenefitFlexibilityDescription" xml:space="preserve">
+    <value>Elimineer de noodzaak om uitgebreide trainingssessies voor grote groepen te plannen, wat tijd en middelen bespaart.</value>
+  </data>
+  <data name="BenefitFlexibilityTitle" xml:space="preserve">
+    <value>Flexibiliteit</value>
+  </data>
+  <data name="BenefitsTitle" xml:space="preserve">
+    <value>Voordelen</value>
+  </data>
+  <data name="BenefitSustainabilityDescription" xml:space="preserve">
+    <value>Geniet van de langetermijnvoordelen van een continu trainingsmodel.</value>
+  </data>
+  <data name="BenefitSustainabilityTitle" xml:space="preserve">
+    <value>Duurzaamheid</value>
+  </data>
+  <data name="CallToActionButton" xml:space="preserve">
+    <value>Boek uw gratis consult</value>
+  </data>
+  <data name="CallToActionDescription" xml:space="preserve">
+    <value>Ontdek hoe onze op maat gemaakte begeleiding u kan helpen uw doelen te bereiken met een gratis consult van 30 minuten.</value>
+  </data>
+  <data name="CallToActionTitle" xml:space="preserve">
+    <value>Meer informatie nodig?</value>
+  </data>
+  <data name="EmpowerDescription1" xml:space="preserve">
+    <value>Hebben uw medewerkers behoefte aan voortdurende training? Wij werken met u samen om een zelfvoorzienende trainingsorganisatie binnen uw onderneming mogelijk te maken. Onze aanbiedingen variëren van fundamentele ontwikkelingsprogramma's tot volledig op maat gemaakte trainingsoplossingen, inclusief train-de-trainer cursussen en korte workshops. Ontdek uw behoeften, en wij staan klaar om u te ondersteunen.</value>
+  </data>
+  <data name="EmpowerDescription2" xml:space="preserve">
+    <value>Het gebruik van een traditioneel trainingsbureau kan tijdelijke voordelen opleveren. De blijvende impact van dergelijke training vervaagt echter vaak, en de voortdurende cyclus van personeelsverloop roept de vraag op: wat gebeurt er met de nieuwkomers?</value>
+  </data>
+  <data name="EmpowerDescription3" xml:space="preserve">
+    <value>Terwijl we succesvol traditionele trainingen en coaching aan bedrijven hebben verstrekt, is het tijd om een meer hedendaagse aanpak te erkennen. Door uw organisatie in staat te stellen om intern trainingen en coaching te beheren, wordt niet alleen de duurzaamheid gewaarborgd, maar worden deze essentiële processen ook geïntegreerd in uw bedrijfscultuur.</value>
+  </data>
+  <data name="EmpowerDescription4" xml:space="preserve">
+    <value>iD! ondersteunt uw groei met op maat gemaakte train-de-trainer programma's, voortdurende advisering over trainingsmethodologieën, motivatie- en coachingstrategieën voor uw personeel of management, en teambuildingactiviteiten. Ontworpen in samenwerking met u, zijn onze diensten aangepast aan uw unieke behoeften.</value>
+  </data>
+  <data name="EmpowerTitle" xml:space="preserve">
+    <value>Versterk uw &lt;span class="text-danger"&gt;onderneming&lt;/span&gt; met aangepaste trainingsoplossingen</value>
+  </data>
+  <data name="HeroSectionButton" xml:space="preserve">
+    <value>Boek nu uw consult</value>
+  </data>
+  <data name="HeroSectionDescription" xml:space="preserve">
+    <value>Vooruitstrevende organisaties kiezen voor onze trainingsoplossingen om hun teams te transformeren – van het stroomlijnen van vaardigheidsontwikkeling voor snelle groei tot het herdefiniëren van medewerkersbetrokkenheid voor betere prestaties.</value>
+  </data>
+  <data name="HeroSectionTitle" xml:space="preserve">
+    <value>Vorm de toekomst van uw &lt;span class="text-gradient"&gt;onderneming&lt;/span&gt;</value>
+  </data>
+  <data name="Title" xml:space="preserve">
+    <value>Transformeer uw team met aangepaste in-house training</value>
+  </data>
+</root>

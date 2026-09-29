@@ -1,0 +1,136 @@
+@page
+@model iD_Develops.Pages.Portal.Admin.UsersModel
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = "Manage users";
+    var usersWithRoles = Model.Users.Count(user => !string.IsNullOrWhiteSpace(user.CurrentRole));
+    var roleCount = Model.Users
+        .Where(user => !string.IsNullOrWhiteSpace(user.CurrentRole))
+        .Select(user => user.CurrentRole)
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .Count();
+
+    static string FormatDisplayName(iD_Develops.Services.AdminUserListItem user)
+    {
+        var givenNameParts = (user.FirstName ?? string.Empty)
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        var initials = string.Concat(givenNameParts.Select(part => char.ToUpperInvariant(part[0]) + "."));
+        var lastName = user.LastName?.Trim();
+
+        if (!string.IsNullOrWhiteSpace(initials) && !string.IsNullOrWhiteSpace(lastName))
+            return $"{initials} {lastName}";
+
+        if (!string.IsNullOrWhiteSpace(lastName))
+            return lastName;
+
+        return !string.IsNullOrWhiteSpace(initials)
+            ? initials
+            : (user.UserName ?? user.Email ?? "Portal user");
+    }
+}
+
+<section class="portal-page-shell portal-data-page">
+    <div class="portal-page-header">
+        <div>
+            <p class="portal-eyebrow">Admin</p>
+            <h1 class="portal-title-sm">Manage users</h1>
+            <p class="portal-copy">Review portal accounts and keep access roles up to date.</p>
+        </div>
+    </div>
+
+    <div class="tw:mb-4 tw:grid tw:flex-none tw:gap-3 tw:sm:grid-cols-3" aria-label="User overview">
+        <article class="tw:flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-[#dfe5ec] tw:bg-white tw:px-4 tw:py-3 tw:shadow-[0_1px_2px_rgba(2,7,47,0.04)]"><span class="tw:grid tw:size-9 tw:flex-none tw:place-items-center tw:rounded-md tw:bg-[#eaf3fa] tw:text-[#005190]" aria-hidden="true"><i class="fa-solid fa-users"></i></span><span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">Portal users</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@Model.Users.Count</strong></span></article>
+        <article class="tw:flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-[#dfe5ec] tw:bg-white tw:px-4 tw:py-3 tw:shadow-[0_1px_2px_rgba(2,7,47,0.04)]"><span class="tw:grid tw:size-9 tw:flex-none tw:place-items-center tw:rounded-md tw:bg-[#eef6f4] tw:text-[#287a55]" aria-hidden="true"><i class="fa-solid fa-user-shield"></i></span><span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">Roles assigned</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@usersWithRoles</strong></span></article>
+        <article class="tw:flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-[#dfe5ec] tw:bg-white tw:px-4 tw:py-3 tw:shadow-[0_1px_2px_rgba(2,7,47,0.04)]"><span class="tw:grid tw:size-9 tw:flex-none tw:place-items-center tw:rounded-md tw:bg-[#f7eff1] tw:text-[#B23A48]" aria-hidden="true"><i class="fa-solid fa-layer-group"></i></span><span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">Active roles</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@roleCount</strong></span></article>
+    </div>
+
+    <div class="tw:mb-2 tw:flex tw:flex-none tw:items-end tw:justify-between tw:gap-4"><div><p class="tw:m-0 tw:text-sm tw:font-semibold tw:text-[#071f3d]">User directory</p><p class="tw:m-0 tw:text-xs tw:text-[#64748b]">Select a role in place without leaving the directory.</p></div><span class="tw:text-xs tw:font-medium tw:text-[#64748b]">@Model.Users.Count users</span></div>
+
+    <div class="portal-table-card">
+        <div class="portal-table-wrap">
+        <table class="portal-exams-table">
+            <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Role</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model.Users)
+                {
+                    var currentRole = user.CurrentRole;
+                    <tr>
+                        <td>@FormatDisplayName(user)</td>
+                        <td>@(user.Email ?? "Not provided")</td>
+                        <td class="portal-role-cell">
+                            <form asp-page-handler="SaveRole"
+                                  method="post"
+                                  asp-route-userId="@user.Id"
+                                  class="portal-role-editor"
+                                  data-role-editor>
+                                <div class="portal-role-display" data-role-display>
+                                    <span class="portal-table-meta">@(currentRole ?? "No role assigned")</span>
+                                    @if (user.CanManageRole)
+                                    {
+                                        <button type="button"
+                                                class="portal-role-edit-trigger"
+                                                data-role-edit
+                                                aria-label="Edit role for @FormatDisplayName(user)"
+                                                aria-expanded="false"
+                                                title="Edit role">
+                                            <i class="fa-solid fa-pencil" aria-hidden="true"></i>
+                                        </button>
+                                    }
+                                </div>
+                                @if (user.CanManageRole)
+                                {
+                                <div class="portal-role-controls" data-role-controls hidden>
+                                    <select class="portal-field portal-role-select"
+                                            aria-label="Role for @FormatDisplayName(user)"
+                                            name="roleName"
+                                            data-role-select
+                                            data-original-role="@(currentRole ?? string.Empty)">
+                                    @foreach (var role in Model.AllRoles)
+                                    {
+                                        if (string.Equals(role, currentRole, StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <option value="@role" selected>@role</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@role">@role</option>
+                                        }
+                                    }
+                                    </select>
+                                    <div class="portal-role-actions">
+                                        <button class="portal-role-action portal-role-action-confirm"
+                                                type="submit"
+                                                aria-label="Confirm role change"
+                                                title="Confirm">
+                                            <i class="fa-solid fa-check" aria-hidden="true"></i>
+                                        </button>
+                                        <button class="portal-role-action portal-role-action-cancel"
+                                                type="button"
+                                                data-role-cancel
+                                                aria-label="Cancel role change"
+                                                title="Cancel">
+                                            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                }
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="~/js/admin-users.js" asp-append-version="true"></script>
+}

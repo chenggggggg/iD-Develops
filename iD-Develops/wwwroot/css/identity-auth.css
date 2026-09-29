@@ -1,0 +1,195 @@
+.identity-aurora::before,
+.identity-aurora::after {
+    content: "";
+    position: absolute;
+    inset: -12px;
+    pointer-events: none;
+}
+
+.identity-aurora::before {
+    opacity: 0.56;
+    background-image:
+        repeating-linear-gradient(
+            100deg,
+            rgba(250, 250, 248, 0.96) 0%,
+            rgba(250, 250, 248, 0.96) 7%,
+            transparent 10%,
+            transparent 12%,
+            rgba(250, 250, 248, 0.96) 16%
+        ),
+        repeating-linear-gradient(
+            100deg,
+            rgba(178, 58, 72, 0.38) 10%,
+            rgba(184, 134, 11, 0.22) 15%,
+            rgba(0, 81, 144, 0.2) 20%,
+            rgba(255, 79, 216, 0.16) 25%,
+            rgba(178, 58, 72, 0.28) 30%
+        );
+    background-position: 50% 50%, 50% 50%;
+    background-size: 300% 300%, 200% 200%;
+    filter: blur(10px) saturate(1.08);
+    -webkit-mask-image: radial-gradient(ellipse at 100% 0%, black 10%, transparent 72%);
+    mask-image: radial-gradient(ellipse at 100% 0%, black 10%, transparent 72%);
+    mix-blend-mode: multiply;
+    animation: identity-aurora 48s linear infinite;
+    will-change: background-position, transform;
+}
+
+.identity-aurora::after {
+    opacity: 0.22;
+    background:
+        radial-gradient(circle at 82% 14%, rgba(178, 58, 72, 0.34), transparent 23rem),
+        radial-gradient(circle at 12% 30%, rgba(0, 81, 144, 0.18), transparent 22rem),
+        radial-gradient(circle at 50% 100%, rgba(184, 134, 11, 0.16), transparent 26rem);
+    filter: blur(28px);
+    animation: identity-aurora-drift 60s ease-in-out infinite alternate;
+}
+
+.identity-border-beam::before,
+.identity-border-beam::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+.identity-border-beam::before {
+    z-index: 2;
+    padding: 2px;
+    opacity: 0;
+    background:
+        conic-gradient(
+            from var(--identity-beam-angle, 0deg),
+            transparent 0deg,
+            transparent 248deg,
+            rgba(178, 58, 72, 0.1) 276deg,
+            #ff4fd8 292deg,
+            #4cc9ff 308deg,
+            #ffd166 324deg,
+            rgba(178, 58, 72, 0.12) 342deg,
+            transparent 360deg
+        );
+    -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    animation: identity-border-beam 5.5s linear infinite;
+    animation-play-state: paused;
+    transition: opacity 160ms ease;
+}
+
+.identity-border-beam::after {
+    z-index: 1;
+    inset: -18%;
+    opacity: 0;
+    background:
+        radial-gradient(circle at 50% 0%, rgba(255, 79, 216, 0.28), transparent 34%),
+        radial-gradient(circle at 100% 50%, rgba(76, 201, 255, 0.22), transparent 34%),
+        radial-gradient(circle at 0% 50%, rgba(255, 209, 102, 0.18), transparent 34%);
+    filter: blur(28px);
+    animation: identity-border-glow 7s linear infinite;
+    animation-play-state: paused;
+    transition: opacity 160ms ease;
+}
+
+.identity-card-content {
+    transition:
+        opacity 180ms ease,
+        filter 180ms ease;
+}
+
+.identity-loading-filter {
+    position: absolute;
+    inset: 2px;
+    z-index: 20;
+    border-radius: calc(0.5rem - 2px);
+    pointer-events: none;
+    opacity: 0;
+    background: rgba(255, 255, 255, 0.42);
+    transition: opacity 180ms ease;
+}
+
+.identity-border-beam.is-loading {
+    cursor: progress;
+}
+
+.identity-border-beam.is-loading .identity-card-content {
+    pointer-events: none;
+    user-select: none;
+    opacity: 0.68;
+    filter: saturate(0.86) brightness(1.04);
+}
+
+.identity-border-beam.is-loading .identity-loading-filter {
+    opacity: 1;
+}
+
+.identity-border-beam.is-loading::before {
+    opacity: 1;
+    animation-play-state: running;
+}
+
+.identity-border-beam.is-loading::after {
+    opacity: 0.16;
+    animation-play-state: running;
+}
+
+@property --identity-beam-angle {
+    syntax: "<angle>";
+    inherits: false;
+    initial-value: 0deg;
+}
+
+@keyframes identity-border-beam {
+    to {
+        --identity-beam-angle: 360deg;
+    }
+}
+
+@keyframes identity-border-glow {
+    to {
+        transform: rotate(1turn);
+    }
+}
+
+@keyframes identity-aurora {
+    from {
+        background-position: 50% 50%, 50% 50%;
+    }
+
+    to {
+        background-position: 350% 50%, 250% 50%;
+    }
+}
+
+@keyframes identity-aurora-drift {
+    from {
+        transform: translate3d(-2%, -1%, 0) scale(1);
+    }
+
+    to {
+        transform: translate3d(2%, 2%, 0) scale(1.04);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .identity-border-beam::before,
+    .identity-border-beam::after,
+    .identity-aurora::before,
+    .identity-aurora::after {
+        animation: none;
+    }
+
+    .identity-border-beam.is-loading::before {
+        opacity: 1;
+    }
+
+    .identity-border-beam.is-loading::after {
+        opacity: 0.12;
+    }
+}

@@ -1,0 +1,399 @@
+@page "/portal/schedule/roster"
+@using System.Text.Json
+@using iD_Develops.Enums
+@using iD_Develops.Services
+@model iD_Develops.Pages.Portal.Schedule.RosterModel
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = "Class times";
+    ViewData["BodyClass"] = "portal-roster-page";
+}
+
+<section class="portal-page-shell roster-page" data-roster-root>
+    <header class="portal-page-header roster-page-header">
+        <div class="portal-page-header-copy">
+            <a class="roster-back-link" asp-page="/Portal/Schedule/Index">
+                <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+                Calendar
+            </a>
+            <p class="portal-eyebrow">Scheduling</p>
+            <h1 class="portal-title-sm">Classes and availability</h1>
+            <p class="portal-copy">Set teaching hours, create recurring classes, or schedule one meeting manually.</p>
+        </div>
+    </header>
+
+    @if (TempData["StatusMessage"] is string statusMessage)
+    {
+        <div class="schedule-notice is-success" role="status">@statusMessage</div>
+    }
+    @if (TempData["ErrorMessage"] is string errorMessage)
+    {
+        <div class="schedule-notice is-error" role="alert">@errorMessage</div>
+    }
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="schedule-notice is-error" asp-validation-summary="All"></div>
+    }
+
+    <section class="roster-availability-panel" data-availability-form-root>
+        <div class="roster-section-heading">
+            <div>
+                <p class="portal-eyebrow">Teacher availability</p>
+                <h2>Weekly teaching hours</h2>
+                <p class="roster-section-copy">These hours determine which staff appear when an administrator selects a teacher for a time slot.</p>
+            </div>
+        </div>
+        <form method="post" asp-page-handler="SaveAvailability" class="availability-form">
+            <div class="availability-controls">
+                @if (Model.IsAdmin)
+                {
+                    <label class="roster-field">
+                        <span>Teacher</span>
+                        <select asp-for="AvailabilityInput.TeacherUserId" data-availability-teacher required>
+                            @foreach (var teacher in Model.Data.Teachers)
+                            {
+                                <option value="@teacher.Id">@teacher.Name</option>
+                            }
+                        </select>
+                    </label>
+                }
+                else
+                {
+                    <input type="hidden" asp-for="AvailabilityInput.TeacherUserId" value="@Model.Data.Teachers.FirstOrDefault()?.Id" data-availability-teacher />
+                }
+                <label class="roster-field">
+                    <span>Time zone</span>
+                    <input asp-for="AvailabilityInput.TimeZoneId" type="hidden" value="@SchedulingService.AmsterdamTimeZoneId" data-availability-time-zone />
+                    <span class="roster-fixed-value">Amsterdam (Europe/Amsterdam)</span>
+                </label>
+            </div>
+            <div class="availability-week">
+                @for (var index = 0; index < Model.AvailabilityInput.Days.Count; index++)
+                {
+                    <div class="availability-day" data-availability-day="@Model.AvailabilityInput.Days[index].DayOfWeek">
+                        <input asp-for="AvailabilityInput.Days[index].DayOfWeek" type="hidden" />
+                        <label class="availability-day-toggle">
+                            <input asp-for="AvailabilityInput.Days[index].IsAvailable" data-availability-enabled />
+                            <span>@Model.AvailabilityInput.Days[index].DayOfWeek</span>
+                        </label>
+                        <label>
+                            <span class="tw:sr-only">Start time</span>
+                            <input asp-for="AvailabilityInput.Days[index].LocalStartTime" type="time" data-availability-start />
+                        </label>
+                        <span class="availability-separator">to</span>
+                        <label>
+                            <span class="tw:sr-only">End time</span>
+                            <input asp-for="AvailabilityInput.Days[index].LocalEndTime" type="time" data-availability-end />
+                        </label>
+                    </div>
+                }
+            </div>
+            <button class="portal-btn portal-btn-primary portal-btn-sm" type="submit">
+                <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+                Save availability
+            </button>
+        </form>
+    </section>
+
+    <script type="application/json" data-availability-json>
+        @Html.Raw(JsonSerializer.Serialize(Model.Data.Availability.Select(item => new
+        {
+            item.TeacherUserId,
+            DayOfWeek = item.DayOfWeek.ToString(),
+            Start = item.LocalStartTime.ToString("HH:mm"),
+            End = item.LocalEndTime.ToString("HH:mm"),
+            item.TimeZoneId
+        })))
+    </script>
+
+    <div class="roster-layout">
+        <div class="roster-list-panel">
+            <div class="roster-section-heading">
+                <div>
+                    <p class="portal-eyebrow">Automatic</p>
+                    <h2>Recurring classes</h2>
+                </div>
+                <button class="portal-btn portal-btn-primary portal-btn-sm" type="button" data-roster-new>
+                    <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                    Add recurring class
+                </button>
+            </div>
+
+            <div class="roster-rule-list">
+                @if (Model.Data.Rules.Count == 0)
+                {
+                    <div class="roster-empty">
+                        <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+                        <strong>No recurring classes</strong>
+                    </div>
+                }
+                @foreach (var rule in Model.Data.Rules)
+                {
+                    var ruleJson = JsonSerializer.Serialize(new
+                    {
+                        rule.Id,
+                        rule.TeacherUserId,
+                        rule.CourseClassId,
+                        DayOfWeek = rule.DayOfWeek.ToString(),
+                        LocalStartTime = rule.LocalStartTime.ToString("HH:mm"),
+                        rule.TimeZoneId,
+                        ActiveFromDate = rule.ActiveFromDate.ToString("yyyy-MM-dd"),
+                        ActiveUntilDate = rule.ActiveUntilDate?.ToString("yyyy-MM-dd"),
+                        rule.DurationMinutes,
+                        rule.Capacity,
+                        DeliveryType = rule.DeliveryType.ToString(),
+                        rule.Location,
+                        rule.BookingOpenDaysBefore,
+                        rule.BookingCloseHoursBefore,
+                        rule.GenerateWeeksAhead,
+                        rule.IsVisibleForStudentBooking,
+                        rule.IsActive
+                    });
+                    <article class="roster-rule @(rule.IsActive ? null : "is-inactive")">
+                        <span class="roster-rule-day">
+                            <strong>@rule.DayOfWeek.ToString()[..3]</strong>
+                            <small>@rule.LocalStartTime.ToString("HH:mm")</small>
+                        </span>
+                        <span class="roster-rule-copy">
+                            <strong>@rule.ClassTitle</strong>
+                            <small>@rule.CourseName &middot; @rule.TeacherName</small>
+                            <span>@rule.DurationMinutes min &middot; @rule.Capacity seat@(rule.Capacity == 1 ? string.Empty : "s") &middot; @rule.UpcomingEventCount upcoming</span>
+                        </span>
+                        <span class="roster-rule-actions">
+                            <button type="button"
+                                    data-roster-edit
+                                    data-roster-rule="@ruleJson"
+                                    aria-label="Edit @rule.ClassTitle"
+                                    title="Edit recurring class">
+                                <i class="fa-solid fa-pencil" aria-hidden="true"></i>
+                            </button>
+                            <form method="post" asp-page-handler="DeleteRule" onsubmit="return confirm('Remove this recurring class and its unbooked future meetings?');">
+                                <input type="hidden" name="ruleId" value="@rule.Id" />
+                                <button type="submit" aria-label="Remove @rule.ClassTitle" title="Remove recurring class">
+                                    <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
+                                </button>
+                            </form>
+                        </span>
+                    </article>
+                }
+            </div>
+        </div>
+
+        <aside class="roster-editor" data-roster-editor>
+            <div class="roster-editor-heading">
+                <div>
+                    <p class="portal-eyebrow">Automatic</p>
+                    <h2 data-roster-editor-title>New recurring class</h2>
+                </div>
+                <button type="button" data-roster-reset aria-label="Clear form" title="Clear form">
+                    <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
+                </button>
+            </div>
+            <form id="recurring-class" method="post" asp-page-handler="SaveRule" class="roster-form" data-roster-form>
+                <input asp-for="RuleInput.Id" type="hidden" data-roster-field="Id" />
+                @if (Model.IsAdmin)
+                {
+                    <label class="roster-field is-wide">
+                        <span>Teacher</span>
+                        <select asp-for="RuleInput.TeacherUserId" data-roster-field="TeacherUserId" data-roster-teacher required>
+                            <option value="">Select an available teacher</option>
+                            @foreach (var teacher in Model.Data.Teachers)
+                            {
+                                <option value="@teacher.Id">@teacher.Name</option>
+                            }
+                        </select>
+                    </label>
+                }
+                else
+                {
+                    <input type="hidden" asp-for="RuleInput.TeacherUserId" value="@Model.Data.Teachers.FirstOrDefault()?.Id" data-roster-field="TeacherUserId" data-roster-teacher />
+                }
+                <label class="roster-field is-wide">
+                    <span>Course class</span>
+                    <select asp-for="RuleInput.CourseClassId" data-roster-field="CourseClassId" data-roster-class required>
+                        <option value="">Select class</option>
+                        @foreach (var courseClass in Model.Data.Classes)
+                        {
+                            <option value="@courseClass.Id" data-duration="@courseClass.DurationMinutes" data-capacity="@courseClass.Capacity">@courseClass.CourseName &middot; @courseClass.SectionTitle &middot; @courseClass.ClassTitle</option>
+                        }
+                    </select>
+                </label>
+                <label class="roster-field">
+                    <span>Day</span>
+                    <select asp-for="RuleInput.DayOfWeek" data-roster-field="DayOfWeek" data-roster-day>
+                        @foreach (var day in Enum.GetValues<DayOfWeek>().OrderBy(day => ((int)day + 6) % 7))
+                        {
+                            <option value="@day">@day</option>
+                        }
+                    </select>
+                </label>
+                <label class="roster-field">
+                    <span>Start time</span>
+                    <input asp-for="RuleInput.LocalStartTime" type="time" data-roster-field="LocalStartTime" data-roster-start required />
+                </label>
+                <input asp-for="RuleInput.TimeZoneId" type="hidden" data-roster-field="TimeZoneId" data-roster-time-zone />
+                <p class="roster-availability-hint is-wide" data-roster-availability-hint></p>
+                <label class="roster-field">
+                    <span>Active from</span>
+                    <input asp-for="RuleInput.ActiveFromDate" type="date" data-roster-field="ActiveFromDate" required />
+                </label>
+                <label class="roster-field">
+                    <span>Active until</span>
+                    <input asp-for="RuleInput.ActiveUntilDate" type="date" data-roster-field="ActiveUntilDate" required />
+                </label>
+                <input asp-for="RuleInput.DurationMinutes" type="hidden" data-roster-field="DurationMinutes" />
+                <input asp-for="RuleInput.Capacity" type="hidden" data-roster-field="Capacity" />
+                <label class="roster-field">
+                    <span>Delivery</span>
+                    <select asp-for="RuleInput.DeliveryType" data-roster-field="DeliveryType">
+                        <option value="@ScheduleDeliveryType.Zoom">Zoom</option>
+                        <option value="@ScheduleDeliveryType.InPerson">In person</option>
+                        <option value="@ScheduleDeliveryType.OtherOnline">Other online</option>
+                    </select>
+                </label>
+                <label class="roster-field is-wide">
+                    <span>Location</span>
+                    <input asp-for="RuleInput.Location" maxlength="300" placeholder="Room or address" data-roster-field="Location" />
+                </label>
+                <details class="roster-advanced is-wide">
+                    <summary>Advanced booking options</summary>
+                    <div>
+                        <label class="roster-field">
+                            <span>Generate ahead</span>
+                            <select asp-for="RuleInput.GenerateWeeksAhead" data-roster-field="GenerateWeeksAhead">
+                                <option value="4">4 weeks</option>
+                                <option value="8">8 weeks</option>
+                                <option value="12">12 weeks</option>
+                                <option value="24">24 weeks</option>
+                                <option value="52">52 weeks</option>
+                            </select>
+                        </label>
+                        <label class="roster-field">
+                            <span>Booking opens</span>
+                            <span class="roster-input-suffix"><input asp-for="RuleInput.BookingOpenDaysBefore" type="number" min="0" max="365" data-roster-field="BookingOpenDaysBefore" /><small>days before</small></span>
+                        </label>
+                        <label class="roster-field">
+                            <span>Booking closes</span>
+                            <span class="roster-input-suffix"><input asp-for="RuleInput.BookingCloseHoursBefore" type="number" min="0" max="8760" data-roster-field="BookingCloseHoursBefore" /><small>hours before</small></span>
+                        </label>
+                        <label class="roster-toggle">
+                            <input asp-for="RuleInput.IsVisibleForStudentBooking" data-roster-field="IsVisibleForStudentBooking" />
+                            <span aria-hidden="true"></span>
+                            Visible for student self-booking
+                        </label>
+                        <label class="roster-toggle">
+                            <input asp-for="RuleInput.IsActive" data-roster-field="IsActive" />
+                            <span aria-hidden="true"></span>
+                            Active recurring class
+                        </label>
+                    </div>
+                </details>
+                <button class="portal-btn portal-btn-primary roster-submit" type="submit">
+                    <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+                    <span data-roster-submit-label>Save recurring class</span>
+                </button>
+            </form>
+        </aside>
+    </div>
+
+    <section class="roster-manual-panel">
+        <div class="roster-section-heading">
+            <div>
+                <p class="portal-eyebrow">Manual</p>
+                <h2>Schedule one meeting</h2>
+            </div>
+        </div>
+        <form method="post" asp-page-handler="CreateManual" class="roster-form roster-manual-form">
+            @if (Model.IsAdmin)
+            {
+                <label class="roster-field">
+                    <span>Teacher</span>
+                    <select asp-for="ManualInput.TeacherUserId" data-manual-teacher required>
+                        <option value="">Select an available teacher</option>
+                        @foreach (var teacher in Model.Data.Teachers)
+                        {
+                            <option value="@teacher.Id">@teacher.Name</option>
+                        }
+                    </select>
+                    <small class="roster-field-help" data-manual-availability-hint></small>
+                </label>
+            }
+            else
+            {
+                <input type="hidden" asp-for="ManualInput.TeacherUserId" value="@Model.Data.Teachers.FirstOrDefault()?.Id" />
+            }
+            <label class="roster-field">
+                <span>Course class</span>
+                <select asp-for="ManualInput.CourseClassId" data-manual-course>
+                    <option value="">Select class</option>
+                    @foreach (var courseClass in Model.Data.Classes)
+                    {
+                        <option value="@courseClass.Id">@courseClass.CourseName &middot; @courseClass.ClassTitle</option>
+                    }
+                </select>
+            </label>
+            <div class="roster-field roster-student-picker" data-student-picker>
+                <span>Student</span>
+                <input type="search" placeholder="Search by email" autocomplete="off" data-student-search aria-label="Search students by email" />
+                <select asp-for="ManualInput.StudentUserId" data-manual-student>
+                    <option value="">Select student</option>
+                    @foreach (var student in Model.Data.Students)
+                    {
+                        <option value="@student.Id">@student.Email</option>
+                    }
+                </select>
+            </div>
+            <p class="roster-choice-hint is-wide">Choose one: a course class for an open class, or a student for a private scheduled session.</p>
+            <label class="roster-field">
+                <span>Date and time</span>
+                <input asp-for="ManualInput.StartLocal" type="datetime-local" data-manual-start required />
+            </label>
+            <label class="roster-field">
+                <span>Time zone</span>
+                <input asp-for="ManualInput.TimeZoneId" type="hidden" value="@SchedulingService.AmsterdamTimeZoneId" data-manual-time-zone />
+                <span class="roster-fixed-value">Amsterdam (Europe/Amsterdam)</span>
+            </label>
+            <label class="roster-field">
+                <span>Duration (min)</span>
+                <input asp-for="ManualInput.DurationMinutes" type="number" min="5" max="1440" data-manual-duration />
+            </label>
+            <label class="roster-field">
+                <span>Capacity</span>
+                <input asp-for="ManualInput.Capacity" type="number" min="1" max="10000" />
+            </label>
+            <label class="roster-field">
+                <span>Delivery</span>
+                <select asp-for="ManualInput.DeliveryType">
+                    <option value="@ScheduleDeliveryType.Zoom">Zoom</option>
+                    <option value="@ScheduleDeliveryType.InPerson">In person</option>
+                    <option value="@ScheduleDeliveryType.OtherOnline">Other online</option>
+                </select>
+            </label>
+            <label class="roster-field is-wide">
+                <span>Zoom URL <small>(optional)</small></span>
+                <input asp-for="ManualInput.MeetingUrl" type="url" maxlength="1024" placeholder="https://zoom.us/j/..." />
+                <small class="roster-field-help">Leave empty to create the Zoom meeting automatically from the teacher's connected account.</small>
+            </label>
+            <label class="roster-field">
+                <span>Location</span>
+                <input asp-for="ManualInput.Location" maxlength="300" />
+            </label>
+            <label class="roster-field">
+                <span>Booking opens (days)</span>
+                <input asp-for="ManualInput.BookingOpenDaysBefore" type="number" min="0" max="365" />
+            </label>
+            <label class="roster-field">
+                <span>Booking closes (hours)</span>
+                <input asp-for="ManualInput.BookingCloseHoursBefore" type="number" min="0" max="8760" />
+            </label>
+            <button class="portal-btn portal-btn-primary roster-submit" type="submit">
+                <i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>
+                Schedule meeting
+            </button>
+        </form>
+    </section>
+</section>
+
+@section Scripts {
+    <script src="~/js/schedule-roster.js" asp-append-version="true"></script>
+}

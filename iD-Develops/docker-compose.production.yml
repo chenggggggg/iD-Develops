@@ -1,0 +1,21 @@
+name: iddev-production
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: iddev_web_production
+    restart: unless-stopped
+    ports:
+      - "5002:8080"
+    env_file:
+      - .env.production
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+      ConnectionStrings__ApplicationDbContextConnection: "${ConnectionStrings__ApplicationDbContextConnection}"
+    volumes:
+      - data_protection_production_keys:/app/App_Data/DataProtection-Keys
+
+volumes:
+  data_protection_production_keys:

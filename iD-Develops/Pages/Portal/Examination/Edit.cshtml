@@ -1,0 +1,105 @@
+@page
+@using iD_Develops.Enums
+@using iD_Develops.Pages.Shared.Examination
+@using iD_Develops.Pages.Shared.Examination.Questions
+@model iD_Develops.Pages.Portal.Examination.EditModel
+
+@{
+    ViewData["Title"] = "Exam Editor";
+    Layout = "/Pages/Shared/Examination/_ExaminationLayout.cshtml";
+    ViewData["ExaminationBodyClass"] = "examination-editor-body";
+}
+
+<partial name="/Pages/Shared/Examination/_ExaminationHeader.cshtml"
+         model="Model.Header" />
+
+<div class="exam-container">
+    @if (!Model.UploadsEnabled)
+    {
+        <div class="public-alert public-alert-warning" role="alert">
+            File uploads are disabled in this environment. Question text and answers will still save normally.
+        </div>
+    }
+    <div class="exam-question-wrap" id="questionHost">
+        <partial name="/Pages/Shared/Examination/Questions/_QuestionShell.cshtml"
+                 model="new QuestionShellModel { Question = Model.Question!, Mode = QuestionRenderMode.Edit }" />
+    </div>
+</div>
+
+
+<input type="hidden" id="ExamId" value="@Model.ExamId" />
+<input type="hidden" id="UploadsEnabled" value="@Model.UploadsEnabled.ToString().ToLowerInvariant()" />
+
+<div id="pagination-host">
+    <partial name="/Pages/Shared/Examination/_Pagination.cshtml" model="Model.Pagination" />
+</div>
+
+<!-- Right-side settings panel -->
+<div class="exam-settings-canvas"
+     tabindex="-1"
+     id="examSettingsCanvas"
+     aria-labelledby="examSettingsCanvasLabel"
+     hidden>
+
+    <div class="exam-settings-canvas-header">
+        <h5 class="exam-settings-canvas-title" id="examSettingsCanvasLabel">Quick settings</h5>
+        <button type="button" class="exam-icon-button" data-exam-settings-close aria-label="Close">&times;</button>
+    </div>
+
+    <div class="exam-settings-canvas-body">
+        <form method="post" asp-page-handler="SaveQuickSettings" id="exam-settings-form" class="exam-settings-form">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="ExamId" />
+            <input type="hidden" asp-for="QuestionId" />
+
+            <div>
+                <label asp-for="Settings.DifficultyValue" class="public-label">Difficulty</label>
+                <select asp-for="Settings.DifficultyValue" class="public-field">
+                    <option value="" disabled>Choose level</option>
+                    @foreach (var difficulty in Enum.GetValues(typeof(DifficultyLevel)).Cast<DifficultyLevel>())
+                    {
+                        <option value="@((int)difficulty)">@difficulty</option>
+                    }
+                </select>
+            </div>
+
+            <div>
+                <label asp-for="Settings.MaxAttempts" class="public-label">Attempts</label>
+                <input asp-for="Settings.MaxAttempts"
+                       type="number"
+                       class="public-field"
+                       placeholder="Unlimited"
+                       min="1"
+                       step="1"
+                       data-special-number-input />
+            </div>
+
+            <div class="exam-settings-actions">
+                <button type="submit" class="public-btn public-btn-primary">
+                    <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>Save settings
+                </button>
+                <a class="public-btn public-btn-outline"
+                   asp-page="/Portal/Examination/Settings"
+                   asp-route-examId="@Model.ExamId">
+                    <i class="fa-solid fa-gears"></i>Advanced settings
+                </a>
+                <button type="button" class="public-btn public-btn-outline" data-exam-settings-close>
+                    Close
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/exam-connectivity.js"></script>
+    <script src="~/js/exam-rich-edit-fields.js" asp-append-version="true"></script>
+    <script src="~/js/exam-editor.js" asp-append-version="true"></script>
+    <script src="~/js/exam-header-inline-edit.js" asp-append-version="true"></script>
+    <script src="~/js/exam-settings-canvas.js" asp-append-version="true"></script>
+}
+
+
+
+

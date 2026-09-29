@@ -1,0 +1,148 @@
+@using iD_Develops.Models
+@model iD_Develops.Pages.Shared.Examination.ExaminationHeaderModel
+
+<header>
+    <nav class="exam-header">
+        <div class="exam-header-inner">
+            <div class="exam-header-row">
+
+                <!-- Left: Timer -->
+                <div class="exam-header-group">
+                    @if (Model.Mode == PaginationMode.Editing)
+                    {
+                        <a class="exam-header-back" asp-page="/Portal/Exams/List" aria-label="Back to exams">
+                            <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                        </a>
+                    }
+                    <div class="exam-header-stack">
+                        <small class="exam-header-label">Timer</small>
+
+                        @if (Model.ShowTimer)
+                        {
+                            @if (Model.Mode == PaginationMode.Exam)
+                            {
+                                <div class="exam-header-value" id="countdown" data-duration="@Model.EndDateTime">
+                                    --:--:--
+                                </div>
+                            }
+                            else if (Model.Mode == PaginationMode.Editing)
+                            {
+                                <div class="exam-header-value exam-header-inline-edit"
+                                     data-exam-header-edit="timeLimit"
+                                     data-exam-id="@Model.ExamId">
+                                    <span class="exam-header-inline-display" data-exam-header-display>
+                                        @TimeSpan.FromSeconds(Model.TimeLimit!.Value).ToString(@"hh\:mm\:ss")
+                                    </span>
+                                    <input class="exam-header-inline-input"
+                                           type="number"
+                                           min="1"
+                                           value="@(Model.TimeLimit.HasValue ? Model.TimeLimit.Value / 60 : null)"
+                                           data-exam-header-input
+                                           aria-label="Time limit in minutes" />
+                                    <i class="fa-solid fa-pencil exam-header-edit-icon" aria-hidden="true"></i>
+                                </div>
+                            }
+                            else if (Model.Mode == PaginationMode.Start)
+                            {
+                                <div class="exam-header-value">
+                                    @TimeSpan.FromSeconds(Model.TimeLimit!.Value).ToString(@"hh\:mm\:ss")
+                                </div>
+                            }
+                        }
+                        else if (Model.Mode == PaginationMode.Editing)
+                        {
+                            <div class="exam-header-value exam-header-inline-edit"
+                                 data-exam-header-edit="timeLimit"
+                                 data-exam-id="@Model.ExamId">
+                                <span class="exam-header-inline-display" data-exam-header-display>No time limit</span>
+                                <input class="exam-header-inline-input"
+                                       type="number"
+                                       min="1"
+                                       value=""
+                                       data-exam-header-input
+                                       aria-label="Time limit in minutes" />
+                                <i class="fa-solid fa-pencil exam-header-edit-icon" aria-hidden="true"></i>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="exam-header-value">No time limit</div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Middle: Status (only in Editing mode) -->
+                @if (Model.Mode == PaginationMode.Editing)
+                {
+                    <div class="exam-header-status">
+                        <small class="exam-header-label">Status</small>
+                        <div class="exam-header-value exam-header-status-value">
+                            <span id="editorSaveStatus">Up-to-date</span>
+                            <button type="button"
+                                    id="editorSaveRetry"
+                                    class="exam-icon-button exam-save-retry"
+                                    title=""
+                                    disabled
+                                    aria-label="Retry save">
+                                <i id="editorSaveIcon" class="fa-solid fa-check exam-save-icon"></i>
+                            </button>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <!-- Keeps spacing balanced when status is not shown -->
+                    <div class="exam-header-spacer"></div>
+                }
+
+                <!-- Right: Exam + Course -->
+                <div class="exam-header-title-block">
+                    @if (Model.Mode == PaginationMode.Editing)
+                    {
+                        <small class="exam-header-label exam-header-inline-edit"
+                               data-exam-header-edit="name"
+                               data-exam-id="@Model.ExamId">
+                            <span class="exam-header-inline-display" data-exam-header-display>
+                                @(!string.IsNullOrWhiteSpace(Model.ExamTitle) ? Model.ExamTitle : "untitled-exam")
+                            </span>
+                            <input class="exam-header-inline-input"
+                                   type="text"
+                                   value="@(!string.IsNullOrWhiteSpace(Model.ExamTitle) ? Model.ExamTitle : "untitled-exam")"
+                                   data-exam-header-input
+                                   aria-label="Exam name" />
+                            <i class="fa-solid fa-pencil exam-header-edit-icon" aria-hidden="true"></i>
+                        </small>
+                    }
+                    else
+                    {
+                        <small class="exam-header-label">@(!string.IsNullOrWhiteSpace(Model.ExamTitle) ? Model.ExamTitle : "-")</small>
+                    }
+
+                    <div class="exam-header-value" id="editorCourseName">
+                        @(!string.IsNullOrWhiteSpace(Model.CourseName) ? Model.CourseName : "-")
+                    </div>
+                </div>
+
+                <!-- Far-right: Settings gear (only in Editing mode) -->
+                @if (Model.Mode == PaginationMode.Editing)
+                {
+                    <div class="exam-header-settings">
+                        <button type="button"
+                                class="exam-icon-button"
+                                data-exam-settings-open
+                                aria-controls="examSettingsCanvas"
+                                title="Exam settings">
+                            <i class="fa-solid fa-gear"></i>
+                        </button>
+                    </div>
+                }
+
+            </div>
+        </div>
+
+    </nav>
+
+</header>
+
+
+

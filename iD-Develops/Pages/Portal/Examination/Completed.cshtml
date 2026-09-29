@@ -1,0 +1,33 @@
+@page
+@using Models
+@model iD_Develops.Pages.Portal.Examination.CompletedModel
+@{
+    Layout = "";
+    ViewData["Title"] = "Completed";
+}
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - iD-Develops</title>
+    <link rel="stylesheet" href="~/css/tailwind.generated.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/examination.css" asp-append-version="true" />
+</head>
+<body>
+    @if (Model.ShowLevelTestCompletedPartial)
+    {
+        <partial name="_LevelTestCompletedPartial" model="Model" />
+    }
+    else
+    {
+        <div class="tw:flex tw:min-h-screen tw:items-center tw:justify-center tw:px-4 tw:text-center">
+            <div>
+                <h2>
+                    Your exam has been submitted.
+                </h2>
+                <p>
+                    You may now close this window, or click <a asp-page="/Portal/Home/Index">here</a> to return to the portal home.
+                </p>
+            </div>
+        </div>
+    }
+</body>

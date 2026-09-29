@@ -1,0 +1,543 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Title" xml:space="preserve">
+    <value>Cookie Policy</value>
+  </data>
+  <data name="ContentHtml" xml:space="preserve">
+    <value>&lt;h1&gt;Cookie Policy&lt;/h1&gt;
+
+    &lt;p&gt;
+        &lt;strong&gt;Last updated:&lt;/strong&gt; July 7, 2026
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        This Cookie Policy explains how iD! Training &amp;amp; Development uses cookies and similar
+        technologies on its website, customer portal, checkout, digital-product, download,
+        training, and examination pages.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        This policy should be read together with our
+        &lt;a href="/Privacy"&gt;Privacy Policy&lt;/a&gt;, which explains how we collect, use,
+        store, and protect personal data.
+    &lt;/p&gt;
+
+    &lt;h2&gt;1. Who is responsible for cookies&lt;/h2&gt;
+
+    &lt;p&gt;
+        The website and Services are operated by:
+    &lt;/p&gt;
+
+    &lt;address&gt;
+        &lt;strong&gt;iD! Training &amp;amp; Development&lt;/strong&gt;&lt;br /&gt;
+        Vennootschap onder firma (VOF)&lt;br /&gt;
+        Chamber of Commerce number: 61841277&lt;br /&gt;
+        Rusthoven 26&lt;br /&gt;
+        5655 CN Eindhoven&lt;br /&gt;
+        North Brabant&lt;br /&gt;
+        The Netherlands&lt;br /&gt;
+        Email: &lt;a href="mailto:compliance@id-develops.com"&gt;compliance@id-develops.com&lt;/a&gt;
+    &lt;/address&gt;
+
+    &lt;h2&gt;2. What cookies and similar technologies are&lt;/h2&gt;
+
+    &lt;p&gt;
+        Cookies are small text files that a website stores on your browser or device. They can
+        contain an identifier or limited information that allows the website to recognise a
+        browser, maintain a session, remember a preference, or provide a particular function.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        We may also use similar technologies, including:
+    &lt;/p&gt;
+
+    &lt;ul&gt;
+        &lt;li&gt;browser local storage or session storage;&lt;/li&gt;
+        &lt;li&gt;security and antiforgery tokens;&lt;/li&gt;
+        &lt;li&gt;software-development-kit identifiers;&lt;/li&gt;
+        &lt;li&gt;scripts and tags;&lt;/li&gt;
+        &lt;li&gt;server-side session identifiers; and&lt;/li&gt;
+        &lt;li&gt;security technologies used to detect automated or malicious activity.&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;p&gt;
+        In this policy, we use the term "cookies" to refer collectively to cookies and these
+        similar technologies where appropriate.
+    &lt;/p&gt;
+
+    &lt;h2&gt;3. Cookie categories&lt;/h2&gt;
+
+    &lt;h3&gt;3.1 Strictly necessary cookies&lt;/h3&gt;
+
+    &lt;p&gt;
+        Strictly necessary cookies are required to operate the website or provide a feature
+        that you expressly request. They may be used to:
+    &lt;/p&gt;
+
+    &lt;ul&gt;
+        &lt;li&gt;keep you signed in;&lt;/li&gt;
+        &lt;li&gt;maintain an authenticated portal session;&lt;/li&gt;
+        &lt;li&gt;protect forms against cross-site request-forgery attacks;&lt;/li&gt;
+        &lt;li&gt;apply security and access controls;&lt;/li&gt;
+        &lt;li&gt;remember cookie-consent choices;&lt;/li&gt;
+        &lt;li&gt;maintain checkout and payment workflows;&lt;/li&gt;
+        &lt;li&gt;route requests securely and reliably;&lt;/li&gt;
+        &lt;li&gt;prevent fraud, abuse, and automated attacks; and&lt;/li&gt;
+        &lt;li&gt;provide other core functions that you request.&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;p&gt;
+        These cookies may normally be used without your consent because the website or requested
+        service cannot function properly without them. We still provide information about them
+        through this Cookie Policy.
+    &lt;/p&gt;
+
+    &lt;h3&gt;3.2 Preference cookies&lt;/h3&gt;
+
+    &lt;p&gt;
+        Preference cookies remember choices that change how the website behaves or appears,
+        such as:
+    &lt;/p&gt;
+
+    &lt;ul&gt;
+        &lt;li&gt;your selected language or culture;&lt;/li&gt;
+        &lt;li&gt;display or interface preferences;&lt;/li&gt;
+        &lt;li&gt;previously selected portal options; and&lt;/li&gt;
+        &lt;li&gt;other settings that you ask the website to remember.&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;p&gt;
+        Some preference cookies may be strictly necessary for a feature that you have expressly
+        requested. Other preference cookies will be used only where permitted by law or after
+        obtaining consent where required.
+    &lt;/p&gt;
+
+    &lt;h3&gt;3.3 Analytics cookies&lt;/h3&gt;
+
+    &lt;p&gt;
+        We do not currently intend to use optional analytics cookies unless an analytics
+        service is separately enabled.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        If analytics are enabled, they may be used to understand matters such as:
+    &lt;/p&gt;
+
+    &lt;ul&gt;
+        &lt;li&gt;which pages are visited;&lt;/li&gt;
+        &lt;li&gt;how users navigate through the website;&lt;/li&gt;
+        &lt;li&gt;which features are used;&lt;/li&gt;
+        &lt;li&gt;whether errors occur; and&lt;/li&gt;
+        &lt;li&gt;how website performance and usability can be improved.&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;p&gt;
+        Limited analytics cookies that have little or no impact on privacy may, where legally
+        permitted, be used without consent. Analytics that track identifiable behaviour or have
+        more than a minor privacy impact will be activated only after valid consent has been
+        obtained.
+    &lt;/p&gt;
+
+    &lt;h3&gt;3.4 Marketing and tracking cookies&lt;/h3&gt;
+
+    &lt;p&gt;
+        We do not currently intend to use advertising or cross-site tracking cookies unless
+        marketing functionality is separately enabled.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Marketing or tracking cookies may be used to:
+    &lt;/p&gt;
+
+    &lt;ul&gt;
+        &lt;li&gt;measure advertising campaigns;&lt;/li&gt;
+        &lt;li&gt;build or supplement advertising profiles;&lt;/li&gt;
+        &lt;li&gt;personalise advertisements;&lt;/li&gt;
+        &lt;li&gt;track users across websites or services; or&lt;/li&gt;
+        &lt;li&gt;connect website activity to advertising or social-media platforms.&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;p&gt;
+        These cookies will not be placed or accessed before you have given valid consent where
+        consent is required.
+    &lt;/p&gt;
+
+    &lt;h3&gt;3.5 Embedded-content cookies&lt;/h3&gt;
+
+    &lt;p&gt;
+        Pages may contain content supplied by an external provider, such as a video, map,
+        scheduling tool, social-media component, payment feature, or another embedded service.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        An external provider may place cookies or receive technical information when its content
+        is loaded. Where the embedded feature is optional and requires consent, it will not be
+        loaded until the required consent has been obtained.
+    &lt;/p&gt;
+
+    &lt;h2&gt;4. Cookies and technologies used by the platform&lt;/h2&gt;
+
+    &lt;p&gt;
+        The exact cookie name may differ between environments or change following a technical
+        update. The following table describes the cookies and technologies that the platform
+        may use.
+    &lt;/p&gt;
+
+    &lt;div class="table-responsive"&gt;
+        &lt;table class="table table-bordered align-middle"&gt;
+            &lt;thead&gt;
+                &lt;tr&gt;
+                    &lt;th scope="col"&gt;Cookie or technology&lt;/th&gt;
+                    &lt;th scope="col"&gt;Provider&lt;/th&gt;
+                    &lt;th scope="col"&gt;Purpose&lt;/th&gt;
+                    &lt;th scope="col"&gt;Category&lt;/th&gt;
+                    &lt;th scope="col"&gt;Typical duration&lt;/th&gt;
+                &lt;/tr&gt;
+            &lt;/thead&gt;
+            &lt;tbody&gt;
+                &lt;tr&gt;
+                    &lt;td&gt;
+                        ASP.NET Core Identity authentication cookie
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        iD! Training &amp;amp; Development
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        Authenticates your account, keeps you signed in, and applies account and
+                        role-based permissions.
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        Strictly necessary
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        Session-based or for the configured sign-in period. A longer duration may
+                        apply if a "remember me" option is selected.
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+
+                &lt;tr&gt;
+                    &lt;td&gt;
+                        ASP.NET Core antiforgery cookie
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        iD! Training &amp;amp; Development
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        Protects forms and authenticated requests against cross-site
+                        request-forgery attacks.
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        Strictly necessary
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        Normally for the browser session or until the token expires.
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+
+                &lt;tr&gt;
+                    &lt;td&gt;
+                        Session or temporary workflow cookie
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        iD! Training &amp;amp; Development
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        Maintains temporary state required for portal, form, examination,
+                        checkout, upload, or account workflows.
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        Strictly necessary
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        Normally until the browser session ends or the temporary workflow expires.
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+
+                &lt;tr&gt;
+                    &lt;td&gt;
+                        Language or culture cookie
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        iD! Training &amp;amp; Development
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        Remembers your selected website language and regional culture.
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        Preference
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        Until its configured expiry date or until you delete it.
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+
+                &lt;tr&gt;
+                    &lt;td&gt;
+                        Cookie-consent preference
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        iD! Training &amp;amp; Development
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        Records whether you accepted or rejected optional cookie categories and
+                        prevents the consent notice from being shown unnecessarily.
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        Strictly necessary
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        Normally up to 12 months, unless your choice is renewed or changed sooner.
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+
+                &lt;tr&gt;
+                    &lt;td&gt;
+                        Cloudflare security and network technologies
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        Cloudflare
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        Helps deliver website traffic, protect the website, detect malicious or
+                        automated requests, and maintain network availability.
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        Strictly necessary
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        Varies depending on the security or network feature used.
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+
+                &lt;tr&gt;
+                    &lt;td&gt;
+                        Cloudflare Turnstile
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        Cloudflare
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        Helps distinguish legitimate users from automated or abusive activity on
+                        protected forms or workflows. Used only on pages where Turnstile is enabled.
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        Strictly necessary where enabled to protect the relevant form
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        Temporary security information may be retained for the period necessary to
+                        complete and validate the challenge.
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+
+                &lt;tr&gt;
+                    &lt;td&gt;
+                        Stripe checkout and payment technologies
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        Stripe
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        Processes payments, maintains checkout security, prevents fraud, and
+                        completes payment redirects.
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        Strictly necessary for payment workflows
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        Determined by Stripe according to the relevant payment and security purpose.
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            &lt;/tbody&gt;
+        &lt;/table&gt;
+    &lt;/div&gt;
+
+    &lt;p&gt;
+        Cookies shown in your browser may use technical names beginning with prefixes such as
+        &lt;code&gt;.AspNetCore.&lt;/code&gt;. Automatically generated suffixes may differ between
+        development, staging, and production environments.
+    &lt;/p&gt;
+
+    &lt;h2&gt;5. Local storage and session storage&lt;/h2&gt;
+
+    &lt;p&gt;
+        The website may use browser local storage or session storage for limited interface,
+        workflow, or application state. Unlike a traditional cookie, this information is stored
+        within your browser and is not automatically sent with every request.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Session storage is normally deleted when the relevant browser tab or session ends.
+        Local-storage information remains until it is deleted by the application, expires under
+        the applicable logic, or is cleared through your browser.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        We will not use local storage to bypass a refusal of optional cookies or to perform
+        tracking that would otherwise require consent.
+    &lt;/p&gt;
+
+    &lt;h2&gt;6. Legal basis and consent&lt;/h2&gt;
+
+    &lt;p&gt;
+        Strictly necessary cookies are used because they are required to provide the website or
+        a service that you have expressly requested, or because they are reasonably necessary
+        for security, fraud prevention, and the reliable operation of the Services.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Where a cookie or similar technology is not strictly necessary and consent is required,
+        we will ask for consent before activating it.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Consent must be freely given, specific, informed, and unambiguous. Rejecting optional
+        cookies must be reasonably as easy as accepting them. Optional categories will not be
+        enabled through preselected choices.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Refusing optional cookies will not prevent you from accessing the basic website, although
+        an optional feature that depends on a particular provider may remain unavailable.
+    &lt;/p&gt;
+
+    &lt;h2&gt;7. Changing or withdrawing your cookie choices&lt;/h2&gt;
+
+    &lt;p&gt;
+        Where optional cookies are used, you can change or withdraw your consent at any time
+        through the cookie settings made available on the website.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Withdrawing consent does not affect the lawfulness of processing that occurred before
+        consent was withdrawn. After withdrawal, the relevant optional cookies will no longer
+        be used, although existing cookies may need to be removed through the consent tool or
+        your browser settings.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        If the website currently uses only strictly necessary cookies, a separate consent banner
+        may not be displayed. This policy will still explain which cookies are used.
+    &lt;/p&gt;
+
+    &lt;h2&gt;8. Browser controls&lt;/h2&gt;
+
+    &lt;p&gt;
+        Most browsers allow you to inspect, block, or delete cookies through their privacy or
+        security settings. Browser controls differ, so consult the help documentation for your
+        browser or device.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Blocking or deleting strictly necessary cookies may cause parts of the Services to stop
+        working. Depending on the cookie affected, you may be unable to:
+    &lt;/p&gt;
+
+    &lt;ul&gt;
+        &lt;li&gt;sign in or remain signed in;&lt;/li&gt;
+        &lt;li&gt;access protected portal pages;&lt;/li&gt;
+        &lt;li&gt;submit forms securely;&lt;/li&gt;
+        &lt;li&gt;complete a checkout or payment;&lt;/li&gt;
+        &lt;li&gt;upload or download files;&lt;/li&gt;
+        &lt;li&gt;take or continue an examination;&lt;/li&gt;
+        &lt;li&gt;retain your selected language; or&lt;/li&gt;
+        &lt;li&gt;retain your cookie preferences.&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;h2&gt;9. Third-party providers&lt;/h2&gt;
+
+    &lt;p&gt;
+        Some cookies and similar technologies are operated by external providers. Depending on
+        the features you use, these may include:
+    &lt;/p&gt;
+
+    &lt;ul&gt;
+        &lt;li&gt;
+            &lt;strong&gt;Cloudflare&lt;/strong&gt;, for content delivery, network security, object storage,
+            and Turnstile security checks where enabled;
+        &lt;/li&gt;
+        &lt;li&gt;
+            &lt;strong&gt;Stripe&lt;/strong&gt;, for checkout, payment processing, and payment-fraud prevention;
+        &lt;/li&gt;
+        &lt;li&gt;
+            hosting, email, monitoring, or analytics providers where such services are enabled; and
+        &lt;/li&gt;
+        &lt;li&gt;
+            providers of optional embedded content where such content is included on a page.
+        &lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;p&gt;
+        Third-party providers may process technical information under their own privacy notices
+        and cookie policies. Their retention periods and cookie names may change independently
+        from ours.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        A link to an external website or social-media profile does not by itself place that
+        provider's cookies through our website. Cookies may be placed after you follow the link
+        and visit the provider's own service.
+    &lt;/p&gt;
+
+    &lt;h2&gt;10. Analytics and marketing services added later&lt;/h2&gt;
+
+    &lt;p&gt;
+        If we introduce an analytics, advertising, social-media, or other optional technology,
+        we will update this Cookie Policy and, where required:
+    &lt;/p&gt;
+
+    &lt;ul&gt;
+        &lt;li&gt;identify the provider and purpose;&lt;/li&gt;
+        &lt;li&gt;describe the types of information collected;&lt;/li&gt;
+        &lt;li&gt;state the applicable cookie duration;&lt;/li&gt;
+        &lt;li&gt;prevent the technology from loading before consent;&lt;/li&gt;
+        &lt;li&gt;provide an equally accessible reject option; and&lt;/li&gt;
+        &lt;li&gt;allow consent to be withdrawn later.&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;p&gt;
+        We will not treat continued browsing, silence, inactivity, or a preselected option as
+        consent where valid consent is legally required.
+    &lt;/p&gt;
+
+    &lt;h2&gt;11. Changes to this Cookie Policy&lt;/h2&gt;
+
+    &lt;p&gt;
+        We may update this Cookie Policy when our website, cookie usage, providers, security
+        measures, or legal obligations change.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        The current version will be published on this page and identified by the "Last updated"
+        date. Where a change materially affects an optional technology for which consent is
+        required, we may ask you to make a new choice.
+    &lt;/p&gt;
+
+    &lt;h2&gt;12. Contact&lt;/h2&gt;
+
+    &lt;p&gt;
+        For questions about this Cookie Policy or the use of cookies, contact:
+    &lt;/p&gt;
+
+    &lt;address&gt;
+        &lt;strong&gt;iD! Training &amp;amp; Development&lt;/strong&gt;&lt;br /&gt;
+        Vennootschap onder firma (VOF)&lt;br /&gt;
+        Rusthoven 26&lt;br /&gt;
+        5655 CN Eindhoven&lt;br /&gt;
+        North Brabant&lt;br /&gt;
+        The Netherlands&lt;br /&gt;
+        Email: &lt;a href="mailto:compliance@id-develops.com"&gt;compliance@id-develops.com&lt;/a&gt;
+    &lt;/address&gt;</value>
+  </data>
+</root>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] | iD! Training & Development</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;500;600&family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/tailwind.generated.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/identity-auth.css" asp-append-version="true" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" rel="stylesheet">
+    <partial name="_CookiebotBanner" />
+</head>
+<body class="tw:m-0 tw:min-h-screen tw:bg-[#FAFAF8] tw:font-['Source_Sans_3',system-ui,sans-serif] tw:text-[#1A1A1A] tw:tracking-[0.01em]">
+    <div class="tw:relative tw:min-h-screen tw:overflow-hidden tw:bg-[radial-gradient(circle_at_84%_12%,rgba(184,134,11,0.08),transparent_18rem),radial-gradient(circle_at_12%_18%,rgba(0,81,144,0.06),transparent_20rem),#FAFAF8]">
+        <div class="identity-aurora tw:pointer-events-none tw:absolute tw:inset-0 tw:z-0 tw:overflow-hidden" aria-hidden="true"></div>
+        <div class="tw:pointer-events-none tw:fixed tw:inset-0 tw:z-0 tw:opacity-25 tw:[background-image:radial-gradient(circle_at_1px_1px,rgba(26,26,26,0.11)_1px,transparent_0)] tw:[background-size:22px_22px]"></div>
+
+        <main class="tw:relative tw:z-10 tw:mx-auto tw:grid tw:min-h-screen tw:w-[min(100%_-_2rem,560px)] tw:content-center tw:gap-5 tw:py-[clamp(1.5rem,4vw,3rem)] tw:max-[576px]:w-[min(100%_-_1rem,560px)] tw:max-[576px]:py-4">
+            <a class="tw:inline-flex tw:w-max tw:items-center tw:gap-2 tw:font-['IBM_Plex_Mono',monospace] tw:text-xs tw:font-light tw:uppercase tw:tracking-[0.12em] tw:text-[#6B6B6B] tw:no-underline tw:transition-colors tw:hover:text-[#1A1A1A] tw:hover:no-underline tw:focus:text-[#1A1A1A] tw:focus:no-underline" asp-area="" asp-page="/Index">
+                <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+                Back to website
+            </a>
+
+            <section class="identity-border-beam tw:relative tw:isolate tw:overflow-hidden tw:rounded-lg tw:border tw:border-[#E8E4DF] tw:bg-white/75 tw:shadow-[0_24px_70px_rgba(17,17,17,0.10)]" role="main" aria-label="@ViewData["Title"]" data-identity-card>
+                <div class="identity-card-content tw:relative tw:z-10 tw:flex tw:flex-col tw:justify-center tw:bg-[#FAFAF8]/90 tw:p-[clamp(2rem,5vw,4rem)] tw:max-[576px]:p-6">
+                    <img src="~/images/iddevelops-icon.png" class="tw:mx-auto tw:mb-5 tw:block tw:w-[52px]" alt="iD Develops logo" />
+                    @RenderBody()
+                </div>
+                <div class="identity-loading-filter" aria-hidden="true"></div>
+            </section>
+        </main>
+    </div>
+
+    @RenderSection("Scripts", required: false)
+    <script>
+        (() => {
+            const card = document.querySelector("[data-identity-card]");
+
+            if (!card) {
+                return;
+            }
+
+            document.addEventListener("submit", (event) => {
+                const form = event.target;
+
+                if (!(form instanceof HTMLFormElement) || !card.contains(form)) {
+                    return;
+                }
+
+                window.setTimeout(() => {
+                    if (event.defaultPrevented || (typeof form.checkValidity === "function" && !form.checkValidity())) {
+                        return;
+                    }
+
+                    card.classList.add("is-loading");
+                    card.setAttribute("aria-busy", "true");
+
+                    form.querySelectorAll("button, input, select, textarea").forEach((control) => {
+                        control.disabled = true;
+                    });
+                }, 0);
+            });
+        })();
+    </script>
+</body>
+</html>

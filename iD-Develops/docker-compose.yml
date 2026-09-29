@@ -1,0 +1,46 @@
+name: iddev-local
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: iddev_web_local
+    ports:
+      - "5000:8080"
+    env_file:
+      - .env
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Local"
+      ConnectionStrings__ApplicationDbContextConnection: "Host=postgres;Port=5432;Database=${LOCAL_DB_NAME:-iddevelops_local};Username=${LOCAL_POSTGRES_USER:-postgres};Password=${LOCAL_POSTGRES_PASSWORD:-LocalDevPassw0rd!};"
+      Storage__Provider: "Disabled"
+    volumes:
+      - data_protection_local_keys:/app/App_Data/DataProtection-Keys
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: iddev_postgres_local
+    environment:
+      POSTGRES_DB: "${LOCAL_DB_NAME:-iddevelops_local}"
+      POSTGRES_USER: "${LOCAL_POSTGRES_USER:-postgres}"
+      POSTGRES_PASSWORD: "${LOCAL_POSTGRES_PASSWORD:-LocalDevPassw0rd!}"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_local_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  postgres_local_data:
+  data_protection_local_keys:
+
+
+
+

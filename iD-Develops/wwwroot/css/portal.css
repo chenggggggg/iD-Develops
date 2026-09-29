@@ -1,0 +1,2911 @@
+:root {
+    --portal-sidebar-width: 232px;
+    --portal-sidebar-bg: #FAFAF8;
+    --portal-sidebar-border: #E8E4DF;
+    --portal-sidebar-text: #6B6B6B;
+    --portal-sidebar-text-strong: #1A1A1A;
+    --portal-sidebar-active-bg: transparent;
+    --portal-shell-bg: #FAFAF8;
+    --portal-content-bg: #FAFAF8;
+    --portal-card-border: #E8E4DF;
+    --serif-bg: #FAFAF8;
+    --serif-ink: #1A1A1A;
+    --serif-muted: #6B6B6B;
+    --serif-soft: #F5F3F0;
+    --serif-border: #E8E4DF;
+    --serif-heading: "Playfair Display", Georgia, serif;
+    --serif-body: "Source Sans 3", system-ui, sans-serif;
+    --serif-label: "IBM Plex Mono", monospace;
+}
+
+/* Credit configuration */
+.credit-admin-page {
+    display: grid;
+    gap: 2rem;
+}
+
+.credit-admin-page > .portal-page-header {
+    margin-bottom: 0;
+}
+
+.credit-admin-page .portal-title-sm {
+    margin-bottom: 0;
+}
+
+.credit-admin-notice {
+    border: 1px solid #bdd8cc;
+    border-radius: 6px;
+    background: #edf8f2;
+    padding: 0.75rem 1rem;
+    color: #246047;
+    font-size: 0.82rem;
+}
+
+.credit-admin-notice.is-error {
+    border-color: #ebc3c7;
+    background: #fff1f2;
+    color: #9f3340;
+}
+
+.credit-admin-intro,
+.credit-admin-section-header p {
+    margin: 6px 0 0;
+    color: #64748b;
+    font-size: 0.86rem;
+}
+
+.credit-admin-section {
+    border-top: 1px solid #d9e0e7;
+    padding-top: 1.5rem;
+}
+
+.credit-admin-section-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-bottom: 14px;
+}
+
+.credit-admin-section-header h2 {
+    margin: 0;
+    color: #172033;
+    font-family: "Source Sans 3", sans-serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+
+.credit-admin-create {
+    position: relative;
+}
+
+.credit-admin-create > summary {
+    width: fit-content;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+}
+
+.credit-admin-create > summary::-webkit-details-marker,
+.credit-admin-item > summary::-webkit-details-marker {
+    display: none;
+}
+
+.credit-admin-create[open] {
+    flex: 0 0 100%;
+    width: 100%;
+}
+
+.credit-admin-create[open] > summary {
+    margin-left: auto;
+    width: fit-content;
+}
+
+.credit-admin-create[open] .credit-admin-form {
+    margin-top: 14px;
+}
+
+.credit-admin-list {
+    display: grid;
+    gap: 8px;
+}
+
+.credit-admin-item {
+    overflow: clip;
+    border: 1px solid #d9e0e7;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.52);
+}
+
+.credit-admin-item > summary {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr) auto 24px;
+    align-items: center;
+    gap: 12px;
+    min-height: 62px;
+    padding: 8px 14px;
+    cursor: pointer;
+    list-style: none;
+    transition: background-color 150ms ease;
+}
+
+.credit-admin-item > summary:hover {
+    background: rgba(236, 242, 247, 0.75);
+}
+
+.credit-admin-item[open] > summary {
+    border-bottom: 1px solid #d9e0e7;
+    background: #eef3f6;
+}
+
+.credit-admin-item-icon {
+    display: grid;
+    width: 32px;
+    height: 32px;
+    place-items: center;
+    border-radius: 5px;
+    background: #e6edf2;
+    color: #374151;
+}
+
+.credit-admin-item-copy {
+    display: grid;
+    min-width: 0;
+}
+
+.credit-admin-item-copy strong {
+    overflow: hidden;
+    color: #172033;
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.credit-admin-item-copy small {
+    overflow: hidden;
+    color: #64748b;
+    font-size: 0.76rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.credit-admin-status {
+    border: 1px solid #cbd5e1;
+    border-radius: 999px;
+    padding: 3px 8px;
+    color: #64748b;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.credit-admin-status.is-active {
+    border-color: #86b99b;
+    background: #edf8f1;
+    color: #247044;
+}
+
+.credit-admin-chevron {
+    color: #64748b;
+    font-size: 0.72rem;
+    transition: transform 150ms ease;
+}
+
+.credit-admin-item[open] .credit-admin-chevron {
+    transform: rotate(180deg);
+}
+
+.credit-admin-form {
+    padding: 18px;
+    border: 1px solid #d9e0e7;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.72);
+}
+
+.credit-admin-item .credit-admin-form {
+    border: 0;
+    border-radius: 0;
+}
+
+.credit-admin-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.credit-admin-field {
+    display: grid;
+    gap: 5px;
+    min-width: 0;
+    color: #334155;
+    font-size: 0.76rem;
+    font-weight: 600;
+}
+
+.credit-admin-field input,
+.credit-admin-field select {
+    min-width: 0;
+    width: 100%;
+    height: 38px;
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
+    background: #fff;
+    padding: 0 10px;
+    color: #172033;
+    font: 400 0.82rem "Source Sans 3", sans-serif;
+}
+
+.credit-admin-field input:focus,
+.credit-admin-field select:focus {
+    border-color: #4c7d70;
+    outline: 2px solid rgba(76, 125, 112, 0.16);
+}
+
+.credit-admin-field-wide {
+    grid-column: span 2;
+}
+
+.credit-admin-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    color: #334155;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.credit-admin-check input {
+    width: 16px;
+    height: 16px;
+    accent-color: #34715f;
+}
+
+.credit-admin-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+}
+
+.credit-admin-page .portal-btn {
+    min-height: 2.4rem;
+    border-radius: 6px;
+    padding: 0.5rem 0.8rem;
+    cursor: pointer;
+    font: 600 0.8rem "Source Sans 3", sans-serif;
+}
+
+.credit-admin-validation {
+    color: #b23a48;
+    font-size: 0.72rem;
+    font-weight: 500;
+}
+
+.portal-validation-summary.validation-summary-valid {
+    display: none;
+}
+
+.credit-admin-page > .portal-validation-summary.validation-summary-errors {
+    border: 1px solid #ebc3c7;
+    border-radius: 6px;
+    background: #fff1f2;
+    padding: 0.75rem 1rem;
+    color: #9f3340;
+}
+
+.credit-admin-page > .portal-validation-summary ul {
+    margin: 0;
+    padding-left: 1.1rem;
+}
+
+.credit-admin-empty {
+    border: 1px dashed #cbd5e1;
+    border-radius: 6px;
+    padding: 22px;
+    color: #64748b;
+    font-size: 0.84rem;
+    text-align: center;
+}
+
+@media (max-width: 700px) {
+    .credit-admin-section-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .credit-admin-create > summary,
+    .credit-admin-create[open] > summary {
+        margin-left: 0;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .credit-admin-form-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .credit-admin-field-wide {
+        grid-column: auto;
+    }
+
+    .credit-admin-item > summary {
+        grid-template-columns: 34px minmax(0, 1fr) 20px;
+    }
+
+    .credit-admin-status {
+        display: none;
+    }
+}
+
+html, body {
+    height: 100%;
+}
+
+body.portal-layout {
+    margin: 0;
+    background: var(--portal-shell-bg);
+    color: var(--serif-ink);
+    font-family: var(--serif-body);
+    letter-spacing: 0.01em;
+}
+
+body.portal-sidebar-open,
+body.portal-dialog-open {
+    overflow: hidden;
+}
+
+.portal-shell {
+    min-height: 100vh;
+    width: 100%;
+}
+
+.portal-mobile-bar {
+    background: var(--portal-sidebar-bg);
+    border-bottom: 1px solid var(--portal-sidebar-border);
+    padding: 0.75rem 1rem;
+}
+
+.portal-mobile-bar-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.portal-mobile-bar .portal-profile {
+    flex: 1 1 auto;
+    max-width: min(22rem, calc(100vw - 5.5rem));
+}
+
+.portal-brand,
+.portal-brand:hover,
+.portal-brand:focus {
+    color: var(--portal-sidebar-text-strong);
+    text-decoration: none;
+}
+
+.portal-brand-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.portal-brand-inline strong {
+    display: block;
+    font-size: 0.92rem;
+    font-weight: 600;
+    line-height: 1.15;
+}
+
+.portal-brand-inline small {
+    color: var(--portal-sidebar-text);
+    font-size: 0.72rem;
+    line-height: 1.2;
+}
+
+.portal-brand-mark {
+    width: 2rem;
+    height: 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--portal-sidebar-border);
+    border-radius: 0.5rem;
+    background: transparent;
+    color: #B23A48;
+    font-family: var(--serif-label);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0;
+}
+
+.portal-profile {
+    position: relative;
+    min-width: 0;
+}
+
+.portal-profile-trigger {
+    width: 100%;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.6rem;
+    border: 1px solid transparent;
+    border-radius: 0.55rem;
+    background: transparent;
+    color: var(--portal-sidebar-text-strong);
+    padding: 0.42rem 0.45rem;
+    text-align: left;
+    transition: border-color 0.18s ease, color 0.18s ease;
+}
+
+.portal-profile-trigger:hover,
+.portal-profile-trigger:focus-visible,
+.portal-profile-trigger[aria-expanded="true"] {
+    border-color: rgba(178, 58, 72, 0.24);
+    color: #B23A48;
+    outline: none;
+}
+
+.portal-profile-icon,
+.portal-profile-menu-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--portal-sidebar-border);
+    border-radius: 999px;
+    color: #B23A48;
+}
+
+.portal-profile-icon {
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.82rem;
+}
+
+.portal-profile-summary {
+    min-width: 0;
+    display: grid;
+    gap: 0.08rem;
+}
+
+.portal-profile-summary strong,
+.portal-profile-menu-header strong {
+    display: block;
+    overflow: hidden;
+    color: var(--portal-sidebar-text-strong);
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.15;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.portal-profile-summary small,
+.portal-profile-menu-header small {
+    display: block;
+    overflow: hidden;
+    color: var(--portal-sidebar-text);
+    font-size: 0.72rem;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.portal-profile-chevron {
+    color: var(--portal-sidebar-text);
+    font-size: 0.7rem;
+    transition: transform 0.18s ease, color 0.18s ease;
+}
+
+.portal-profile-trigger[aria-expanded="true"] .portal-profile-chevron {
+    color: #B23A48;
+    transform: rotate(180deg);
+}
+
+.portal-profile-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+    width: min(18rem, calc(100vw - 2rem));
+    border: 1px solid var(--portal-sidebar-border);
+    border-radius: 0.65rem;
+    background: #ffffff;
+    box-shadow: 0 18px 42px rgba(26, 26, 26, 0.1);
+    padding: 0.55rem;
+}
+
+.portal-profile-menu[hidden] {
+    display: none;
+}
+
+.portal-profile-menu-header {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.45rem;
+}
+
+.portal-profile-menu-icon {
+    width: 2.3rem;
+    height: 2.3rem;
+    font-size: 0.9rem;
+}
+
+.portal-profile-menu-divider {
+    height: 1px;
+    margin: 0.45rem 0;
+    background: var(--portal-sidebar-border);
+}
+
+.portal-profile-menu-item {
+    width: 100%;
+    min-height: 2.3rem;
+    display: grid;
+    grid-template-columns: 1rem minmax(0, 1fr);
+    align-items: center;
+    gap: 0.55rem;
+    border: 0;
+    border-radius: 0.45rem;
+    background: transparent;
+    color: var(--portal-sidebar-text-strong);
+    padding: 0.48rem 0.55rem;
+    font-size: 0.84rem;
+    font-weight: 500;
+    text-align: left;
+    text-decoration: none;
+    transition: color 0.18s ease;
+}
+
+.portal-profile-menu-item i {
+    width: 1rem;
+    text-align: center;
+    font-size: 0.78rem;
+}
+
+.portal-profile-menu-item span {
+    min-width: 0;
+}
+
+.portal-profile-menu-item:hover,
+.portal-profile-menu-item:focus-visible {
+    color: #B23A48;
+    outline: none;
+    text-decoration: none;
+}
+
+.portal-profile-menu-button {
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.portal-profile-menu-danger,
+.portal-profile-menu-danger i {
+    color: #B23A48;
+}
+
+.portal-profile-menu-danger:hover,
+.portal-profile-menu-danger:focus-visible,
+.portal-profile-menu-danger:hover i,
+.portal-profile-menu-danger:focus-visible i {
+    color: #8F2635;
+}
+
+.portal-mobile-toggle,
+.portal-mobile-toggle:hover,
+.portal-mobile-toggle:focus {
+    color: var(--portal-sidebar-text-strong);
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    min-height: 2.5rem;
+    min-width: 2.5rem;
+    outline: none;
+}
+
+    .portal-mobile-toggle:active,
+    .portal-mobile-toggle:focus-visible {
+        color: var(--portal-sidebar-text-strong);
+        background: transparent;
+        border-color: var(--portal-sidebar-border);
+        box-shadow: none;
+        outline: none;
+    }
+
+.portal-sidebar {
+    width: var(--portal-sidebar-width);
+    flex: 0 0 var(--portal-sidebar-width);
+    background: var(--portal-sidebar-bg);
+    color: var(--portal-sidebar-text-strong);
+    border-right: 1px solid var(--portal-sidebar-border);
+    min-height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+    display: none;
+}
+
+.portal-sidebar::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
+.portal-sidebar-inner {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 1.4rem 0.85rem;
+}
+
+.portal-sidebar-copy {
+    color: var(--portal-sidebar-text);
+    max-width: 14rem;
+    line-height: 1.5;
+}
+
+.portal-nav {
+    flex-grow: 1;
+    margin-top: 1.35rem;
+}
+
+.portal-nav-list {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.portal-nav-link,
+.portal-nav-button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.46rem 0.55rem;
+    border-radius: 0.5rem;
+    color: var(--portal-sidebar-text);
+    text-decoration: none;
+    border: 1px solid transparent;
+    background: transparent;
+    font-weight: 500;
+    font-size: 0.84rem;
+    transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.portal-nav-link i,
+.portal-nav-button i {
+    width: 1rem;
+    text-align: center;
+    font-size: 0.82rem;
+}
+
+.portal-nav-link:hover,
+.portal-nav-link:focus,
+.portal-nav-button:hover,
+.portal-nav-button:focus {
+    color: var(--portal-sidebar-text-strong);
+    background: transparent;
+    border-color: transparent;
+    text-decoration: none;
+    transform: translateX(2px);
+}
+
+.portal-nav-link.active {
+    color: #B23A48;
+    background: var(--portal-sidebar-active-bg);
+    border-color: rgba(178, 58, 72, 0.24);
+}
+
+.portal-nav-group {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.portal-nav-group summary {
+    list-style: none;
+}
+
+.portal-nav-group summary::-webkit-details-marker {
+    display: none;
+}
+
+.portal-nav-group-toggle {
+    cursor: pointer;
+    justify-content: space-between;
+}
+
+.portal-nav-group-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.portal-nav-group-chevron {
+    width: auto;
+    font-size: 0.72rem;
+    transition: transform 0.18s ease;
+}
+
+.portal-nav-group[open] .portal-nav-group-chevron {
+    transform: rotate(180deg);
+}
+
+.portal-subnav-list {
+    display: grid;
+    gap: 0.25rem;
+    padding-left: 0.6rem;
+}
+
+.portal-subnav-link {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.55rem;
+    border-radius: 0.5rem;
+    color: var(--portal-sidebar-text);
+    text-decoration: none;
+    border: 1px solid transparent;
+    background: transparent;
+    font-weight: 500;
+    font-size: 0.8rem;
+    transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.portal-subnav-link i {
+    width: 1rem;
+    text-align: center;
+    font-size: 0.78rem;
+}
+
+.portal-subnav-link:hover,
+.portal-subnav-link:focus {
+    color: var(--portal-sidebar-text-strong);
+    background: transparent;
+    border-color: transparent;
+    text-decoration: none;
+    transform: translateX(2px);
+}
+
+.portal-subnav-link.active {
+    color: #B23A48;
+    background: var(--portal-sidebar-active-bg);
+    border-color: rgba(178, 58, 72, 0.24);
+}
+
+.portal-nav-button-logout,
+.portal-nav-button-logout i {
+    color: #ff8a8a;
+}
+
+.portal-nav-button-logout:hover,
+.portal-nav-button-logout:focus {
+    color: #ffb3b3;
+}
+
+.portal-nav-button-logout:hover i,
+.portal-nav-button-logout:focus i {
+    color: #ffb3b3;
+}
+
+.portal-nav-divider {
+    height: 1px;
+    margin: 0.55rem 0;
+    background: var(--portal-sidebar-border);
+}
+
+.portal-content {
+    flex: 1 1 auto;
+    min-width: 0;
+    background: var(--portal-content-bg);
+    margin-left: var(--portal-sidebar-width);
+    min-height: 100vh;
+}
+
+.portal-content-inner {
+    min-height: 100vh;
+    padding: 1rem 1.25rem;
+}
+
+.portal-page-header {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.portal-page-header-copy {
+    max-width: 40rem;
+}
+
+.portal-page-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.portal-page-shell {
+    width: 100%;
+}
+
+.portal-section {
+    padding: 3rem 0;
+}
+
+.portal-grid {
+    display: grid;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.portal-grid-main-aside {
+    grid-template-columns: minmax(0, 7fr) minmax(280px, 5fr);
+}
+
+.portal-card {
+    background: #ffffff;
+    border: 1px solid var(--portal-card-border);
+    border-radius: 1.5rem;
+    box-shadow: 0 12px 36px rgba(2, 7, 47, 0.06);
+    padding: 1.5rem;
+}
+
+.portal-card-lg {
+    padding: clamp(1.5rem, 3vw, 3rem);
+}
+
+.portal-card-centered {
+    text-align: center;
+}
+
+.portal-card-narrow {
+    max-width: 42rem;
+}
+
+.portal-eyebrow {
+    color: #B23A48;
+    font-family: var(--serif-label);
+    font-size: 0.78rem;
+    font-weight: 300;
+    letter-spacing: 0.15em;
+    margin: 0 0 0.5rem;
+    text-transform: uppercase;
+}
+
+.portal-title {
+    color: #071F3D;
+    font-family: var(--serif-heading);
+    font-size: clamp(1.85rem, 3vw, 2.5rem);
+    font-weight: 500;
+    line-height: 1.12;
+    margin: 0 0 0.75rem;
+}
+
+.portal-title-sm {
+    color: #071F3D;
+    font-family: var(--serif-heading);
+    font-size: 1.5rem;
+    font-weight: 500;
+    line-height: 1.2;
+    margin: 0 0 0.75rem;
+}
+
+.portal-copy {
+    color: #51627f;
+    line-height: 1.65;
+    margin: 0;
+}
+
+.portal-copy-spaced {
+    margin-bottom: 1.25rem;
+}
+
+.portal-actions-stack {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.portal-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    border: 1px solid transparent;
+    border-radius: 0.75rem;
+    padding: 0.65rem 1rem;
+    font-weight: 800;
+    text-decoration: none;
+    transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+}
+
+.portal-btn:hover,
+.portal-btn:focus {
+    text-decoration: none;
+}
+
+.portal-btn-primary {
+    background: #005190;
+    border-color: #005190;
+    color: #ffffff;
+}
+
+.portal-btn-primary:hover,
+.portal-btn-primary:focus {
+    background: #003f73;
+    border-color: #003f73;
+    color: #ffffff;
+}
+
+.portal-btn-outline {
+    background: #ffffff;
+    border-color: rgba(2, 7, 47, 0.16);
+    color: #15316e;
+}
+
+.portal-btn-outline:hover,
+.portal-btn-outline:focus {
+    border-color: #005190;
+    color: #005190;
+}
+
+.portal-btn-danger {
+    background: #ffffff;
+    border-color: #B23A48;
+    color: #B23A48;
+}
+
+.portal-btn-danger:hover,
+.portal-btn-danger:focus {
+    background: #B23A48;
+    border-color: #B23A48;
+    color: #ffffff;
+}
+
+.portal-btn-sm {
+    min-height: 2.25rem;
+    border-radius: 999px;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.85rem;
+}
+
+.portal-btn-icon {
+    width: 2.25rem;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.portal-field {
+    width: 100%;
+    min-height: 2.75rem;
+    border: 1px solid rgba(2, 7, 47, 0.14);
+    border-radius: 0.75rem;
+    background: #ffffff;
+    color: #10224d;
+    padding: 0.65rem 0.85rem;
+}
+
+.portal-field:focus {
+    border-color: #005190;
+    box-shadow: 0 0 0 3px rgba(0, 81, 144, 0.12);
+    outline: 0;
+}
+
+.portal-validation-message,
+.field-validation-error,
+.validation-summary-errors {
+    color: #B23A48;
+    font-size: 0.875rem;
+    font-weight: 700;
+}
+
+.portal-form-grid,
+.portal-info-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.portal-form-grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+.portal-field-group {
+    display: grid;
+    gap: 0.4rem;
+    grid-column: span 12;
+}
+
+.portal-field-group-half {
+    grid-column: span 6;
+}
+
+.portal-field-group-third {
+    grid-column: span 4;
+}
+
+.portal-info-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 1rem;
+}
+
+.portal-info-tile {
+    height: 100%;
+    border: 1px solid rgba(2, 7, 47, 0.1);
+    border-radius: 1rem;
+    padding: 1rem;
+}
+
+.portal-info-label {
+    display: block;
+    color: #64748b;
+    font-size: 0.82rem;
+    margin-bottom: 0.25rem;
+}
+
+.portal-table-wrap {
+    overflow-x: auto;
+}
+
+.portal-data-page > .portal-table-card {
+    min-width: 0;
+    border-radius: 0.5rem;
+    box-shadow: none;
+}
+
+.portal-dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1050;
+    background: rgba(2, 7, 47, 0.54);
+}
+
+.portal-dialog-backdrop[hidden],
+.portal-dialog[hidden] {
+    display: none;
+}
+
+.portal-dialog {
+    position: fixed;
+    inset: 50% auto auto 50%;
+    z-index: 1060;
+    width: min(96vw, 1040px);
+    max-height: min(86vh, 760px);
+    transform: translate(-50%, -50%);
+    overflow: hidden;
+}
+
+.portal-dialog-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.5rem 1.5rem 0;
+}
+
+.portal-dialog-body {
+    max-height: calc(min(86vh, 760px) - 6rem);
+    overflow-y: auto;
+    padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.portal-dialog-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 1px solid rgba(2, 7, 47, 0.1);
+    border-radius: 999px;
+    background: #ffffff;
+    color: #10224d;
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.portal-hidden {
+    display: none !important;
+}
+
+.portal-table-card {
+    background: #ffffff;
+    border: 1px solid var(--portal-card-border);
+    border-radius: 1.5rem;
+    box-shadow: 0 12px 36px rgba(2, 7, 47, 0.06);
+    padding: 1rem 1.25rem;
+}
+
+.portal-exams-table-card {
+    overflow: hidden;
+}
+
+.portal-exams-table {
+    border-collapse: collapse;
+    color: #10224d;
+    font-size: 0.84rem;
+    line-height: 1.35;
+    margin: 0;
+    width: 100%;
+}
+
+.portal-exams-table thead th {
+    background: #ffffff;
+    border-bottom: 1px solid rgba(2, 7, 47, 0.08);
+    color: #5c6b8a;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    padding: 0.35rem 0.75rem;
+    position: sticky;
+    top: 0;
+    text-align: left;
+    text-transform: uppercase;
+    z-index: 2;
+}
+
+.portal-exams-table tbody tr {
+    transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+
+.portal-exams-table tbody tr:hover {
+    transform: translateY(-1px);
+}
+
+.portal-exams-table tbody td {
+    border-bottom: 1px solid rgba(2, 7, 47, 0.06);
+    padding: 0.72rem 0.7rem;
+    vertical-align: middle;
+}
+
+.portal-exams-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.portal-exam-name {
+    color: #0c1f4d;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.portal-table-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.75rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 999px;
+    background: rgba(12, 31, 77, 0.06);
+    color: #15316e;
+    font-size: 0.76rem;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.portal-table-pill-status {
+    border: 1px solid transparent;
+}
+
+.portal-table-pill-status-not-started {
+    background: rgba(108, 117, 125, 0.1);
+    border-color: rgba(108, 117, 125, 0.18);
+    color: #56616c;
+}
+
+.portal-table-pill-status-in-progress {
+    background: rgba(13, 110, 253, 0.1);
+    border-color: rgba(13, 110, 253, 0.18);
+    color: #0f4fb8;
+}
+
+.portal-table-pill-status-completed {
+    background: rgba(25, 135, 84, 0.11);
+    border-color: rgba(25, 135, 84, 0.2);
+    color: #176b47;
+}
+
+.portal-table-pill-status-overdue {
+    background: rgba(220, 53, 69, 0.1);
+    border-color: rgba(220, 53, 69, 0.2);
+    color: #a52333;
+}
+
+.portal-table-pill-status-cancelled {
+    background: rgba(73, 80, 87, 0.11);
+    border-color: rgba(73, 80, 87, 0.2);
+    color: #495057;
+}
+
+.portal-table-pill-status-invalid,
+.portal-table-pill-status-disconnected {
+    background: rgba(111, 66, 193, 0.1);
+    border-color: rgba(111, 66, 193, 0.2);
+    color: #5d3a9b;
+}
+
+.portal-table-pill-status-default {
+    background: rgba(255, 193, 7, 0.16);
+    border-color: rgba(255, 193, 7, 0.28);
+    color: #7a5800;
+}
+
+.portal-table-meta {
+    color: #51627f;
+    font-size: 0.82rem;
+    font-weight: 500;
+}
+
+.portal-table-cell-end {
+    text-align: right;
+}
+
+.portal-empty-table-cell {
+    color: #64748b;
+    padding: 3rem 1rem;
+    text-align: center;
+}
+
+.portal-inline-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.portal-role-cell {
+    min-width: 14rem;
+}
+
+.portal-role-editor {
+    margin: 0;
+    max-width: 18rem;
+}
+
+.portal-role-display {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 2.1rem;
+}
+
+.portal-role-display[hidden],
+.portal-role-controls[hidden] {
+    display: none;
+}
+
+.portal-role-edit-trigger,
+.portal-role-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid transparent;
+    border-radius: 0.45rem;
+    background: transparent;
+    font-size: 0.74rem;
+    cursor: pointer;
+    transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease, opacity 0.16s ease;
+}
+
+.portal-role-edit-trigger {
+    color: #51627f;
+    opacity: 0;
+}
+
+.portal-role-cell:hover .portal-role-edit-trigger,
+.portal-role-edit-trigger:focus-visible,
+.portal-role-editor:focus-within .portal-role-edit-trigger {
+    opacity: 1;
+}
+
+.portal-role-edit-trigger:hover,
+.portal-role-edit-trigger:focus-visible {
+    border-color: rgba(0, 81, 144, 0.22);
+    background: #eef6fb;
+    color: #005190;
+    outline: none;
+}
+
+.portal-role-controls {
+    display: grid;
+    grid-template-columns: minmax(7.5rem, 1fr) auto;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.portal-role-select {
+    min-height: 2.1rem;
+    border-radius: 0.45rem;
+    padding: 0.35rem 0.55rem;
+    font-size: 0.82rem;
+}
+
+.portal-role-actions {
+    display: flex;
+    gap: 0.3rem;
+}
+
+.portal-role-action-confirm {
+    border-color: #005190;
+    background: #005190;
+    color: #ffffff;
+}
+
+.portal-role-action-confirm:hover,
+.portal-role-action-confirm:focus-visible {
+    border-color: #003f73;
+    background: #003f73;
+    color: #ffffff;
+    outline: none;
+}
+
+.portal-role-action-cancel {
+    border-color: rgba(2, 7, 47, 0.14);
+    background: #ffffff;
+    color: #51627f;
+}
+
+.portal-role-action-cancel:hover,
+.portal-role-action-cancel:focus-visible {
+    border-color: #B23A48;
+    color: #B23A48;
+    outline: none;
+}
+
+@media (hover: none) {
+    .portal-role-edit-trigger {
+        opacity: 1;
+    }
+}
+
+@media (min-width: 768px) {
+    .portal-inline-form {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .portal-inline-form .portal-btn {
+        margin-left: auto;
+    }
+}
+
+.portal-exams-table-actions {
+    white-space: nowrap;
+}
+
+.portal-exams-table-actions .portal-btn {
+    border-radius: 999px;
+    min-width: 2.25rem;
+}
+
+.portal-exams-table-actions .portal-btn + .portal-btn {
+    margin-left: 0.45rem;
+}
+
+.portal-exam-start-btn {
+    min-width: 5.5rem;
+}
+
+.portal-exam-action-edit {
+    border-color: #007f8c;
+    background: #007f8c;
+    color: #ffffff;
+}
+
+.portal-exam-action-edit:hover,
+.portal-exam-action-edit:focus {
+    border-color: #006672;
+    background: #006672;
+    color: #ffffff;
+}
+
+.portal-exam-action-delete {
+    border-color: #b4232f;
+    background: #b4232f;
+    color: #ffffff;
+}
+
+.portal-exam-action-delete:hover,
+.portal-exam-action-delete:focus {
+    border-color: #941b26;
+    background: #941b26;
+    color: #ffffff;
+}
+
+.portal-exam-launch-error-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-bottom: 1rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid rgba(180, 35, 47, 0.24);
+    border-radius: 0.5rem;
+    background: #fff2f3;
+    color: #941b26;
+    font-size: 0.9rem;
+}
+
+.portal-exam-launch-dialog {
+    width: min(92vw, 760px);
+}
+
+.portal-course-dialog {
+    width: min(92vw, 520px);
+}
+
+.portal-course-dialog-card {
+    overflow: hidden;
+    border: 1px solid var(--portal-card-border);
+    border-radius: 0.75rem;
+    background: #ffffff;
+}
+
+.portal-course-form {
+    min-height: auto;
+}
+
+.portal-course-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    border-top: 1px solid var(--portal-card-border);
+    padding: 1rem 1.5rem 1.25rem;
+}
+
+.course-access-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 0.8rem;
+    color: #005190;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.course-access-back:hover,
+.course-access-back:focus-visible {
+    color: #003e73;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.course-access-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.8rem 0;
+}
+
+.course-access-search {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 0.55rem;
+    min-width: 0;
+}
+
+.course-access-search-field {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 2.5rem;
+    max-width: 34rem;
+    padding: 0 0.8rem;
+    border: 1px solid var(--portal-card-border);
+    border-radius: 0.5rem;
+    background: #ffffff;
+    color: #64748b;
+}
+
+.course-access-search-field:focus-within {
+    border-color: #005190;
+    box-shadow: 0 0 0 3px rgba(0, 81, 144, 0.1);
+}
+
+.course-access-search-field input {
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    color: #172033;
+    font: inherit;
+    outline: 0;
+}
+
+.course-access-count {
+    flex: 0 0 auto;
+    color: #64748b;
+    font-size: 0.82rem;
+}
+
+.course-access-table-card {
+    flex: 1 1 auto;
+    min-height: 18rem;
+}
+
+.course-sort-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: inherit;
+    text-decoration: none;
+}
+
+.course-sort-link:hover,
+.course-sort-link:focus-visible {
+    color: #005190;
+}
+
+.course-sort-link i {
+    width: 0.8rem;
+    color: #8a96a8;
+    font-size: 0.72rem;
+    text-align: center;
+}
+
+.course-access-name-cell {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.course-owner-pill,
+.course-role-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.65rem;
+    width: max-content;
+    padding: 0.2rem 0.55rem;
+    border: 1px solid #d6dee9;
+    border-radius: 999px;
+    background: #f7f9fc;
+    color: #475569;
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.course-owner-pill {
+    border-color: rgba(0, 81, 144, 0.22);
+    background: #eef6fb;
+    color: #005190;
+}
+
+.course-assignment-source {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.65rem;
+    padding: 0.2rem 0.55rem;
+    border: 1px solid #d8e0ea;
+    border-radius: 999px;
+    background: #f7f9fc;
+    color: #475569;
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.course-assignment-source[data-source="Purchase"] {
+    border-color: rgba(47, 125, 91, 0.24);
+    background: #f1f8f4;
+    color: #256548;
+}
+
+.course-role-pill[data-role="SuperAdmin"] {
+    border-color: rgba(178, 58, 72, 0.25);
+    background: #fff5f6;
+    color: #8f2635;
+}
+
+.course-role-pill[data-role="Admin"] {
+    border-color: rgba(0, 81, 144, 0.24);
+    background: #eef6fb;
+    color: #005190;
+}
+
+.course-role-pill[data-role="Teacher"] {
+    border-color: rgba(0, 138, 152, 0.25);
+    background: #edf9fa;
+    color: #006b75;
+}
+
+.course-role-pill[data-role="Student"] {
+    border-color: #d8e0ea;
+    background: #f7f9fc;
+    color: #475569;
+}
+
+.course-access-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 50%;
+    background: transparent;
+    color: #9b2c39;
+    cursor: pointer;
+}
+
+.course-access-remove:hover,
+.course-access-remove:focus-visible {
+    border-color: rgba(180, 35, 47, 0.2);
+    background: #fff2f3;
+    color: #7f1d28;
+    outline: 0;
+}
+
+.course-access-dialog {
+    width: min(92vw, 640px);
+}
+
+.course-access-dialog-card {
+    overflow: hidden;
+    border: 1px solid var(--portal-card-border);
+    border-radius: 0.5rem;
+    background: #ffffff;
+}
+
+.course-assignee-search {
+    max-width: none;
+    margin-bottom: 1rem;
+}
+
+.course-assignee-list {
+    display: grid;
+    gap: 0.45rem;
+    max-height: min(48vh, 26rem);
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+}
+
+.course-assignee-option {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.8rem;
+    min-height: 3.75rem;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid #dce3ec;
+    border-radius: 0.5rem;
+    background: #ffffff;
+    cursor: pointer;
+}
+
+.course-assignee-option:hover {
+    border-color: #9eb5cf;
+    background: #f8fafc;
+}
+
+.course-assignee-option:has(input:checked) {
+    border-color: #005190;
+    background: #eef6fb;
+    box-shadow: inset 3px 0 0 #005190;
+}
+
+.course-assignee-option input {
+    width: 1rem;
+    height: 1rem;
+    accent-color: #005190;
+}
+
+.course-assignee-option strong,
+.course-assignee-option small {
+    display: block;
+}
+
+.course-assignee-option strong {
+    color: #172033;
+    font-size: 0.86rem;
+}
+
+.course-assignee-option small {
+    margin-top: 0.1rem;
+    color: #64748b;
+    font-size: 0.75rem;
+}
+
+.course-assignee-empty {
+    padding: 1.5rem;
+    color: #64748b;
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+.course-access-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.65rem;
+    padding: 1rem 1.5rem 1.25rem;
+    border-top: 1px solid var(--portal-card-border);
+}
+
+@media (max-width: 720px) {
+    .course-access-toolbar,
+    .course-access-search {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .course-access-search-field {
+        width: 100%;
+        max-width: none;
+    }
+
+    .course-access-count {
+        align-self: flex-start;
+    }
+}
+
+.portal-exam-launch-dialog .portal-dialog-close {
+    cursor: pointer;
+    transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+}
+
+.portal-exam-launch-dialog .portal-dialog-close:hover,
+.portal-exam-launch-dialog .portal-dialog-close:focus-visible {
+    border-color: #005190;
+    background: #eaf2f8;
+    color: #005190;
+    outline: none;
+}
+
+.portal-exam-launch-dialog-card {
+    overflow: hidden;
+    border: 1px solid rgba(2, 7, 47, 0.1);
+    border-radius: 1rem;
+    background: #ffffff;
+    box-shadow: 0 24px 70px rgba(2, 7, 47, 0.26);
+}
+
+.portal-exam-launch-body {
+    max-height: calc(min(86vh, 760px) - 12rem);
+}
+
+.portal-exam-launch-loading,
+.portal-exam-launch-error {
+    display: flex;
+    min-height: 8rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    color: #51627f;
+    font-size: 0.92rem;
+}
+
+.portal-exam-launch-error {
+    color: #941b26;
+}
+
+.portal-exam-launch-spinner {
+    width: 1.1rem;
+    height: 1.1rem;
+    flex: 0 0 auto;
+    border: 2px solid rgba(0, 81, 144, 0.2);
+    border-top-color: #005190;
+    border-radius: 50%;
+    animation: portal-exam-launch-spin 0.75s linear infinite;
+}
+
+@keyframes portal-exam-launch-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.portal-exam-launch-meta {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-bottom: 1.25rem;
+    border-block: 1px solid rgba(2, 7, 47, 0.08);
+    background: #f7f9fc;
+}
+
+.portal-exam-launch-meta-item {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.9rem 1rem;
+}
+
+.portal-exam-launch-meta-item + .portal-exam-launch-meta-item {
+    border-left: 1px solid rgba(2, 7, 47, 0.08);
+}
+
+.portal-exam-launch-meta-item > i {
+    width: 1rem;
+    flex: 0 0 auto;
+    color: #005190;
+    text-align: center;
+}
+
+.portal-exam-launch-meta-item div {
+    min-width: 0;
+}
+
+.portal-exam-launch-meta-item span,
+.portal-exam-launch-meta-item strong {
+    display: block;
+}
+
+.portal-exam-launch-meta-item span {
+    margin-bottom: 0.15rem;
+    color: #6b7890;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+}
+
+.portal-exam-launch-meta-item strong {
+    overflow: hidden;
+    color: #10224d;
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.portal-exam-launch-introduction {
+    color: #263a5e;
+    font-size: 0.96rem;
+    line-height: 1.7;
+}
+
+.portal-exam-launch-introduction > :first-child {
+    margin-top: 0;
+}
+
+.portal-exam-launch-introduction > :last-child {
+    margin-bottom: 0;
+}
+
+.portal-exam-launch-introduction img,
+.portal-exam-launch-introduction video,
+.portal-exam-launch-introduction iframe {
+    max-width: 100%;
+}
+
+.portal-exam-launch-state {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    margin-top: 1.25rem;
+    padding: 0.8rem 0.9rem;
+    border-left: 3px solid #005190;
+    background: #eef5fb;
+    color: #263a5e;
+    font-size: 0.88rem;
+    line-height: 1.5;
+}
+
+.portal-exam-launch-state > i {
+    margin-top: 0.2rem;
+    color: #005190;
+}
+
+.portal-exam-launch-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem 1.5rem;
+    border-top: 1px solid rgba(2, 7, 47, 0.08);
+}
+
+.portal-exam-launch-form {
+    display: flex;
+    margin: 0;
+}
+
+.portal-exam-launch-form[hidden],
+.portal-exam-launch-state[hidden],
+.portal-exam-launch-loading[hidden],
+.portal-exam-launch-error[hidden],
+[data-exam-launch-content][hidden] {
+    display: none;
+}
+
+@media (max-width: 640px) {
+    .portal-exam-launch-meta {
+        grid-template-columns: 1fr;
+    }
+
+    .portal-exam-launch-meta-item + .portal-exam-launch-meta-item {
+        border-top: 1px solid rgba(2, 7, 47, 0.08);
+        border-left: 0;
+    }
+
+    .portal-exam-launch-footer {
+        flex-wrap: wrap;
+        padding-inline: 1rem;
+    }
+
+    .portal-exam-launch-footer > .portal-btn,
+    .portal-exam-launch-form,
+    .portal-exam-launch-form .portal-btn {
+        width: 100%;
+    }
+}
+
+.record-option-chip {
+    padding: 0.55rem 0.8rem;
+    border: 1px solid rgba(2, 7, 47, 0.1);
+    border-radius: 1rem;
+    background: #f8fafc;
+}
+
+.record-option-chip-selected {
+    border-color: rgba(13, 110, 253, 0.28);
+    background: rgba(13, 110, 253, 0.08);
+}
+
+.record-option-chip-correct {
+    border-color: rgba(25, 135, 84, 0.32);
+    background: rgba(25, 135, 84, 0.1);
+}
+
+.record-option-key {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.45rem;
+    height: 1.45rem;
+    margin-right: 0.5rem;
+    border-radius: 999px;
+    background: rgba(2, 7, 47, 0.08);
+    font-weight: 700;
+    font-size: 0.82rem;
+}
+
+.record-question-image-card {
+    max-width: 26rem;
+}
+
+.record-question-image {
+    display: block;
+    width: 100%;
+    max-height: 22rem;
+    object-fit: contain;
+    border-radius: 1rem;
+    border: 1px solid rgba(2, 7, 47, 0.1);
+    background: #ffffff;
+}
+
+.record-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.record-stat-value {
+    color: #0c1f4d;
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.record-card {
+    height: 100%;
+    padding: 1.5rem;
+}
+
+.record-feedback-card {
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+}
+
+.record-review-header,
+.record-question-header,
+.record-option-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.record-review-header {
+    margin-bottom: 1.5rem;
+}
+
+.record-pagination-actions,
+.record-question-meta,
+.record-option-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.record-question-list {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.record-question-card {
+    border: 1px solid rgba(2, 7, 47, 0.1);
+    border-radius: 1.25rem;
+    background: #f8fafc;
+    padding: 1.5rem;
+}
+
+.record-answer-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.record-answer-grid-spaced {
+    margin-top: 1rem;
+}
+
+.record-answer-card {
+    height: 100%;
+    border: 1px solid rgba(2, 7, 47, 0.1);
+    border-radius: 1rem;
+    background: #ffffff;
+    padding: 1rem;
+}
+
+.record-option-list {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.record-result-pill {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.78rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.record-result-pill-correct {
+    background: #dff8ea;
+    color: #17643a;
+}
+
+.record-result-pill-partial {
+    background: #fff2cc;
+    color: #7a4d00;
+}
+
+.record-result-pill-incorrect {
+    background: #fde4e4;
+    color: #9f1d2f;
+}
+
+.record-content-muted {
+    color: #51627f;
+    line-height: 1.65;
+}
+
+.record-note {
+    border-radius: 1rem;
+    background: #eef3fb;
+    color: #334155;
+    margin-bottom: 1rem;
+    padding: 1rem;
+}
+
+.portal-sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1030;
+    background: rgba(2, 7, 47, 0.48);
+}
+
+.portal-sidebar-backdrop[hidden],
+.portal-offcanvas[hidden] {
+    display: none;
+}
+
+.portal-offcanvas {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 1040;
+    width: min(84vw, 292px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-gutter: stable;
+    background: var(--portal-sidebar-bg);
+    color: var(--portal-sidebar-text-strong);
+    box-shadow: 18px 0 54px rgba(2, 7, 47, 0.24);
+}
+
+.portal-offcanvas-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.5rem 1.5rem 0;
+}
+
+.portal-offcanvas-header .portal-profile {
+    flex: 1 1 auto;
+}
+
+.portal-offcanvas-header .portal-profile-menu {
+    width: min(18rem, calc(84vw - 3rem));
+}
+
+.portal-offcanvas-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 1px solid var(--portal-sidebar-border);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--portal-sidebar-text-strong);
+    font-size: 1.6rem;
+    line-height: 1;
+}
+
+.portal-offcanvas-body {
+    padding: 1rem 0.75rem 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .portal-page-header {
+        align-items: flex-start;
+        justify-content: space-between;
+        flex-direction: row;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .portal-content {
+        margin-left: 0;
+    }
+
+    .portal-grid-main-aside {
+        grid-template-columns: 1fr;
+    }
+
+    .portal-field-group-half,
+    .portal-field-group-third {
+        grid-column: span 12;
+    }
+
+    .portal-info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .record-summary-grid,
+    .record-answer-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .record-review-header,
+    .record-question-header,
+    .record-option-row {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+@media (min-width: 992px) {
+    body.portal-layout {
+        overflow: hidden;
+    }
+
+    .portal-shell {
+        display: flex;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    .portal-mobile-bar,
+    .portal-sidebar-backdrop,
+    .portal-offcanvas {
+        display: none !important;
+    }
+
+    .portal-sidebar {
+        display: block;
+    }
+
+    .portal-content {
+        height: 100vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .portal-content-inner {
+        padding: 1.25rem 1.5rem;
+    }
+
+    .portal-data-page {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 2.5rem);
+        min-height: 0;
+    }
+
+    .portal-data-page > .portal-page-header,
+    .portal-data-page > [role="alert"] {
+        flex: 0 0 auto;
+    }
+
+    .portal-data-page > .portal-table-card {
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        min-height: 0;
+    }
+
+    .portal-data-page > .portal-table-card > .portal-table-wrap {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: auto;
+    }
+
+    .portal-data-page > .portal-table-card > .portal-card-centered {
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .portal-table-card {
+        padding: 1.25rem 1.5rem;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .portal-exams-table thead th,
+    .portal-exams-table tbody td {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .portal-sidebar {
+        position: static;
+        width: 100%;
+        min-height: auto;
+    }
+
+    .portal-content {
+        margin-left: 0;
+    }
+}
+
+.product-editor-alert .btn-close:focus {
+    box-shadow: none;
+}
+
+.product-editor-toolbar .btn {
+    white-space: nowrap;
+}
+
+.product-live-editor .product-page-shell {
+    max-width: 100%;
+    padding: 0;
+}
+
+.product-editor-preview-shell {
+    margin: 0;
+}
+
+.product-editor-preview-panel {
+    background: #ffffff;
+    border: 1px solid rgba(2, 7, 47, 0.08);
+    border-radius: 1rem;
+    box-shadow: 0 12px 34px rgba(2, 7, 47, 0.06);
+    padding: 1.5rem;
+}
+
+.product-editor-field-label {
+    display: block;
+    margin-bottom: 0.45rem;
+    color: #68758f;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+.product-editable-field {
+    position: relative;
+    border: 1px solid transparent;
+    border-radius: 0.75rem;
+    transition: border-color 0.16s ease, background-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.product-editable-field:hover,
+.product-editable-field:focus-within {
+    border-color: rgba(13, 110, 253, 0.28);
+    background: rgba(13, 110, 253, 0.025);
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.06);
+}
+
+.product-editable-input,
+.product-editable-textarea {
+    width: 100%;
+    border: 0;
+    border-radius: 0.75rem;
+    background: transparent;
+    color: #17233c;
+    outline: 0;
+    resize: vertical;
+}
+
+.product-editable-input {
+    min-height: 3rem;
+    padding: 0.45rem 2.5rem 0.45rem 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.product-editable-title .product-editable-input {
+    min-height: 4.25rem;
+    font-size: 2.35rem;
+    font-weight: 700;
+    line-height: 1.12;
+}
+
+.product-page-header .product-editable-summary {
+    margin-top: 1rem;
+}
+
+.product-editable-textarea {
+    min-height: 8rem;
+    padding: 0.75rem 2.5rem 0.75rem 0.75rem;
+    line-height: 1.6;
+}
+
+.product-editable-long .product-editable-textarea {
+    min-height: 18rem;
+}
+
+.product-editable-icon {
+    position: absolute;
+    top: 0.9rem;
+    right: 0.9rem;
+    color: #6c7a95;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.16s ease;
+}
+
+.product-editable-field:hover .product-editable-icon,
+.product-editable-field:focus-within .product-editable-icon {
+    opacity: 0.75;
+}
+
+.product-editable-input::placeholder,
+.product-editable-textarea::placeholder {
+    color: #8a96ad;
+}
+
+.product-live-editor .product-purchase-card,
+.product-live-editor .product-description-card,
+.product-live-editor .product-details-card {
+    border-color: rgba(2, 7, 47, 0.08);
+}
+
+.product-editor-section {
+    overflow: hidden;
+}
+
+.product-editor-section-toggle {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.25rem;
+    border: 0;
+    background: #ffffff;
+    color: inherit;
+    text-align: left;
+}
+
+.product-editor-section-toggle:focus-visible {
+    outline: 3px solid rgba(13, 110, 253, 0.22);
+    outline-offset: -3px;
+}
+
+.product-editor-section-body {
+    padding: 0 1.25rem 1.25rem;
+}
+
+.product-editor-section-chevron {
+    margin-top: 0.25rem;
+    color: #51627f;
+    transition: transform 0.18s ease;
+}
+
+.product-editor-section-toggle[aria-expanded="false"] .product-editor-section-chevron {
+    transform: rotate(180deg);
+}
+
+.product-template-modal {
+    background: #ffffff;
+    border: 1px solid rgba(2, 7, 47, 0.08);
+    border-radius: 1rem;
+    box-shadow: 0 24px 70px rgba(2, 7, 47, 0.26);
+}
+
+.product-template-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 0.85rem;
+}
+
+.product-template-card {
+    width: 100%;
+    min-height: 8rem;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: start;
+    gap: 0.85rem;
+    padding: 1rem;
+    border: 1px solid rgba(2, 7, 47, 0.1);
+    border-radius: 0.75rem;
+    background: #ffffff;
+    color: #17233c;
+    text-align: left;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.product-template-card:hover,
+.product-template-card:focus-visible {
+    border-color: rgba(0, 81, 144, 0.34);
+    box-shadow: 0 12px 30px rgba(2, 7, 47, 0.08);
+    outline: 0;
+    transform: translateY(-1px);
+}
+
+.product-template-icon {
+    width: 2.4rem;
+    height: 2.4rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    background: #eef6ff;
+    color: #005190;
+}
+
+.product-template-copy {
+    display: grid;
+    gap: 0.35rem;
+}
+
+.product-template-title {
+    font-weight: 800;
+}
+
+.product-template-description {
+    color: #5f6f8c;
+    font-size: 0.9rem;
+    line-height: 1.45;
+}
+
+.product-template-arrow {
+    color: #7b8aa5;
+    font-size: 0.85rem;
+    padding-top: 0.35rem;
+}
+
+.catalog-status-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 5.8rem;
+    padding: 0.38rem 0.65rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.catalog-status-published {
+    background: #e9f8f0;
+    border-color: #b7e7cb;
+    color: #116b3f;
+}
+
+.catalog-status-draft {
+    background: #fff6db;
+    border-color: #f0d57a;
+    color: #7a5800;
+}
+
+.catalog-status-archived {
+    background: #eef1f5;
+    border-color: #cbd5e1;
+    color: #475569;
+}
+
+.catalog-type-pill {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid rgba(2, 7, 47, 0.1);
+    border-radius: 999px;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 0.78rem;
+    font-weight: 800;
+    line-height: 1;
+    padding: 0.35rem 0.6rem;
+}
+
+.product-list-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-top: 0.5rem;
+}
+
+.product-list-actions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.product-list-delete-btn {
+    width: 2rem;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.grade-settings-table thead th {
+    border-bottom: 1px solid rgba(2, 7, 47, 0.08);
+    color: #5c6b8a;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding-bottom: 0.85rem;
+    vertical-align: middle;
+}
+
+.grade-settings-table tbody td {
+    border-bottom: 1px solid rgba(2, 7, 47, 0.08);
+    padding-top: 0.9rem;
+    padding-bottom: 0.9rem;
+    vertical-align: top;
+}
+
+.grade-settings-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.grade-settings-cell .portal-field {
+    min-height: 2.8rem;
+}
+
+.grade-settings-input::placeholder {
+    font-style: italic;
+}
+
+.grade-settings-remove-btn,
+.grade-settings-add-btn {
+    min-width: 6.5rem;
+}
+
+.grade-settings-remove-btn-disabled {
+    opacity: 0.45;
+    border-style: dashed;
+}
+
+#exam-settings-page-form .input-validation-error,
+#exam-settings-page-form .is-invalid {
+    border-color: #dc3545 !important;
+    background-color: #fff7f7;
+}
+
+#exam-settings-page-form .input-validation-error:focus,
+#exam-settings-page-form .is-invalid:focus {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.15);
+}
+
+#exam-settings-page-form .field-validation-error {
+    display: block;
+    margin-top: 0.35rem;
+    color: #b42318;
+    font-weight: 500;
+}
+
+.grade-settings-row-error td {
+    background: rgba(220, 53, 69, 0.03);
+}
+
+.exam-create-shell {
+    width: min(1180px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 32px 0 56px;
+}
+
+.exam-create-panel {
+    background: #ffffff;
+    border: 1px solid rgba(2, 7, 47, 0.08);
+    border-radius: 8px;
+    box-shadow: 0 18px 50px rgba(2, 7, 47, 0.08);
+    padding: clamp(20px, 4vw, 42px);
+}
+
+.exam-create-heading {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.exam-create-back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    flex: 0 0 auto;
+    border: 1px solid rgba(2, 7, 47, 0.12);
+    border-radius: 8px;
+    color: #02072f;
+    text-decoration: none;
+}
+
+.exam-create-back:hover {
+    background: #f4f7fb;
+    color: #02072f;
+}
+
+.exam-create-submit {
+    margin-left: auto;
+    min-height: 42px;
+}
+
+.exam-create-title-field {
+    min-height: 3.25rem;
+    font-size: 1.05rem;
+}
+
+.exam-create-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+    gap: clamp(20px, 4vw, 38px);
+    align-items: start;
+}
+
+.exam-create-main,
+.exam-create-side {
+    display: grid;
+    gap: 20px;
+}
+
+.exam-create-side {
+    position: sticky;
+    top: 92px;
+    border-left: 1px solid rgba(2, 7, 47, 0.08);
+    padding-left: clamp(18px, 3vw, 30px);
+}
+
+.exam-add-language {
+    justify-self: start;
+}
+
+.exam-rich-field {
+    position: relative;
+}
+
+.exam-rich-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.exam-field-help {
+    color: #64748b;
+    font-size: 0.875rem;
+    font-style: italic;
+    line-height: 1.45;
+    margin-top: 0.25rem;
+}
+
+.exam-number-field {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.exam-number-field .portal-field {
+    border-bottom-right-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.exam-number-unit {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid rgba(2, 7, 47, 0.14);
+    border-left: 0;
+    border-radius: 0 0.75rem 0.75rem 0;
+    background: #f8fafc;
+    color: #64748b;
+    padding: 0 0.85rem;
+    font-weight: 700;
+}
+
+.exam-rich-preview {
+    min-height: 150px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 16px 42px 16px 16px;
+    background: #f9fafb;
+    color: #1f2937;
+    line-height: 1.5;
+    cursor: text;
+    transition: border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.exam-rich-preview:hover,
+.exam-rich-preview:focus {
+    border-color: rgba(0, 160, 176, 0.55);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(0, 160, 176, 0.08);
+    outline: none;
+}
+
+.exam-rich-preview.is-empty {
+    color: #7b8493;
+    font-style: italic;
+}
+
+.exam-rich-preview p {
+    margin: 0 0 0.75em;
+}
+
+.exam-rich-preview > *:first-child {
+    margin-top: 0;
+}
+
+.exam-rich-preview > *:last-child,
+.exam-rich-preview p:last-child {
+    margin-bottom: 0;
+}
+
+.exam-rich-field .exam-rich-textarea {
+    display: none;
+}
+
+.exam-rich-field.is-editing .exam-rich-preview {
+    display: none;
+}
+
+.exam-rich-field.is-editing .exam-rich-textarea {
+    display: block;
+}
+
+.exam-rich-pencil {
+    color: #8a94a6;
+    opacity: 0;
+    transition: opacity 0.18s ease, color 0.18s ease;
+}
+
+.exam-rich-field:hover .exam-rich-pencil,
+.exam-rich-field:focus-within .exam-rich-pencil {
+    opacity: 1;
+    color: #00a0b0;
+}
+
+.exam-header-back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    margin-right: 10px;
+    color: #02072f;
+    text-decoration: none;
+    border-radius: 6px;
+}
+
+.exam-header-back:hover {
+    background: #f4f7fb;
+    color: #02072f;
+}
+
+.exam-header-inline-edit {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.45rem;
+    position: relative;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 1px 24px 1px 6px;
+    cursor: text;
+}
+
+.exam-header-label:not(.exam-header-inline-edit),
+.exam-header-value:not(.exam-header-inline-edit) {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.45rem;
+    border: 1px solid transparent;
+    padding: 1px 6px;
+}
+
+.exam-header-inline-edit:hover,
+.exam-header-inline-edit:focus-within {
+    border-color: rgba(0, 160, 176, 0.45);
+}
+
+.exam-header-inline-edit .exam-header-edit-icon {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.7rem;
+    color: #00a0b0;
+    opacity: 0;
+}
+
+.exam-header-inline-edit:hover .exam-header-edit-icon,
+.exam-header-inline-edit:focus-within .exam-header-edit-icon {
+    opacity: 1;
+}
+
+.exam-header-inline-edit .exam-header-inline-input {
+    display: none;
+    width: 130px;
+    min-width: 90px;
+    max-width: 180px;
+    border: 0;
+    border-bottom: 1px solid rgba(2, 7, 47, 0.25);
+    padding: 0;
+    font: inherit;
+    font-weight: 700;
+    text-align: inherit;
+    outline: none;
+}
+
+.exam-header-inline-edit.is-editing .exam-header-inline-display {
+    display: none;
+}
+
+.exam-header-inline-edit.is-editing .exam-header-inline-input {
+    display: inline-block;
+}
+
+@media (max-width: 991.98px) {
+    .exam-create-heading {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .exam-create-submit {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .exam-create-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .exam-create-side {
+        position: static;
+        border-left: 0;
+        border-top: 1px solid rgba(2, 7, 47, 0.08);
+        padding-left: 0;
+        padding-top: 22px;
+    }
+}

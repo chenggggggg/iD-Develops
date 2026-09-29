@@ -1,0 +1,169 @@
+@page
+@model iD_Develops.Pages.Portal.Courses.IndexModel
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = "Courses";
+    var totalExamCount = Model.Courses.Sum(course => course.ExamCount);
+    var totalLearningMaterialCount = Model.Courses.Sum(course => course.LearningMaterialCount);
+}
+
+<section class="portal-page-shell portal-data-page">
+    <div class="portal-page-header">
+        <div class="portal-page-header-copy">
+            <p class="portal-eyebrow">Courses</p>
+            <h1 class="portal-title-sm">Courses</h1>
+            <p class="portal-copy">
+                @(Model.CanManageCourses
+                    ? (User.IsInRole("Teacher") && !Model.CanManageCourseAccess
+                        ? "View courses you created or were assigned to."
+                        : "Manage the courses that connect exams, learning materials, and enrolled users.")
+                    : "View the courses assigned to your account.")
+            </p>
+        </div>
+        @if (Model.CanManageCourses)
+        {
+            <div class="portal-page-header-actions">
+                <button class="portal-btn portal-btn-primary" type="button" data-portal-dialog-open="addCourseDialog">
+                    <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                    Add course
+                </button>
+            </div>
+        }
+    </div>
+
+    @if (TempData["StatusMessage"] is string statusMessage)
+    {
+        <div class="public-alert public-alert-success" role="status">@statusMessage</div>
+    }
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="public-alert public-alert-danger" role="alert">
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(value => value.Errors))
+            {
+                <div>@error.ErrorMessage</div>
+            }
+        </div>
+    }
+
+    <div class="tw:mb-4 tw:grid tw:flex-none tw:gap-3 tw:sm:grid-cols-3" aria-label="Course overview">
+        <article class="tw:flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-[#dfe5ec] tw:bg-white tw:px-4 tw:py-3 tw:shadow-[0_1px_2px_rgba(2,7,47,0.04)]">
+            <span class="tw:grid tw:size-9 tw:flex-none tw:place-items-center tw:rounded-md tw:bg-[#eaf3fa] tw:text-[#005190]" aria-hidden="true"><i class="fa-solid fa-graduation-cap"></i></span>
+            <span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">Courses</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@Model.Courses.Count</strong></span>
+        </article>
+        <article class="tw:flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-[#dfe5ec] tw:bg-white tw:px-4 tw:py-3 tw:shadow-[0_1px_2px_rgba(2,7,47,0.04)]">
+            <span class="tw:grid tw:size-9 tw:flex-none tw:place-items-center tw:rounded-md tw:bg-[#eef6f4] tw:text-[#287a55]" aria-hidden="true"><i class="fa-solid fa-file-circle-check"></i></span>
+            <span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">Linked exams</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@totalExamCount</strong></span>
+        </article>
+        <article class="tw:flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-[#dfe5ec] tw:bg-white tw:px-4 tw:py-3 tw:shadow-[0_1px_2px_rgba(2,7,47,0.04)]">
+            <span class="tw:grid tw:size-9 tw:flex-none tw:place-items-center tw:rounded-md tw:bg-[#f7eff1] tw:text-[#B23A48]" aria-hidden="true"><i class="fa-solid fa-book-open"></i></span>
+            <span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">Learning materials</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@totalLearningMaterialCount</strong></span>
+        </article>
+    </div>
+
+    <div class="tw:mb-2 tw:flex tw:flex-none tw:items-end tw:justify-between tw:gap-4">
+        <div><p class="tw:m-0 tw:text-sm tw:font-semibold tw:text-[#071f3d]">Course library</p><p class="tw:m-0 tw:text-xs tw:text-[#64748b]">Open a course or manage its content and access.</p></div>
+        <span class="tw:text-xs tw:font-medium tw:text-[#64748b]">@Model.Courses.Count total</span>
+    </div>
+
+    <div class="portal-table-card">
+        <div class="portal-table-wrap">
+            <table class="portal-exams-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Exams</th>
+                        <th scope="col">Learning materials</th>
+                        @if (Model.CanManageCourses)
+                        {
+                            <th scope="col" class="portal-table-cell-end">Actions</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Courses.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="@(Model.CanManageCourses ? 4 : 3)" class="portal-empty-table-cell">
+                                @(Model.CanManageCourses ? "No courses created yet." : "No courses are assigned to you yet.")
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var course in Model.Courses)
+                        {
+                            <tr>
+                                <td>
+                                    <a class="portal-exam-name portal-course-link"
+                                       asp-page="/Portal/Courses/Course"
+                                       asp-route-courseId="@course.Id">
+                                        @course.Name
+                                    </a>
+                                </td>
+                                <td><span class="portal-table-meta">@course.ExamCount</span></td>
+                                <td><span class="portal-table-meta">@course.LearningMaterialCount</span></td>
+                                @if (Model.CanManageCourses)
+                                {
+                                    <td class="portal-table-cell-end">
+                                        <a class="portal-btn portal-btn-outline portal-btn-sm"
+                                           asp-page="/Portal/Courses/Course"
+                                           asp-route-courseId="@course.Id"
+                                           asp-route-edit="true">
+                                            <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+                                            Manage
+                                        </a>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+@if (Model.CanManageCourses)
+{
+    <div class="portal-dialog-backdrop" data-portal-dialog-backdrop="addCourseDialog" hidden></div>
+    <div class="portal-dialog portal-course-dialog"
+         id="addCourseDialog"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="addCourseDialogTitle"
+         tabindex="-1"
+         hidden>
+        <section class="portal-course-dialog-card">
+            <div class="portal-dialog-header">
+                <div>
+                    <p class="portal-eyebrow">New course</p>
+                    <h2 class="portal-title-sm" id="addCourseDialogTitle">Add course</h2>
+                </div>
+                <button type="button"
+                        class="portal-dialog-close"
+                        data-portal-dialog-close="addCourseDialog"
+                        aria-label="Close">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <form method="post" asp-page-handler="CreateCourse">
+                <div class="portal-dialog-body portal-course-form">
+                    <div class="portal-field-group">
+                        <label class="portal-info-label" asp-for="CourseName">Course name</label>
+                        <input class="portal-field" asp-for="CourseName" autocomplete="off" maxlength="200" />
+                        <span class="portal-validation-message" asp-validation-for="CourseName"></span>
+                    </div>
+                </div>
+                <div class="portal-course-dialog-actions">
+                    <button type="button" class="portal-btn portal-btn-outline" data-portal-dialog-close="addCourseDialog">Cancel</button>
+                    <button type="submit" class="portal-btn portal-btn-primary">
+                        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                        Add course
+                    </button>
+                </div>
+            </form>
+        </section>
+    </div>
+}

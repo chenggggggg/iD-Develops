@@ -1,0 +1,100 @@
+@{
+    var currentPage = ViewContext?.RouteData?.Values?["Page"]?.ToString() ?? string.Empty;
+    var currentArea = ViewContext?.RouteData?.Values?["area"]?.ToString() ?? string.Empty;
+
+    bool IsPage(string prefix) => currentPage.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
+
+    var isHomeActive = IsPage("/Portal/Home");
+    var isProfileActive = IsPage("/Portal/Profile");
+    var isCoursesActive = IsPage("/Portal/Courses");
+    var isScheduleActive = IsPage("/Portal/Schedule");
+    var isExamsActive = IsPage("/Portal/Exams") || IsPage("/Portal/Examination");
+    var isMyExamsActive = IsPage("/Portal/Exams/List") || IsPage("/Portal/Examination");
+    var isExamResultsActive = IsPage("/Portal/Exams/Results") || IsPage("/Portal/Exams/Record");
+    var isProductsActive = IsPage("/Portal/Admin/Products");
+    var isAdminPanelActive = IsPage("/Portal/Admin") && !isProductsActive;
+    var isManageUsersActive = IsPage("/Portal/Admin/Users");
+    var isCreditsActive = IsPage("/Portal/Admin/Credits");
+}
+
+<div class="portal-nav-list">
+    <a class="portal-nav-link @(isHomeActive ? "active" : null)" asp-page="/Portal/Home/Index">
+        <i class="fa-solid fa-house"></i>
+        <span>Home</span>
+    </a>
+
+    <a class="portal-nav-link @(isProfileActive ? "active" : null)" asp-page="/Portal/Profile/Index">
+        <i class="fa-solid fa-user"></i>
+        <span>My Profile</span>
+    </a>
+
+    <a class="portal-nav-link @(isCoursesActive ? "active" : null)" asp-page="/Portal/Courses/Index">
+        <i class="fa-solid fa-book-open"></i>
+        <span>Courses</span>
+    </a>
+
+    <a class="portal-nav-link @(isScheduleActive ? "active" : null)" asp-page="/Portal/Schedule/Index">
+        <i class="fa-solid fa-calendar-days"></i>
+        <span>Calendar</span>
+    </a>
+
+    @if (User.IsInRole("Student"))
+    {
+        <a class="portal-nav-link @(IsPage("/Portal/Schedule/Book") ? "active" : null)" asp-page="/Portal/Schedule/Book">
+            <i class="fa-solid fa-calendar-check"></i>
+            <span>Book a session</span>
+        </a>
+    }
+
+    <details class="portal-nav-group" @(isExamsActive ? "open" : null)>
+        <summary class="portal-nav-link portal-nav-group-toggle @(isExamsActive ? "active" : null)">
+            <span class="portal-nav-group-label">
+                <i class="fa-solid fa-file-lines"></i>
+                <span>Exams</span>
+            </span>
+            <i class="fa-solid fa-chevron-down portal-nav-group-chevron" aria-hidden="true"></i>
+        </summary>
+
+        <div class="portal-subnav-list">
+            <a class="portal-subnav-link @(isMyExamsActive ? "active" : null)" asp-page="/Portal/Exams/List">
+                <i class="fa-solid fa-clipboard-list"></i>
+                <span>My Exams</span>
+            </a>
+
+            <a class="portal-subnav-link @(isExamResultsActive ? "active" : null)" asp-page="/Portal/Exams/Results">
+                <i class="fa-solid fa-square-poll-vertical"></i>
+                <span>Results</span>
+            </a>
+        </div>
+    </details>
+
+    @if ((User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
+    {
+        <a class="portal-nav-link @(isProductsActive ? "active" : null)" asp-page="/Portal/Admin/Products/Index">
+            <i class="fa-solid fa-box-open"></i>
+            <span>Products</span>
+        </a>
+
+        <details class="portal-nav-group" @(isAdminPanelActive ? "open" : null)>
+            <summary class="portal-nav-link portal-nav-group-toggle @(isAdminPanelActive ? "active" : null)">
+                <span class="portal-nav-group-label">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>Admin Settings</span>
+                </span>
+                <i class="fa-solid fa-chevron-down portal-nav-group-chevron" aria-hidden="true"></i>
+            </summary>
+
+            <div class="portal-subnav-list">
+                <a class="portal-subnav-link @(isManageUsersActive ? "active" : null)" asp-page="/Portal/Admin/Users">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Manage Users</span>
+                </a>
+                <a class="portal-subnav-link @(isCreditsActive ? "active" : null)" asp-page="/Portal/Admin/Credits">
+                    <i class="fa-solid fa-ticket"></i>
+                    <span>Credits</span>
+                </a>
+            </div>
+        </details>
+    }
+
+</div>

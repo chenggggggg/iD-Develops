@@ -1,0 +1,42 @@
+# Build output
+bin/
+obj/
+.codex*
+
+# App data (local runtime data, mail, uploads, etc.)
+App_Data/
+
+# Visual Studio
+.vs/
+.vscode/
+.idea/
+.dotnet-cli/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Logs
+*.log
+
+# Test and coverage output
+TestResults/
+test-results/
+playwright-report/
+*.trx
+*.coverage
+*.coveragexml
+coverage/
+coverage.*
+
+# Operating-system files
+.DS_Store
+Thumbs.db
+
+# Sensitive data
+.env
+.env.*
+!.env.example
+!.env.*.example

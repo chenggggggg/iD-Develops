@@ -1,0 +1,437 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Title" xml:space="preserve">
+    <value>Disclaimer</value>
+  </data>
+  <data name="ContentHtml" xml:space="preserve">
+    <value>&lt;h1&gt;Disclaimer&lt;/h1&gt;
+
+    &lt;p&gt;
+        &lt;strong&gt;Last updated:&lt;/strong&gt; July 7, 2026
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        This Disclaimer applies to the iD! Training &amp;amp; Development website, customer portal,
+        digital products, downloads, courses, training materials, examination tools, assessments,
+        communications, and related services.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        The Services are operated by:
+    &lt;/p&gt;
+
+    &lt;address&gt;
+        &lt;strong&gt;iD! Training &amp;amp; Development&lt;/strong&gt;&lt;br /&gt;
+        Vennootschap onder firma (VOF)&lt;br /&gt;
+        Chamber of Commerce number: 61841277&lt;br /&gt;
+        Rusthoven 26&lt;br /&gt;
+        5655 CN Eindhoven&lt;br /&gt;
+        North Brabant&lt;br /&gt;
+        The Netherlands
+    &lt;/address&gt;
+
+    &lt;h2&gt;1. Relationship with our Terms and Conditions&lt;/h2&gt;
+
+    &lt;p&gt;
+        This Disclaimer provides additional information about the nature and limitations of our
+        content and Services. It should be read together with our
+        &lt;a href="/Terms-Conditions"&gt;Terms and Conditions&lt;/a&gt;,
+        &lt;a href="/Privacy"&gt;Privacy Policy&lt;/a&gt;, and
+        &lt;a href="/Cookie-Policy"&gt;Cookie Policy&lt;/a&gt;.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        If this Disclaimer conflicts with an expressly agreed contract, proposal, order
+        confirmation, or mandatory law, the applicable agreement or mandatory law will take
+        precedence.
+    &lt;/p&gt;
+
+    &lt;h2&gt;2. General educational information&lt;/h2&gt;
+
+    &lt;p&gt;
+        Content made available through the Services is generally provided for educational,
+        informational, language-learning, communication, personal-development, expatriate-support,
+        and business-training purposes.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        General website content, articles, examples, templates, downloads, exercises, and training
+        materials are not prepared specifically for your individual circumstances unless we have
+        expressly agreed to provide a personalised service.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        You should use your own judgement when applying general information and consider whether
+        it is suitable for your circumstances, objectives, level of experience, and organisation.
+    &lt;/p&gt;
+
+    &lt;h2&gt;3. No regulated professional advice&lt;/h2&gt;
+
+    &lt;p&gt;
+        Unless expressly agreed otherwise in writing, our general content does not constitute:
+    &lt;/p&gt;
+
+    &lt;ul&gt;
+        &lt;li&gt;legal advice;&lt;/li&gt;
+        &lt;li&gt;tax or accounting advice;&lt;/li&gt;
+        &lt;li&gt;financial or investment advice;&lt;/li&gt;
+        &lt;li&gt;immigration or visa advice;&lt;/li&gt;
+        &lt;li&gt;medical or psychological advice;&lt;/li&gt;
+        &lt;li&gt;employment-law or human-resources advice;&lt;/li&gt;
+        &lt;li&gt;regulated career or professional advice; or&lt;/li&gt;
+        &lt;li&gt;another service that may lawfully be provided only by a licensed or regulated professional.&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;p&gt;
+        References to laws, immigration procedures, employment practices, business matters, or
+        other specialist subjects are provided only as general educational information. Such
+        information may not reflect the latest rule, official interpretation, or your individual
+        circumstances.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        You should consult an appropriately qualified professional or the relevant official
+        authority before making a decision that requires regulated or specialist advice.
+    &lt;/p&gt;
+
+    &lt;h2&gt;4. Training, coaching, and learning outcomes&lt;/h2&gt;
+
+    &lt;p&gt;
+        Courses, lessons, coaching, exercises, assignments, and training materials are designed
+        to support learning and development. Individual outcomes depend on factors outside our
+        control, including:
+    &lt;/p&gt;
+
+    &lt;ul&gt;
+        &lt;li&gt;your starting level and prior experience;&lt;/li&gt;
+        &lt;li&gt;attendance, participation, and effort;&lt;/li&gt;
+        &lt;li&gt;the time available for study or practice;&lt;/li&gt;
+        &lt;li&gt;the accuracy and completeness of information you provide;&lt;/li&gt;
+        &lt;li&gt;your personal or organisational circumstances; and&lt;/li&gt;
+        &lt;li&gt;decisions made by employers, schools, authorities, or other third parties.&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;p&gt;
+        Unless expressly guaranteed in a written agreement, we do not guarantee that use of the
+        Services will result in:
+    &lt;/p&gt;
+
+    &lt;ul&gt;
+        &lt;li&gt;a particular language level;&lt;/li&gt;
+        &lt;li&gt;a particular examination score;&lt;/li&gt;
+        &lt;li&gt;successful completion of a course or assessment;&lt;/li&gt;
+        &lt;li&gt;employment, promotion, admission, or placement;&lt;/li&gt;
+        &lt;li&gt;a visa, residence permit, or immigration outcome;&lt;/li&gt;
+        &lt;li&gt;a professional qualification or regulated certification;&lt;/li&gt;
+        &lt;li&gt;increased income, sales, or business performance; or&lt;/li&gt;
+        &lt;li&gt;any other particular personal, educational, or commercial result.&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;h2&gt;5. Examinations, assessments, and results&lt;/h2&gt;
+
+    &lt;p&gt;
+        Examinations, quizzes, level tests, assignments, and other assessments are intended to
+        measure knowledge, skills, progress, or performance within the scope described for the
+        relevant assessment.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Unless expressly stated otherwise in writing, assessment results are intended for
+        educational, coaching, placement, evaluation, or internal training purposes. They are
+        not:
+    &lt;/p&gt;
+
+    &lt;ul&gt;
+        &lt;li&gt;a government-issued diploma;&lt;/li&gt;
+        &lt;li&gt;a formally accredited qualification;&lt;/li&gt;
+        &lt;li&gt;a regulated professional licence;&lt;/li&gt;
+        &lt;li&gt;an immigration or visa document;&lt;/li&gt;
+        &lt;li&gt;an employment guarantee; or&lt;/li&gt;
+        &lt;li&gt;proof that a person is suitable for every role or situation.&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;p&gt;
+        Some results may be calculated automatically using predefined scoring rules. Automatically
+        generated or provisional results may be reviewed and corrected if we identify:
+    &lt;/p&gt;
+
+    &lt;ul&gt;
+        &lt;li&gt;an incorrect answer key;&lt;/li&gt;
+        &lt;li&gt;a scoring or configuration error;&lt;/li&gt;
+        &lt;li&gt;a technical malfunction;&lt;/li&gt;
+        &lt;li&gt;incomplete or corrupted assessment data;&lt;/li&gt;
+        &lt;li&gt;a breach of assessment rules; or&lt;/li&gt;
+        &lt;li&gt;another material irregularity.&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;p&gt;
+        An assessment reflects performance under the conditions and at the time it was completed.
+        It may not represent future performance or performance in a different context.
+    &lt;/p&gt;
+
+    &lt;h2&gt;6. Use of results by organisations&lt;/h2&gt;
+
+    &lt;p&gt;
+        Employers, schools, training providers, and other organisations may use the Services for
+        internal training, development, placement, or evaluation.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Such organisations remain responsible for:
+    &lt;/p&gt;
+
+    &lt;ul&gt;
+        &lt;li&gt;deciding whether a particular assessment is suitable for their intended purpose;&lt;/li&gt;
+        &lt;li&gt;interpreting results fairly and in their proper context;&lt;/li&gt;
+        &lt;li&gt;considering other relevant information before making significant decisions;&lt;/li&gt;
+        &lt;li&gt;complying with employment, equality, education, privacy, and other applicable laws;&lt;/li&gt;
+        &lt;li&gt;avoiding unlawful discrimination or inappropriate automated decision-making; and&lt;/li&gt;
+        &lt;li&gt;providing any notices, review procedures, or human oversight required by law.&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;p&gt;
+        Unless we have expressly agreed to perform a separate professional evaluation, an
+        organisation should not rely exclusively on one assessment result when making a decision
+        that may significantly affect an individual.
+    &lt;/p&gt;
+
+    &lt;h2&gt;7. Accuracy and completeness&lt;/h2&gt;
+
+    &lt;p&gt;
+        We take reasonable care when preparing and maintaining our content. However, general
+        content may:
+    &lt;/p&gt;
+
+    &lt;ul&gt;
+        &lt;li&gt;contain an error or omission;&lt;/li&gt;
+        &lt;li&gt;become outdated;&lt;/li&gt;
+        &lt;li&gt;require additional explanation or context;&lt;/li&gt;
+        &lt;li&gt;differ from an official source or current professional practice; or&lt;/li&gt;
+        &lt;li&gt;not apply to every person, country, organisation, or situation.&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;p&gt;
+        We may correct, supplement, update, or remove content when reasonably necessary.
+        The existence of an error does not automatically mean that every related product,
+        assessment, or Service is invalid.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Where you believe that content or an assessment result contains a material error, please
+        contact us and provide sufficient information for us to investigate it.
+    &lt;/p&gt;
+
+    &lt;h2&gt;8. Information supplied by users&lt;/h2&gt;
+
+    &lt;p&gt;
+        Some Services depend on information that you, your employer, your school, or another
+        organisation provides to us.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        We may be unable to provide an accurate, complete, or suitable service where supplied
+        information is:
+    &lt;/p&gt;
+
+    &lt;ul&gt;
+        &lt;li&gt;incorrect;&lt;/li&gt;
+        &lt;li&gt;incomplete;&lt;/li&gt;
+        &lt;li&gt;outdated;&lt;/li&gt;
+        &lt;li&gt;misleading;&lt;/li&gt;
+        &lt;li&gt;submitted without proper authority; or&lt;/li&gt;
+        &lt;li&gt;not provided within an applicable deadline.&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;p&gt;
+        You are responsible for checking information you submit and for informing us of relevant
+        corrections.
+    &lt;/p&gt;
+
+    &lt;h2&gt;9. Availability and technical limitations&lt;/h2&gt;
+
+    &lt;p&gt;
+        We aim to keep the Services reasonably available and functional, but uninterrupted or
+        error-free access cannot be guaranteed.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Availability may be affected by:
+    &lt;/p&gt;
+
+    &lt;ul&gt;
+        &lt;li&gt;scheduled or emergency maintenance;&lt;/li&gt;
+        &lt;li&gt;internet or telecommunications failures;&lt;/li&gt;
+        &lt;li&gt;hosting, cloud, payment, email, or storage-provider disruptions;&lt;/li&gt;
+        &lt;li&gt;browser, device, software, or compatibility problems;&lt;/li&gt;
+        &lt;li&gt;security incidents or protective measures;&lt;/li&gt;
+        &lt;li&gt;power outages or events outside our reasonable control; and&lt;/li&gt;
+        &lt;li&gt;errors in information or files supplied by a user.&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;p&gt;
+        You are responsible for maintaining a suitable device, supported browser, internet
+        connection, email account, and any other technical requirements communicated for the
+        relevant Service.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        If a significant technical problem prevents you from receiving a paid Service, your
+        rights and available remedies will be determined by the applicable agreement, our Terms
+        and Conditions, and mandatory law.
+    &lt;/p&gt;
+
+    &lt;h2&gt;10. Downloads and digital materials&lt;/h2&gt;
+
+    &lt;p&gt;
+        You are responsible for checking whether downloadable files and digital materials are
+        suitable for your intended use and compatible with your device or software.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Although we take reasonable security precautions, you should maintain appropriate
+        security software, backups, and device protections when downloading or using electronic
+        files.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Templates, examples, and sample documents normally require review and adaptation before
+        they are used in a real business, legal, educational, employment, or personal situation.
+        Their availability does not mean that they are complete or suitable for every purpose.
+    &lt;/p&gt;
+
+    &lt;h2&gt;11. External links&lt;/h2&gt;
+
+    &lt;p&gt;
+        The Services may contain links to websites, platforms, documents, or resources operated
+        by independent third parties.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        An external link is normally provided for convenience or additional information. Unless
+        expressly stated otherwise, a link does not mean that we:
+    &lt;/p&gt;
+
+    &lt;ul&gt;
+        &lt;li&gt;control the external service;&lt;/li&gt;
+        &lt;li&gt;approve or endorse all of its content;&lt;/li&gt;
+        &lt;li&gt;guarantee its accuracy, security, or availability;&lt;/li&gt;
+        &lt;li&gt;accept responsibility for its products or services; or&lt;/li&gt;
+        &lt;li&gt;have a commercial relationship with its operator.&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;p&gt;
+        Independent third-party websites are governed by their own terms, privacy notices,
+        cookie policies, and security practices.
+    &lt;/p&gt;
+
+    &lt;h2&gt;12. Providers used to deliver the Services&lt;/h2&gt;
+
+    &lt;p&gt;
+        We may rely on providers for hosting, content delivery, cloud storage, email, payments,
+        security, and other operational functions.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        These service providers are different from unrelated external websites that you choose
+        to visit through a link. The fact that a provider performs part of a Service does not
+        automatically remove responsibilities that applicable law or our agreement places on us.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Provider outages or failures may nevertheless affect availability or delivery. Where
+        this affects a paid Service, the applicable remedy will be determined under our Terms
+        and Conditions and mandatory law.
+    &lt;/p&gt;
+
+    &lt;h2&gt;13. Testimonials, reviews, and case studies&lt;/h2&gt;
+
+    &lt;p&gt;
+        Testimonials, reviews, case studies, examples, and sample outcomes may reflect an
+        individual's or organisation's particular experience. Results vary, and such material
+        does not promise that another user will achieve the same result.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Where a scenario is fictional, simplified, anonymised, or compiled from multiple
+        situations, it may be presented solely to illustrate a concept.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        We aim not to publish testimonials or endorsements in a misleading manner. Any material
+        commercial relationship or incentive will be disclosed where required by law.
+    &lt;/p&gt;
+
+    &lt;h2&gt;14. Intellectual property&lt;/h2&gt;
+
+    &lt;p&gt;
+        The availability of content through the website or portal does not grant permission to
+        reproduce, publish, distribute, sell, scrape, or commercially exploit it.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Permitted use of courses, downloads, examinations, templates, and other materials is
+        governed by our Terms and Conditions and any applicable written licence.
+    &lt;/p&gt;
+
+    &lt;h2&gt;15. Limitation of this Disclaimer&lt;/h2&gt;
+
+    &lt;p&gt;
+        This Disclaimer is not intended to exclude or limit:
+    &lt;/p&gt;
+
+    &lt;ul&gt;
+        &lt;li&gt;statutory consumer rights;&lt;/li&gt;
+        &lt;li&gt;rights relating to defective or non-conforming digital content or services;&lt;/li&gt;
+        &lt;li&gt;liability resulting from intent or deliberate recklessness where it cannot lawfully be limited;&lt;/li&gt;
+        &lt;li&gt;liability for fraud;&lt;/li&gt;
+        &lt;li&gt;liability for death or personal injury where exclusion is prohibited; or&lt;/li&gt;
+        &lt;li&gt;any other responsibility or remedy that cannot legally be excluded or limited.&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;p&gt;
+        Liability relating to the purchase or use of the Services is governed primarily by our
+        Terms and Conditions, the applicable agreement, and mandatory law.
+    &lt;/p&gt;
+
+    &lt;h2&gt;16. Changes to this Disclaimer&lt;/h2&gt;
+
+    &lt;p&gt;
+        We may update this Disclaimer to reflect changes to our Services, content, providers,
+        business operations, or legal obligations.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        The current version will be published on this page and identified by the "Last updated"
+        date.
+    &lt;/p&gt;
+
+    &lt;h2&gt;17. Contact&lt;/h2&gt;
+
+    &lt;p&gt;
+        Questions or reports concerning this Disclaimer, our content, or a possible material
+        error can be sent to:
+    &lt;/p&gt;
+
+    &lt;address&gt;
+        &lt;strong&gt;iD! Training &amp;amp; Development&lt;/strong&gt;&lt;br /&gt;
+        Vennootschap onder firma (VOF)&lt;br /&gt;
+        Rusthoven 26&lt;br /&gt;
+        5655 CN Eindhoven&lt;br /&gt;
+        North Brabant&lt;br /&gt;
+        The Netherlands&lt;br /&gt;
+        Email: &lt;a href="mailto:compliance@id-develops.com"&gt;compliance@id-develops.com&lt;/a&gt;
+    &lt;/address&gt;</value>
+  </data>
+</root>

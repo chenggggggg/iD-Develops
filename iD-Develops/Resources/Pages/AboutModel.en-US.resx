@@ -1,0 +1,135 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AboutUsDescription1" xml:space="preserve">
+    <value>iD! Training &amp; Development is a cooperation between us, Dominique Heemels and Patrick Stritzko. Two one-(wo)man businesses became one after successfully working together abroad. Although we have totally different backgrounds, we quickly found out we complete and support each other, keep each other focused and that we’re actually a winning team. Our differences enabled us to visualize and clarify loopholes in our individual situations. And that’s exactly what we do for others, businesses, teams and individuals. We trigger, we analyse with you and support you in unhiding your blind spots (or those of your colleagues, employees, partners…). So you can move on and grow. Both individually and together we’ve seen, faced and experienced a lot, in business and in our personal lives. We’re very proud of some experiences, others were solved the hard way over a sometimes long period of time. But in the end each process is a gift. Something to enable you to move on. To us, that’s in particular to share our knowledge, experiences and the lessons we learned. Since it’s not always necessary to find out the hard way or to reinvent the wheel, although you often realise this when it’s done.</value>
+  </data>
+  <data name="AboutUsHeader" xml:space="preserve">
+    <value>About us</value>
+  </data>
+  <data name="DominiqueAboutPatrick" xml:space="preserve">
+    <value>&lt;span class="fw-bold"&gt;Dominique about Patrick:&lt;/span&gt;&lt;br/&gt;Above all, Patrick is a warm, enjoyable personality. Besides this, he possesses acute observational and judgemental skills and he’ll share his findings without mincing his words. Not always nice to hear, confronting at times, but surely practical and efficient! He is capable of communicating with people at all levels of an organization or society out of a genuine interest, to make you feel comfortable and at ease and to, wherever necessary, infuse difficult topics with a well-dosed amount of great humor. Both nationally and internationally he has built relationships and friends for life in no-time, both professionally and personally. Where I can find myself lost in details, Patrick is at all times capable of seeing the bigger whole. For clients he is a great, trustworthy counsellor and consultant. To me he is the perfect sparring partner and my anchor at all times. For everyone a tremendous pleasure to work with Patrick!</value>
+  </data>
+  <data name="PatrickAboutDominique" xml:space="preserve">
+    <value>&lt;span class="fw-bold"&gt;Patrick about Dominique:&lt;/span&gt;&lt;br/&gt;I’ve known Dominique for about 12 years now. In those twelve years she’s never missed an appointment, deadline or project and never been unable to finish things. Her drive and passion and the intention to do good in this world makes her an amazingly strong and loved human being among us. If we would like to have an example of how it should be, we could surely take her as an example. Her experiences, both nationally and internationally make her a great sparring partner in almost any field. If not, she’ll make sure to familiarize herself with it thoroughly before having the conversation. With an analytic super brain she is capable of showing up with a tailor made advise or solution in no time which feels good for everyone involved!</value>
+  </data>
+  <data name="Title" xml:space="preserve">
+    <value>About</value>
+  </data>
+</root>

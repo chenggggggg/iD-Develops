@@ -1,0 +1,725 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Title" xml:space="preserve">
+    <value>Terms and Conditions</value>
+  </data>
+  <data name="ContentHtml" xml:space="preserve">
+    <value>&lt;h1&gt;Terms and Conditions&lt;/h1&gt;
+
+    &lt;p&gt;
+        &lt;strong&gt;Last updated:&lt;/strong&gt; July 7, 2026
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        These Terms and Conditions govern access to and use of the iD! Training &amp;amp; Development website,
+        customer portal, digital products, downloads, training materials, courses, examination tools,
+        assessments, and related services (together, the "Services").
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        The Services are operated by &lt;strong&gt;iD! Training &amp;amp; Development&lt;/strong&gt;, a Dutch
+        &lt;strong&gt;vennootschap onder firma (VOF), also referred to as a general partnership&lt;/strong&gt;,
+        registered with the Dutch Chamber of Commerce under number &lt;strong&gt;61841277&lt;/strong&gt;,
+        with VAT identification number &lt;strong&gt;NL854512044B01&lt;/strong&gt;, and with its registered address at:
+    &lt;/p&gt;
+
+    &lt;address&gt;
+        iD! Training &amp;amp; Development&lt;br /&gt;
+        Rusthoven 26&lt;br /&gt;
+        5655 CN Eindhoven&lt;br /&gt;
+        North Brabant&lt;br /&gt;
+        The Netherlands
+    &lt;/address&gt;
+
+    &lt;h2&gt;1. Applicability and acceptance&lt;/h2&gt;
+
+    &lt;p&gt;
+        These Terms apply when you access or use the Services, create an account, purchase a product or
+        service, download or access digital content, submit a form, participate in training, or take an
+        examination or assessment.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        By entering into an agreement with us or using the Services, you agree to these Terms. If you use
+        the Services on behalf of a company, school, employer, or other organisation, you confirm that you
+        are authorised to act on behalf of and bind that organisation.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Additional written agreements, proposals, order confirmations, course conditions, examination rules,
+        or organisational agreements may also apply. If an expressly agreed written provision conflicts with
+        these Terms, the expressly agreed written provision will take precedence for that particular service
+        or purchase.
+    &lt;/p&gt;
+
+    &lt;h2&gt;2. Consumers and business customers&lt;/h2&gt;
+
+    &lt;p&gt;
+        A &lt;strong&gt;consumer&lt;/strong&gt; is an individual acting for purposes outside their trade, business,
+        craft, or profession. A &lt;strong&gt;business customer&lt;/strong&gt; is a person or organisation acting in
+        connection with professional or commercial activities.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Certain provisions of these Terms apply differently to consumers and business customers. Nothing in
+        these Terms limits or excludes rights granted to consumers under mandatory Dutch or European consumer
+        law.
+    &lt;/p&gt;
+
+    &lt;h2&gt;3. Services&lt;/h2&gt;
+
+    &lt;p&gt;
+        We provide services relating to language, communication, personal development, expatriate support,
+        education, professional training, digital products, course materials, examinations, level tests,
+        quizzes, and other assessments.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Some Services are free, some require payment, and some are available only to users who have received
+        portal access directly from us or through an organisation.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        The specific content, price, duration, access period, delivery method, and other important
+        characteristics of a product or service will be stated on the relevant product page, checkout page,
+        proposal, order confirmation, or other written agreement.
+    &lt;/p&gt;
+
+    &lt;h2&gt;4. Accounts and portal access&lt;/h2&gt;
+
+    &lt;p&gt;
+        You may be required to create an account or receive an invitation to access certain Services. You
+        must provide information that is accurate, complete, and current.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Your account is personal unless an organisational agreement expressly provides otherwise. You must
+        keep your login details confidential and must not allow another person to use your account.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        You are responsible for activity performed through your account unless the activity occurred because
+        of circumstances outside your reasonable control. You must contact us promptly if you suspect that
+        your account or login details have been accessed or used without authorisation.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        We may temporarily restrict access where reasonably necessary to investigate suspected unauthorised
+        access, fraud, a security incident, a breach of these Terms, or conduct that may damage the Services
+        or another user.
+    &lt;/p&gt;
+
+    &lt;h2&gt;5. Organisational access&lt;/h2&gt;
+
+    &lt;p&gt;
+        An organisation may purchase, arrange, or manage access for employees, contractors, students,
+        trainees, or other authorised users. In such cases, the organisation may be the customer while the
+        individual is an authorised user of the Services.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Organisations are responsible for ensuring that they are authorised to provide us with personal
+        information about their users and to request access to results, progress information, or other
+        training records.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Where disclosed before access is granted, an authorised administrator within the organisation may
+        manage user access and view information such as participation, progress, submissions, attempts,
+        examination status, and assessment results.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Organisational access may be limited by the number of purchased licences, the agreed access period,
+        or other conditions stated in the relevant proposal or agreement. Licences may not be transferred or
+        shared unless we have expressly permitted this.
+    &lt;/p&gt;
+
+    &lt;h2&gt;6. Orders and formation of the agreement&lt;/h2&gt;
+
+    &lt;p&gt;
+        Product descriptions, quotations, proposals, and prices are invitations to place an order unless
+        expressly stated otherwise.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        An agreement is formed when we accept your order, confirm your registration, provide an order
+        confirmation, grant access to the purchased Service, or otherwise confirm the agreement in writing.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        We may refuse or cancel an order where there is an evident pricing or product-description error,
+        where payment cannot be completed, where the order appears fraudulent or unlawful, or where we are
+        unable to supply the relevant Service. If payment has already been received for an order we cancel,
+        the applicable amount will be refunded.
+    &lt;/p&gt;
+
+    &lt;h2&gt;7. Prices, VAT, invoices, and payment&lt;/h2&gt;
+
+    &lt;p&gt;
+        The applicable price will be displayed at checkout or stated in the relevant proposal, quotation,
+        order confirmation, or agreement.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Prices offered to consumers include applicable VAT unless clearly stated otherwise. Prices offered
+        exclusively to business customers may be stated excluding VAT where this is made clear.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Payments may be processed through Stripe or another payment provider. The payment provider may apply
+        separate terms and privacy conditions to its payment-processing services.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Business customers must pay invoices within the payment period stated on the invoice or in the
+        applicable agreement. If no payment period is stated, payment must be made within 14 days of the
+        invoice date.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        If payment is overdue, we may send reminders and suspend paid access after providing reasonable
+        notice. Statutory collection costs and interest may be charged where permitted by applicable law.
+        Mandatory consumer-payment protections will continue to apply.
+    &lt;/p&gt;
+
+    &lt;h2&gt;8. Delivery and access to digital content&lt;/h2&gt;
+
+    &lt;p&gt;
+        Digital content may be delivered through a download link, email, user account, customer portal, or
+        another electronic method described before purchase.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Access begins at the time stated on the product page, at checkout, in the order confirmation, or in
+        the applicable agreement. If no specific time is stated, access will normally be provided after
+        successful payment and completion of any required registration.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Access may be permanent, limited to a stated period, linked to a course or programme, or available
+        only while an organisational agreement remains active. The applicable access period will be stated
+        before purchase or in the relevant agreement.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        You are responsible for using a compatible device, supported browser, internet connection, email
+        address, and software reasonably required to access the Services. Any unusual technical or
+        compatibility requirements will be communicated before purchase.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Download links and files may be subject to reasonable security controls, download limits, or expiry
+        periods. These restrictions will not affect mandatory statutory rights.
+    &lt;/p&gt;
+
+    &lt;h2&gt;9. Consumer right of withdrawal&lt;/h2&gt;
+
+    &lt;p&gt;
+        If you are a consumer who enters into a distance contract with us, you will generally have a
+        statutory period of 14 days during which you may withdraw from the agreement without giving a reason,
+        unless a statutory exception applies.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        For service agreements, the withdrawal period generally begins on the day the agreement is
+        concluded. For digital content that is not supplied on a physical medium, the withdrawal period
+        generally begins on the day the agreement is concluded.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        To exercise the right of withdrawal, you must inform us through an unequivocal statement before the
+        withdrawal period expires. You may contact us at
+        &lt;a href="mailto:compliance@id-develops.com"&gt;compliance@id-develops.com&lt;/a&gt; or use any withdrawal function made
+        available through our website.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Where you expressly ask us to begin providing a paid service during the withdrawal period and later
+        withdraw before the service has been fully performed, we may charge a proportionate amount for the
+        part of the service already supplied, where permitted by law.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        For digital content that is not supplied on a physical medium, the right of withdrawal may be lost
+        after delivery begins only where all legally required conditions have been met, including that:
+    &lt;/p&gt;
+
+    &lt;ul&gt;
+        &lt;li&gt;you expressly consented to delivery beginning during the withdrawal period;&lt;/li&gt;
+        &lt;li&gt;you acknowledged that this would cause you to lose your right of withdrawal; and&lt;/li&gt;
+        &lt;li&gt;we provided the legally required confirmation of your consent and acknowledgement.&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;p&gt;
+        Where these requirements have not been met, your statutory withdrawal rights remain unaffected.
+        Nothing in this section creates an exception to the right of withdrawal where the law does not permit
+        one.
+    &lt;/p&gt;
+
+    &lt;h2&gt;10. Cancellations, refunds, and rescheduling&lt;/h2&gt;
+
+    &lt;p&gt;
+        Any cancellation, refund, or rescheduling conditions specific to a course, coaching session,
+        programme, examination, or other scheduled service will be disclosed before purchase or included in
+        the relevant proposal or order confirmation.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Where no specific conditions have been agreed, requests to cancel or reschedule a scheduled service
+        should be submitted as early as reasonably possible. We will consider the timing of the request,
+        costs already incurred, work already performed, and whether the reserved time can reasonably be
+        offered to another customer.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        If we cancel a paid service and do not provide a reasonable replacement or alternative date, you
+        will receive a refund for the part of the service that was not provided.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Refunds will normally be made using the original payment method unless another method is agreed.
+        This section does not limit statutory withdrawal, refund, conformity, or termination rights available
+        to consumers.
+    &lt;/p&gt;
+
+    &lt;h2&gt;11. Digital-content conformity and statutory rights&lt;/h2&gt;
+
+    &lt;p&gt;
+        We will supply digital content and digital services that conform to the agreement and to the
+        information provided before purchase, subject to applicable law.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        If digital content or a digital service is defective, unavailable, incomplete, or materially
+        different from what was agreed, you should contact us and provide sufficient information for us to
+        investigate the issue.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Consumers may be entitled to statutory remedies, including having the issue corrected, receiving
+        replacement access, receiving a proportionate price reduction, or terminating the agreement and
+        receiving a refund where the applicable legal conditions are met.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Nothing in these Terms excludes or restricts any statutory guarantee, conformity right, or remedy
+        that cannot legally be excluded or restricted.
+    &lt;/p&gt;
+
+    &lt;h2&gt;12. Examinations, assessments, and results&lt;/h2&gt;
+
+    &lt;p&gt;
+        The Services may allow users to complete examinations, level tests, quizzes, assignments, or other
+        assessments and to view results, feedback, or progress information.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Unless we expressly agree otherwise in writing, results are provided for learning, coaching,
+        placement, evaluation, or internal training purposes. They do not constitute a government-recognised
+        diploma, formal professional qualification, immigration document, employment guarantee, licence, or
+        regulated certification.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        An assessment may be subject to a time limit, deadline, maximum number of attempts, access period,
+        identity requirement, or specific instructions. These rules will be displayed or communicated before
+        or during the assessment.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        You must complete assessments honestly and follow the applicable instructions. Unless expressly
+        permitted, you may not:
+    &lt;/p&gt;
+
+    &lt;ul&gt;
+        &lt;li&gt;allow another person to complete an assessment for you;&lt;/li&gt;
+        &lt;li&gt;complete an assessment on behalf of another person;&lt;/li&gt;
+        &lt;li&gt;share questions, answers, screenshots, or protected examination materials;&lt;/li&gt;
+        &lt;li&gt;use unauthorised notes, tools, software, artificial-intelligence systems, or external assistance;&lt;/li&gt;
+        &lt;li&gt;work with another person where individual work is required; or&lt;/li&gt;
+        &lt;li&gt;circumvent time limits, attempt limits, access controls, or assessment-security measures.&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;p&gt;
+        We may investigate suspected irregularities and may withhold, review, correct, or invalidate a result
+        where there are reasonable grounds to believe that an assessment rule was breached, a result was
+        produced incorrectly, or a technical or administrative error occurred.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Automated or provisional results may be corrected following manual review. Where a significant
+        technical problem outside your reasonable control prevents completion, we will assess whether a new
+        attempt or another appropriate solution should be provided.
+    &lt;/p&gt;
+
+    &lt;h2&gt;13. Digital content and permitted use&lt;/h2&gt;
+
+    &lt;p&gt;
+        Subject to payment and compliance with these Terms, we grant you a limited, non-exclusive,
+        non-transferable, and revocable right to access and use the purchased or authorised content for
+        personal learning or internal business use.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Unless expressly permitted in writing, you may not:
+    &lt;/p&gt;
+
+    &lt;ul&gt;
+        &lt;li&gt;sell, license, sublicense, rent, or commercially exploit our content;&lt;/li&gt;
+        &lt;li&gt;share account access, download links, course materials, or examination content with unauthorised persons;&lt;/li&gt;
+        &lt;li&gt;publish, upload, broadcast, or publicly display our content;&lt;/li&gt;
+        &lt;li&gt;copy substantial parts of our content into another platform, course, database, or artificial-intelligence system;&lt;/li&gt;
+        &lt;li&gt;scrape, systematically extract, or create a competing collection from our content;&lt;/li&gt;
+        &lt;li&gt;remove copyright, trademark, or proprietary notices; or&lt;/li&gt;
+        &lt;li&gt;modify or distribute our content as though it were your own.&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;p&gt;
+        Reasonable personal notes and copies expressly made available for download may be retained and used
+        for the permitted purpose, subject to any access or licence conditions disclosed before purchase.
+    &lt;/p&gt;
+
+    &lt;h2&gt;14. User submissions&lt;/h2&gt;
+
+    &lt;p&gt;
+        You retain ownership of files, answers, messages, feedback, examination responses, and other
+        materials that you submit through the Services.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        You confirm that you have the necessary rights and authority to submit those materials and that they
+        are lawful, accurate to the best of your knowledge, and do not infringe the rights of another person.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        You grant us a limited, non-exclusive licence to host, copy, process, secure, review, transmit, and
+        otherwise use your submissions only to the extent reasonably necessary to:
+    &lt;/p&gt;
+
+    &lt;ul&gt;
+        &lt;li&gt;provide and administer the Services;&lt;/li&gt;
+        &lt;li&gt;assess responses and provide results or feedback;&lt;/li&gt;
+        &lt;li&gt;provide support and investigate technical issues;&lt;/li&gt;
+        &lt;li&gt;maintain security and prevent misuse;&lt;/li&gt;
+        &lt;li&gt;comply with legal obligations; and&lt;/li&gt;
+        &lt;li&gt;produce aggregated or anonymised statistics where permitted by law.&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;p&gt;
+        This licence does not transfer ownership of your submissions to us. We will not publicly publish or
+        commercially sell identifiable private submissions unless you have separately and expressly agreed
+        to this.
+    &lt;/p&gt;
+
+    &lt;h2&gt;15. Acceptable use&lt;/h2&gt;
+
+    &lt;p&gt;
+        You must use the Services lawfully and reasonably. You must not:
+    &lt;/p&gt;
+
+    &lt;ul&gt;
+        &lt;li&gt;break any applicable law or encourage unlawful conduct;&lt;/li&gt;
+        &lt;li&gt;attack, overload, disrupt, damage, or interfere with the Services;&lt;/li&gt;
+        &lt;li&gt;upload viruses, malware, malicious code, or harmful files;&lt;/li&gt;
+        &lt;li&gt;attempt to gain unauthorised access to accounts, data, systems, or restricted areas;&lt;/li&gt;
+        &lt;li&gt;circumvent security measures, payment requirements, access controls, or usage restrictions;&lt;/li&gt;
+        &lt;li&gt;use automated tools to scrape or systematically extract protected content without permission;&lt;/li&gt;
+        &lt;li&gt;impersonate another person or misrepresent your identity or authority;&lt;/li&gt;
+        &lt;li&gt;submit content that is unlawful, threatening, abusive, discriminatory, defamatory, misleading, or infringing;&lt;/li&gt;
+        &lt;li&gt;interfere with another user's account, assessment, or use of the Services;&lt;/li&gt;
+        &lt;li&gt;use the Services to send spam or unsolicited commercial communications; or&lt;/li&gt;
+        &lt;li&gt;use our content or systems to develop or provide a competing product or service without written permission.&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;h2&gt;16. Intellectual property&lt;/h2&gt;
+
+    &lt;p&gt;
+        We and our licensors retain all intellectual-property rights in the Services and their content,
+        including the software, source code, functionality, databases, platform design, branding, text,
+        courses, downloads, templates, exercises, examinations, questions, images, audio, video, graphics,
+        and training materials.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        These Terms do not transfer intellectual-property ownership to you. You receive only the limited
+        usage rights expressly described in these Terms or in a separate written agreement.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Feedback and suggestions may be used to evaluate and improve the Services. Providing feedback does
+        not require us to implement it or create an entitlement to payment, ownership, or recognition.
+    &lt;/p&gt;
+
+    &lt;h2&gt;17. Privacy and personal data&lt;/h2&gt;
+
+    &lt;p&gt;
+        We process personal data in accordance with our Privacy Policy and applicable data-protection law.
+        The Privacy Policy explains what personal data we collect, why we process it, how long it is retained,
+        with whom it may be shared, and what rights individuals have.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Organisations that provide us with personal data relating to their employees, students, trainees, or
+        other users are responsible for ensuring that they have a valid legal basis and have provided any
+        legally required information to those individuals.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Where required for organisational or enterprise services, additional data-processing terms may be
+        agreed separately.
+    &lt;/p&gt;
+
+    &lt;h2&gt;18. Third-party providers and external services&lt;/h2&gt;
+
+    &lt;p&gt;
+        We may use third-party providers for services such as hosting, cloud storage, content delivery,
+        payments, email, analytics, security, spam prevention, and embedded content.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Where these providers process information or perform services on our behalf, our use of them does not
+        remove responsibilities that applicable law places on us.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        The Services may also contain links to independent third-party websites or services that we do not
+        operate or control. We are not responsible for the content, availability, security, or practices of
+        those independent services. You should review their applicable terms and privacy information before
+        using them.
+    &lt;/p&gt;
+
+    &lt;h2&gt;19. Availability, maintenance, and changes&lt;/h2&gt;
+
+    &lt;p&gt;
+        We aim to keep the Services secure, accurate, and reasonably available, but we do not guarantee that
+        access will always be uninterrupted or error-free.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Access may occasionally be interrupted by maintenance, updates, security measures, provider
+        disruption, internet failure, circumstances beyond our reasonable control, or urgent operational
+        requirements.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        We may update or change features, content, technical requirements, and access rules where reasonably
+        necessary for security, legal, technical, educational, or operational reasons.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Changes will not retroactively increase the price of a completed one-time purchase. Where a material
+        change negatively affects an ongoing paid Service, we will provide reasonable advance notice unless
+        an immediate change is required for security, fraud prevention, legal compliance, or an urgent
+        technical reason.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        We may correct typographical errors, obvious inaccuracies, calculation errors, and outdated
+        information. We will not make a material change to an already concluded agreement merely by
+        correcting information on the website.
+    &lt;/p&gt;
+
+    &lt;h2&gt;20. Suspension and termination&lt;/h2&gt;
+
+    &lt;p&gt;
+        You may stop using free Services at any time. Cancellation or termination of paid Services is subject
+        to the applicable agreement and any mandatory statutory rights.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        We may suspend or terminate access where you:
+    &lt;/p&gt;
+
+    &lt;ul&gt;
+        &lt;li&gt;materially or repeatedly breach these Terms;&lt;/li&gt;
+        &lt;li&gt;fail to pay an amount that is due after appropriate notice;&lt;/li&gt;
+        &lt;li&gt;share or misuse an account or protected content;&lt;/li&gt;
+        &lt;li&gt;commit examination fraud or serious academic misconduct;&lt;/li&gt;
+        &lt;li&gt;create a material security, legal, or operational risk; or&lt;/li&gt;
+        &lt;li&gt;use the Services unlawfully or in a way that materially harms us or another person.&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;p&gt;
+        Where reasonably possible, we will explain the reason and provide an opportunity to correct the
+        breach before permanent termination. Immediate suspension or termination may occur where necessary
+        to address fraud, unlawful conduct, serious misconduct, an urgent security risk, or a breach that
+        cannot reasonably be corrected.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Termination does not affect rights or obligations that arose before termination. Provisions relating
+        to intellectual property, confidentiality, outstanding payments, liability, disputes, and other
+        matters that by their nature should continue will survive termination.
+    &lt;/p&gt;
+
+    &lt;h2&gt;21. Liability&lt;/h2&gt;
+
+    &lt;h3&gt;21.1 Consumers&lt;/h3&gt;
+
+    &lt;p&gt;
+        If you are a consumer, we are responsible for loss that is a foreseeable result of our failure to
+        comply with the agreement or our failure to use reasonable care and skill, subject to applicable law.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        We are not responsible for loss caused by information, instructions, actions, equipment, software,
+        internet connectivity, or circumstances under your control, or for loss that could not reasonably
+        have been foreseen when the agreement was concluded.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Training, educational content, and assessment results are intended to support learning and
+        development. You remain responsible for professional, commercial, employment, immigration, medical,
+        legal, or other significant decisions made using that information, unless we have expressly agreed
+        in writing to provide a regulated or professional advisory service.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Nothing in these Terms excludes or limits liability or consumer remedies where exclusion or
+        limitation is prohibited by law.
+    &lt;/p&gt;
+
+    &lt;h3&gt;21.2 Business customers&lt;/h3&gt;
+
+    &lt;p&gt;
+        To the fullest extent permitted by law, we are not liable to a business customer for indirect or
+        consequential loss, loss of profit, loss of revenue, loss of business opportunity, reputational loss,
+        loss of anticipated savings, business interruption, or loss of data, except where otherwise expressly
+        agreed in writing.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        To the fullest extent permitted by law, our total aggregate liability to a business customer arising
+        from a particular agreement will not exceed the total amount paid or payable to us under that
+        agreement during the 12 months preceding the event giving rise to the claim.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        The limitations in this section do not apply to liability resulting from intent or deliberate
+        recklessness by our management, fraud, or any other liability that cannot legally be excluded or
+        limited.
+    &lt;/p&gt;
+
+    &lt;h2&gt;22. Force majeure&lt;/h2&gt;
+
+    &lt;p&gt;
+        We are not responsible for delay or failure to perform an obligation where this is caused by
+        circumstances outside our reasonable control, including major internet or hosting failures,
+        widespread power outages, natural disasters, war, civil unrest, government measures, epidemics,
+        strikes not limited to our own personnel, or serious failures affecting essential external providers.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        We will take reasonable steps to limit the consequences and resume performance. If a force-majeure
+        event prevents a material paid Service from being provided for an unreasonable period, either party
+        may terminate the affected part of the agreement. Consumers retain any mandatory statutory rights.
+    &lt;/p&gt;
+
+    &lt;h2&gt;23. Changes to these Terms&lt;/h2&gt;
+
+    &lt;p&gt;
+        We may update these Terms where reasonably necessary to reflect changes to the Services, applicable
+        law, security requirements, technology, or business operations.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        The updated version will display a revised "Last updated" date. Where a change materially affects an
+        ongoing paid agreement, we will provide reasonable notice unless the change must take effect
+        immediately for security, fraud prevention, legal compliance, or an urgent technical reason.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Changes do not remove rights that have already arisen and do not override mandatory law.
+    &lt;/p&gt;
+
+    &lt;h2&gt;24. Complaints&lt;/h2&gt;
+
+    &lt;p&gt;
+        Questions, technical issues, and complaints may be submitted to
+        &lt;a href="mailto:compliance@id-develops.com"&gt;compliance@id-develops.com&lt;/a&gt;.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Please include your name, relevant order or account information, a clear description of the issue,
+        and the resolution you are requesting. We will acknowledge and investigate complaints within a
+        reasonable period.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Submitting a complaint to us does not limit any statutory right to seek assistance from a competent
+        supervisory authority, dispute body, or court.
+    &lt;/p&gt;
+
+    &lt;h2&gt;25. Governing law and disputes&lt;/h2&gt;
+
+    &lt;p&gt;
+        These Terms and agreements governed by them are subject to Dutch law.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        If you are a consumer who resides in another European Union or European Economic Area country, you
+        retain the protection of mandatory consumer-law provisions applicable in your country of residence.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        Disputes will be submitted to the competent Dutch court unless mandatory law permits or requires the
+        dispute to be heard by another court or dispute body.
+    &lt;/p&gt;
+
+    &lt;h2&gt;26. General provisions&lt;/h2&gt;
+
+    &lt;p&gt;
+        If any provision of these Terms is found to be invalid, unlawful, or unenforceable, the remaining
+        provisions will remain in effect. The invalid provision will, where possible, be replaced by a valid
+        provision that most closely reflects its lawful purpose.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        A failure or delay in enforcing a provision does not constitute a waiver of that provision or any
+        other right.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        You may not transfer your rights or obligations under an agreement without our prior written
+        permission, except where mandatory law provides otherwise. We may transfer an agreement as part of a
+        merger, restructuring, or transfer of our business, provided that this does not reduce mandatory
+        consumer rights.
+    &lt;/p&gt;
+
+    &lt;p&gt;
+        These Terms, together with the applicable product information, order confirmation, proposal, and
+        expressly incorporated policies, constitute the agreement concerning the relevant Services.
+    &lt;/p&gt;
+
+    &lt;h2&gt;27. Contact&lt;/h2&gt;
+
+    &lt;p&gt;
+        Questions about these Terms or the Services can be sent to:
+    &lt;/p&gt;
+
+    &lt;address&gt;
+        &lt;strong&gt;iD! Training &amp;amp; Development&lt;/strong&gt;&lt;br /&gt;
+        Vennootschap onder firma (VOF)&lt;br /&gt;
+        Chamber of Commerce number: 61841277&lt;br /&gt;
+        VAT identification number: NL854512044B01&lt;br /&gt;
+        Rusthoven 26&lt;br /&gt;
+        5655 CN Eindhoven&lt;br /&gt;
+        North Brabant&lt;br /&gt;
+        The Netherlands&lt;br /&gt;
+        Email: &lt;a href="mailto:compliance@id-develops.com"&gt;compliance@id-develops.com&lt;/a&gt;
+    &lt;/address&gt;</value>
+  </data>
+</root>

@@ -1,0 +1,13 @@
+@inject Microsoft.Extensions.Configuration.IConfiguration AppConfiguration
+@{
+    var enabledValue = AppConfiguration["Cookiebot:Enabled"];
+    var enabled = !bool.TryParse(enabledValue, out var parsedEnabled) || parsedEnabled;
+    var declarationEnabledValue = AppConfiguration["Cookiebot:DeclarationEnabled"];
+    var declarationEnabled = !bool.TryParse(declarationEnabledValue, out var parsedDeclarationEnabled) || parsedDeclarationEnabled;
+    var cbid = AppConfiguration["Cookiebot:Cbid"];
+}
+
+@if (enabled && declarationEnabled && !string.IsNullOrWhiteSpace(cbid))
+{
+    <script id="CookieDeclaration" src="https://consent.cookiebot.com/@cbid/cd.js" type="text/javascript" async></script>
+}

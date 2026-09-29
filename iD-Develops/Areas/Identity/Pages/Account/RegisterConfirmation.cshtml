@@ -1,0 +1,35 @@
+@page
+@model iD_Develops.Areas.Identity.Pages.Account.RegisterConfirmationModel
+@{
+    Layout = "_IdentityLayout";
+    ViewData["Title"] = "Confirm registration";
+}
+
+<div class="tw:w-full tw:text-center">
+    <h1 class="tw:m-0 tw:mb-6 tw:font-['Playfair_Display',Georgia,serif] tw:text-[clamp(2rem,5vw,3rem)] tw:font-medium tw:leading-[1.08] tw:tracking-[-0.015em] tw:text-[#071F3D]">@ViewData["Title"]</h1>
+    <p class="tw:mb-2 tw:text-base tw:leading-relaxed tw:text-[#6B6B6B]">Thank you for registering with iD! Training & Development.</p>
+    <p class="tw:mb-2 tw:text-base tw:leading-relaxed tw:text-[#6B6B6B]">
+        We've sent a confirmation email to:<br /><strong>@Model.Email</strong><br />
+        Please check your email and click the confirmation link to activate your account.
+    </p>
+    <p class="tw:text-[#6B6B6B]">
+        <small>If you did not receive the email, please check your spam folder or resend it below.</small>
+    </p>
+
+    <form method="post" asp-page-handler="ResendEmailConfirmation">
+        <input type="hidden" asp-for="Email" />
+        <input type="hidden" asp-for="ReturnUrl" />
+        <button type="submit" class="tw:inline-flex tw:min-h-12 tw:w-full tw:items-center tw:justify-center tw:rounded-md tw:border tw:border-[#B23A48] tw:bg-[#B23A48] tw:px-4 tw:py-3 tw:text-sm tw:font-bold tw:text-white tw:no-underline tw:shadow-[0_10px_24px_rgba(159,47,61,0.18)] tw:transition tw:hover:border-[#9F2F3D] tw:hover:bg-[#9F2F3D] tw:hover:text-white tw:hover:no-underline tw:hover:shadow-[0_14px_30px_rgba(159,47,61,0.24)] tw:focus:border-[#9F2F3D] tw:focus:bg-[#9F2F3D] tw:focus:text-white tw:focus:no-underline">Resend email</button>
+    </form>
+
+    <p class="tw:mt-4 tw:text-[#6B6B6B]">
+        <small>If you need help, <a asp-page="/Contact" class="tw:font-semibold tw:text-[#B23A48] tw:no-underline tw:transition-colors tw:hover:text-[#8F2635] tw:hover:underline tw:hover:underline-offset-4 tw:focus:text-[#8F2635] tw:focus:underline tw:focus:underline-offset-4">contact us</a>.</small>
+    </p>
+    <p class="tw:mb-0 tw:text-base tw:leading-relaxed tw:text-[#6B6B6B]">
+        After confirming your email, you can <a asp-page="/Account/Login" asp-route-returnUrl="@Model.ReturnUrl" class="tw:font-semibold tw:text-[#B23A48] tw:no-underline tw:transition-colors tw:hover:text-[#8F2635] tw:hover:underline tw:hover:underline-offset-4 tw:focus:text-[#8F2635] tw:focus:underline tw:focus:underline-offset-4">log in here</a>.
+    </p>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

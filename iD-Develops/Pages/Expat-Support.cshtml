@@ -1,0 +1,49 @@
+@page
+@model Expat_SupportModel
+@using System.Globalization
+@inject IStringLocalizer<Expat_SupportModel> Localizer
+@inject IHtmlLocalizer<Expat_SupportModel> HtmlLocalizer
+@{
+    var levelTestUrl = $"/{CultureInfo.CurrentCulture.Name.ToLowerInvariant()}/level-test";
+    ViewData["Title"] = Localizer["Title"];
+}
+
+<section class="public-hero-page">
+    <div class="public-container">
+        <div class="public-content-narrow">
+            <p class="public-eyebrow public-eyebrow-left">Expat support</p>
+            <h1 class="public-hero-title tw:mx-0">@Localizer["Heading"]</h1>
+            <p class="public-hero-copy tw:mx-0">@HtmlLocalizer["Paragraph1"]</p>
+            <p class="public-hero-copy tw:mx-0">@HtmlLocalizer["Paragraph2"]</p>
+            <p class="public-copy">@HtmlLocalizer["Paragraph3"]</p>
+            <p class="public-copy">@HtmlLocalizer["Paragraph4"]</p>
+            <p class="public-copy">@HtmlLocalizer["Paragraph5"]</p>
+            <div class="public-actions tw:justify-start">
+                <a href="https://koalendar.com/e/meet-with-id" target="_blank" rel="noopener noreferrer" class="public-btn public-btn-primary">@Localizer["FreeConsultation"] <i class="fas fa-arrow-right"></i></a>
+                <a asp-page="/contact" class="public-btn public-btn-outline">@Localizer["Contact"] <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="expat-support-hero-image"></div>
+
+<section class="public-section">
+    <div class="public-container">
+        <div class="public-editorial-cta">
+            <img src="~/images/iddevelops-icon.png" alt="" aria-hidden="true" />
+            <h2>@Localizer["MoreInfoHeading"]</h2>
+            <p class="public-copy">@HtmlLocalizer["MoreInfoParagraph"]</p>
+            <a class="public-btn public-btn-primary" href="https://koalendar.com/e/meet-with-id" target="_blank" rel="noopener noreferrer">@Localizer["BookConsultation"] <i class="fas fa-arrow-right"></i></a>
+        </div>
+    </div>
+</section>
+
+<section class="public-band-blue">
+    <div class="public-container">
+        <img src="~/images/iddevelops-icon.png" alt="" aria-hidden="true" />
+        <h2>@Localizer["BeginJourneyHeading"]</h2>
+        <p class="public-copy">@HtmlLocalizer["BeginJourneyParagraph"]</p>
+        <a href="@levelTestUrl" class="public-btn public-btn-light">@Localizer["TryLevelTest"] <i class="fas fa-arrow-right"></i></a>
+    </div>
+</section>

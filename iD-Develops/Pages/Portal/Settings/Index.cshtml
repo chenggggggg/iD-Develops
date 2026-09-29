@@ -1,0 +1,235 @@
+@page
+@using iD_Develops.Enums
+@model iD_Develops.Pages.Portal.Settings.IndexModel
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = "Settings";
+}
+
+<section class="portal-page-shell">
+        <div>
+            <p class="portal-eyebrow">Settings</p>
+            <h1 class="portal-title-sm">@Model.DisplayName</h1>
+            <p class="portal-copy portal-copy-spaced">
+                Update your profile details and account credentials.
+            </p>
+
+            @if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+            {
+                <div class="public-alert public-alert-success" role="status">@Model.StatusMessage</div>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+            {
+                <div class="public-alert public-alert-danger" role="alert">@Model.ErrorMessage</div>
+            }
+
+            <div class="portal-card">
+                <section class="tw:mb-10">
+                    <div>
+                        <p class="portal-eyebrow">Personal Information</p>
+                        <h2 class="portal-title-sm">Your profile at a glance</h2>
+                        <p class="portal-copy">Review the personal details currently connected to your account.</p>
+                    </div>
+                    <div class="portal-info-grid">
+                    <div>
+                        <div class="portal-info-tile">
+                            <span class="portal-info-label">Full name</span>
+                            <strong>@Model.DisplayName</strong>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="portal-info-tile">
+                            <span class="portal-info-label">Username</span>
+                            <strong>@Model.Input.UserName</strong>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="portal-info-tile">
+                            <span class="portal-info-label">Email</span>
+                            <strong>@Model.Input.Email</strong>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="portal-info-tile">
+                            <span class="portal-info-label">Phone</span>
+                            <strong>@(string.IsNullOrWhiteSpace(Model.Input.PhoneNumber) ? "Not provided" : Model.Input.PhoneNumber)</strong>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="portal-info-tile">
+                            <span class="portal-info-label">Member since</span>
+                            <strong>@Model.CreatedAtDisplay</strong>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="portal-info-tile">
+                            <span class="portal-info-label">Role</span>
+                            <strong>@Model.RoleDisplay</strong>
+                        </div>
+                    </div>
+                    </div>
+                </section>
+
+                @if (Model.CanManageSchedulingConnections)
+                {
+                    <section class="portal-integration-section">
+                        <div>
+                            <p class="portal-eyebrow">Scheduling</p>
+                            <h2 class="portal-title-sm">Connected accounts</h2>
+                            <p class="portal-copy portal-copy-spaced">Connect your account once. When you schedule an online event, its meeting is created automatically.</p>
+                        </div>
+
+                        <div class="portal-integration-list">
+                            @foreach (var provider in Model.SchedulingProviders)
+                            {
+                                var isZoom = provider.Provider == SchedulingProvider.Zoom;
+                                var connectHandler = isZoom ? "ConnectZoom" : "ConnectGoogleCalendar";
+                                var disconnectHandler = isZoom ? "DisconnectZoom" : "DisconnectGoogleCalendar";
+                                <div class="portal-integration-row">
+                                    <span class="portal-integration-icon @(isZoom ? "is-zoom" : "is-google")" aria-hidden="true">
+                                        <i class="fa-solid @(isZoom ? "fa-video" : "fa-calendar-days")"></i>
+                                    </span>
+                                    <span class="portal-integration-copy">
+                                        <strong>@provider.DisplayName</strong>
+                                        <small>
+                                            @if (!provider.IsConfigured)
+                                            {
+                                                <text>Temporarily unavailable</text>
+                                            }
+                                            else if (provider.IsConnected)
+                                            {
+                                                <text>@(provider.AccountEmail ?? "Connected account")</text>
+                                                @if (!isZoom && provider.LastSuccessfulSyncAtUtc.HasValue)
+                                                {
+                                                    <text> · Last synced @provider.LastSuccessfulSyncAtUtc.Value.ToLocalTime().ToString("dd MMM yyyy HH:mm")</text>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <text>Not connected</text>
+                                            }
+                                        </small>
+                                    </span>
+                                    <span class="portal-integration-state @(provider.IsConnected ? "is-connected" : null)">
+                                        @(provider.IsConnected ? "Connected" : "Disconnected")
+                                    </span>
+                                    @if (!provider.IsConfigured)
+                                    {
+                                        <button class="portal-btn portal-btn-outline portal-btn-sm" type="button" disabled>Unavailable</button>
+                                    }
+                                    else if (provider.IsConnected)
+                                    {
+                                        <span class="portal-integration-actions">
+                                            @if (!isZoom)
+                                            {
+                                                <form method="post" asp-page-handler="SyncGoogleCalendar">
+                                                    <button class="portal-btn portal-btn-outline portal-btn-sm" type="submit">
+                                                        <i class="fa-solid fa-rotate" aria-hidden="true"></i>
+                                                        Sync
+                                                    </button>
+                                                </form>
+                                            }
+                                            <form method="post" asp-page-handler="@disconnectHandler">
+                                                <button class="portal-btn portal-btn-danger portal-btn-sm" type="submit">
+                                                    <i class="fa-solid fa-link-slash" aria-hidden="true"></i>
+                                                    Disconnect
+                                                </button>
+                                            </form>
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <form method="post" asp-page-handler="@connectHandler">
+                                            <button class="portal-btn portal-btn-primary portal-btn-sm" type="submit">
+                                                <i class="fa-solid fa-link" aria-hidden="true"></i>
+                                                @(isZoom ? "Connect" : $"Connect to {provider.DisplayName}")
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(provider.LastError))
+                                {
+                                    <p class="portal-integration-error" role="status">@provider.LastError</p>
+                                }
+                            }
+                        </div>
+                    </section>
+                }
+
+                <section>
+                    <div>
+                        <p class="portal-eyebrow">Update credentials</p>
+                        <h2 class="portal-title-sm">Manage the login details tied to your account</h2>
+                        <p class="portal-copy portal-copy-spaced">Update your username, email address, phone number, and password from one place.</p>
+                    </div>
+
+                    <div>
+                        <form method="post">
+                            <div asp-validation-summary="ModelOnly" class="portal-validation-message"></div>
+                            <div class="portal-form-grid">
+                                <h3 class="portal-eyebrow tw:col-span-12">Account Details</h3>
+
+                                <div class="portal-field-group portal-field-group-half">
+                                    <label class="portal-info-label" asp-for="Input.FirstName">First name</label>
+                                    <input asp-for="Input.FirstName" class="portal-field" placeholder="First name" />
+                                    <span asp-validation-for="Input.FirstName" class="portal-validation-message"></span>
+                                </div>
+
+                                <div class="portal-field-group portal-field-group-half">
+                                    <label class="portal-info-label" asp-for="Input.LastName">Last name</label>
+                                    <input asp-for="Input.LastName" class="portal-field" placeholder="Last name" />
+                                    <span asp-validation-for="Input.LastName" class="portal-validation-message"></span>
+                                </div>
+
+                                <div class="portal-field-group portal-field-group-half">
+                                    <label class="portal-info-label" asp-for="Input.UserName">Username</label>
+                                    <input asp-for="Input.UserName" class="portal-field" placeholder="Username" />
+                                    <span asp-validation-for="Input.UserName" class="portal-validation-message"></span>
+                                </div>
+
+                                <div class="portal-field-group portal-field-group-half">
+                                    <label class="portal-info-label" asp-for="Input.Email">Email</label>
+                                    <input asp-for="Input.Email" class="portal-field" placeholder="Email" />
+                                    <span asp-validation-for="Input.Email" class="portal-validation-message"></span>
+                                </div>
+
+                                <div class="portal-field-group">
+                                    <label class="portal-info-label" asp-for="Input.PhoneNumber">Phone number</label>
+                                    <input asp-for="Input.PhoneNumber" class="portal-field" placeholder="Phone number" />
+                                    <span asp-validation-for="Input.PhoneNumber" class="portal-validation-message"></span>
+                                </div>
+
+                                <h3 class="portal-eyebrow tw:col-span-12">Change Password</h3>
+
+                                <div class="portal-field-group portal-field-group-third">
+                                    <label class="portal-info-label" asp-for="Input.CurrentPassword">Current password</label>
+                                    <input asp-for="Input.CurrentPassword" class="portal-field" placeholder="Current password" />
+                                    <span asp-validation-for="Input.CurrentPassword" class="portal-validation-message"></span>
+                                </div>
+
+                                <div class="portal-field-group portal-field-group-third">
+                                    <label class="portal-info-label" asp-for="Input.NewPassword">New password</label>
+                                    <input asp-for="Input.NewPassword" class="portal-field" placeholder="New password" />
+                                    <span asp-validation-for="Input.NewPassword" class="portal-validation-message"></span>
+                                </div>
+
+                                <div class="portal-field-group portal-field-group-third">
+                                    <label class="portal-info-label" asp-for="Input.ConfirmNewPassword">Confirm new password</label>
+                                    <input asp-for="Input.ConfirmNewPassword" class="portal-field" placeholder="Confirm new password" />
+                                    <span asp-validation-for="Input.ConfirmNewPassword" class="portal-validation-message"></span>
+                                </div>
+
+                                <div class="tw:col-span-12">
+                                    <button type="submit" class="portal-btn portal-btn-primary">Save changes</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+            </div>
+        </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

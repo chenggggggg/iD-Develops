@@ -1,0 +1,12 @@
+@page
+@model PrivacyModel
+@inject IHtmlLocalizer Localizer
+@{
+    ViewData["Title"] = Localizer["Title"];
+}
+
+<section class="public-page">
+    <div class="public-container public-legal legal-page">
+        @Localizer["ContentHtml"]
+    </div>
+</section>

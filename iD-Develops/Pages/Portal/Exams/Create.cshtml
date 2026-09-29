@@ -1,0 +1,170 @@
+@page
+@using iD_Develops.Enums
+@model iD_Develops.Pages.Portal.Exams.CreateModel
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = "Create Exam";
+    ViewData["BodyClass"] = "create-exam-page";
+    ViewData["HideFooterNavigation"] = true;
+    var requestToken = Antiforgery.GetAndStoreTokens(Model.HttpContext).RequestToken;
+}
+
+<main class="exam-create-shell">
+    <form method="post" asp-page-handler="Continue" id="exam-form" class="exam-create-panel">
+        @Html.AntiForgeryToken()
+        <input id="RequestVerificationToken" type="hidden" value="@requestToken" />
+
+        <div class="exam-create-heading">
+            <a class="exam-create-back" asp-page="/Portal/Exams/List" aria-label="Back to exams">
+                <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+            </a>
+            <div>
+                <p class="portal-eyebrow">Exam setup</p>
+                <h1 class="portal-title-sm">Create exam</h1>
+            </div>
+            <button type="submit" class="portal-btn portal-btn-primary exam-create-submit" id="continueButton">
+                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>Continue
+            </button>
+        </div>
+
+        <div class="exam-create-grid">
+            <div class="exam-create-main">
+                <div class="exam-create-field">
+                    <label asp-for="Input.Name" class="portal-info-label">Exam name</label>
+                    <input asp-for="Input.Name" class="portal-field exam-create-title-field" placeholder="A1 level test" />
+                    <span asp-validation-for="Input.Name" class="portal-validation-message"></span>
+                </div>
+
+                <div class="exam-rich-field" data-exam-rich-field>
+                    <div class="exam-rich-header">
+                        <div>
+                            <label asp-for="Input.IntroductionPrimaryLanguage" class="portal-info-label">Introduction</label>
+                            <div class="exam-field-help">Shown before the student starts the exam.</div>
+                        </div>
+                        <i class="fa-solid fa-pencil exam-rich-pencil" aria-hidden="true"></i>
+                    </div>
+                    <div class="exam-rich-preview" data-exam-rich-preview data-placeholder="Enter introduction here..."></div>
+                    <textarea asp-for="Input.IntroductionPrimaryLanguage"
+                              class="portal-field tinymce exam-rich-textarea"
+                              id="introduction-editor-primary"
+                              rows="7"
+                              data-exam-rich-textarea></textarea>
+                    <span asp-validation-for="Input.IntroductionPrimaryLanguage" class="portal-validation-message"></span>
+                </div>
+
+                <div class="exam-rich-field" data-exam-rich-field>
+                    <div class="exam-rich-header">
+                        <div>
+                            <label asp-for="Input.CompletionTextPrimary" class="portal-info-label">Completion text</label>
+                            <div class="exam-field-help">Shown after the exam is submitted.</div>
+                        </div>
+                        <i class="fa-solid fa-pencil exam-rich-pencil" aria-hidden="true"></i>
+                    </div>
+                    <div class="exam-rich-preview" data-exam-rich-preview data-placeholder="Enter completion text here..."></div>
+                    <textarea asp-for="Input.CompletionTextPrimary"
+                              class="portal-field tinymce exam-rich-textarea"
+                              id="completion-text-primary-editor"
+                              rows="7"
+                              data-exam-rich-textarea></textarea>
+                    <span asp-validation-for="Input.CompletionTextPrimary" class="portal-validation-message"></span>
+                </div>
+
+                <button type="button"
+                        id="add-secondary-language-btn"
+                        class="portal-btn portal-btn-outline exam-add-language">
+                    <i class="fa-solid fa-language" aria-hidden="true"></i>Add additional language
+                </button>
+
+                <div id="secondary-language-section" class="portal-hidden">
+                    <div class="exam-rich-field" data-exam-rich-field>
+                        <div class="exam-rich-header">
+                            <div>
+                                <label asp-for="Input.IntroductionSecondaryLanguage" class="portal-info-label">Introduction</label>
+                                <div class="exam-field-help">Secondary language.</div>
+                            </div>
+                            <i class="fa-solid fa-pencil exam-rich-pencil" aria-hidden="true"></i>
+                        </div>
+                        <div class="exam-rich-preview" data-exam-rich-preview data-placeholder="Enter introduction here..."></div>
+                        <textarea asp-for="Input.IntroductionSecondaryLanguage"
+                                  class="portal-field tinymce exam-rich-textarea"
+                                  id="introduction-editor-secondary"
+                                  rows="6"
+                                  data-exam-rich-textarea></textarea>
+                        <span asp-validation-for="Input.IntroductionSecondaryLanguage" class="portal-validation-message"></span>
+                    </div>
+
+                    <div class="exam-rich-field" data-exam-rich-field>
+                        <div class="exam-rich-header">
+                            <div>
+                                <label asp-for="Input.CompletionTextSecondary" class="portal-info-label">Completion text</label>
+                                <div class="exam-field-help">Secondary language.</div>
+                            </div>
+                            <i class="fa-solid fa-pencil exam-rich-pencil" aria-hidden="true"></i>
+                        </div>
+                        <div class="exam-rich-preview" data-exam-rich-preview data-placeholder="Enter completion text here..."></div>
+                        <textarea asp-for="Input.CompletionTextSecondary"
+                                  class="portal-field tinymce exam-rich-textarea"
+                                  id="completion-text-secondary-editor"
+                                  rows="6"
+                                  data-exam-rich-textarea></textarea>
+                        <span asp-validation-for="Input.CompletionTextSecondary" class="portal-validation-message"></span>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="exam-create-side">
+                <div>
+                    <label asp-for="Input.DifficultyValue" class="portal-info-label">Level test</label>
+                    <select asp-for="Input.DifficultyValue"
+                            class="portal-field"
+                            id="examDifficultyDropdown">
+                        <option value="" disabled selected>Choose level</option>
+                        @foreach (var difficulty in Enum.GetValues(typeof(DifficultyLevel)).Cast<DifficultyLevel>())
+                        {
+                            <option value="@((int)difficulty)">@difficulty</option>
+                        }
+                    </select>
+                    <span asp-validation-for="Input.DifficultyValue" class="portal-validation-message"></span>
+                </div>
+
+                <div>
+                    <label asp-for="Input.TimeLimit" class="portal-info-label">Time limit</label>
+                    <div class="exam-number-field">
+                        <input asp-for="Input.TimeLimit"
+                               type="number"
+                               class="portal-field"
+                               placeholder="No time limit"
+                               min="1"
+                               data-special-number-input />
+                        <span class="exam-number-unit">min</span>
+                    </div>
+                    <div class="exam-field-help">Leave empty for no time limit.</div>
+                    <span asp-validation-for="Input.TimeLimit" class="portal-validation-message"></span>
+                </div>
+
+                <div>
+                    <label asp-for="Input.MaxAttempts" class="portal-info-label">Attempts</label>
+                    <input asp-for="Input.MaxAttempts"
+                           type="number"
+                           class="portal-field"
+                           placeholder="Unlimited attempts"
+                           min="1"
+                           step="1"
+                           data-special-number-input />
+                    <div class="exam-field-help">Leave empty for unlimited attempts.</div>
+                    <span asp-validation-for="Input.MaxAttempts" class="portal-validation-message"></span>
+                </div>
+            </aside>
+        </div>
+    </form>
+</main>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/lib/tinymce/tinymce.min.js"></script>
+    <script src="~/shared/tinymce-helpers.js" asp-append-version="true"></script>
+    <script src="~/js/exam-rich-edit-fields.js" asp-append-version="true"></script>
+    <script src="~/js/exam-create.js" asp-append-version="true"></script>
+}

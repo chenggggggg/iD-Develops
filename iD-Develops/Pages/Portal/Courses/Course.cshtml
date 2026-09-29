@@ -1,0 +1,674 @@
+@page "/portal/courses/{courseId:int}"
+@using iD_Develops.Services
+@using System.Text.Json
+@model iD_Develops.Pages.Portal.Courses.CourseModel
+@{
+    Layout = "_CourseLayout";
+    ViewData["Title"] = Model.Course.Name;
+    var selected = Model.Course.SelectedContent;
+}
+
+<header class="course-topbar">
+    <div class="course-topbar-left">
+        <a class="course-return-link" asp-page="/Portal/Courses/Index">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+            <span>Return to portal</span>
+        </a>
+        <span class="course-topbar-divider" aria-hidden="true"></span>
+        <strong class="course-topbar-title" data-course-topbar-title>@Model.Course.Name</strong>
+    </div>
+    <div class="course-topbar-actions">
+        @if (Model.IsEditMode)
+        {
+            <a class="course-topbar-view-link"
+               asp-route-courseId="@Model.Course.Id">
+                <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                <span>View</span>
+            </a>
+            @if (Model.CanManageAccess)
+            {
+                <a class="course-topbar-view-link"
+                   asp-page="/Portal/Courses/Manage"
+                   asp-route-courseId="@Model.Course.Id">
+                    <i class="fa-solid fa-users-gear" aria-hidden="true"></i>
+                    <span>Manage access</span>
+                </a>
+            }
+            <button class="course-save-button" type="submit" form="course-edit-form">
+                <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+                <span>Save</span>
+            </button>
+        }
+        else if (Model.Course.CanManage)
+        {
+            <a class="course-topbar-view-link"
+               asp-route-courseId="@Model.Course.Id"
+               asp-route-edit="true">
+                <i class="fa-solid fa-pencil" aria-hidden="true"></i>
+                <span>Edit</span>
+            </a>
+            @if (Model.CanManageAccess)
+            {
+                <a class="course-topbar-view-link"
+                   asp-page="/Portal/Courses/Manage"
+                   asp-route-courseId="@Model.Course.Id">
+                    <i class="fa-solid fa-users-gear" aria-hidden="true"></i>
+                    <span>Manage access</span>
+                </a>
+            }
+        }
+        <button class="course-content-toggle"
+                type="button"
+                data-course-panel-toggle
+                aria-controls="courseContentPanel"
+                aria-expanded="false">
+            <i class="fa-solid fa-list-ul" aria-hidden="true"></i>
+            <span>Course content</span>
+        </button>
+    </div>
+</header>
+
+<div class="course-page">
+    <main class="course-main">
+        <div class="course-status-message" role="status" data-course-status>@(TempData["StatusMessage"] as string)</div>
+        @if (TempData["ErrorMessage"] is string courseErrorMessage)
+        {
+            <div class="course-editor-errors" role="alert">@courseErrorMessage</div>
+        }
+
+        @if (Model.IsEditMode)
+        {
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="course-editor-errors" role="alert">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(value => value.Errors))
+                    {
+                        <div>@error.ErrorMessage</div>
+                    }
+                </div>
+            }
+
+            <form method="post"
+                  asp-page-handler="SaveCourse"
+                  asp-route-courseId="@Model.Course.Id"
+                  id="course-edit-form">
+                <input type="hidden" asp-for="CourseContentJson" data-course-editor-json />
+                <div class="course-editor-main" data-course-editor-main></div>
+            </form>
+        }
+        else if (selected == null)
+        {
+            <section class="course-empty-content">
+                <span class="course-empty-icon" aria-hidden="true">
+                    <i class="fa-solid fa-layer-group"></i>
+                </span>
+                <p class="course-kicker">Course content</p>
+                <h1>@Model.Course.Name</h1>
+                <p>No course content is available yet.</p>
+            </section>
+        }
+        else
+        {
+            <section class="course-content-heading">
+                <div>
+                    <p class="course-kicker">
+                        @if (selected.Kind != CourseContentKind.Section)
+                        {
+                            <i class="@(selected.Kind switch
+                                       {
+                                           CourseContentKind.Lecture => "fa-solid fa-circle-play",
+                                           CourseContentKind.Assignment => "fa-solid fa-clipboard-check",
+                                           _ => "fa-solid fa-calendar-days"
+                                       })" aria-hidden="true"></i>
+                        }
+                        @selected.Kind
+                    </p>
+                    <h1>@selected.Title</h1>
+                </div>
+                @if (selected.Kind is CourseContentKind.Lecture or CourseContentKind.Assignment)
+                {
+                    var isAssignment = selected.Kind == CourseContentKind.Assignment;
+                    <form method="post"
+                          asp-page-handler="@(isAssignment ? "SetAssignmentCompletion" : "SetLectureCompletion")"
+                          asp-route-courseId="@Model.Course.Id"
+                          class="course-completion-form"
+                          data-course-completion-form
+                          data-content-kind="@(isAssignment ? "assignment" : "lecture")"
+                          data-content-id="@selected.Id"
+                          data-content-title="@selected.Title">
+                        <input type="hidden" name="@(isAssignment ? "assignmentId" : "lectureId")" value="@selected.Id" />
+                        <input type="hidden" name="completionState" value="@(selected.IsCompleted ? 0 : 1)" />
+                        <button class="course-completion-button @(selected.IsCompleted ? "is-complete" : null)" type="submit">
+                            <i class="@(selected.IsCompleted ? "fa-solid fa-circle-check" : "fa-regular fa-circle")" aria-hidden="true"></i>
+                            @(selected.IsCompleted ? "Mark incomplete" : "Mark complete")
+                        </button>
+                    </form>
+                }
+            </section>
+
+            @if (selected.Kind == CourseContentKind.Class && selected.IsLocked)
+            {
+                <div class="mx-auto mb-6 flex max-w-4xl items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950" role="status">
+                    <i class="fa-solid fa-lock mt-0.5" aria-hidden="true"></i>
+                    <div>
+                        <strong class="block">Learning content is still locked</strong>
+                        <span>You can reserve an available time now. The class content unlocks @(selected.UnlockAtUtc?.ToString("dd MMM yyyy") ?? "later in your course").</span>
+                    </div>
+                </div>
+            }
+
+            <section class="course-preview" aria-label="@selected.Title preview">
+                @if (selected.Kind is CourseContentKind.Lecture or CourseContentKind.Assignment && !string.IsNullOrWhiteSpace(Model.VideoEmbedUrl))
+                {
+                    <iframe src="@Model.VideoEmbedUrl"
+                            title="@selected.Title"
+                            allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+                            allowfullscreen></iframe>
+                }
+                else if (selected.Kind == CourseContentKind.Lecture && selected.ContentType == iD_Develops.Enums.LectureContentType.Article)
+                {
+                    <div class="course-preview-placeholder">
+                        <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
+                        <strong>@selected.Title</strong>
+                        <span>Article</span>
+                    </div>
+                }
+                else if (selected.Kind == CourseContentKind.Lecture)
+                {
+                    <div class="course-preview-placeholder">
+                        <i class="fa-solid fa-circle-play" aria-hidden="true"></i>
+                        <strong>@selected.Title</strong>
+                        <span>Lecture</span>
+                    </div>
+                }
+                else if (selected.Kind == CourseContentKind.Assignment)
+                {
+                    <div class="course-class-preview">
+                        <span class="course-preview-symbol" aria-hidden="true">
+                            <i class="fa-solid fa-clipboard-check"></i>
+                        </span>
+                        <p class="course-kicker">Assignment</p>
+                        <h2>@selected.Title</h2>
+                        @if (selected.EstimatedDurationMinutes.HasValue)
+                        {
+                            <span>
+                                <i class="fa-regular fa-clock" aria-hidden="true"></i> @selected.EstimatedDurationMinutes minutes
+                            </span>
+                        }
+                    </div>
+                }
+                else if (selected.Kind == CourseContentKind.Class)
+                {
+                    <div class="course-class-preview">
+                        <span class="course-preview-symbol" aria-hidden="true">
+                            <i class="fa-solid fa-calendar-days"></i>
+                        </span>
+                        <p class="course-kicker">Class</p>
+                        <h2>@selected.Title</h2>
+                        @if (Model.ClassSchedule.Count > 0)
+                        {
+                            var nextClass = Model.ClassSchedule[0];
+                            <time datetime="@nextClass.Start.ToString("O")">
+                                <i class="fa-regular fa-clock" aria-hidden="true"></i>
+                                <span data-portal-schedule-time="next"
+                                      data-start="@nextClass.Start.ToString("O")">Next: @nextClass.Start.ToString("dd MMM yyyy, HH:mm 'UTC'")</span>
+                            </time>
+                        }
+                        else
+                        {
+                            <span>No upcoming meetings</span>
+                        }
+                    </div>
+                }
+                else
+                {
+                    var courseSection = Model.Course.Sections.First(item => item.Id == selected.Id);
+                    <div class="course-section-preview">
+                        <p class="course-kicker">Section</p>
+                        <h2>@selected.Title</h2>
+                        <div class="course-section-stats">
+                            <span>@courseSection.Lectures.Count lecture@(courseSection.Lectures.Count == 1 ? string.Empty : "s")</span>
+                            <span>@courseSection.Assignments.Count assignment@(courseSection.Assignments.Count == 1 ? string.Empty : "s")</span>
+                            <span>@courseSection.Classes.Count class@(courseSection.Classes.Count == 1 ? string.Empty : "es")</span>
+                        </div>
+                    </div>
+                }
+            </section>
+
+            <section class="course-details">
+                <div class="course-details-main">
+                    <p class="course-kicker">Details</p>
+                    <h2>@(selected.Kind == CourseContentKind.Class ? "Meeting details" : "Description")</h2>
+                    @if (selected.Kind == CourseContentKind.Class && Model.ClassSchedule.Count > 0)
+                    {
+                        <div class="course-class-schedule">
+                            @foreach (var item in Model.ClassSchedule)
+                            {
+                                <article class="course-class-slot @(item.IsBooked ? "is-booked" : item.IsRecommended ? "is-recommended" : null)">
+                                    <time datetime="@item.Start.ToString("O")"
+                                          data-portal-schedule-time="date"
+                                          data-start="@item.Start.ToString("O")">
+                                        <strong data-time-day>@item.Start.ToString("dd")</strong>
+                                        <span data-time-month>@item.Start.ToString("MMM")</span>
+                                    </time>
+                                    <div class="course-class-slot-copy">
+                                        <strong data-portal-schedule-time="range"
+                                                data-start="@item.Start.ToString("O")"
+                                                data-end="@item.End.ToString("O")">@item.Start.ToString("dddd, HH:mm") - @item.End.ToString("HH:mm") UTC</strong>
+                                        <span>@item.TeacherName &middot; @item.SpotsRemaining of @item.Capacity spots available</span>
+                                        @if (item.IsBooked)
+                                        {
+                                            <small class="course-class-slot-booked">
+                                                <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                                                Booked — this is your selected slot
+                                            </small>
+                                        }
+                                        else if (item.IsRecommended)
+                                        {
+                                            <small>Recommended for your course timeline</small>
+                                        }
+                                        else if (!string.IsNullOrWhiteSpace(item.UnavailableReason) && !item.IsBooked)
+                                        {
+                                            <small>@item.UnavailableReason</small>
+                                        }
+                                    </div>
+                                    <div class="course-class-slot-actions">
+                                        @if (item.CanJoin && !string.IsNullOrWhiteSpace(item.JoinUrl))
+                                        {
+                                            <a class="course-meeting-link" href="@item.JoinUrl" target="_blank" rel="noopener">
+                                                <i class="fa-solid fa-video" aria-hidden="true"></i>
+                                                Join Zoom
+                                            </a>
+                                        }
+                                        @if (item.CanBook)
+                                        {
+                                            <form method="post"
+                                                  asp-page-handler="BookEvent"
+                                                  asp-route-courseId="@Model.Course.Id"
+                                                  asp-route-classId="@selected.Id">
+                                                <input type="hidden" name="scheduledEventId" value="@item.Id" />
+                                                <button class="course-slot-book" type="submit">
+                                                    <i class="fa-solid fa-calendar-check" aria-hidden="true"></i>
+                                                    Book
+                                                </button>
+                                            </form>
+                                        }
+                                        @if (item.CanCancelBooking)
+                                        {
+                                            <form method="post"
+                                                  asp-page-handler="CancelEventBooking"
+                                                  asp-route-courseId="@Model.Course.Id"
+                                                  asp-route-classId="@selected.Id"
+                                                  onsubmit="return confirm('Cancel this booking?');">
+                                                <input type="hidden" name="scheduledEventId" value="@item.Id" />
+                                                <button class="course-slot-cancel" type="submit">
+                                                    <i class="fa-regular fa-calendar-xmark" aria-hidden="true"></i>
+                                                    Cancel
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </article>
+                            }
+                            <a class="course-schedule-link" asp-page="/Portal/Schedule/Index">
+                                <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+                                Open full schedule
+                            </a>
+                        </div>
+                    }
+                    else if (selected.Kind == CourseContentKind.Class)
+                    {
+                        <p class="course-muted">No upcoming meeting times are available.</p>
+                        <a class="course-schedule-link" asp-page="/Portal/Schedule/Index">
+                            <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+                            Open schedule
+                        </a>
+                    }
+                    else if (!string.IsNullOrWhiteSpace(selected.Description))
+                    {
+                        <div class="course-description">@Html.Raw(selected.Description)</div>
+                    }
+                    else if (selected.Kind == CourseContentKind.Section)
+                    {
+                        <p class="course-muted">Choose a lecture, assignment, or class from this section to continue.</p>
+                    }
+                    else
+                    {
+                        <p class="course-muted">No description has been added yet.</p>
+                    }
+                </div>
+
+                @if (selected.Kind == CourseContentKind.Assignment && !string.IsNullOrWhiteSpace(selected.Instructions))
+                {
+                    <div class="course-details-main course-assignment-instructions">
+                        <p class="course-kicker">Assignment</p>
+                        <h2>Instructions</h2>
+                        <div class="course-description">@Html.Raw(selected.Instructions)</div>
+                    </div>
+                }
+
+                @if (selected.SourceFiles.Count > 0)
+                {
+                    <aside class="course-resources">
+                        <p class="course-kicker">@(selected.Kind == CourseContentKind.Assignment ? "Supporting files" : "Article files")</p>
+                        <div class="course-resource-list">
+                            @foreach (var file in selected.SourceFiles)
+                            {
+                                @if (!string.IsNullOrWhiteSpace(file.Url))
+                                {
+                                    <a href="@file.Url" target="_blank" rel="noopener">
+                                        <i class="fa-solid fa-paperclip" aria-hidden="true"></i>
+                                        <span>@file.Name</span>
+                                        <i class="fa-solid fa-arrow-down" aria-hidden="true"></i>
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="course-resource-unavailable">
+                                        <i class="fa-solid fa-paperclip" aria-hidden="true"></i>
+                                        <span>@file.Name</span>
+                                    </span>
+                                }
+                            }
+                        </div>
+                    </aside>
+                }
+            </section>
+        }
+    </main>
+
+    <div class="course-panel-backdrop" data-course-panel-backdrop hidden></div>
+    <aside class="course-content-panel" id="courseContentPanel" data-course-panel>
+        <div class="course-panel-header">
+            <div>
+                <p class="course-kicker">Navigation</p>
+                <h2>Course content</h2>
+            </div>
+            <div class="course-panel-header-actions">
+                <button class="course-panel-collapse"
+                        type="button"
+                        data-course-panel-collapse
+                        aria-label="Minimize course content"
+                        title="Minimize course content">
+                    <i class="fa-solid fa-angles-right" aria-hidden="true"></i>
+                </button>
+                <button class="course-panel-close" type="button" data-course-panel-close aria-label="Close course content">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </div>
+        </div>
+
+        @if (Model.IsEditMode)
+        {
+            <div class="course-editor-create-actions">
+                <button type="button" data-course-add-top="section">
+                    <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                    Section
+                </button>
+            </div>
+            <nav class="course-outline course-editor-outline" aria-label="Edit course content" data-course-editor-outline></nav>
+        }
+        else
+        {
+            @if (Model.Course.TotalItemCount > 0)
+            {
+                var progress = (int)Math.Round(Model.Course.CompletedItemCount * 100d / Model.Course.TotalItemCount);
+                var availableItemCount = Model.Course.Sections.Sum(section =>
+                    section.Lectures.Count(item => !item.IsLocked) +
+                    section.Assignments.Count(item => !item.IsLocked) +
+                    section.Classes.Count(item => item.IsRequiredForCompletion && (!item.IsLocked || item.IsBookingEligible)));
+                var isCaughtUp = Model.Course.CompletedItemCount < Model.Course.TotalItemCount &&
+                                 Model.Course.CompletedItemCount >= availableItemCount;
+                <div class="course-progress"
+                     data-course-progress
+                     data-completed="@Model.Course.CompletedItemCount"
+                     data-total="@Model.Course.TotalItemCount">
+                    <div>
+                        <span>@(isCaughtUp ? "You're caught up" : "Progress")</span>
+                        <strong data-course-progress-count>@Model.Course.CompletedItemCount/@Model.Course.TotalItemCount</strong>
+                    </div>
+                    <div class="course-progress-track" aria-label="@progress% complete">
+                        <span style="width: @progress%" data-course-progress-bar></span>
+                    </div>
+                </div>
+            }
+
+            <nav class="course-outline" aria-label="Course content">
+            @foreach (var navigationItem in Model.NavigationItems)
+            {
+                if (navigationItem.Kind == CourseContentKind.Section && navigationItem.Section != null)
+                {
+                    var courseSection = navigationItem.Section;
+                    var sectionSelected = selected?.Kind == CourseContentKind.Section && selected.Id == courseSection.Id;
+                    <section class="course-outline-section">
+                        <div class="course-outline-section-heading">
+                            <button class="course-outline-section-toggle"
+                                    type="button"
+                                    data-course-section-toggle="@courseSection.Id"
+                                    data-course-section-title="@courseSection.Title"
+                                    aria-controls="courseSectionContent-@courseSection.Id"
+                                    aria-expanded="true"
+                                    aria-label="Collapse @courseSection.Title">
+                                <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                            </button>
+                            @if (courseSection.IsLocked)
+                            {
+                                <div class="course-outline-item course-outline-section-link is-locked">
+                                    <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                                    <span>
+                                        @courseSection.Title
+                                        @if (courseSection.UnlockAtUtc.HasValue)
+                                        {
+                                            <small class="block">Unlocks @courseSection.UnlockAtUtc.Value.ToString("dd MMM yyyy")</small>
+                                        }
+                                    </span>
+                                </div>
+                            }
+                            else
+                            {
+                                <a class="course-outline-item course-outline-section-link course-outline-section-text @(sectionSelected ? "is-selected" : null)"
+                                   asp-route-courseId="@Model.Course.Id"
+                                   asp-route-contentType="section"
+                                   asp-route-contentId="@courseSection.Id">
+                                    <span>@courseSection.Title</span>
+                                </a>
+                            }
+                        </div>
+
+                        <div class="course-outline-children"
+                             id="courseSectionContent-@courseSection.Id"
+                             data-course-section-content="@courseSection.Id">
+                            @foreach (var childItem in Model.GetSectionNavigationItems(courseSection))
+                            {
+                                if (childItem.Lecture != null)
+                                {
+                                    var lecture = childItem.Lecture;
+                                    var lectureSelected = selected?.Kind == CourseContentKind.Lecture && selected.Id == lecture.Id;
+                                    @if (lecture.IsLocked)
+                                    {
+                                        <div class="course-outline-item course-outline-child is-locked">
+                                            <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                                            <span class="course-outline-item-copy">
+                                                <span class="course-outline-item-title">@lecture.Title</span>
+                                                <span class="course-outline-item-meta">
+                                                    <i class="fa-regular fa-circle-play" aria-hidden="true"></i>
+                                                    <span>0 min</span>
+                                                </span>
+                                            </span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="course-outline-completion-row @(lectureSelected ? "is-selected" : null)">
+                                            <form method="post"
+                                                  asp-page-handler="SetLectureCompletion"
+                                                  asp-route-courseId="@Model.Course.Id"
+                                                  class="course-outline-completion-form"
+                                                  data-course-completion-form
+                                                  data-content-kind="lecture"
+                                                  data-content-id="@lecture.Id"
+                                                  data-content-title="@lecture.Title">
+                                                <input type="hidden" name="lectureId" value="@lecture.Id" />
+                                                <input type="hidden" name="completionState" value="@(lecture.IsCompleted ? 0 : 1)" />
+                                                <button class="course-outline-completion-toggle @(lecture.IsCompleted ? "is-complete" : null)"
+                                                        type="submit"
+                                                        role="checkbox"
+                                                        aria-checked="@(lecture.IsCompleted ? "true" : "false")"
+                                                        aria-label="@(lecture.IsCompleted ? $"Mark {lecture.Title} incomplete" : $"Mark {lecture.Title} complete")"
+                                                        title="@(lecture.IsCompleted ? "Mark incomplete" : "Mark complete")">
+                                                    @if (lecture.IsCompleted)
+                                                    {
+                                                        <i class="fa-solid fa-check" aria-hidden="true"></i>
+                                                    }
+                                                </button>
+                                            </form>
+                                            <a class="course-outline-item course-outline-child course-outline-content-item"
+                                               asp-route-courseId="@Model.Course.Id"
+                                               asp-route-contentType="lecture"
+                                               asp-route-contentId="@lecture.Id">
+                                                <span class="course-outline-item-copy">
+                                                    <span class="course-outline-item-title">@lecture.Title</span>
+                                                    <span class="course-outline-item-meta">
+                                                        <i class="fa-regular fa-circle-play" aria-hidden="true"></i>
+                                                        <span>@(lecture.UnlockAtUtc.HasValue ? $"Unlocks {lecture.UnlockAtUtc.Value:dd MMM yyyy}" : "Upcoming")</span>
+                                                    </span>
+                                                </span>
+                                            </a>
+                                        </div>
+                                    }
+                                }
+                                else if (childItem.Assignment != null)
+                                {
+                                    var assignment = childItem.Assignment;
+                                    var assignmentSelected = selected?.Kind == CourseContentKind.Assignment && selected.Id == assignment.Id;
+                                    var assignmentDuration = Math.Max(assignment.EstimatedDurationMinutes ?? 0, 0);
+                                    @if (assignment.IsLocked)
+                                    {
+                                        <div class="course-outline-item course-outline-child is-locked">
+                                            <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                                            <span class="course-outline-item-copy">
+                                                <span class="course-outline-item-title">@assignment.Title</span>
+                                                <span class="course-outline-item-meta">
+                                                    <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i>
+                                                    <span>@assignmentDuration min</span>
+                                                </span>
+                                            </span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="course-outline-completion-row @(assignmentSelected ? "is-selected" : null)">
+                                            <form method="post"
+                                                  asp-page-handler="SetAssignmentCompletion"
+                                                  asp-route-courseId="@Model.Course.Id"
+                                                  class="course-outline-completion-form"
+                                                  data-course-completion-form
+                                                  data-content-kind="assignment"
+                                                  data-content-id="@assignment.Id"
+                                                  data-content-title="@assignment.Title">
+                                                <input type="hidden" name="assignmentId" value="@assignment.Id" />
+                                                <input type="hidden" name="completionState" value="@(assignment.IsCompleted ? 0 : 1)" />
+                                                <button class="course-outline-completion-toggle @(assignment.IsCompleted ? "is-complete" : null)"
+                                                        type="submit"
+                                                        role="checkbox"
+                                                        aria-checked="@(assignment.IsCompleted ? "true" : "false")"
+                                                        aria-label="@(assignment.IsCompleted ? $"Mark {assignment.Title} incomplete" : $"Mark {assignment.Title} complete")"
+                                                        title="@(assignment.IsCompleted ? "Mark incomplete" : "Mark complete")">
+                                                    @if (assignment.IsCompleted)
+                                                    {
+                                                        <i class="fa-solid fa-check" aria-hidden="true"></i>
+                                                    }
+                                                </button>
+                                            </form>
+                                            <a class="course-outline-item course-outline-child course-outline-content-item"
+                                               asp-route-courseId="@Model.Course.Id"
+                                               asp-route-contentType="assignment"
+                                               asp-route-contentId="@assignment.Id">
+                                                <span class="course-outline-item-copy">
+                                                    <span class="course-outline-item-title">@assignment.Title</span>
+                                                    <span class="course-outline-item-meta">
+                                                        <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i>
+                                                        <span>Upcoming · @assignmentDuration min</span>
+                                                    </span>
+                                                </span>
+                                            </a>
+                                        </div>
+                                    }
+                                }
+                                else if (childItem.Class != null)
+                                {
+                                    var courseClass = childItem.Class;
+                                    var classSelected = selected?.Kind == CourseContentKind.Class && selected.Id == courseClass.Id;
+                                    var meetingLabel = "View available times";
+                                    @if (courseClass.IsLocked && !courseClass.IsBookingEligible)
+                                    {
+                                        <div class="course-outline-item course-outline-child is-locked">
+                                            <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                                            <span class="course-outline-item-copy">
+                                                <span class="course-outline-item-title">@courseClass.Title</span>
+                                                <span class="course-outline-item-meta">
+                                                    <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+                                                    <span>@(courseClass.BookingEligibleAtUtc.HasValue ? $"Booking opens {courseClass.BookingEligibleAtUtc.Value:dd MMM yyyy}" : "Upcoming")</span>
+                                                </span>
+                                            </span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <a class="course-outline-item course-outline-child course-outline-content-item @(classSelected ? "is-selected" : null)"
+                                           asp-route-courseId="@Model.Course.Id"
+                                           asp-route-contentType="class"
+                                           asp-route-contentId="@courseClass.Id">
+                                            <span class="course-outline-item-copy">
+                                                <span class="course-outline-item-title">
+                                                    @courseClass.Title
+                                                    @if (courseClass.IsRequiredForCompletion)
+                                                    {
+                                                        <small>@(courseClass.IsCompleted ? " · Attended" : " · Required")</small>
+                                                    }
+                                                </span>
+                                                <span class="course-outline-item-meta">
+                                                    <i class="@(courseClass.IsCompleted ? "fa-solid fa-circle-check" : courseClass.IsLocked ? "fa-solid fa-lock" : "fa-solid fa-calendar-days")" aria-hidden="true"></i>
+                                                    <span>@(courseClass.IsCompleted ? "Complete" : courseClass.IsLocked ? "Booking available before content unlocks" : meetingLabel)</span>
+                                                </span>
+                                            </span>
+                                        </a>
+                                    }
+                                }
+                            }
+                        </div>
+                    </section>
+                }
+            }
+            </nav>
+        }
+
+    </aside>
+</div>
+
+@if (Model.IsEditMode && Model.EditData != null)
+{
+    <div class="product-edit-mode-bar" role="status">
+        <div class="product-edit-mode-bar-inner">
+            <div class="product-edit-mode-bar-copy">
+                <span class="product-edit-mode-dot" aria-hidden="true"></span>
+                <span>You are in edit mode.</span>
+            </div>
+        </div>
+    </div>
+
+    <script type="application/json" id="courseEditorData">@Html.Raw(JsonSerializer.Serialize(Model.EditData))</script>
+}
+
+@section Scripts {
+    @if (Model.IsEditMode)
+    {
+        <script src="~/lib/tinymce/tinymce.min.js"></script>
+        <script src="~/shared/tinymce-helpers.js" asp-append-version="true"></script>
+        <script>
+            document.body.dataset.courseFileUploads = "@Model.FileUploadsEnabled.ToString().ToLowerInvariant()";
+            document.body.dataset.courseVideoUploads = "@Model.VideoUploadsEnabled.ToString().ToLowerInvariant()";
+        </script>
+        <script src="~/js/course-editor.js" asp-append-version="true"></script>
+    }
+}

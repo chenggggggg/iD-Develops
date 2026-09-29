@@ -1,0 +1,25 @@
+@page
+@model LogoutModel
+@{
+    Layout = "_IdentityLayout";
+    ViewData["Title"] = "Log out";
+}
+
+@if (User.Identity?.IsAuthenticated ?? false)
+{
+    <form class="tw:w-full tw:text-center" asp-area="Identity" asp-page="/Account/Logout" method="post">
+        <h1 class="tw:m-0 tw:mb-6 tw:font-['Playfair_Display',Georgia,serif] tw:text-[clamp(2rem,5vw,3rem)] tw:font-medium tw:leading-[1.08] tw:tracking-[-0.015em] tw:text-[#071F3D]">Log out</h1>
+        <p class="tw:mb-2 tw:text-base tw:leading-relaxed tw:text-[#6B6B6B]">Are you sure you want to end your portal session?</p>
+        <div class="tw:mt-4">
+            <button type="submit" class="tw:inline-flex tw:min-h-12 tw:w-full tw:items-center tw:justify-center tw:rounded-md tw:border tw:border-[#B23A48] tw:bg-[#B23A48] tw:px-4 tw:py-3 tw:text-sm tw:font-bold tw:text-white tw:no-underline tw:shadow-[0_10px_24px_rgba(159,47,61,0.18)] tw:transition tw:hover:border-[#9F2F3D] tw:hover:bg-[#9F2F3D] tw:hover:text-white tw:hover:no-underline tw:hover:shadow-[0_14px_30px_rgba(159,47,61,0.24)] tw:focus:border-[#9F2F3D] tw:focus:bg-[#9F2F3D] tw:focus:text-white tw:focus:no-underline">Log out</button>
+        </div>
+    </form>
+}
+else
+{
+    <div class="tw:w-full tw:text-center">
+        <h1 class="tw:m-0 tw:mb-6 tw:font-['Playfair_Display',Georgia,serif] tw:text-[clamp(2rem,5vw,3rem)] tw:font-medium tw:leading-[1.08] tw:tracking-[-0.015em] tw:text-[#071F3D]">Logged out</h1>
+        <p class="tw:mb-2 tw:text-base tw:leading-relaxed tw:text-[#6B6B6B]">You have been successfully logged out.</p>
+        <p class="tw:mb-0 tw:text-base tw:leading-relaxed tw:text-[#6B6B6B]">Click <a class="tw:font-semibold tw:text-[#B23A48] tw:no-underline tw:transition-colors tw:hover:text-[#8F2635] tw:hover:underline tw:hover:underline-offset-4 tw:focus:text-[#8F2635] tw:focus:underline tw:focus:underline-offset-4" asp-area="Identity" asp-page="/Account/Login">here</a> to sign back in.</p>
+    </div>
+}

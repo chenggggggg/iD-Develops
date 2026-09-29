@@ -1,0 +1,210 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="BeginYourDutchJourney" xml:space="preserve">
+    <value>Begin je Nederlandse reis</value>
+  </data>
+  <data name="BookYourFreeConsultation" xml:space="preserve">
+    <value>Boek uw gratis consult</value>
+  </data>
+  <data name="CommunicationStyles" xml:space="preserve">
+    <value>Communicatiestijlen</value>
+  </data>
+  <data name="CommunicationStylesDescription" xml:space="preserve">
+    <value>Begrijp je eigen communicatiestijl en die van anderen.</value>
+  </data>
+  <data name="ConflictHandling" xml:space="preserve">
+    <value>Conflicthantering</value>
+  </data>
+  <data name="ConflictHandlingDescription" xml:space="preserve">
+    <value>Conflicten afhandelen (en voorkomen).</value>
+  </data>
+  <data name="ConsultationText" xml:space="preserve">
+    <value>Ontdek hoe onze op maat gemaakte begeleiding u kan helpen uw doelen te bereiken met een gratis consult van 30 minuten.</value>
+  </data>
+  <data name="Contact" xml:space="preserve">
+    <value>Contact</value>
+  </data>
+  <data name="DutchJourneyText" xml:space="preserve">
+    <value>Klaar om je onder te dompelen in de Nederlandse cultuur, contact te maken met de lokale bevolking en nieuwe kansen te ontdekken? Of je nu net bent aangekomen of je wortels hier wilt verdiepen, het beheersen van de Nederlandse taal is je toegangspoort. Van het behalen van je inburgeringsexamen tot je thuis voelen in Nederland, wij staan voor je klaar. Sluit je bij ons aan en begin vandaag nog vol vertrouwen Nederlands te spreken!</value>
+  </data>
+  <data name="EffectiveCommunication" xml:space="preserve">
+    <value>Effectieve Communicatie</value>
+  </data>
+  <data name="EffectiveCommunicationDescription" xml:space="preserve">
+    <value>Communiceer effectief, respectvol en moeiteloos met collega's, personeel, managers, klanten, familieleden, enz.</value>
+  </data>
+  <data name="EffectiveWriting" xml:space="preserve">
+    <value>Effectief schrijven</value>
+  </data>
+  <data name="EffectiveWritingDescription" xml:space="preserve">
+    <value>Schrijf effectieve e-mails, offertes, enz.</value>
+  </data>
+  <data name="ExpressingNeeds" xml:space="preserve">
+    <value>Behoeften uiten</value>
+  </data>
+  <data name="ExpressingNeedsDescription" xml:space="preserve">
+    <value>Wees in staat te communiceren wat je nodig hebt/wilt (inclusief nee zeggen) zonder je schuldig te voelen of angstig te zijn over de reactie.</value>
+  </data>
+  <data name="FeedbackSkills" xml:space="preserve">
+    <value>Feedbackvaardigheden</value>
+  </data>
+  <data name="FeedbackSkillsDescription" xml:space="preserve">
+    <value>Geef &amp; ontvang effectieve feedback.</value>
+  </data>
+  <data name="FreeConsultation" xml:space="preserve">
+    <value>Gratis consultatie</value>
+  </data>
+  <data name="HeroDescription" xml:space="preserve">
+    <value>Communicatie is overal, altijd. We hebben het nodig om samen te werken, om contact te maken met anderen, om doelen te bereiken (zowel persoonlijk als zakelijk), om relaties te initiëren en te onderhouden…</value>
+  </data>
+  <data name="HeroDescription2" xml:space="preserve">
+    <value>Tegelijkertijd is communicatie misschien wel de meest ondergewaardeerde vaardigheid in ons persoonlijke en professionele leven. Het vereist aandacht en oefening om er het meeste uit te halen, terwijl je tegelijkertijd authentiek blijft.</value>
+  </data>
+  <data name="HeroTitle" xml:space="preserve">
+    <value>Communicatietraining</value>
+  </data>
+  <data name="ImprovementsDescription" xml:space="preserve">
+    <value>Begin met het verbeteren van je communicatievaardigheden met onze op maat gemaakte trainingssessies.</value>
+  </data>
+  <data name="ImprovementsTitle" xml:space="preserve">
+    <value>VERBETERINGEN</value>
+  </data>
+  <data name="NeedMoreInfo" xml:space="preserve">
+    <value>Meer informatie nodig?</value>
+  </data>
+  <data name="NonVerbalSignals" xml:space="preserve">
+    <value>Non-verbale signalen</value>
+  </data>
+  <data name="NonVerbalSignalsDescription" xml:space="preserve">
+    <value>Begrijp non-verbale signalen van gezichtsuitdrukking, handen, houding en non-woorden.</value>
+  </data>
+  <data name="StrengthenRelationships" xml:space="preserve">
+    <value>Versterk relaties</value>
+  </data>
+  <data name="StrengthenRelationshipsDescription" xml:space="preserve">
+    <value>Versterk relaties en voer moeilijke gesprekken met vertrouwen.</value>
+  </data>
+  <data name="Title" xml:space="preserve">
+    <value>Effectieve Communicatietraining</value>
+  </data>
+  <data name="TryLevelTestForFree" xml:space="preserve">
+    <value>Probeer de niveautest gratis</value>
+  </data>
+</root>

@@ -1,0 +1,389 @@
+@using iD_Develops.Enums
+@using iD_Develops.Models
+@model Question
+@inject iD_Develops.Services.IStoragePublicUrlService StoragePublicUrlService
+
+@{
+    string kind =
+        Model is MultipleChoiceQuestion ? "MultipleChoice" :
+        Model is TrueOrFalseQuestion ? "TrueOrFalse" :
+        "Open";
+
+    var imageRef = (Model.ImageReference ?? "").Trim().TrimStart('/');
+    var audioRef = (Model.AudioReference ?? "").Trim().TrimStart('/');
+
+    var hasImage = !string.IsNullOrWhiteSpace(imageRef);
+    var hasAudio = !string.IsNullOrWhiteSpace(audioRef);
+    var uploadsEnabled = (ViewData["UploadsEnabled"] as bool?) ?? true;
+
+    var imageUrl = hasImage ? StoragePublicUrlService.ResolvePublicUrl(imageRef) : null;
+    var audioUrl = hasAudio ? StoragePublicUrlService.ResolvePublicUrl(audioRef) : null;
+}
+
+<form class="question-edit-form" data-question-edit-form="true" autocomplete="off">
+    @Html.AntiForgeryToken()
+    <!-- Hidden inputs -->
+    <input type="hidden" name="QuestionId" value="@Model.Id" />
+    <input type="hidden" name="Kind" value="@kind" />
+    <input type="hidden" name="QuestionNumber" value="@Model.QuestionNumber" />
+    <input type="hidden" name="ImageReference" value="@Model.ImageReference" />
+    <input type="hidden" name="AudioReference" value="@Model.AudioReference" />
+
+
+    <div class="question-edit-grid question-narrow">
+        <div>
+            <div class="tw:mb-4 exam-rich-field" data-exam-rich-field>
+                <div class="question-rich-header">
+                    <div>
+                        <label class="portal-info-label">Context / Scenario:</label>
+                        <small class="exam-field-help">
+                            Background information or story for the question.
+                        </small>
+                    </div>
+                    <i class="fa-solid fa-pencil exam-rich-pencil" aria-hidden="true"></i>
+                </div>
+                <div class="exam-rich-preview" data-exam-rich-preview data-placeholder="Enter context or scenario here...">
+                    @Html.Raw(Model.Scenario)
+                </div>
+                <textarea class="portal-field tinymce exam-rich-textarea"
+                          name="Scenario"
+                          rows="2"
+                          data-exam-rich-textarea>@Model.Scenario</textarea>
+            </div>
+            <div class="tw:mb-4 exam-rich-field" data-exam-rich-field>
+                <div class="question-rich-header">
+                    <div>
+                        <label class="portal-info-label">Question:</label>
+                        <small class="exam-field-help">
+                            The actual question the student must answer.
+                        </small>
+                    </div>
+                    <i class="fa-solid fa-pencil exam-rich-pencil" aria-hidden="true"></i>
+                </div>
+                <div class="exam-rich-preview" data-exam-rich-preview data-placeholder="Enter question here...">
+                    @Html.Raw(Model.Text)
+                </div>
+                <textarea class="portal-field tinymce exam-rich-textarea"
+                          name="Text"
+                          rows="3"
+                          data-exam-rich-textarea>@Model.Text</textarea>
+            </div>
+        </div>
+        <div>
+
+            <div class="tw:mb-4" data-image-ui>
+                <!-- Clickable upload area -->
+                <div id="imageUploadBox"
+                     class="question-upload-box question-upload-box-image @(hasImage ? "exam-hidden" : "")"
+                     style="cursor: @(uploadsEnabled ? "pointer" : "not-allowed");">
+
+                    <i class="fa-solid fa-cloud-arrow-up fa-2x tw:mb-2" style="color: #D3D3D3"></i>
+                    <label>@(uploadsEnabled ? "Upload image" : "Image uploads disabled")</label>
+                </div>
+
+                <!-- Image preview -->
+                <img id="imagePreview"
+                     src="@(hasImage ? imageUrl : null)"
+                     class="question-media-preview @(hasImage ? "" : "exam-hidden")"
+                     alt="Uploaded image preview" />
+
+                <div class="question-media-actions">
+                    <button type="button"
+                            class="question-link-button @(hasImage ? "" : "exam-hidden")"
+                            id="changeImageBtn">
+                        Change image
+                    </button>
+
+                    <button type="button"
+                            class="question-link-button question-link-button-danger @(hasImage ? "" : "exam-hidden")"
+                            id="removeImageBtn"
+                            aria-label="Remove image"
+                            title="Remove image">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+
+                <!-- Hidden file input -->
+                <input type="file"
+                       id="imageInput"
+                       name="ImageFile"
+                       accept="image/*"
+                       hidden />
+            </div>
+
+            <div class="tw:mb-4" data-audio-ui>
+                <!-- Clickable audio upload area -->
+                <div id="audioUploadBox"
+                     class="question-upload-box question-upload-box-audio @(hasAudio ? "exam-hidden" : "")"
+                     style="cursor: @(uploadsEnabled ? "pointer" : "not-allowed");">
+
+                    <i class="fa-solid fa-file-audio fa-xl tw:mb-2" style="color: #D3D3D3"></i>
+                    <label>@(uploadsEnabled ? "Upload audio (mp3/m4a)" : "Audio uploads disabled")</label>
+                </div>
+
+                <!-- Audio preview -->
+                <audio id="audioPreview"
+                       src="@(hasAudio ? audioUrl : null)"
+                       class="question-audio-preview @(hasAudio ? "" : "exam-hidden")"
+                       controls></audio>
+
+                <div class="question-media-actions">
+                    <button type="button"
+                            class="question-link-button @(hasAudio ? "" : "exam-hidden")"
+                            id="changeAudioBtn">
+                        Change audio
+                    </button>
+
+                    <button type="button"
+                            class="question-link-button question-link-button-danger @(hasAudio ? "" : "exam-hidden")"
+                            id="removeAudioBtn"
+                            aria-label="Remove audio"
+                            title="Remove audio">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+
+                <!-- Hidden audio input -->
+                <input type="file"
+                       id="audioInput"
+                       name="AudioFile"
+                       accept="audio/mpeg,audio/mp3,audio/mp4,audio/x-m4a"
+                       hidden />
+            </div>
+
+        </div>
+    </div>
+
+    @* QUESTION TYPE INPUTS *@
+    @if (Model is OpenQuestion)
+    {
+        var openCorrect = Model?.CorrectAnswers?.FirstOrDefault()?.Text ?? "";
+
+        <div class="question-narrow">
+            <div>
+                <div class="tw:mt-4 exam-rich-field" data-exam-rich-field>
+                    <div class="question-rich-header">
+                        <div>
+                            <label class="portal-info-label">Correct answer (Open):</label>
+                            <small class="exam-field-help">
+                                The automatic evaluation for open answers might be inaccurate. Recommended to leave this empty for manual evaluation.
+                            </small>
+                        </div>
+                        <i class="fa-solid fa-pencil exam-rich-pencil" aria-hidden="true"></i>
+                    </div>
+                    <div class="exam-rich-preview" data-exam-rich-preview data-placeholder="Enter correct answer here...">
+                        @Html.Raw(openCorrect)
+                    </div>
+                    <textarea class="portal-field tinymce exam-rich-textarea"
+                              name="OpenCorrectAnswerText"
+                              rows="4"
+                              data-exam-rich-textarea>@openCorrect</textarea>
+                </div>
+            </div>
+        </div>
+    }
+    else if (Model is MultipleChoiceQuestion)
+    {
+        var mcq = Model as MultipleChoiceQuestion;
+
+        // Stored as a single letter ("A"/"B"/"C"/"D") in CorrectAnswers[0].Text
+        var correct = (Model?.CorrectAnswers?.FirstOrDefault()?.Text ?? "").Trim().ToUpperInvariant();
+
+        <div class="tw:mt-4 question-answer-narrow">
+            <div>
+
+                <label class="portal-info-label">Answers:</label>
+
+                <div class="exam-field-help tw:mb-3">
+                    Mark the correct answer (optional). <br />
+                    Empty answer fields will automatically show as "A", "B", "C", or "D" during the exam.
+                </div>
+
+                <div class="question-option-row">
+                    <label class="question-option-check">
+                        <input class="tw:size-4"
+                               type="radio"
+                               name="multipleChoiceCorrect"
+                               id="mcA"
+                               value="A"
+                        @(correct == "A" ? "checked" : "") />
+                        <span>A</span>
+                    </label>
+
+                    <textarea name="multipleChoiceAnswerA"
+                              rows="1"
+                              maxlength="300"
+                              class="portal-field autosize"
+                              placeholder="Enter text for option A">@(mcq?.MultipleChoiceAnswer?.AnswerA ?? string.Empty)</textarea>
+                </div>
+
+                <div class="question-option-row">
+                    <label class="question-option-check">
+                        <input class="tw:size-4"
+                               type="radio"
+                               name="multipleChoiceCorrect"
+                               id="mcB"
+                               value="B"
+                        @(correct == "B" ? "checked" : "") />
+                        <span>B</span>
+                    </label>
+
+                    <textarea name="multipleChoiceAnswerB"
+                              rows="1"
+                              maxlength="300"
+                              class="portal-field autosize"
+                              placeholder="Enter text for option B">@(mcq?.MultipleChoiceAnswer?.AnswerB ?? string.Empty)</textarea>
+                </div>
+
+                <div class="question-option-row">
+                    <label class="question-option-check">
+                        <input class="tw:size-4"
+                               type="radio"
+                               name="multipleChoiceCorrect"
+                               id="mcC"
+                               value="C"
+                        @(correct == "C" ? "checked" : "") />
+                        <span>C</span>
+                    </label>
+
+                    <textarea name="multipleChoiceAnswerC"
+                              rows="1"
+                              maxlength="300"
+                              class="portal-field autosize"
+                              placeholder="Enter text for option C">@(mcq?.MultipleChoiceAnswer?.AnswerC ?? string.Empty)</textarea>
+                </div>
+
+                <div class="question-option-row">
+                    <label class="question-option-check">
+                        <input class="tw:size-4"
+                               type="radio"
+                               name="multipleChoiceCorrect"
+                               id="mcD"
+                               value="D"
+                        @(correct == "D" ? "checked" : "") />
+                        <span>D</span>
+                    </label>
+
+                    <textarea name="multipleChoiceAnswerD"
+                              rows="1"
+                              maxlength="300"
+                              class="portal-field autosize"
+                              placeholder="Enter text for option D">@(mcq?.MultipleChoiceAnswer?.AnswerD ?? string.Empty)</textarea>
+                </div>
+
+            </div>
+        </div>
+    }
+    else if (Model is TrueOrFalseQuestion)
+    {
+        var tf = (Model?.CorrectAnswers?.FirstOrDefault()?.Text ?? "True").Trim();
+        var isTrue = tf.Equals("True", StringComparison.OrdinalIgnoreCase);
+        var isFalse = tf.Equals("False", StringComparison.OrdinalIgnoreCase);
+        <div class="question-answer-narrow">
+            <div>
+                <label class="portal-info-label">Correct answer:</label>
+
+                <div class="question-boolean-group" role="group">
+                    <input type="radio" class="question-choice-input" name="trueOrFalseCorrect" id="tfTrue" value="True" autocomplete="off" @(isTrue ? "checked" : "")>
+                    <label class="question-boolean-label" for="tfTrue">True</label>
+
+                    <input type="radio" class="question-choice-input" name="trueOrFalseCorrect" id="tfFalse" value="False" autocomplete="off" @(isFalse ? "checked" : "")>
+                    <label class="question-boolean-label" for="tfFalse">False</label>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="question-separator">
+        <hr class="flex-grow-1">
+        <span>
+            Additional Settings
+        </span>
+        <hr class="flex-grow-1">
+    </div>
+
+    <div class="question-edit-grid question-narrow tw:mb-4">
+        <div class="exam-rich-field" data-exam-rich-field>
+            <div class="question-rich-header">
+                <div>
+                    <label class="portal-info-label">Question note:</label>
+                    <small class="exam-field-help">Adds a <i class="fa-regular fa-circle-question" style="color: #000000;"></i> button to the question during the exam.</small>
+                </div>
+                <i class="fa-solid fa-pencil exam-rich-pencil" aria-hidden="true"></i>
+            </div>
+            <div class="exam-rich-preview" data-exam-rich-preview data-placeholder="Enter question note here...">
+                @Html.Raw(Model?.MessageBeforeQuestion ?? string.Empty)
+            </div>
+            <textarea class="portal-field tinymce exam-rich-textarea"
+                      name="MessageBeforeQuestion"
+                      rows="2"
+                      data-exam-rich-textarea>@(Model?.MessageBeforeQuestion ?? string.Empty)</textarea>
+        </div>
+        <div class="exam-rich-field" data-exam-rich-field>
+            <div class="question-rich-header">
+                <div>
+                    <label class="portal-info-label">Result note:</label>
+                    <small class="exam-field-help">Shown in the results, for example to clarify the correct answer.</small>
+                </div>
+                <i class="fa-solid fa-pencil exam-rich-pencil" aria-hidden="true"></i>
+            </div>
+            <div class="exam-rich-preview" data-exam-rich-preview data-placeholder="Enter result note here...">
+                @Html.Raw(Model?.Feedback ?? string.Empty)
+            </div>
+            <textarea class="portal-field tinymce exam-rich-textarea"
+                      name="Feedback"
+                      rows="2"
+                      data-exam-rich-textarea>@(Model?.Feedback ?? string.Empty)</textarea>
+        </div>
+    </div>
+
+    <div class="question-edit-grid question-narrow tw:mb-4">
+
+        <div class="exam-rich-field" data-exam-rich-field>
+            <div class="question-rich-header">
+                <div>
+                    <label class="portal-info-label">Additional note:</label>
+                    <small class="exam-field-help">Shown in the results, for example to clarify the correct answer.</small>
+                </div>
+                <i class="fa-solid fa-pencil exam-rich-pencil" aria-hidden="true"></i>
+            </div>
+            <div class="exam-rich-preview" data-exam-rich-preview data-placeholder="Enter additional note here...">
+                @Html.Raw(Model?.FunFact ?? string.Empty)
+            </div>
+            <textarea class="portal-field tinymce exam-rich-textarea"
+                      name="FunFact"
+                      rows="2"
+                      data-exam-rich-textarea>@(Model?.FunFact ?? string.Empty)</textarea>
+        </div>
+        <div>
+            <label class="portal-info-label">Points:</label>
+            <small class="exam-field-help">How many points this question is worth. Defaults to 1.</small>
+            <input class="portal-field"
+                   type="number"
+                   name="Score"
+                   min="0.01"
+                   step="0.01"
+                   value="@((Model?.Score.HasValue == true && Model.Score.Value > 0 ? Model.Score.Value : 1).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))" />
+        </div>
+    </div>
+
+    <div class="question-delete-wrap">
+        <button type="button"
+                class="public-btn public-btn-danger tw:w-full"
+                style="max-width: 420px;"
+                id="deleteQuestionBtn"
+                data-question-id="@(Model?.Id ?? 0)">
+            <i class="fa-solid fa-trash"></i>
+            Delete question
+        </button>
+    </div>
+
+    <div class="exam-hidden">
+        <span class="exam-field-help" data-save-status></span>
+    </div>
+
+</form>
+
+
+
+

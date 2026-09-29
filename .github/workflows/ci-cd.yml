@@ -1,0 +1,267 @@
+name: CI and staging deployment
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
+  PROJECT_DIRECTORY: iD-Develops
+  SOLUTION_PATH: iD-Develops/iD-Develops.sln
+  UNIT_TEST_PROJECT: iD-Develops/tests/iD-Develops.Tests/iD-Develops.Tests.csproj
+  E2E_TEST_PROJECT: iD-Develops/tests/iD-Develops.E2ETests/iD-Develops.E2ETests.csproj
+
+jobs:
+  verify:
+    name: Build, format, and unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+          cache: true
+          cache-dependency-path: |
+            iD-Develops/iD-Develops.csproj
+            iD-Develops/tests/**/*.csproj
+
+      - name: Restore
+        run: dotnet restore "$SOLUTION_PATH"
+
+      - name: Verify formatting
+        run: dotnet format "$SOLUTION_PATH" --verify-no-changes --no-restore
+
+      - name: Build
+        run: dotnet build "$SOLUTION_PATH" --configuration Release --no-restore
+
+      - name: Run unit and integration tests
+        run: >-
+          dotnet test "$UNIT_TEST_PROJECT"
+          --configuration Release
+          --no-build
+          --logger "trx;LogFileName=unit-tests.trx"
+          --results-directory "${{ runner.temp }}/test-results/unit"
+
+      - name: Upload unit-test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results
+          path: ${{ runner.temp }}/test-results/unit
+          if-no-files-found: ignore
+
+  e2e:
+    name: Playwright end-to-end tests
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: iddevelops_ci
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci-postgres-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d iddevelops_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Detect Playwright project
+        id: playwright_project
+        shell: bash
+        run: |
+          if [[ -f "$E2E_TEST_PROJECT" ]]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Explain bootstrap skip
+        if: steps.playwright_project.outputs.exists != 'true'
+        run: echo "The Playwright project is not on this branch yet; it will run automatically once added."
+
+      - name: Set up .NET
+        if: steps.playwright_project.outputs.exists == 'true'
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+          cache: true
+          cache-dependency-path: |
+            iD-Develops/iD-Develops.csproj
+            iD-Develops/tests/**/*.csproj
+
+      - name: Restore application and Playwright project
+        if: steps.playwright_project.outputs.exists == 'true'
+        run: |
+          dotnet restore "$PROJECT_DIRECTORY/iD-Develops.csproj"
+          dotnet restore "$E2E_TEST_PROJECT"
+
+      - name: Build application and Playwright project
+        if: steps.playwright_project.outputs.exists == 'true'
+        run: |
+          dotnet build "$PROJECT_DIRECTORY/iD-Develops.csproj" --configuration Release --no-restore
+          dotnet build "$E2E_TEST_PROJECT" --configuration Release --no-restore
+
+      - name: Install Chromium
+        if: steps.playwright_project.outputs.exists == 'true'
+        shell: pwsh
+        run: >-
+          & "iD-Develops/tests/iD-Develops.E2ETests/bin/Release/net10.0/playwright.ps1"
+          install --with-deps chromium
+
+      - name: Start isolated CI application
+        if: steps.playwright_project.outputs.exists == 'true'
+        shell: bash
+        env:
+          ASPNETCORE_ENVIRONMENT: Local
+          ASPNETCORE_URLS: http://127.0.0.1:5000
+          ConnectionStrings__ApplicationDbContextConnection: Host=127.0.0.1;Port=5432;Database=iddevelops_ci;Username=postgres;Password=ci-postgres-password;
+          Admin__Email: admin@example.test
+          Admin__Password: CI-Admin-Password-123!
+        run: |
+          dotnet run \
+            --project "$PROJECT_DIRECTORY/iD-Develops.csproj" \
+            --configuration Release \
+            --no-build \
+            > "${{ runner.temp }}/ci-app.log" 2>&1 &
+          echo $! > "${{ runner.temp }}/ci-app.pid"
+
+      - name: Wait for the CI application
+        if: steps.playwright_project.outputs.exists == 'true'
+        shell: bash
+        run: |
+          for _ in {1..60}; do
+            if curl --fail --silent --show-error http://127.0.0.1:5000/health/db; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "The CI application did not become healthy."
+          cat "${{ runner.temp }}/ci-app.log"
+          exit 1
+
+      - name: Run Playwright tests
+        if: steps.playwright_project.outputs.exists == 'true'
+        env:
+          IDDEVELOPS_E2E_BASE_URL: http://127.0.0.1:5000
+        run: >-
+          dotnet test "$E2E_TEST_PROJECT"
+          --configuration Release
+          --no-build
+          --logger "trx;LogFileName=e2e-tests.trx"
+          --results-directory "${{ runner.temp }}/test-results/e2e"
+
+      - name: Upload Playwright results and application log
+        if: always() && steps.playwright_project.outputs.exists == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: |
+            ${{ runner.temp }}/test-results/e2e
+            ${{ runner.temp }}/ci-app.log
+            iD-Develops/tests/iD-Develops.E2ETests/bin/Release/net10.0/playwright-report
+            iD-Develops/tests/iD-Develops.E2ETests/bin/Release/net10.0/test-results
+          if-no-files-found: ignore
+
+      - name: Stop isolated CI application
+        if: always() && steps.playwright_project.outputs.exists == 'true'
+        shell: bash
+        run: |
+          if [[ -f "${{ runner.temp }}/ci-app.pid" ]]; then
+            kill "$(cat "${{ runner.temp }}/ci-app.pid")" || true
+          fi
+
+  deploy-staging:
+    name: Deploy staging
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs:
+      - verify
+      - e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    concurrency:
+      group: staging
+      cancel-in-progress: false
+    environment:
+      name: staging
+      url: ${{ vars.STAGING_URL }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Sign in to DigitalOcean Container Registry
+        run: doctl registry login --expiry-seconds 1200
+
+      - name: Build staging image
+        env:
+          IMAGE: registry.digitalocean.com/${{ vars.DO_REGISTRY_NAME }}/${{ vars.DO_IMAGE_REPOSITORY }}
+        run: >-
+          docker build
+          --build-arg "APP_VERSION=$GITHUB_SHA"
+          --tag "$IMAGE:$GITHUB_SHA"
+          --tag "$IMAGE:staging"
+          "$PROJECT_DIRECTORY"
+
+      - name: Push immutable image
+        env:
+          IMAGE: registry.digitalocean.com/${{ vars.DO_REGISTRY_NAME }}/${{ vars.DO_IMAGE_REPOSITORY }}
+        run: docker push "$IMAGE:$GITHUB_SHA"
+
+      - name: Trigger App Platform Autodeploy
+        env:
+          IMAGE: registry.digitalocean.com/${{ vars.DO_REGISTRY_NAME }}/${{ vars.DO_IMAGE_REPOSITORY }}
+        run: docker push "$IMAGE:staging"
+
+      - name: Wait for the deployed commit
+        shell: bash
+        env:
+          STAGING_URL: ${{ vars.STAGING_URL }}
+        run: |
+          base_url="${STAGING_URL%/}"
+          for _ in {1..90}; do
+            deployed_version="$(curl --fail --silent --show-error "$base_url/health/version" 2>/dev/null | jq --raw-output '.version // empty' || true)"
+            if [[ "$deployed_version" == "$GITHUB_SHA" ]]; then
+              curl --fail --silent --show-error "$base_url/health/db"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "DigitalOcean did not expose commit $GITHUB_SHA before the deployment timeout."
+          exit 1
+
+      - name: Sign out of DigitalOcean Container Registry
+        if: always()
+        run: docker logout registry.digitalocean.com || true

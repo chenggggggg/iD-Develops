@@ -1,0 +1,146 @@
+﻿@using iD_Develops.Models
+@model ContactFormData
+
+<!DOCTYPE html>
+<html>
+<div>
+    <div style="height:100%;margin:0;padding:0;width:100%;background-color:#e9eaec">
+        <center>
+            <font color="#888888">
+            </font>
+            <font color="#888888">
+            </font>
+            <table align="center" border="0" cellpadding="0" cellspacing="0" height="100%" width="100%"
+                   id="m_3674813109477390131m_-2718053955402723442bodyTable"
+                   style="border-collapse:collapse;height:100%;margin:0;padding:0;width:100%;background-color:#e9eaec">
+                <tbody>
+                    <tr>
+                        <td align="center" valign="top" id="m_3674813109477390131m_-2718053955402723442bodyCell"
+                            style="height:100%;margin:0;padding:50px 50px;width:100%">
+
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%"
+                                   style="border-collapse:collapse;border:0;max-width:600px!important">
+                                <tbody>
+                                    <tr>
+                                        <td valign="top" id="m_3674813109477390131m_-2718053955402723442templateBody"
+                                            style="background-color:#ffffff;border-top:0;border:1px solid #c1c1c1;padding-top:0;padding-bottom:0px">
+                                            <table border="0" cellpadding="0" cellspacing="0" width="100%"
+                                                   style="min-width:100%;border-collapse:collapse">
+                                                <tbody>
+                                                    <tr>
+                                                        <td valign="top">
+                                                            <table align="left" border="0" cellpadding="0"
+                                                                   cellspacing="0" width="100%"
+                                                                   style="min-width:100%;border-collapse:collapse">
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <td valign="top"
+                                                                            style="padding-top:30px;padding-right:30px;padding-bottom:30px;padding-left:30px">
+                                                                            <table align="left" border="0"
+                                                                                   cellpadding="0" cellspacing="0"
+                                                                                   width="100%"
+                                                                                   style="display:block;min-width:100%;border-collapse:collapse;width:100%">
+                                                                                <tbody>
+                                                                                    <tr>
+                                                                                        <td style="color:#333333;padding-top:20px;padding-bottom:3px">
+                                                                                            <strong>Name</strong>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td style="color:#555555;padding-top:3px;padding-bottom:20px">
+                                                                                            @Model.Name
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </tbody>
+                                                                            </table>
+                                                                            <table align="left" border="0"
+                                                                                   cellpadding="0" cellspacing="0"
+                                                                                   width="100%"
+                                                                                   style="border-top:1px solid #dddddd;display:block;min-width:100%;border-collapse:collapse;width:100%">
+                                                                                <tbody>
+                                                                                    <tr>
+                                                                                        <td style="color:#333333;padding-top:20px;padding-bottom:3px">
+                                                                                            <strong>E-mail</strong>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td style="color:#555555;padding-top:3px;padding-bottom:20px">
+                                                                                            @Model.Email
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </tbody>
+                                                                            </table>
+                                                                            <table align="left" border="0"
+                                                                                   cellpadding="0" cellspacing="0"
+                                                                                   width="100%"
+                                                                                   style="border-top:1px solid #dddddd;display:block;min-width:100%;border-collapse:collapse;width:100%">
+                                                                                <tbody>
+                                                                                    <tr>
+                                                                                        <td style="color:#333333;padding-top:20px;padding-bottom:3px">
+                                                                                            <strong>
+                                                                                                Question, comment or
+                                                                                                message:
+                                                                                            </strong>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td style="color:#555555;padding-top:3px;padding-bottom:20px">
+                                                                                            @Model.Message
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </tbody>
+                                                                            </table>
+
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td valign="top" id="m_3674813109477390131m_-2718053955402723442templateFooter"
+                                            style="background-color:#e9eaec;border-top:0;border-bottom:0;padding-top:12px;padding-bottom:12px">
+
+                                            <table border="0" cellpadding="0" cellspacing="0" width="100%"
+                                                   style="min-width:100%;border-collapse:collapse">
+                                                <tbody>
+                                                    <tr>
+                                                        <td valign="top">
+                                                            <table align="left" border="0" cellpadding="0"
+                                                                   cellspacing="0" width="100%"
+                                                                   style="min-width:100%;border-collapse:collapse">
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <td valign="top"
+                                                                            style="padding-top:9px;padding-right:18px;padding-bottom:9px;padding-left:18px;word-break:break-word;color:#aaa;font-family:Helvetica;font-size:12px;line-height:150%;text-align:center">
+
+
+                                                                            Sent from <a href="@Model.Branding.PublicBaseUrl"
+                                                                                         style="color:#bbbbbb" target="_blank">
+                                                                                Develop
+                                                                                yourself... the only way is up!
+                                                                            </a>
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </center>
+    </div>
+</div>
+</html>

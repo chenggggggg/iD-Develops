@@ -1,0 +1,70 @@
+@page "/payment-processing"
+@model iD_Develops.Pages.PaymentProcessingModel
+@{
+    ViewData["Title"] = "Processing Payment";
+}
+
+<section class="payment-processing-page">
+    <div class="payment-processing-panel">
+        <div class="payment-processing-spinner" aria-hidden="true"></div>
+        <p class="payment-processing-kicker">Payment</p>
+        <h1>Processing Payment</h1>
+        <p>Please wait while we confirm the payment status.</p>
+    </div>
+</section>
+
+<style>
+    .payment-processing-page {
+        min-height: calc(100vh - 8rem);
+        display: grid;
+        place-items: center;
+        padding: 4rem 1rem;
+        background: linear-gradient(180deg, #f6f9fc 0%, #ffffff 100%);
+    }
+
+    .payment-processing-panel {
+        width: min(100%, 38rem);
+        text-align: center;
+        background: #ffffff;
+        border: 1px solid #dfe7ef;
+        border-radius: 1rem;
+        box-shadow: 0 24px 70px rgba(15, 23, 42, 0.08);
+        padding: clamp(1.5rem, 4vw, 3rem);
+    }
+
+    .payment-processing-spinner {
+        width: 4rem;
+        height: 4rem;
+        margin: 0 auto 1rem;
+        border-radius: 50%;
+        border: 4px solid #dceaf8;
+        border-top-color: #005190;
+        animation: payment-processing-spin 0.9s linear infinite;
+    }
+
+    .payment-processing-kicker {
+        margin: 0 0 0.35rem;
+        color: #607086;
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0;
+        text-transform: uppercase;
+    }
+
+    .payment-processing-panel h1 {
+        margin: 0;
+        color: #111827;
+        font-weight: 800;
+    }
+
+    .payment-processing-panel p:last-child {
+        margin: 0.8rem 0 0;
+        color: #5d6b7c;
+    }
+
+    @@keyframes payment-processing-spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+</style>

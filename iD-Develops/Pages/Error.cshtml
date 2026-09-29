@@ -1,0 +1,93 @@
+@page
+@model ErrorModel
+@{
+    Layout = "";
+    ViewData["Title"] = $"{Model.StatusCodeValue} - {Model.Heading}";
+}
+
+<!DOCTYPE html>
+<html lang="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - iD-Develops</title>
+    <link rel="stylesheet" href="~/css/tailwind.generated.css" asp-append-version="true" />
+</head>
+<body class="error-page @Model.ThemeClass">
+    <main class="error-shell">
+        <div class="public-container">
+            <section class="error-card">
+                <div class="tw:grid tw:items-center tw:lg:grid-cols-2">
+                    <div>
+                        <div class="error-visual">
+                            @if (!string.IsNullOrWhiteSpace(Model.ImagePath))
+                            {
+                                <img src="@Model.ImagePath" alt="@Model.ImageAlt" class="error-illustration" />
+                            }
+                            else
+                            {
+                                <div class="error-illustration-placeholder" aria-hidden="true">
+                                    <span class="error-status-chip">@Model.StatusCodeValue</span>
+                                    <span class="error-placeholder-icon">@Model.IconText</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <div>
+                        <div class="error-copy">
+                            <div class="error-status-label">Error @Model.StatusCodeValue</div>
+                            <h1 class="error-title">@Model.Heading</h1>
+                            <p class="error-subtitle">@Model.Summary</p>
+                            <p class="error-description">@Model.Detail</p>
+
+                            <div class="error-actions">
+                                <a class="public-btn error-primary-action" style="color: #ffffff;" href="@Model.PrimaryActionUrl">@Model.PrimaryActionLabel</a>
+                                <a class="public-btn public-btn-outline" href="@Model.SecondaryActionUrl">@Model.SecondaryActionLabel</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="error-diagnostics">
+                    <a href="#errorDiagnostics"
+                       class="error-diagnostics-toggle"
+                       data-diagnostics-toggle
+                       aria-expanded="false"
+                       aria-controls="errorDiagnostics">
+                        View diagnostic details
+                    </a>
+
+                    <div id="errorDiagnostics" class="error-diagnostics-panel" hidden>
+                        <div class="tw:grid tw:gap-3 tw:text-sm tw:sm:grid-cols-2">
+                            <div>
+                                <div class="error-diagnostics-label">Status code</div>
+                                <div class="error-diagnostics-value">@Model.StatusCodeValue</div>
+                            </div>
+                            <div>
+                                <div class="error-diagnostics-label">Error code</div>
+                                <div class="error-diagnostics-value"><code>@Model.ErrorCode</code></div>
+                            </div>
+                            @if (!string.IsNullOrWhiteSpace(Model.OriginalPath))
+                            {
+                                <div>
+                                    <div class="error-diagnostics-label">Requested page</div>
+                                    <div class="error-diagnostics-value"><code>@Model.OriginalPath</code></div>
+                                </div>
+                            }
+                            @if (Model.ShowRequestId)
+                            {
+                                <div>
+                                    <div class="error-diagnostics-label">Request ID</div>
+                                    <div class="error-diagnostics-value"><code>@Model.RequestId</code></div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="~/js/error-page.js" asp-append-version="true"></script>
+</body>
+</html>

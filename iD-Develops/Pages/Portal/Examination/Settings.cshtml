@@ -1,0 +1,250 @@
+@page
+@using iD_Develops.Enums
+@using System.Globalization
+@model iD_Develops.Pages.Portal.Examination.SettingsModel
+
+@{
+    ViewData["Title"] = "Exam Settings";
+    Layout = "/Pages/Shared/Examination/_ExaminationLayout.cshtml";
+}
+
+<partial name="/Pages/Shared/Examination/_ExaminationHeader.cshtml"
+         model="Model.Header" />
+
+<div class="exam-container tw:py-6">
+    <div class="tw:mx-auto tw:max-w-[980px]">
+        <div class="portal-page-header">
+            <div>
+                <p class="portal-eyebrow">Exam Setup</p>
+                <h1 class="portal-title-sm">Settings</h1>
+                <p class="portal-copy">Configure the exam and then return to the editor when you're ready.</p>
+            </div>
+            <div class="portal-page-header-actions">
+                <a class="portal-btn portal-btn-outline" asp-page="/Portal/Examination/Edit" asp-route-examId="@Model.ExamId">
+                    <i class="fa-solid fa-arrow-left-long"></i>Back to Editor
+                </a>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+        {
+            <div class="public-alert public-alert-success">
+                @Model.StatusMessage
+            </div>
+        }
+
+        <div class="portal-table-card tw:py-6 tw:lg:py-10">
+            <form method="post" id="exam-settings-page-form">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="ExamId" />
+                <div class="public-alert public-alert-danger exam-hidden" role="alert" data-settings-client-summary></div>
+
+                <div class="portal-form-grid tw:mb-6">
+                    <div class="portal-field-group portal-field-group-half">
+                        <label asp-for="Settings.Name" class="portal-info-label">Exam name</label>
+                        <input asp-for="Settings.Name" class="portal-field" placeholder="Exam name" />
+                        <span asp-validation-for="Settings.Name" class="portal-validation-message"></span>
+                    </div>
+                    <div class="portal-field-group portal-field-group-third">
+                        <label asp-for="Settings.TimeLimit" class="portal-info-label">Time limit</label>
+                        <div class="exam-number-field">
+                            <input asp-for="Settings.TimeLimit"
+                                   type="number"
+                                   class="portal-field"
+                                   min="1"
+                                   placeholder="No limit"
+                                   data-special-number-input />
+                            <span class="exam-number-unit">min</span>
+                        </div>
+                        <span asp-validation-for="Settings.TimeLimit" class="portal-validation-message"></span>
+                    </div>
+                    <div class="portal-field-group portal-field-group-third">
+                        <label asp-for="Settings.DifficultyValue" class="portal-info-label">Difficulty</label>
+                        <select asp-for="Settings.DifficultyValue" class="portal-field">
+                            <option value="" disabled>Choose level</option>
+                            @foreach (var difficulty in Enum.GetValues(typeof(DifficultyLevel)).Cast<DifficultyLevel>())
+                            {
+                                <option value="@((int)difficulty)">@difficulty</option>
+                            }
+                        </select>
+                        <span asp-validation-for="Settings.DifficultyValue" class="portal-validation-message"></span>
+                    </div>
+                    <div class="portal-field-group portal-field-group-third">
+                        <label asp-for="Settings.MaxAttempts" class="portal-info-label">Attempts</label>
+                        <input asp-for="Settings.MaxAttempts"
+                               type="number"
+                               class="portal-field"
+                               placeholder="Unlimited"
+                               min="1"
+                               step="1"
+                               data-special-number-input />
+                        <span asp-validation-for="Settings.MaxAttempts" class="portal-validation-message"></span>
+                    </div>
+                </div>
+                
+                <div class="tw:my-6 tw:flex tw:items-center">
+                    <hr class="tw:flex-1">
+                    <span class="tw:mx-4 tw:text-sm tw:font-bold tw:text-[#64748b]">
+                        Advanced Settings
+                    </span>
+                    <hr class="tw:flex-1">
+                </div>
+
+                <div class="exam-rich-field tw:mb-6" data-exam-rich-field>
+                    <div class="exam-rich-header">
+                        <div>
+                            <label asp-for="Settings.IntroductionPrimaryLanguage" class="portal-info-label">Introduction text</label>
+                            <div class="exam-field-help">Shown before the student starts the exam.</div>
+                        </div>
+                        <i class="fa-solid fa-pencil exam-rich-pencil" aria-hidden="true"></i>
+                    </div>
+                    <div class="exam-rich-preview" data-exam-rich-preview data-placeholder="Enter introduction here..."></div>
+                    <textarea asp-for="Settings.IntroductionPrimaryLanguage"
+                              class="portal-field tinymce exam-rich-textarea"
+                              rows="6"
+                              data-exam-rich-textarea></textarea>
+                    <span asp-validation-for="Settings.IntroductionPrimaryLanguage" class="portal-validation-message"></span>
+                </div>
+
+                <div class="exam-rich-field tw:mb-6" data-exam-rich-field>
+                    <div class="exam-rich-header">
+                        <div>
+                            <label asp-for="Settings.CompletionTextPrimary" class="portal-info-label">Completion text</label>
+                            <div class="exam-field-help">Shown after the exam is submitted.</div>
+                        </div>
+                        <i class="fa-solid fa-pencil exam-rich-pencil" aria-hidden="true"></i>
+                    </div>
+                    <div class="exam-rich-preview" data-exam-rich-preview data-placeholder="Enter completion text here..."></div>
+                    <textarea asp-for="Settings.CompletionTextPrimary"
+                              class="portal-field tinymce exam-rich-textarea"
+                              rows="6"
+                              data-exam-rich-textarea></textarea>
+                    <span asp-validation-for="Settings.CompletionTextPrimary" class="portal-validation-message"></span>
+                </div>
+
+                <div class="tw:mb-6">
+                    <label class="portal-info-label">Result grading</label>
+                    <div class="exam-field-help tw:mb-3">Create student-facing grade labels by choosing the highest score each grade covers. The maximum score is calculated automatically from your question points.</div>
+                    <div class="public-alert public-alert-danger exam-hidden" role="alert" data-grade-client-summary></div>
+                    <div class="tw:my-4 tw:flex tw:items-center tw:gap-2">
+                        <input asp-for="Settings.DisplayGradeOnResults" class="tw:size-4" type="checkbox" role="switch" id="settings-page-display-grade-on-results" />
+                        <label class="portal-info-label tw:mb-0" for="settings-page-display-grade-on-results">Custom grading</label>
+                    </div>
+                    <span asp-validation-for="Settings.DisplayGradeOnResults" class="portal-validation-message"></span>
+
+                    <div data-grade-settings-section data-grade-max-score="@Model.MaximumScore.ToString("0.0", CultureInfo.InvariantCulture)">
+                        <div class="record-note">
+                            <strong>Current maximum score:</strong> @Model.MaximumScore.ToString("0.#", CultureInfo.InvariantCulture)
+                            <div class="exam-field-help">This is calculated automatically from the points on all questions in this exam.</div>
+                        </div>
+                        <div class="exam-field-help tw:mb-3">Each row ends a grade range. Example: if a row says up to 5, that grade covers scores from the previous row up to 5.</div>
+                        <div class="portal-table-wrap">
+                            <table class="grade-settings-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 24%">Up to score</th>
+                                        <th style="width: 28%">Covers scores</th>
+                                        <th style="width: 38%">Grade shown to student</th>
+                                        <th style="width: 10%"></th>
+                                    </tr>
+                                </thead>
+                                <tbody data-grade-band-rows>
+                                    @for (var i = 0; i < Model.Settings.ResultGradeBands.Count; i++)
+                                    {
+                                        <tr data-grade-band-row>
+                                            <td class="grade-settings-cell">
+                                                <input asp-for="Settings.ResultGradeBands[i].MaximumScore"
+                                                       type="number"
+                                                       step="0.1"
+                                                       min="0"
+                                                       max="@Model.MaximumScore.ToString("0.0", CultureInfo.InvariantCulture)"
+                                                       class="portal-field grade-settings-input"
+                                                       placeholder="@Model.MaximumScore.ToString("0.#", CultureInfo.InvariantCulture)"
+                                                       data-grade-maximum />
+                                                <span asp-validation-for="Settings.ResultGradeBands[i].MaximumScore" class="portal-validation-message"></span>
+                                            </td>
+                                            <td class="grade-settings-cell">
+                                                <div class="exam-field-help tw:font-bold" data-grade-range-preview>Example: 0 - @Model.MaximumScore.ToString("0.#", CultureInfo.InvariantCulture)</div>
+                                            </td>
+                                            <td class="grade-settings-cell">
+                                                <input asp-for="Settings.ResultGradeBands[i].LabelPrimary" class="portal-field grade-settings-input" placeholder="Almost A1" />
+                                                <span asp-validation-for="Settings.ResultGradeBands[i].LabelPrimary" class="portal-validation-message"></span>
+                                            </td>
+                                            <td class="grade-settings-cell portal-table-cell-end">
+                                                <button type="button" class="portal-btn portal-btn-danger portal-btn-sm grade-settings-remove-btn" data-remove-grade-row>Remove</button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="tw:mt-3 tw:flex tw:flex-wrap tw:items-center tw:gap-2">
+                            <button type="button" class="portal-btn portal-btn-outline portal-btn-sm grade-settings-add-btn" data-add-grade-row>Add grade</button>
+                            <span class="portal-validation-message exam-hidden" data-grade-row-warning>At least 2 grades are required.</span>
+                        </div>
+                        <div class="exam-field-help tw:mt-3">Only complete rows are saved. Enter rows in ascending order. The last row must end at the current maximum score so every result gets a grade.</div>
+                    </div>
+                </div>
+
+                @if ((User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
+                {
+                    <div class="tw:mb-6">
+                        <label asp-for="Settings.PublicSlug" class="portal-info-label">Public slug</label>
+                        <input asp-for="Settings.PublicSlug" class="portal-field" placeholder="level-test" />
+                        <div class="exam-field-help">Set to <code>level-test</code> to use this exam for the public level test page.</div>
+                        <span asp-validation-for="Settings.PublicSlug" class="portal-validation-message"></span>
+                    </div>
+                }
+
+                <details class="portal-card tw:mb-6">
+                    <summary class="tw:cursor-pointer tw:font-bold tw:text-[#10224d]">Additional language (optional)</summary>
+                    <div class="tw:mt-5">
+                                <div class="exam-rich-field tw:mb-5" data-exam-rich-field>
+                                    <div class="exam-rich-header">
+                                        <label asp-for="Settings.IntroductionSecondaryLanguage" class="portal-info-label">Introduction text (secondary)</label>
+                                        <i class="fa-solid fa-pencil exam-rich-pencil" aria-hidden="true"></i>
+                                    </div>
+                                    <div class="exam-rich-preview" data-exam-rich-preview data-placeholder="Enter introduction here..."></div>
+                                    <textarea asp-for="Settings.IntroductionSecondaryLanguage"
+                                              class="portal-field tinymce exam-rich-textarea"
+                                              rows="5"
+                                              data-exam-rich-textarea></textarea>
+                                    <span asp-validation-for="Settings.IntroductionSecondaryLanguage" class="portal-validation-message"></span>
+                                </div>
+
+                                <div class="exam-rich-field" data-exam-rich-field>
+                                    <div class="exam-rich-header">
+                                        <label asp-for="Settings.CompletionTextSecondary" class="portal-info-label">Completion text (secondary)</label>
+                                        <i class="fa-solid fa-pencil exam-rich-pencil" aria-hidden="true"></i>
+                                    </div>
+                                    <div class="exam-rich-preview" data-exam-rich-preview data-placeholder="Enter completion text here..."></div>
+                                    <textarea asp-for="Settings.CompletionTextSecondary"
+                                              class="portal-field tinymce exam-rich-textarea"
+                                              rows="5"
+                                              data-exam-rich-textarea></textarea>
+                                    <span asp-validation-for="Settings.CompletionTextSecondary" class="portal-validation-message"></span>
+                                </div>
+                    </div>
+                </details>
+
+                <div class="tw:flex tw:flex-col tw:gap-2 tw:lg:flex-row">
+                    <button type="submit" class="portal-btn portal-btn-primary">
+                        <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>Save settings
+                    </button>
+                    <a class="portal-btn portal-btn-outline" asp-page="/Portal/Examination/Edit" asp-route-examId="@Model.ExamId">
+                        <i class="fa-solid fa-arrow-left-long"></i>Back to Editor
+                    </a>
+                </div>
+                <div class="portal-validation-message tw:mt-3 exam-hidden" data-settings-footer-summary>Some settings still need attention. Please check the red fields and messages on this page.</div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/lib/tinymce/tinymce.min.js"></script>
+    <script src="~/shared/tinymce-helpers.js" asp-append-version="true"></script>
+    <script src="~/js/exam-rich-edit-fields.js" asp-append-version="true"></script>
+    <script src="~/js/exam-settings-page.js" asp-append-version="true"></script>
+}

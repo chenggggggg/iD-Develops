@@ -1,0 +1,133 @@
+@page
+@model iD_Develops.Pages.Portal.Exams.TransferModel
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = "Import exam";
+}
+
+<main class="tw:mx-auto tw:w-full tw:max-w-4xl tw:px-4 tw:py-8 sm:tw:px-6">
+    <div class="tw:mb-8 tw:flex tw:flex-col tw:gap-4 sm:tw:flex-row sm:tw:items-start sm:tw:justify-between">
+        <div>
+            <p class="tw:mb-2 tw:text-sm tw:font-semibold tw:uppercase tw:tracking-[0.18em] tw:text-sky-700">Exam transfer</p>
+            <h1 class="tw:text-3xl tw:font-bold tw:tracking-tight tw:text-slate-950">Import an exam</h1>
+            <p class="tw:mt-3 tw:max-w-2xl tw:text-base tw:leading-7 tw:text-slate-600">
+                Importing always creates a separate draft with new IDs. Existing exams, attempts, and results are never changed.
+            </p>
+        </div>
+        <a asp-page="/Portal/Exams/List"
+           class="tw:inline-flex tw:min-h-11 tw:items-center tw:justify-center tw:gap-2 tw:rounded-lg tw:border tw:border-slate-300 tw:bg-white tw:px-4 tw:py-2 tw:text-sm tw:font-semibold tw:text-slate-700 tw:shadow-sm tw:transition hover:tw:border-slate-400 hover:tw:bg-slate-50">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+            Back to exams
+        </a>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.TransferSuccessMessage))
+    {
+        <div class="tw:mb-4 tw:rounded-xl tw:border tw:border-emerald-200 tw:bg-emerald-50 tw:p-4 tw:text-sm tw:text-emerald-900" role="status">
+            <div class="tw:flex tw:items-start tw:gap-3">
+                <i class="fa-solid fa-circle-check tw:mt-0.5" aria-hidden="true"></i>
+                <div>
+                    <p class="tw:font-semibold">@Model.TransferSuccessMessage</p>
+                    @if (Model.ImportedExamId.HasValue)
+                    {
+                        <a asp-page="/Portal/Examination/Edit"
+                           asp-route-examId="@Model.ImportedExamId.Value"
+                           class="tw:mt-2 tw:inline-flex tw:font-semibold tw:underline tw:underline-offset-2">
+                            Review imported exam
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Model.TransferWarningMessage))
+    {
+        <div class="tw:mb-4 tw:rounded-xl tw:border tw:border-amber-200 tw:bg-amber-50 tw:p-4 tw:text-sm tw:text-amber-950" role="alert">
+            <div class="tw:flex tw:items-start tw:gap-3">
+                <i class="fa-solid fa-triangle-exclamation tw:mt-0.5" aria-hidden="true"></i>
+                <p>@Model.TransferWarningMessage</p>
+            </div>
+        </div>
+    }
+
+    @if (Model.ImportFailure is { } failure)
+    {
+        <section class="tw:mb-6 tw:overflow-hidden tw:rounded-xl tw:border tw:border-red-200 tw:bg-red-50" role="alert" aria-labelledby="import-failure-title">
+            <div class="tw:border-b tw:border-red-200 tw:p-4 sm:tw:p-5">
+                <div class="tw:flex tw:items-start tw:gap-3">
+                    <i class="fa-solid fa-circle-exclamation tw:mt-1 tw:text-red-700" aria-hidden="true"></i>
+                    <div class="tw:min-w-0">
+                        <h2 id="import-failure-title" class="tw:text-base tw:font-bold tw:text-red-950">Import failed</h2>
+                        <p class="tw:mt-1 tw:text-sm tw:leading-6 tw:text-red-900">@failure.Summary</p>
+                    </div>
+                </div>
+            </div>
+            <dl class="tw:grid tw:gap-3 tw:p-4 tw:text-sm sm:tw:grid-cols-2 sm:tw:p-5">
+                <div>
+                    <dt class="tw:font-semibold tw:text-red-950">Failure stage</dt>
+                    <dd class="tw:mt-1 tw:text-red-900">@failure.Stage</dd>
+                </div>
+                <div>
+                    <dt class="tw:font-semibold tw:text-red-950">Reference ID</dt>
+                    <dd class="tw:mt-1 tw:font-mono tw:text-red-900">@failure.ReferenceId</dd>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(failure.FileName))
+                {
+                    <div class="sm:tw:col-span-2">
+                        <dt class="tw:font-semibold tw:text-red-950">File</dt>
+                        <dd class="tw:mt-1 tw:break-all tw:text-red-900">@failure.FileName</dd>
+                    </div>
+                }
+            </dl>
+            @if (failure.ShowTechnicalDetails && failure.TechnicalDetails.Count > 0)
+            {
+                <details class="tw:border-t tw:border-red-200 tw:px-4 tw:py-3 sm:tw:px-5" open>
+                    <summary class="tw:cursor-pointer tw:font-semibold tw:text-red-950">Technical details</summary>
+                    <ol class="tw:mt-3 tw:list-decimal tw:space-y-2 tw:pl-5 tw:text-sm tw:leading-6 tw:text-red-900">
+                        @foreach (var detail in failure.TechnicalDetails)
+                        {
+                            <li class="tw:break-words tw:font-mono">@detail</li>
+                        }
+                    </ol>
+                </details>
+            }
+            else if (!failure.ShowTechnicalDetails)
+            {
+                <p class="tw:border-t tw:border-red-200 tw:px-4 tw:py-3 tw:text-sm tw:text-red-900 sm:tw:px-5">
+                    Technical details are recorded in the application log under this reference ID.
+                </p>
+            }
+        </section>
+    }
+
+    <section class="tw:rounded-2xl tw:border tw:border-slate-200 tw:bg-white tw:p-6 tw:shadow-sm sm:tw:p-8">
+        <form method="post" enctype="multipart/form-data" asp-page-handler="Import" class="tw:space-y-6">
+            <div>
+                <label asp-for="ExamFile" class="tw:mb-2 tw:block tw:text-sm tw:font-semibold tw:text-slate-800">Exam JSON file</label>
+                <input asp-for="ExamFile"
+                       type="file"
+                       accept="application/json,.json"
+                       class="tw:block tw:w-full tw:rounded-lg tw:border tw:border-slate-300 tw:bg-white tw:px-3 tw:py-2.5 tw:text-sm tw:text-slate-700 file:tw:mr-4 file:tw:rounded-md file:tw:border-0 file:tw:bg-sky-50 file:tw:px-4 file:tw:py-2 file:tw:font-semibold file:tw:text-sky-800 hover:file:tw:bg-sky-100" />
+                <span asp-validation-for="ExamFile" class="tw:mt-2 tw:block tw:text-sm tw:text-red-700"></span>
+                <p class="tw:mt-2 tw:text-sm tw:text-slate-500">Maximum size: 5 MB. Only files exported by this application are supported.</p>
+            </div>
+
+            <div class="tw:rounded-xl tw:bg-slate-50 tw:p-4">
+                <h2 class="tw:text-sm tw:font-semibold tw:text-slate-900">What happens during import?</h2>
+                <ul class="tw:mt-3 tw:list-disc tw:space-y-2 tw:pl-5 tw:text-sm tw:leading-6 tw:text-slate-600">
+                    <li>A new draft examination is created.</li>
+                    <li>The original examination and all historical results remain unchanged.</li>
+                    <li>Public URLs are not activated automatically.</li>
+                    <li>You can review, publish, and assign the imported exam afterward.</li>
+                </ul>
+            </div>
+
+            <button type="submit"
+                    class="tw:inline-flex tw:min-h-11 tw:items-center tw:justify-center tw:gap-2 tw:rounded-lg tw:bg-sky-700 tw:px-5 tw:py-2.5 tw:text-sm tw:font-semibold tw:text-white tw:shadow-sm tw:transition hover:tw:bg-sky-800 focus:tw:outline-none focus:tw:ring-2 focus:tw:ring-sky-500 focus:tw:ring-offset-2">
+                <i class="fa-solid fa-file-import" aria-hidden="true"></i>
+                Import as new draft
+            </button>
+        </form>
+    </section>
+</main>

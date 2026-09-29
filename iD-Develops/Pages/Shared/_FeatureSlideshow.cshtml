@@ -1,0 +1,77 @@
+@model FeatureSlideshowViewModel
+
+@{
+    var sectionId = Model.Id ?? $"feature-slideshow-{Guid.NewGuid():N}";
+    var features = Model.Features ?? Array.Empty<FeatureSlideshowItem>();
+    var intervalMilliseconds = Math.Max(Model.IntervalMilliseconds, 1000);
+}
+
+@if (features.Count > 0)
+{
+    <section id="@sectionId"
+             class="feature-slideshow tw:bg-[#FAFAF8] tw:py-28 tw:text-[#1A1A1A] tw:md:py-40"
+             data-feature-slideshow
+             data-feature-interval="@intervalMilliseconds"
+             style="--feature-slideshow-duration: @(intervalMilliseconds)ms;">
+        <div class="public-container">
+            <header class="tw:mb-14 tw:text-center tw:md:mb-20">
+                <p class="public-eyebrow">@Model.Eyebrow</p>
+                <h2 class="tw:mx-auto tw:mb-0 tw:max-w-3xl tw:text-4xl tw:font-bold tw:leading-[1.05] tw:text-[#071f3d] tw:md:text-5xl tw:lg:text-6xl">
+                    @Model.Title
+                </h2>
+            </header>
+
+            <div class="feature-slideshow-layout tw:mx-auto tw:grid tw:max-w-[1200px] tw:items-center tw:gap-10 tw:lg:grid-cols-[minmax(320px,0.92fr)_minmax(0,1.08fr)] tw:lg:gap-16">
+                <div class="feature-slideshow-rail-wrap">
+                    <div class="feature-slideshow-rail" role="tablist" aria-label="@Model.Eyebrow">
+                        @for (var i = 0; i < features.Count; i++)
+                        {
+                            var feature = features[i];
+                            var isActive = i == 0;
+                            var panelId = $"{sectionId}-feature-{i}";
+
+                            <button type="button"
+                                    class="feature-slideshow-item"
+                                    role="tab"
+                                    aria-selected="@(isActive ? "true" : "false")"
+                                    aria-controls="@panelId"
+                                    data-feature-trigger
+                                    data-feature-index="@i"
+                                    data-active="@(isActive ? "true" : "false")">
+                                <span class="feature-slideshow-line" aria-hidden="true">
+                                    <span class="feature-slideshow-progress" data-feature-progress></span>
+                                </span>
+                                <span class="feature-slideshow-copy">
+                                    <span class="feature-slideshow-title">@feature.Title</span>
+                                    <span id="@panelId"
+                                          class="feature-slideshow-description"
+                                          data-feature-description
+                                          aria-hidden="@(isActive ? "false" : "true")">
+                                        <span>@feature.Description</span>
+                                    </span>
+                                </span>
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <figure class="feature-slideshow-figure tw:relative tw:m-0 tw:overflow-hidden tw:rounded-2xl tw:border tw:border-[#E8E4DF] tw:bg-[#F5F3F0] tw:shadow-[0_24px_70px_rgba(17,17,17,0.10)]">
+                    @for (var i = 0; i < features.Count; i++)
+                    {
+                        var feature = features[i];
+                        <img class="feature-slideshow-image"
+                             src="@feature.ImageSrc"
+                             alt="@feature.ImageAlt"
+                             width="920"
+                             height="690"
+                             data-feature-image
+                             data-feature-index="@i"
+                             data-active="@(i == 0 ? "true" : "false")"
+                             data-feature-fallback="/images/gradient.jpg"
+                             aria-hidden="@(i == 0 ? "false" : "true")" />
+                    }
+                </figure>
+            </div>
+        </div>
+    </section>
+}
