@@ -156,6 +156,7 @@ namespace iD_Develops.Services
                 : 1;
             existing.RequiresAccountCreation = product.RequiresAccountCreation;
             existing.GrantedCourseId = product.GrantedCourseId;
+            existing.CreditConsumptionPolicyId = product.CreditConsumptionPolicyId;
             existing.IncludedBookingBenefitLabel = product.IncludedBookingBenefitLabel?.Trim();
             existing.IncludedBookingBenefitUrl = product.IncludedBookingBenefitUrl?.Trim();
             existing.IsFeatured = product.IsFeatured;
@@ -212,6 +213,62 @@ namespace iD_Develops.Services
                     }));
                 await _dbContext.SaveChangesAsync(ct);
 
+                await transaction.CommitAsync(ct);
+            });
+        }
+
+        public async Task UpdateProductWithCreditConfigurationAsync(
+            CatalogProduct product,
+            CreditProductConfigurationInput? creditConfiguration,
+            IReadOnlyCollection<int> includedCreditProductIds,
+            CancellationToken ct = default)
+        {
+            var strategy = _dbContext.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
+            {
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(ct);
+                await UpdateProductAsync(product, ct);
+
+                if (product.ProductType == CatalogProductType.Credit)
+                {
+                    if (creditConfiguration == null)
+                        throw new InvalidOperationException("Complete the Credit Product settings before saving.");
+
+                    var creditService = _creditConfigurationService ?? new CreditConfigurationService(_dbContext);
+                    var result = await creditService.SaveCreditProductConfigurationAsync(product.Id, creditConfiguration, ct);
+                    if (!result.Success)
+                        throw new InvalidOperationException(result.ErrorMessage);
+                }
+
+                var normalizedIncludedIds = includedCreditProductIds
+                    .Where(id => id > 0 && id != product.Id)
+                    .Distinct()
+                    .ToList();
+                if (product.ProductType == CatalogProductType.Credit && normalizedIncludedIds.Count > 0)
+                    throw new InvalidOperationException("A Credit Product cannot include another Credit Product.");
+
+                if (normalizedIncludedIds.Count > 0)
+                {
+                    var validCreditProductCount = await _dbContext.CatalogProducts
+                        .CountAsync(candidate =>
+                            normalizedIncludedIds.Contains(candidate.Id) &&
+                            candidate.ProductType == CatalogProductType.Credit,
+                            ct);
+                    if (validCreditProductCount != normalizedIncludedIds.Count)
+                        throw new InvalidOperationException("One or more included Credit Products are invalid.");
+                }
+
+                var existingInclusions = await _dbContext.CatalogProductIncludedCreditProducts
+                    .Where(inclusion => inclusion.CatalogProductId == product.Id)
+                    .ToListAsync(ct);
+                _dbContext.CatalogProductIncludedCreditProducts.RemoveRange(existingInclusions);
+                _dbContext.CatalogProductIncludedCreditProducts.AddRange(normalizedIncludedIds.Select(id =>
+                    new CatalogProductIncludedCreditProduct
+                    {
+                        CatalogProductId = product.Id,
+                        IncludedCreditProductId = id
+                    }));
+                await _dbContext.SaveChangesAsync(ct);
                 await transaction.CommitAsync(ct);
             });
         }
@@ -354,6 +411,7 @@ namespace iD_Develops.Services
                     .ThenInclude(grant => grant.Course)
                 .Include(p => p.CreditGrants)
                     .ThenInclude(grant => grant.CourseClass)
+                .Include(p => p.CreditConsumptionPolicy)
                 .Include(p => p.IncludedCreditProducts)
                     .ThenInclude(inclusion => inclusion.IncludedCreditProduct)
                 .Include(p => p.GrantedCourse);

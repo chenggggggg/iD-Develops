@@ -85,5 +85,11 @@ public sealed class CreditsModelTests
             IReadOnlyCollection<ProductCreditGrantInput> grants,
             CancellationToken cancellationToken = default)
             => throw new NotSupportedException();
+
+        public Task<OperationResult> SaveCreditProductConfigurationAsync(
+            int productId,
+            CreditProductConfigurationInput input,
+            CancellationToken cancellationToken = default)
+            => throw new NotSupportedException();
     }
 }

@@ -9,6 +9,19 @@ namespace iD_Develops.Tests.Services;
 public sealed class CreditConfigurationServiceTests
 {
     [Fact]
+    public void CreditProductsAndBundles_RequireAnAuthenticatedAccount()
+    {
+        var creditProduct = new CatalogProduct { ProductType = CatalogProductType.Credit };
+        var bundle = new CatalogProduct { ProductType = CatalogProductType.Standard };
+        bundle.IncludedCreditProducts.Add(new CatalogProductIncludedCreditProduct());
+        var ordinaryProduct = new CatalogProduct { ProductType = CatalogProductType.Standard };
+
+        Assert.True(creditProduct.RequiresAuthenticatedAccount);
+        Assert.True(bundle.RequiresAuthenticatedAccount);
+        Assert.False(ordinaryProduct.RequiresAuthenticatedAccount);
+    }
+
+    [Fact]
     public async Task CreditTypes_AreNormalizedAndCaseInsensitiveDuplicatesAreRejected()
     {
         using var factory = new SqliteTestDbFactory();
@@ -149,6 +162,55 @@ public sealed class CreditConfigurationServiceTests
         var stored = await dbContext.CatalogProducts.SingleAsync();
         Assert.Equal("Original name", stored.Name);
         Assert.Empty(await dbContext.CatalogProductCreditGrants.ToListAsync());
+    }
+
+    [Fact]
+    public async Task CreditProductConfiguration_OwnsOneGrantAndOneBookingRuleset()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var dbContext = factory.CreateDbContext();
+        var service = new CreditConfigurationService(dbContext);
+        var product = new CatalogProduct
+        {
+            Name = "Private lessons",
+            Slug = "private-lessons",
+            ProductType = CatalogProductType.Credit,
+            WorkflowType = CatalogWorkflowType.FormThenStripeCheckout
+        };
+        dbContext.CatalogProducts.Add(product);
+        await dbContext.SaveChangesAsync();
+
+        var result = await service.SaveCreditProductConfigurationAsync(product.Id, new CreditProductConfigurationInput
+        {
+            Name = "Private lesson credit",
+            SingularLabel = "lesson",
+            PluralLabel = "lessons",
+            Quantity = 5,
+            ValidityValue = 3,
+            ValidityUnit = CreditValidityUnit.Months,
+            Scope = CreditGrantScope.Global,
+            ConsumptionTiming = CreditConsumptionTiming.OnBooking,
+            CancellationWindowHours = 24,
+            AttendedAction = CreditResolutionAction.Consume,
+            NoShowAction = CreditResolutionAction.Return,
+            EarlyCancellationAction = CreditResolutionAction.Return,
+            LateCancellationAction = CreditResolutionAction.Consume,
+            StaffCancellationAction = CreditResolutionAction.Return
+        });
+
+        Assert.True(result.Success);
+        var storedProduct = await dbContext.CatalogProducts
+            .Include(item => item.CreditConsumptionPolicy)
+            .Include(item => item.CreditGrants)
+                .ThenInclude(item => item.CreditType)
+            .SingleAsync();
+        Assert.True(storedProduct.RequiresAccountCreation);
+        Assert.Equal(24, storedProduct.CreditConsumptionPolicy!.CancellationWindowHours);
+        Assert.Equal(CreditResolutionAction.Return, storedProduct.CreditConsumptionPolicy.NoShowAction);
+        var grant = Assert.Single(storedProduct.CreditGrants);
+        Assert.Equal(5, grant.Quantity);
+        Assert.Equal("Private lesson credit", grant.CreditType.Name);
+        Assert.Equal(CreditValidityUnit.Months, grant.ValidityUnit);
     }
 
     private static async Task<CreditType> CreateCreditTypeAsync(

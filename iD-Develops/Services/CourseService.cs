@@ -711,25 +711,37 @@ namespace iD_Develops.Services
             if (course == null)
                 return null;
 
-            var creditTypes = await _dbContext.CreditTypes
+            var creditProducts = await _dbContext.CatalogProducts
                 .AsNoTracking()
+                .Where(item => item.ProductType == CatalogProductType.Credit &&
+                               item.CreditConsumptionPolicyId.HasValue)
+                .SelectMany(
+                    item => item.CreditGrants.OrderBy(grant => grant.Id).Take(1),
+                    (item, grant) => new CourseCreditProductOption(
+                        item.Id,
+                        item.Name,
+                        item.IsSalesActive && item.Status != CatalogProductStatus.Archived,
+                        grant.CreditTypeId,
+                        item.CreditConsumptionPolicyId!.Value))
                 .OrderByDescending(item => item.IsActive)
                 .ThenBy(item => item.Name)
-                .Select(item => new CourseCreditTypeOption(item.Id, item.Name, item.IsActive))
                 .ToListAsync(cancellationToken);
-            var creditPolicies = await _dbContext.CreditConsumptionPolicies
+            var classIds = course.Sections.SelectMany(section => section.Classes).Select(item => item.Id).ToArray();
+            var upcomingSessionCounts = await _dbContext.ScheduledEvents
                 .AsNoTracking()
-                .OrderByDescending(item => item.IsActive)
-                .ThenBy(item => item.Name)
-                .Select(item => new CourseCreditPolicyOption(item.Id, item.Name, item.IsActive))
-                .ToListAsync(cancellationToken);
+                .Where(item => item.CourseClassId.HasValue &&
+                               classIds.Contains(item.CourseClassId.Value) &&
+                               item.StartAtUtc >= DateTime.UtcNow &&
+                               item.Status != ScheduleEventStatus.Cancelled)
+                .GroupBy(item => item.CourseClassId!.Value)
+                .Select(group => new { CourseClassId = group.Key, Count = group.Count() })
+                .ToDictionaryAsync(item => item.CourseClassId, item => item.Count, cancellationToken);
 
             return new CourseContentEditData
             {
                 CourseId = course.Id,
                 Name = course.Name,
-                CreditTypes = creditTypes,
-                CreditPolicies = creditPolicies,
+                CreditProducts = creditProducts,
                 Sections = course.Sections
                     .OrderBy(section => section.OrderNumber)
                     .ThenBy(section => section.Id)
@@ -806,8 +818,12 @@ namespace iD_Develops.Services
                                 IsRequiredForCompletion = courseClass.IsRequiredForCompletion,
                                 EnrollmentBookingLimit = courseClass.EnrollmentBookingLimit,
                                 RequiredCreditTypeId = courseClass.RequiredCreditTypeId,
+                                RequiredCreditProductId = creditProducts
+                                    .FirstOrDefault(item =>
+                                        item.CreditTypeId == courseClass.RequiredCreditTypeId)?.Id,
                                 CreditCost = courseClass.CreditCost,
                                 CreditConsumptionPolicyId = courseClass.CreditConsumptionPolicyId,
+                                UpcomingSessionCount = upcomingSessionCounts.GetValueOrDefault(courseClass.Id),
                                 IsRecommended = courseClass.IsRecommended,
                                 RecommendedAfterValue = courseClass.RecommendedAfterValue,
                                 RecommendedAfterUnit = courseClass.RecommendedAfterUnit,
@@ -869,6 +885,25 @@ namespace iD_Develops.Services
             }
 
             var classInputs = content.Sections.SelectMany(section => section.Classes).ToList();
+            var selectedCreditProductIds = classInputs
+                .Where(item => item.BookingAccess != CourseClassBookingAccess.CourseEnrollment && item.RequiredCreditProductId.HasValue)
+                .Select(item => item.RequiredCreditProductId!.Value)
+                .Distinct()
+                .ToArray();
+            var selectedCreditProducts = await _dbContext.CatalogProducts
+                .AsNoTracking()
+                .Where(item => selectedCreditProductIds.Contains(item.Id) &&
+                               item.ProductType == CatalogProductType.Credit &&
+                               item.CreditConsumptionPolicyId.HasValue)
+                .SelectMany(
+                    item => item.CreditGrants.OrderBy(grant => grant.Id).Take(1),
+                    (item, grant) => new
+                    {
+                        item.Id,
+                        grant.CreditTypeId,
+                        CreditConsumptionPolicyId = item.CreditConsumptionPolicyId!.Value
+                    })
+                .ToDictionaryAsync(item => item.Id, cancellationToken);
             foreach (var classInput in classInputs)
             {
                 if (!Enum.IsDefined(classInput.Format) ||
@@ -884,9 +919,18 @@ namespace iD_Develops.Services
                 if (classInput.EnrollmentBookingLimit is < 1 or > 100000)
                     return Failure("Included meeting limit must be between 1 and 100,000, or left empty for unlimited.");
                 if (classInput.BookingAccess != CourseClassBookingAccess.CourseEnrollment &&
+                    classInput.RequiredCreditProductId.HasValue)
+                {
+                    if (!selectedCreditProducts.TryGetValue(classInput.RequiredCreditProductId.Value, out var selectedProduct))
+                        return Failure("A selected Credit Product is unavailable or incomplete.");
+
+                    classInput.RequiredCreditTypeId = selectedProduct.CreditTypeId;
+                    classInput.CreditConsumptionPolicyId = selectedProduct.CreditConsumptionPolicyId;
+                }
+                if (classInput.BookingAccess != CourseClassBookingAccess.CourseEnrollment &&
                     (!classInput.RequiredCreditTypeId.HasValue || !classInput.CreditConsumptionPolicyId.HasValue))
                 {
-                    return Failure("Classes that use credits require both a credit type and consumption policy.");
+                    return Failure("Classes that use credits require a configured Credit Product.");
                 }
             }
 

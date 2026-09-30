@@ -430,6 +430,12 @@ namespace iD_Develops.Data
                 .Property(policy => policy.StaffCancellationAction)
                 .HasConversion<string>();
 
+            modelBuilder.Entity<CatalogProduct>()
+                .HasOne(product => product.CreditConsumptionPolicy)
+                .WithMany(policy => policy.CatalogProducts)
+                .HasForeignKey(product => product.CreditConsumptionPolicyId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<CatalogProductCreditGrant>()
                 .Property(grant => grant.ValidityUnit)
                 .HasConversion<string>();

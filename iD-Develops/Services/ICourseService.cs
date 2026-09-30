@@ -79,14 +79,20 @@ namespace iD_Develops.Services
     {
         public int CourseId { get; set; }
         public string Name { get; set; } = string.Empty;
-        public List<CourseCreditTypeOption> CreditTypes { get; set; } = new();
-        public List<CourseCreditPolicyOption> CreditPolicies { get; set; } = new();
+        public List<CourseCreditProductOption> CreditProducts { get; set; } = new();
         public List<CourseSectionEditItem> Sections { get; set; } = new();
     }
 
     public sealed record CourseCreditTypeOption(int Id, string Name, bool IsActive);
 
     public sealed record CourseCreditPolicyOption(int Id, string Name, bool IsActive);
+
+    public sealed record CourseCreditProductOption(
+        int Id,
+        string Name,
+        bool IsActive,
+        int CreditTypeId,
+        int CreditConsumptionPolicyId);
 
     public sealed class CourseSectionEditItem
     {
@@ -143,8 +149,10 @@ namespace iD_Develops.Services
         public bool IsRequiredForCompletion { get; set; }
         public int? EnrollmentBookingLimit { get; set; }
         public int? RequiredCreditTypeId { get; set; }
+        public int? RequiredCreditProductId { get; set; }
         public int CreditCost { get; set; } = 1;
         public int? CreditConsumptionPolicyId { get; set; }
+        public int UpcomingSessionCount { get; set; }
         public bool IsRecommended { get; set; }
         public int? RecommendedAfterValue { get; set; }
         public CourseUnlockUnit? RecommendedAfterUnit { get; set; }

@@ -221,6 +221,106 @@ namespace iD_Develops.Services
             return Success();
         }
 
+        public async Task<OperationResult> SaveCreditProductConfigurationAsync(
+            int productId,
+            CreditProductConfigurationInput input,
+            CancellationToken cancellationToken = default)
+        {
+            var product = await _dbContext.CatalogProducts
+                .Include(item => item.CreditGrants)
+                .FirstOrDefaultAsync(item => item.Id == productId, cancellationToken);
+            if (product == null || product.ProductType != CatalogProductType.Credit)
+                return Failure("Credit Product not found.");
+
+            if (input.Quantity is < 1 or > 100000)
+                return Failure("Credits included must be between 1 and 100,000.");
+            if ((input.ValidityValue.HasValue) != (input.ValidityUnit.HasValue) || input.ValidityValue is <= 0)
+                return Failure("Set both a positive validity duration and its unit, or leave both empty for no expiration.");
+            if (!Enum.IsDefined(input.Scope))
+                return Failure("Select where this credit can be used.");
+            if (input.Scope == CreditGrantScope.Course &&
+                (!input.CourseId.HasValue || !await _dbContext.Courses.AnyAsync(item => item.Id == input.CourseId, cancellationToken)))
+                return Failure("Select an existing course for this credit.");
+            if (input.Scope == CreditGrantScope.CourseClass &&
+                (!input.CourseClassId.HasValue || !await _dbContext.CourseClasses.AnyAsync(item => item.Id == input.CourseClassId, cancellationToken)))
+                return Failure("Select an existing class for this credit.");
+
+            var existingCreditTypeIds = product.CreditGrants.Select(item => item.CreditTypeId).ToHashSet();
+            var creditType = input.CreditTypeId > 0 && existingCreditTypeIds.Contains(input.CreditTypeId)
+                ? await _dbContext.CreditTypes.FirstOrDefaultAsync(item => item.Id == input.CreditTypeId, cancellationToken)
+                : null;
+            creditType ??= new CreditType { CreatedAtUtc = DateTime.UtcNow };
+            creditType.Name = input.Name;
+            creditType.Description = input.Description;
+            creditType.SingularLabel = input.SingularLabel;
+            creditType.PluralLabel = input.PluralLabel;
+            creditType.DefaultValidityValue = input.ValidityValue;
+            creditType.DefaultValidityUnit = input.ValidityUnit;
+            creditType.IsActive = true;
+            creditType.UpdatedAtUtc = DateTime.UtcNow;
+
+            var creditValidation = ValidateCreditType(creditType);
+            if (!creditValidation.Success)
+                return creditValidation;
+            var existingNormalizedCreditName = creditType.Id > 0 ? creditType.NormalizedName : null;
+            NormalizeCreditType(creditType);
+            creditType.NormalizedName = existingNormalizedCreditName ?? $"CREDIT-PRODUCT-{productId}";
+            if (creditType.Id == 0)
+            {
+                _dbContext.CreditTypes.Add(creditType);
+                await _dbContext.SaveChangesAsync(cancellationToken);
+            }
+
+            var policy = input.CreditConsumptionPolicyId > 0 &&
+                         product.CreditConsumptionPolicyId == input.CreditConsumptionPolicyId
+                ? await _dbContext.CreditConsumptionPolicies.FirstOrDefaultAsync(
+                    item => item.Id == input.CreditConsumptionPolicyId,
+                    cancellationToken)
+                : null;
+            policy ??= new CreditConsumptionPolicy { CreatedAtUtc = DateTime.UtcNow };
+            policy.Name = $"{input.Name.Trim()} booking rules";
+            policy.Description = $"Booking and cancellation rules managed by the {product.Name} Credit Product.";
+            policy.ConsumptionTiming = input.ConsumptionTiming;
+            policy.CancellationWindowHours = input.CancellationWindowHours;
+            policy.AttendedAction = input.AttendedAction;
+            policy.NoShowAction = input.NoShowAction;
+            policy.EarlyCancellationAction = input.EarlyCancellationAction;
+            policy.LateCancellationAction = input.LateCancellationAction;
+            policy.StaffCancellationAction = input.StaffCancellationAction;
+            policy.IsActive = true;
+            policy.UpdatedAtUtc = DateTime.UtcNow;
+
+            var policyValidation = ValidatePolicy(policy);
+            if (!policyValidation.Success)
+                return policyValidation;
+            NormalizePolicy(policy);
+            policy.NormalizedName = $"CREDIT-PRODUCT-{productId}";
+            if (policy.Id == 0)
+            {
+                _dbContext.CreditConsumptionPolicies.Add(policy);
+                await _dbContext.SaveChangesAsync(cancellationToken);
+            }
+
+            product.CreditConsumptionPolicyId = policy.Id;
+            product.RequiresAccountCreation = true;
+
+            _dbContext.CatalogProductCreditGrants.RemoveRange(product.CreditGrants);
+            _dbContext.CatalogProductCreditGrants.Add(new CatalogProductCreditGrant
+            {
+                CatalogProductId = productId,
+                CreditTypeId = creditType.Id,
+                Quantity = input.Quantity,
+                ValidityValue = input.ValidityValue,
+                ValidityUnit = input.ValidityUnit,
+                Scope = input.Scope,
+                CourseId = input.Scope == CreditGrantScope.Course ? input.CourseId : null,
+                CourseClassId = input.Scope == CreditGrantScope.CourseClass ? input.CourseClassId : null
+            });
+
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            return Success();
+        }
+
         private static OperationResult ValidateCreditType(CreditType creditType)
         {
             if (string.IsNullOrWhiteSpace(creditType.Name) || creditType.Name.Trim().Length > 150)

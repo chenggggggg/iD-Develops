@@ -20,6 +20,11 @@ namespace iD_Develops.Services
             IReadOnlyCollection<ProductCreditGrantInput> creditGrants,
             IReadOnlyCollection<int> includedCreditProductIds,
             CancellationToken ct = default);
+        Task UpdateProductWithCreditConfigurationAsync(
+            CatalogProduct product,
+            CreditProductConfigurationInput? creditConfiguration,
+            IReadOnlyCollection<int> includedCreditProductIds,
+            CancellationToken ct = default);
         Task DeleteProductAsync(int id, CancellationToken ct = default);
         Task<CatalogProductVariant?> GetVariantByIdAsync(int productId, int variantId, CancellationToken ct = default);
         Task<CatalogProductVariant> AddVariantAsync(int productId, CatalogProductVariant variant, CancellationToken ct = default);
