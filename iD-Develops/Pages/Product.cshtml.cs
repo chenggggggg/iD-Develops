@@ -63,10 +63,7 @@ namespace iD_Develops.Pages
         public string DownloadAccept => _catalogProductFileStorageService.DownloadAccept;
         public string? ResolvedImageUrl { get; private set; }
         public string? ResolvedAttachmentUrl { get; private set; }
-        public bool RequiresAuthenticatedAccount => Product.GrantedCourseId.HasValue ||
-                                                    Product.CreditGrants.Count > 0 ||
-                                                    Product.IncludedCreditProducts.Count > 0 ||
-                                                    Product.RequiresAccountCreation;
+        public bool RequiresAuthenticatedAccount => Product.RequiresAuthenticatedAccount;
 
         [BindProperty]
         public ProductEditInput EditInput { get; set; } = new();
@@ -411,7 +408,7 @@ namespace iD_Develops.Pages
                 : null;
 
         private static bool RequiresAuthentication(CatalogProduct product)
-            => product.GrantedCourseId.HasValue || product.CreditGrants.Count > 0 || product.RequiresAccountCreation;
+            => product.RequiresAuthenticatedAccount;
 
         private sealed record PendingCatalogCheckout(
             int ProductId,
@@ -576,23 +573,9 @@ namespace iD_Develops.Pages
 
             var previousImageUrl = product.ImageUrl;
             var previousAttachmentUrl = product.IncludedBookingBenefitUrl;
-            var creditGrantsToSave = product.ProductType == CatalogProductType.Credit
-                ? EditInput.CreditGrants
-                : product.CreditGrants.Select(grant => new ProductCreditGrantInput
-                {
-                    Id = grant.Id,
-                    CreditTypeId = grant.CreditTypeId,
-                    Quantity = grant.Quantity,
-                    ValidityValue = grant.ValidityValue,
-                    ValidityUnit = grant.ValidityUnit,
-                    Scope = grant.Scope,
-                    CourseId = grant.CourseId,
-                    CourseClassId = grant.CourseClassId
-                }).ToList();
-
             try
             {
-                await _catalogProductService.UpdateProductWithCreditGrantsAsync(new CatalogProduct
+                await _catalogProductService.UpdateProductWithCreditConfigurationAsync(new CatalogProduct
                 {
                     Id = product.Id,
                     Name = string.IsNullOrWhiteSpace(EditInput.Name) ? DraftProductName : EditInput.Name,
@@ -626,11 +609,13 @@ namespace iD_Develops.Pages
                     MaxQuantity = product.MaxQuantity,
                     RequiresAccountCreation = product.RequiresAccountCreation,
                     GrantedCourseId = EditInput.GrantedCourseId,
+                    CreditConsumptionPolicyId = product.CreditConsumptionPolicyId,
                     IncludedBookingBenefitLabel = ResolveStoredFileLabel(attachmentUrl),
                     IncludedBookingBenefitUrl = attachmentUrl,
                     IsFeatured = product.IsFeatured,
                     SortOrder = product.SortOrder
-                }, creditGrantsToSave, EditInput.IncludedCreditProductIds, ct);
+                }, product.ProductType == CatalogProductType.Credit ? EditInput.CreditConfiguration : null,
+                    EditInput.IncludedCreditProductIds, ct);
 
                 await SavePrimaryVariantSettingsAsync(product, ct);
                 await SaveFormFieldsAsync(product, ct);
@@ -675,6 +660,11 @@ namespace iD_Develops.Pages
                 ModelState.AddModelError(string.Empty, "Add at least one product detail before saving.");
             }
 
+            if (product.ProductType == CatalogProductType.Credit)
+            {
+                ValidateCreditProductConfiguration();
+            }
+
             if (requestedStatus != CatalogProductStatus.Published)
             {
                 return;
@@ -696,6 +686,26 @@ namespace iD_Develops.Pages
             {
                 ModelState.AddModelError(string.Empty, "Add at least one signup form input before publishing.");
             }
+
+        }
+
+        private void ValidateCreditProductConfiguration()
+        {
+            var input = EditInput.CreditConfiguration;
+            if (string.IsNullOrWhiteSpace(input.Name))
+                ModelState.AddModelError("EditInput.CreditConfiguration.Name", "Enter a credit name.");
+            if (string.IsNullOrWhiteSpace(input.SingularLabel) || string.IsNullOrWhiteSpace(input.PluralLabel))
+                ModelState.AddModelError(string.Empty, "Enter both the singular and plural credit labels.");
+            if (input.Quantity is < 1 or > 100000)
+                ModelState.AddModelError("EditInput.CreditConfiguration.Quantity", "Credits included must be between 1 and 100,000.");
+            if ((input.ValidityValue.HasValue) != (input.ValidityUnit.HasValue) || input.ValidityValue is <= 0)
+                ModelState.AddModelError(string.Empty, "Set both a positive validity duration and unit, or leave both empty.");
+            if (input.CancellationWindowHours is < 0 or > 8760)
+                ModelState.AddModelError("EditInput.CreditConfiguration.CancellationWindowHours", "The cancellation window must be between 0 and 8,760 hours.");
+            if (input.Scope == CreditGrantScope.Course && !input.CourseId.HasValue)
+                ModelState.AddModelError("EditInput.CreditConfiguration.CourseId", "Select the course where this credit can be used.");
+            if (input.Scope == CreditGrantScope.CourseClass && !input.CourseClassId.HasValue)
+                ModelState.AddModelError("EditInput.CreditConfiguration.CourseClassId", "Select the class where this credit can be used.");
         }
 
         private bool HasAnyEditableContent(CatalogProduct product)
@@ -709,7 +719,7 @@ namespace iD_Develops.Pages
                EditInput.TransactionFee.HasValue && EditInput.TransactionFee.Value > 0 ||
                EditInput.ServiceFee.HasValue && EditInput.ServiceFee.Value > 0 ||
                EditInput.GrantedCourseId.HasValue ||
-               EditInput.CreditGrants.Any(grant => grant.CreditTypeId > 0) ||
+               !string.IsNullOrWhiteSpace(EditInput.CreditConfiguration.Name) ||
                !string.IsNullOrWhiteSpace(EditInput.ExternalBookingUrl) ||
                !string.IsNullOrWhiteSpace(EditInput.ImageObjectKey) ||
                !string.IsNullOrWhiteSpace(EditInput.AttachmentObjectKey) ||
@@ -1205,20 +1215,7 @@ namespace iD_Develops.Pages
                 ExternalBookingButtonText = product.ExternalBookingButtonText,
                 HideFromProductsPage = product.HideFromProductsPage,
                 GrantedCourseId = product.GrantedCourseId,
-                CreditGrants = product.CreditGrants
-                    .OrderBy(grant => grant.Id)
-                    .Select(grant => new ProductCreditGrantInput
-                    {
-                        Id = grant.Id,
-                        CreditTypeId = grant.CreditTypeId,
-                        Quantity = grant.Quantity,
-                        ValidityValue = grant.ValidityValue,
-                        ValidityUnit = grant.ValidityUnit,
-                        Scope = grant.Scope,
-                        CourseId = grant.CourseId,
-                        CourseClassId = grant.CourseClassId
-                    })
-                    .ToList(),
+                CreditConfiguration = CreateCreditConfigurationInput(product),
                 IncludedCreditProductIds = product.IncludedCreditProducts
                     .Select(inclusion => inclusion.IncludedCreditProductId)
                     .ToList(),
@@ -1242,6 +1239,35 @@ namespace iD_Develops.Pages
                         OptionsText = f.OptionsText
                     })
                     .ToList()
+            };
+        }
+
+        private static CreditProductConfigurationInput CreateCreditConfigurationInput(CatalogProduct product)
+        {
+            var grant = product.CreditGrants.OrderBy(item => item.Id).FirstOrDefault();
+            var creditType = grant?.CreditType;
+            var policy = product.CreditConsumptionPolicy;
+            return new CreditProductConfigurationInput
+            {
+                CreditTypeId = creditType?.Id ?? 0,
+                CreditConsumptionPolicyId = policy?.Id ?? 0,
+                Name = creditType?.Name ?? (IsDraftPlaceholderName(product.Name) ? string.Empty : product.Name),
+                Description = creditType?.Description,
+                SingularLabel = creditType?.SingularLabel ?? "credit",
+                PluralLabel = creditType?.PluralLabel ?? "credits",
+                Quantity = grant?.Quantity ?? 1,
+                ValidityValue = grant?.ValidityValue ?? creditType?.DefaultValidityValue,
+                ValidityUnit = grant?.ValidityUnit ?? creditType?.DefaultValidityUnit,
+                Scope = grant?.Scope ?? CreditGrantScope.Global,
+                CourseId = grant?.CourseId,
+                CourseClassId = grant?.CourseClassId,
+                ConsumptionTiming = policy?.ConsumptionTiming ?? CreditConsumptionTiming.OnBooking,
+                CancellationWindowHours = policy?.CancellationWindowHours ?? 24,
+                AttendedAction = policy?.AttendedAction ?? CreditResolutionAction.Consume,
+                NoShowAction = policy?.NoShowAction ?? CreditResolutionAction.Consume,
+                EarlyCancellationAction = policy?.EarlyCancellationAction ?? CreditResolutionAction.Return,
+                LateCancellationAction = policy?.LateCancellationAction ?? CreditResolutionAction.Consume,
+                StaffCancellationAction = policy?.StaffCancellationAction ?? CreditResolutionAction.Return
             };
         }
 
@@ -1307,7 +1333,7 @@ namespace iD_Develops.Pages
 
             public int? GrantedCourseId { get; set; }
 
-            public List<ProductCreditGrantInput> CreditGrants { get; set; } = new();
+            public CreditProductConfigurationInput CreditConfiguration { get; set; } = new();
 
             public List<int> IncludedCreditProductIds { get; set; } = new();
 

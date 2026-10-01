@@ -22,6 +22,29 @@ namespace iD_Develops.Services
         public int? CourseClassId { get; set; }
     }
 
+    public sealed class CreditProductConfigurationInput
+    {
+        public int CreditTypeId { get; set; }
+        public int CreditConsumptionPolicyId { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public string SingularLabel { get; set; } = "credit";
+        public string PluralLabel { get; set; } = "credits";
+        public int Quantity { get; set; } = 1;
+        public int? ValidityValue { get; set; }
+        public CreditValidityUnit? ValidityUnit { get; set; }
+        public CreditGrantScope Scope { get; set; } = CreditGrantScope.Global;
+        public int? CourseId { get; set; }
+        public int? CourseClassId { get; set; }
+        public CreditConsumptionTiming ConsumptionTiming { get; set; } = CreditConsumptionTiming.OnBooking;
+        public int CancellationWindowHours { get; set; } = 24;
+        public CreditResolutionAction AttendedAction { get; set; } = CreditResolutionAction.Consume;
+        public CreditResolutionAction NoShowAction { get; set; } = CreditResolutionAction.Consume;
+        public CreditResolutionAction EarlyCancellationAction { get; set; } = CreditResolutionAction.Return;
+        public CreditResolutionAction LateCancellationAction { get; set; } = CreditResolutionAction.Consume;
+        public CreditResolutionAction StaffCancellationAction { get; set; } = CreditResolutionAction.Return;
+    }
+
     public interface ICreditConfigurationService
     {
         Task<IReadOnlyList<CreditTypeListItem>> GetCreditTypesAsync(CancellationToken cancellationToken = default);
@@ -34,5 +57,6 @@ namespace iD_Develops.Services
         Task<OperationResult> CreatePolicyAsync(CreditConsumptionPolicy policy, CancellationToken cancellationToken = default);
         Task<OperationResult> UpdatePolicyAsync(CreditConsumptionPolicy policy, CancellationToken cancellationToken = default);
         Task<OperationResult> ReplaceProductGrantsAsync(int productId, IReadOnlyCollection<ProductCreditGrantInput> grants, CancellationToken cancellationToken = default);
+        Task<OperationResult> SaveCreditProductConfigurationAsync(int productId, CreditProductConfigurationInput input, CancellationToken cancellationToken = default);
     }
 }

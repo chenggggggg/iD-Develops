@@ -89,6 +89,10 @@ namespace iD_Develops.Models
 
         public Course? GrantedCourse { get; set; }
 
+        public int? CreditConsumptionPolicyId { get; set; }
+
+        public CreditConsumptionPolicy? CreditConsumptionPolicy { get; set; }
+
         [MaxLength(150)]
         public string? IncludedBookingBenefitLabel { get; set; }
 
@@ -121,5 +125,13 @@ namespace iD_Develops.Models
             .OrderBy(v => v.SortOrder)
             .Select(v => (decimal?)v.Price)
             .FirstOrDefault() ?? BasePrice;
+
+        [NotMapped]
+        public bool RequiresAuthenticatedAccount =>
+            ProductType == CatalogProductType.Credit ||
+            GrantedCourseId.HasValue ||
+            CreditGrants.Count > 0 ||
+            IncludedCreditProducts.Count > 0 ||
+            RequiresAccountCreation;
     }
 }

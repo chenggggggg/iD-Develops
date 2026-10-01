@@ -45,5 +45,7 @@ namespace iD_Develops.Models
         public ICollection<ScheduledEvent> ScheduledEvents { get; set; } = new List<ScheduledEvent>();
 
         public ICollection<AppointmentType> AppointmentTypes { get; set; } = new List<AppointmentType>();
+
+        public ICollection<CatalogProduct> CatalogProducts { get; set; } = new List<CatalogProduct>();
     }
 }

@@ -175,7 +175,7 @@
         const input = settings.textarea
             ? `<textarea rows="${settings.rows || 5}" data-editor-field="${name}" placeholder="${escapeHtml(settings.placeholder || "")}" ${settings.rich ? "data-rich-editor" : ""}>${escapeHtml(value)}</textarea>`
             : `<input type="${settings.type || "text"}" value="${escapeHtml(value)}" data-editor-field="${name}" placeholder="${escapeHtml(settings.placeholder || "")}" ${settings.min ? `min="${settings.min}"` : ""} ${settings.max ? `max="${settings.max}"` : ""} />`;
-        return `<label class="course-editor-field ${settings.wide ? "is-wide" : ""}"><span>${label}</span><span class="course-editor-editable ${settings.textarea ? "has-textarea" : ""}">${input}${settings.rich ? "" : '<i class="fa-solid fa-pencil" aria-hidden="true"></i>'}</span></label>`;
+        return `<label class="course-editor-field ${settings.wide ? "is-wide" : ""}"><span>${label}</span><span class="course-editor-editable ${settings.textarea ? "has-textarea" : ""}">${input}</span></label>`;
     }
 
     function selectField(label, name, value, options, placeholder) {
@@ -250,27 +250,53 @@
         const bookingAccess = Number(courseClass.BookingAccess) || 1;
         const bookingEligibility = Number(courseClass.BookingEligibility) || 1;
         const usesCredit = bookingAccess !== 1;
-        const creditTypes = state.CreditTypes.map(function (item) { return { value: item.Id, label: `${item.Name}${item.IsActive ? "" : " (inactive)"}` }; });
-        const creditPolicies = state.CreditPolicies.map(function (item) { return { value: item.Id, label: `${item.Name}${item.IsActive ? "" : " (inactive)"}` }; });
-        const classTimesLink = Number(courseClass.Id) > 0
-            ? `<a href="/Portal/Schedule/Roster?courseClassId=${Number(courseClass.Id)}#recurring-class" class="ml-auto inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-sky-400 hover:text-sky-700"><i class="fa-solid fa-calendar-plus" aria-hidden="true"></i> Manage recurring times</a>`
-            : `<span class="ml-auto text-xs text-slate-500">Save this course before adding recurring times.</span>`;
+        const creditProducts = (state.CreditProducts || []).map(function (item) { return { value: item.Id, label: `${item.Name}${item.IsActive ? "" : " (unavailable for new sales)"}` }; });
+        const upcomingSessionCount = Number(courseClass.UpcomingSessionCount) || 0;
+        const sessionStatus = upcomingSessionCount === 0
+            ? "No sessions scheduled"
+            : `${upcomingSessionCount} upcoming session${upcomingSessionCount === 1 ? "" : "s"}`;
+        const sessionHelp = upcomingSessionCount === 0
+            ? "Add a date and time so learners can book this class."
+            : "Review the available dates or add another session.";
+        const sessionAction = Number(courseClass.Id) > 0
+            ? `<a href="/Portal/Schedule/Roster?courseClassId=${Number(courseClass.Id)}&mode=single#schedule-session" class="tw:inline-flex tw:items-center tw:justify-center tw:gap-2 tw:rounded-lg tw:bg-sky-700 tw:px-4 tw:py-2.5 tw:text-sm tw:font-semibold tw:text-white tw:transition hover:tw:bg-sky-800"><i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>${upcomingSessionCount === 0 ? "Add session" : "Manage sessions"}</a>`
+            : `<span class="tw:text-xs tw:text-slate-500">Save the course before adding sessions.</span>`;
         return `${heading("Class", "fa-calendar-days", courseClass, "Untitled class")}
-            <section class="course-editor-class-preview"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i><strong>${escapeHtml(courseClass.Title || "Untitled class")}</strong><span>${Number(courseClass.DurationMinutes) || 0} min · ${format === 2 ? "One-to-one" : "Group"}</span>${classTimesLink}</section>
-            <section class="course-editor-fields">
-                ${unlockField(courseClass)}
-                ${selectField("Session type", "Format", format, [{ value: 1, label: "Group session" }, { value: 2, label: "One-to-one session" }])}
-                ${field("Duration", "DurationMinutes", courseClass.DurationMinutes || 60, { type: "number", min: 5, max: 1440, placeholder: "Minutes" })}
-                ${format === 1 ? field("Maximum learners per session", "Capacity", courseClass.Capacity || 1, { type: "number", min: 1, max: 10000, placeholder: "Seats" }) : ""}
-                ${selectField("Who can book and how", "BookingAccess", bookingAccess, [{ value: 1, label: "Enrolled learners · included" }, { value: 2, label: "Anyone with a valid session credit" }, { value: 3, label: "Enrolled learners · session credit required" }])}
-                ${selectField("Booking becomes available", "BookingEligibility", bookingEligibility, [{ value: 1, label: "When this class unlocks" }, { value: 2, label: "When the previous section unlocks" }])}
-                ${checkboxField("Visible for student self-booking", "IsVisibleForStudentBooking", courseClass.IsVisibleForStudentBooking !== false)}
-                ${checkboxField("Required for course completion", "IsRequiredForCompletion", Boolean(courseClass.IsRequiredForCompletion))}
-                ${!usesCredit ? field("Sessions included per learner", "EnrollmentBookingLimit", courseClass.EnrollmentBookingLimit || "", { type: "number", min: 1, max: 100000, placeholder: "Unlimited" }) : ""}
-                ${usesCredit ? selectField("Required credit", "RequiredCreditTypeId", courseClass.RequiredCreditTypeId, creditTypes, "Select credit type") : ""}
-                ${usesCredit ? field("Credit cost", "CreditCost", courseClass.CreditCost || 1, { type: "number", min: 1, max: 100000 }) : ""}
-                ${selectField("Attendance and cancellation policy", "CreditConsumptionPolicyId", courseClass.CreditConsumptionPolicyId, creditPolicies, usesCredit ? "Select policy" : "Default policy")}
-            </section>`;
+            <section class="course-editor-class-preview"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i><strong>${escapeHtml(courseClass.Title || "Untitled class")}</strong><span>${Number(courseClass.DurationMinutes) || 0} min · ${format === 2 ? "One-to-one" : "Group"}</span></section>
+            <div class="tw:grid tw:gap-4 tw:py-4">
+                <details class="tw:group tw:rounded-2xl tw:border tw:border-slate-200 tw:bg-white tw:shadow-sm" open>
+                    <summary class="tw:flex tw:cursor-pointer tw:list-none tw:items-center tw:justify-between tw:gap-4 tw:px-5 tw:py-4"><span><strong class="tw:block tw:text-sm tw:text-slate-900">Class details</strong><small class="tw:mt-1 tw:block tw:text-xs tw:text-slate-500">The format, duration, and capacity of each session.</small></span><i class="fa-solid fa-chevron-down tw:text-slate-400 tw:transition-transform tw:group-open:rotate-180" aria-hidden="true"></i></summary>
+                    <section class="course-editor-fields tw:!border-b-0 tw:border-t tw:border-slate-100 tw:!px-5 tw:!py-5">
+                        ${selectField("Session type", "Format", format, [{ value: 1, label: "Group session" }, { value: 2, label: "One-to-one session" }])}
+                        ${field("Duration", "DurationMinutes", courseClass.DurationMinutes || 60, { type: "number", min: 5, max: 1440, placeholder: "Minutes" })}
+                        ${format === 1 ? field("Maximum learners per session", "Capacity", courseClass.Capacity || 1, { type: "number", min: 1, max: 10000, placeholder: "Seats" }) : ""}
+                    </section>
+                </details>
+                <details class="tw:group tw:rounded-2xl tw:border tw:border-slate-200 tw:bg-white tw:shadow-sm">
+                    <summary class="tw:flex tw:cursor-pointer tw:list-none tw:items-center tw:justify-between tw:gap-4 tw:px-5 tw:py-4"><span><strong class="tw:block tw:text-sm tw:text-slate-900">Course progress</strong><small class="tw:mt-1 tw:block tw:text-xs tw:text-slate-500">Choose when this class unlocks and whether attendance is required.</small></span><i class="fa-solid fa-chevron-down tw:text-slate-400 tw:transition-transform tw:group-open:rotate-180" aria-hidden="true"></i></summary>
+                    <section class="course-editor-fields tw:!border-b-0 tw:border-t tw:border-slate-100 tw:!px-5 tw:!py-5">
+                        ${unlockField(courseClass)}
+                        ${checkboxField("Required for course completion", "IsRequiredForCompletion", Boolean(courseClass.IsRequiredForCompletion))}
+                        <p class="tw:col-span-full tw:m-0 tw:text-xs tw:leading-5 tw:text-slate-500">Required classes are completed automatically after the learner is marked attended. No-shows do not count.</p>
+                    </section>
+                </details>
+                <details class="tw:group tw:rounded-2xl tw:border tw:border-slate-200 tw:bg-white tw:shadow-sm">
+                    <summary class="tw:flex tw:cursor-pointer tw:list-none tw:items-center tw:justify-between tw:gap-4 tw:px-5 tw:py-4"><span><strong class="tw:block tw:text-sm tw:text-slate-900">Booking</strong><small class="tw:mt-1 tw:block tw:text-xs tw:text-slate-500">Control who can book and what entitlement they need.</small></span><i class="fa-solid fa-chevron-down tw:text-slate-400 tw:transition-transform tw:group-open:rotate-180" aria-hidden="true"></i></summary>
+                    <section class="course-editor-fields tw:!border-b-0 tw:border-t tw:border-slate-100 tw:!px-5 tw:!py-5">
+                        ${selectField("Who can book?", "BookingAccess", bookingAccess, [{ value: 1, label: "Enrolled learners · included with course" }, { value: 2, label: "Anyone with the required Credit Product" }, { value: 3, label: "Enrolled learners · Credit Product required" }])}
+                        ${selectField("Booking opens", "BookingEligibility", bookingEligibility, [{ value: 1, label: "When this class unlocks" }, { value: 2, label: "When the previous section unlocks" }])}
+                        ${checkboxField("Show in student self-booking", "IsVisibleForStudentBooking", courseClass.IsVisibleForStudentBooking !== false)}
+                        ${!usesCredit ? field("Sessions included per learner", "EnrollmentBookingLimit", courseClass.EnrollmentBookingLimit || "", { type: "number", min: 1, max: 100000, placeholder: "Unlimited" }) : ""}
+                        ${usesCredit ? selectField("Required Credit Product", "RequiredCreditProductId", courseClass.RequiredCreditProductId, creditProducts, "Select Credit Product") : ""}
+                        ${usesCredit ? field("Credits per booking", "CreditCost", courseClass.CreditCost || 1, { type: "number", min: 1, max: 100000 }) : ""}
+                        ${usesCredit ? '<p class="tw:col-span-full tw:m-0 tw:text-xs tw:leading-5 tw:text-slate-500">Attendance, no-show, and cancellation rules come from the selected Credit Product.</p>' : ""}
+                    </section>
+                </details>
+                <section class="tw:flex tw:flex-col tw:gap-4 tw:rounded-2xl tw:border tw:border-slate-200 tw:bg-slate-50 tw:p-5 tw:sm:flex-row tw:sm:items-center tw:sm:justify-between">
+                    <span><strong class="tw:block tw:text-sm tw:text-slate-900">${sessionStatus}</strong><small class="tw:mt-1 tw:block tw:text-xs tw:text-slate-500">${sessionHelp}</small></span>
+                    ${sessionAction}
+                </section>
+            </div>`;
     }
 
     function toDateTimeLocal(value) {
@@ -367,7 +393,7 @@
 
     function updateField(input) {
         const item = findTarget(selected).item;
-        const numberFields = new Set(["UnlockAfterValue", "UnlockAfterUnit", "EstimatedDurationMinutes", "Format", "DurationMinutes", "Capacity", "BookingAccess", "BookingEligibility", "EnrollmentBookingLimit", "RequiredCreditTypeId", "CreditCost", "CreditConsumptionPolicyId"]);
+        const numberFields = new Set(["UnlockAfterValue", "UnlockAfterUnit", "EstimatedDurationMinutes", "Format", "DurationMinutes", "Capacity", "BookingAccess", "BookingEligibility", "EnrollmentBookingLimit", "RequiredCreditProductId", "RequiredCreditTypeId", "CreditCost", "CreditConsumptionPolicyId"]);
         item[input.dataset.editorField] = input.type === "checkbox"
             ? input.checked
             : input.dataset.editorField === "MeetingAtUtc"
@@ -383,6 +409,7 @@
         if (input.dataset.editorField === "BookingAccess") {
             if (Number(item.BookingAccess) === 1) {
                 item.RequiredCreditTypeId = null;
+                item.RequiredCreditProductId = null;
                 item.CreditConsumptionPolicyId = null;
                 item.CreditCost = 1;
             } else {
@@ -415,7 +442,7 @@
             ? { Id: nextTemporaryId--, Title: "Untitled lecture", OrderNumber: mixedChildren(section).length, Description: "", ContentType: 0, VideoReference: null, UnlockAfterValue: null, UnlockAfterUnit: 1, SourceFiles: [] }
             : type === "assignment"
                 ? { Id: nextTemporaryId--, Title: "Untitled assignment", OrderNumber: mixedChildren(section).length, Description: "", EstimatedDurationMinutes: null, Instructions: "", InstructionalVideoReference: null, SupportingFiles: [] }
-                : { Id: nextTemporaryId--, Title: "Untitled class", OrderNumber: mixedChildren(section).length, UnlockAfterValue: null, UnlockAfterUnit: 1, MeetingLink: "", MeetingAtUtc: null, Format: 1, DurationMinutes: 60, Capacity: 1, BookingAccess: 1, BookingEligibility: 1, IsVisibleForStudentBooking: true, IsRequiredForCompletion: false, EnrollmentBookingLimit: null, RequiredCreditTypeId: null, CreditCost: 1, CreditConsumptionPolicyId: null };
+                : { Id: nextTemporaryId--, Title: "Untitled class", OrderNumber: mixedChildren(section).length, UnlockAfterValue: null, UnlockAfterUnit: 1, MeetingLink: "", MeetingAtUtc: null, Format: 1, DurationMinutes: 60, Capacity: 1, BookingAccess: 1, BookingEligibility: 1, IsVisibleForStudentBooking: true, IsRequiredForCompletion: false, EnrollmentBookingLimit: null, RequiredCreditProductId: null, RequiredCreditTypeId: null, CreditCost: 1, CreditConsumptionPolicyId: null, UpcomingSessionCount: 0 };
         section[collectionKey(type)].push(item);
         expanded.add(sectionId); selected = { type: type, id: item.Id }; markDirty(); render();
     }

@@ -37,11 +37,16 @@ namespace iD_Develops.Pages.Portal.Schedule
         [BindProperty]
         public AvailabilityForm AvailabilityInput { get; set; } = new();
 
-        public async Task OnGetAsync(int? courseClassId, CancellationToken cancellationToken)
+        public async Task OnGetAsync(int? courseClassId, string? mode, CancellationToken cancellationToken)
         {
             await LoadAsync(cancellationToken);
             if (courseClassId.HasValue && Data.Classes.Any(courseClass => courseClass.Id == courseClassId.Value))
-                RuleInput.CourseClassId = courseClassId.Value;
+            {
+                if (string.Equals(mode, "single", StringComparison.OrdinalIgnoreCase))
+                    ManualInput.CourseClassId = courseClassId.Value;
+                else
+                    RuleInput.CourseClassId = courseClassId.Value;
+            }
         }
 
         public async Task<IActionResult> OnGetAvailableTeachersAsync(

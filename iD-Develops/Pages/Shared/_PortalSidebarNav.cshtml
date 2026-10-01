@@ -14,7 +14,6 @@
     var isProductsActive = IsPage("/Portal/Admin/Products");
     var isAdminPanelActive = IsPage("/Portal/Admin") && !isProductsActive;
     var isManageUsersActive = IsPage("/Portal/Admin/Users");
-    var isCreditsActive = IsPage("/Portal/Admin/Credits");
 }
 
 <div class="portal-nav-list">
@@ -88,10 +87,6 @@
                 <a class="portal-subnav-link @(isManageUsersActive ? "active" : null)" asp-page="/Portal/Admin/Users">
                     <i class="fa-solid fa-users"></i>
                     <span>Manage Users</span>
-                </a>
-                <a class="portal-subnav-link @(isCreditsActive ? "active" : null)" asp-page="/Portal/Admin/Credits">
-                    <i class="fa-solid fa-ticket"></i>
-                    <span>Credits</span>
                 </a>
             </div>
         </details>

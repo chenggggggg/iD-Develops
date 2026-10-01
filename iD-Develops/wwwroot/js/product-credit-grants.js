@@ -1,72 +1,54 @@
 (function () {
     "use strict";
 
-    const root = document.querySelector("[data-product-credit-grants]");
-    const list = root?.querySelector("[data-credit-grant-list]");
-    const template = root?.querySelector("[data-credit-grant-template]");
-    const addButton = root?.querySelector("[data-add-credit-grant]");
-    if (!root || !list || !template || !addButton) return;
+    const root = document.querySelector("[data-credit-product-settings]");
+    if (!root) return;
 
-    function updateScope(row) {
-        const scope = row.querySelector("[data-credit-scope]")?.value || "Global";
-        const courseField = row.querySelector("[data-credit-course-field]");
-        const classField = row.querySelector("[data-credit-class-field]");
+    const scope = root.querySelector("[data-credit-product-scope]");
+    const courseField = root.querySelector("[data-credit-product-course]");
+    const classField = root.querySelector("[data-credit-product-class]");
+    const summary = root.querySelector("[data-credit-rules-summary]");
+
+    function updateScope() {
+        const value = scope?.value || "Global";
         const courseSelect = courseField?.querySelector("select");
         const classSelect = classField?.querySelector("select");
+        const usesCourse = value === "Course";
+        const usesClass = value === "CourseClass";
 
-        const usesCourse = scope === "Course";
-        const usesClass = scope === "CourseClass";
         if (courseField) courseField.hidden = !usesCourse;
         if (classField) classField.hidden = !usesClass;
         if (courseSelect) {
             courseSelect.disabled = !usesCourse;
             courseSelect.required = usesCourse;
-            if (!usesCourse) courseSelect.value = "";
         }
         if (classSelect) {
             classSelect.disabled = !usesClass;
             classSelect.required = usesClass;
-            if (!usesClass) classSelect.value = "";
         }
     }
 
-    function reindexRows() {
-        list.querySelectorAll("[data-credit-grant-row]").forEach(function (row, index) {
-            row.querySelectorAll("[name]").forEach(function (field) {
-                field.name = field.name.replace(/CreditGrants\[\d+\]/, `CreditGrants[${index}]`);
-            });
-        });
+    function actionText(fieldName) {
+        const value = root.querySelector(`[name="EditInput.CreditConfiguration.${fieldName}"]`)?.value;
+        return value === "Return" ? "returned" : "consumed";
     }
 
-    function signalChange() {
-        root.closest("form")?.dispatchEvent(new Event("input", { bubbles: true }));
+    function updateSummary() {
+        if (!summary) return;
+        const timing = root.querySelector('[name="EditInput.CreditConfiguration.ConsumptionTiming"]')?.value;
+        const hours = root.querySelector('[name="EditInput.CreditConfiguration.CancellationWindowHours"]')?.value || "0";
+        const opening = timing === "OnAttendance"
+            ? "The credit is charged after attendance is recorded."
+            : "The credit is reserved as soon as the learner books.";
+        summary.textContent = `${opening} It is ${actionText("AttendedAction")} after attendance, ${actionText("NoShowAction")} after a no-show, ${actionText("EarlyCancellationAction")} when cancelled at least ${hours} hours beforehand, ${actionText("LateCancellationAction")} after a late cancellation, and ${actionText("StaffCancellationAction")} when staff cancels.`;
     }
 
-    function bindRow(row) {
-        const scope = row.querySelector("[data-credit-scope]");
-        scope?.addEventListener("change", function () {
-            updateScope(row);
-        });
-        row.querySelector("[data-remove-credit-grant]")?.addEventListener("click", function () {
-            row.remove();
-            reindexRows();
-            signalChange();
-        });
-        updateScope(row);
-    }
-
-    addButton.addEventListener("click", function () {
-        const index = list.querySelectorAll("[data-credit-grant-row]").length;
-        const wrapper = document.createElement("div");
-        wrapper.innerHTML = template.innerHTML.replaceAll("__index__", String(index)).trim();
-        const row = wrapper.firstElementChild;
-        if (!row) return;
-        list.appendChild(row);
-        bindRow(row);
-        row.querySelector("[data-credit-type]")?.focus();
-        signalChange();
+    scope?.addEventListener("change", updateScope);
+    root.querySelectorAll("[data-credit-rule]").forEach(function (field) {
+        field.addEventListener("input", updateSummary);
+        field.addEventListener("change", updateSummary);
     });
 
-    list.querySelectorAll("[data-credit-grant-row]").forEach(bindRow);
-    reindexRows();
+    updateScope();
+    updateSummary();
 })();
