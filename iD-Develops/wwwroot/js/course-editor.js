@@ -12,10 +12,12 @@
     state.Sections = state.Sections || [];
     state.CreditTypes = state.CreditTypes || [];
     state.CreditPolicies = state.CreditPolicies || [];
+    state.ExamOptions = state.ExamOptions || [];
     state.Sections.forEach(function (section) {
         section.Lectures = section.Lectures || [];
         section.Assignments = section.Assignments || [];
         section.Classes = section.Classes || [];
+        section.Exams = section.Exams || [];
     });
 
     const courseId = Number(state.CourseId);
@@ -30,7 +32,8 @@
             return [section.Id]
                 .concat((section.Lectures || []).map(function (item) { return item.Id; }))
                 .concat((section.Assignments || []).map(function (item) { return item.Id; }))
-                .concat((section.Classes || []).map(function (item) { return item.Id; }));
+                .concat((section.Classes || []).map(function (item) { return item.Id; }))
+                .concat((section.Exams || []).map(function (item) { return item.Id; }));
         });
     }
 
@@ -50,6 +53,7 @@
     function collectionKey(type) {
         if (type === "lecture") return "Lectures";
         if (type === "assignment") return "Assignments";
+        if (type === "exam") return "Exams";
         return "Classes";
     }
 
@@ -68,6 +72,7 @@
         return (section.Lectures || []).map(function (item) { return { type: "lecture", item: item }; })
             .concat((section.Assignments || []).map(function (item) { return { type: "assignment", item: item }; }))
             .concat((section.Classes || []).map(function (item) { return { type: "class", item: item }; }))
+            .concat((section.Exams || []).map(function (item) { return { type: "exam", item: item }; }))
             .sort(function (left, right) { return left.item.OrderNumber - right.item.OrderNumber || left.item.Id - right.item.Id; });
     }
 
@@ -85,6 +90,34 @@
 
     function dragButton() {
         return `<button class="course-editor-drag" type="button" draggable="true" data-drag-handle aria-label="Drag to reorder" title="Drag to reorder"><span class="course-editor-grip" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></span></button>`;
+    }
+
+    function addContentOption(sectionId, type, icon, label, description) {
+        return `<button class="tw:group tw:flex tw:min-h-12 tw:w-full tw:items-center tw:gap-3 tw:rounded-md tw:border-0 tw:bg-transparent tw:px-2.5 tw:py-2 tw:text-left tw:text-slate-700 tw:transition-colors hover:tw:bg-slate-50 hover:tw:text-slate-950 focus-visible:tw:bg-slate-50 focus-visible:tw:outline-2 focus-visible:tw:outline-offset-1 focus-visible:tw:outline-[#b23a48]" type="button" data-add-child="${type}" data-section-id="${sectionId}">
+            <span class="tw:grid tw:size-8 tw:shrink-0 tw:place-items-center tw:rounded-md tw:bg-slate-100 tw:text-sm tw:text-slate-600 group-hover:tw:bg-white group-hover:tw:text-[#b23a48]" aria-hidden="true"><i class="fa-solid ${icon}"></i></span>
+            <span class="tw:min-w-0 tw:flex-1">
+                <span class="tw:block tw:text-sm tw:font-semibold tw:leading-5">${label}</span>
+                <span class="tw:block tw:text-xs tw:leading-4 tw:text-slate-500">${description}</span>
+            </span>
+            <i class="fa-solid fa-chevron-right tw:text-[0.65rem] tw:text-slate-400" aria-hidden="true"></i>
+        </button>`;
+    }
+
+    function addContentMenu(section) {
+        const menuId = `course-add-content-${section.Id}`;
+        return `<div class="tw:relative tw:px-1 tw:pb-1 tw:pt-2" data-add-content-root>
+            <button class="tw:flex tw:min-h-10 tw:w-full tw:items-center tw:gap-2 tw:rounded-md tw:border tw:border-dashed tw:border-slate-300 tw:bg-white tw:px-3 tw:py-2 tw:text-sm tw:font-semibold tw:text-slate-600 tw:transition-colors hover:tw:border-[#b23a48] hover:tw:bg-rose-50/50 hover:tw:text-[#b23a48] focus-visible:tw:outline-2 focus-visible:tw:outline-offset-2 focus-visible:tw:outline-[#b23a48]" type="button" data-add-content-toggle aria-controls="${menuId}" aria-expanded="false">
+                <i class="fa-solid fa-plus tw:text-xs" aria-hidden="true"></i>
+                <span class="tw:flex-1 tw:text-left">Add content</span>
+                <i class="fa-solid fa-chevron-down tw:text-[0.65rem] tw:transition-transform" data-add-content-chevron aria-hidden="true"></i>
+            </button>
+            <div class="tw:mt-2 tw:grid tw:gap-0.5 tw:rounded-lg tw:border tw:border-slate-200 tw:bg-white tw:p-1.5 tw:shadow-lg" id="${menuId}" data-add-content-menu hidden>
+                ${addContentOption(section.Id, "lecture", "fa-circle-play", "Lecture", "Video, article, or learning material")}
+                ${addContentOption(section.Id, "assignment", "fa-clipboard-check", "Assignment", "A task for students to complete")}
+                ${addContentOption(section.Id, "class", "fa-calendar-days", "Live class", "A scheduled, bookable session")}
+                ${addContentOption(section.Id, "exam", "fa-file-circle-check", "Exam", "An assessment with passing rules")}
+            </div>
+        </div>`;
     }
 
     function renderOutline() {
@@ -108,13 +141,9 @@
                 <div class="course-editor-section-content" ${isExpanded ? "" : "hidden"}>
                     <div class="course-editor-children">
                         ${children.map(function (entry) { return childRow(section, entry.type, entry.item); }).join("")}
-                        <div class="course-editor-drop-hint" data-child-drop-zone="${section.Id}">Drop lecture, assignment, or class here</div>
+                        <div class="course-editor-drop-hint" data-child-drop-zone="${section.Id}">Drop lecture, assignment, class, or exam here</div>
                     </div>
-                    <div class="course-editor-child-actions">
-                        <button type="button" data-add-child="lecture" data-section-id="${section.Id}"><i class="fa-solid fa-plus" aria-hidden="true"></i> Add lecture</button>
-                        <button type="button" data-add-child="assignment" data-section-id="${section.Id}"><i class="fa-solid fa-plus" aria-hidden="true"></i> Add assignment</button>
-                        <button type="button" data-add-child="class" data-section-id="${section.Id}"><i class="fa-solid fa-plus" aria-hidden="true"></i> Add class</button>
-                    </div>
+                    ${addContentMenu(section)}
                 </div>
             </section>`;
         }).join("");
@@ -122,16 +151,19 @@
     }
 
     function childRow(section, type, item) {
-        const icon = type === "lecture" ? "fa-circle-play" : type === "assignment" ? "fa-clipboard-check" : "fa-calendar-days";
+        const icon = type === "lecture" ? "fa-circle-play" : type === "assignment" ? "fa-clipboard-check" : type === "exam" ? "fa-file-circle-check" : "fa-calendar-days";
         const duration = type === "assignment" && Number(item.EstimatedDurationMinutes) > 0
             ? Number(item.EstimatedDurationMinutes)
             : 0;
-        const meta = type === "class" ? `${Number(item.DurationMinutes) || 0} min` : `${duration} min`;
+        const meta = type === "class" ? `${Number(item.DurationMinutes) || 0} min` : type === "exam" ? (Number(item.PublishStatus) === 1 ? "Published" : Number(item.PublishStatus) === 2 ? "Archived" : "Draft") : `${duration} min`;
+        const titleMarkup = type === "exam"
+            ? `<span class="course-editor-inline-field"><span class="tw:block tw:min-w-0 tw:truncate tw:px-2 tw:text-sm tw:font-medium tw:text-slate-800">${escapeHtml(item.Title)}</span></span>`
+            : treeTitle(item, type, `${type} title`);
         return `<div class="course-editor-tree-item is-child ${selected.type === type && selected.id === Number(item.Id) ? "is-selected" : ""}" data-editor-item data-type="${type}" data-id="${item.Id}" data-parent-id="${section.Id}" draggable="true">
             <div class="course-editor-tree-row">
                 ${dragButton()}
                 <div class="course-editor-item-copy">
-                    ${treeTitle(item, type, `${type} title`)}
+                    ${titleMarkup}
                     <span class="course-editor-item-meta"><i class="fa-solid ${icon}" aria-hidden="true"></i><span>${meta}</span></span>
                 </div>
                 <button class="course-editor-remove" type="button" data-remove data-type="${type}" data-id="${item.Id}" aria-label="Remove ${type}"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
@@ -157,6 +189,8 @@
             main.innerHTML = renderLecture(match.item);
         } else if (selected.type === "class") {
             main.innerHTML = renderClass(match.item);
+        } else if (selected.type === "exam") {
+            main.innerHTML = renderExam(match.item);
         } else {
             main.innerHTML = renderAssignment(match.item);
         }
@@ -205,7 +239,7 @@
 
     function renderSection(section) {
         return `${heading("Section", null, section, "Untitled section")}
-            <section class="course-editor-section-preview"><strong>${escapeHtml(section.Title || "Untitled section")}</strong><span>${section.Lectures.length} lectures &middot; ${section.Assignments.length} assignments &middot; ${section.Classes.length} classes</span></section>
+            <section class="course-editor-section-preview"><strong>${escapeHtml(section.Title || "Untitled section")}</strong><span>${section.Lectures.length} lectures &middot; ${section.Assignments.length} assignments &middot; ${section.Classes.length} classes &middot; ${section.Exams.length} exams</span></section>
             <section class="course-editor-fields">${unlockField(section)}</section>`;
     }
 
@@ -243,6 +277,29 @@
                 ${uploadBox("file", "Upload supporting files", ".pdf,.zip,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.mp3,.m4a")}
                 ${renderFiles(assignment.SupportingFiles || [], "Supporting files")}
             </section>`;
+    }
+
+    function renderExam(exam) {
+        const examOptions = state.ExamOptions.map(function (option) {
+            const status = Number(option.PublishStatus) === 1 ? "Published" : "Draft";
+            return { value: option.Id, label: `${option.Name} (${status})` };
+        });
+        const status = Number(exam.PublishStatus) === 1 ? "Published" : Number(exam.PublishStatus) === 2 ? "Archived" : "Draft";
+        return `${heading("Exam", "fa-file-circle-check", exam, "Exam")}
+            <div class="tw:mb-5 tw:rounded-xl tw:border ${Number(exam.PublishStatus) === 1 ? "tw:border-emerald-200 tw:bg-emerald-50 tw:text-emerald-900" : "tw:border-amber-200 tw:bg-amber-50 tw:text-amber-900"} tw:px-4 tw:py-3 tw:text-sm">
+                <strong>${status}</strong>${Number(exam.PublishStatus) === 1 ? " · visible when this content unlocks" : " · not visible to students until published"}
+            </div>
+            <section class="course-editor-fields">
+                ${selectField("Exam", "ExamId", exam.ExamId, examOptions, "Select an exam")}
+                ${unlockField(exam)}
+                ${checkboxField("Required for completion", "IsRequiredForCompletion", exam.IsRequiredForCompletion !== false)}
+                ${field("Minimum passing score", "MinimumPassingScore", exam.MinimumPassingScore ?? 0, { type: "number", min: 0, max: 100000 })}
+                ${selectField("When the learner does not pass", "FailureAction", exam.FailureAction || 2, [{ value: 1, label: "Allow course progress" }, { value: 2, label: "Require a passing score" }])}
+            </section>
+            <div class="tw:mt-5 tw:flex tw:flex-wrap tw:gap-2">
+                <a class="portal-btn portal-btn-outline portal-btn-sm" href="/portal/examination/edit?examId=${Number(exam.ExamId)}"><i class="fa-solid fa-pen" aria-hidden="true"></i>Edit exam</a>
+                <button class="portal-btn portal-btn-outline portal-btn-sm" type="button" data-create-new-exam data-section-id="${findTarget(selected).parent?.Id || ""}"><i class="fa-solid fa-plus" aria-hidden="true"></i>Create and attach new exam</button>
+            </div>`;
     }
 
     function renderClass(courseClass) {
@@ -330,6 +387,23 @@
     }
 
     function bindOutline() {
+        outline.querySelectorAll("[data-add-content-toggle]").forEach(function (button) {
+            button.addEventListener("click", function () {
+                const root = button.closest("[data-add-content-root]");
+                const menu = root?.querySelector("[data-add-content-menu]");
+                if (!menu) return;
+                const shouldOpen = menu.hidden;
+                outline.querySelectorAll("[data-add-content-menu]").forEach(function (candidate) {
+                    candidate.hidden = true;
+                    candidate.closest("[data-add-content-root]")?.querySelector("[data-add-content-toggle]")?.setAttribute("aria-expanded", "false");
+                    candidate.closest("[data-add-content-root]")?.querySelector("[data-add-content-chevron]")?.classList.remove("tw:rotate-180");
+                });
+                menu.hidden = !shouldOpen;
+                button.setAttribute("aria-expanded", String(shouldOpen));
+                root.querySelector("[data-add-content-chevron]")?.classList.toggle("tw:rotate-180", shouldOpen);
+                if (shouldOpen) menu.querySelector("button")?.focus();
+            });
+        });
         outline.querySelectorAll("[data-section-toggle]").forEach(function (button) {
             button.addEventListener("click", function () { const id = Number(button.dataset.sectionToggle); expanded.has(id) ? expanded.delete(id) : expanded.add(id); renderOutline(); });
         });
@@ -389,11 +463,33 @@
         });
         main.querySelector("[data-upload-video]")?.addEventListener("change", function (event) { uploadVideo(event.target); });
         main.querySelector("[data-upload-file]")?.addEventListener("change", function (event) { uploadFile(event.target); });
+        main.querySelector("[data-create-new-exam]")?.addEventListener("click", function () {
+            const match = findTarget(selected);
+            if (match.parent) startCreateExam(match.parent);
+        });
+    }
+
+    function startCreateExam(section) {
+        normalizeOrders();
+        function addValue(name, value) {
+            let input = form.querySelector(`input[name="${name}"]`);
+            if (!input) {
+                input = document.createElement("input");
+                input.type = "hidden";
+                input.name = name;
+                form.appendChild(input);
+            }
+            input.value = String(value);
+        }
+        addValue("CreateExamSectionId", Number(section.Id));
+        addValue("CreateExamSectionOrder", Number(section.OrderNumber));
+        form.action = `${window.location.pathname}?handler=SaveAndCreateExam&courseId=${courseId}`;
+        form.requestSubmit();
     }
 
     function updateField(input) {
         const item = findTarget(selected).item;
-        const numberFields = new Set(["UnlockAfterValue", "UnlockAfterUnit", "EstimatedDurationMinutes", "Format", "DurationMinutes", "Capacity", "BookingAccess", "BookingEligibility", "EnrollmentBookingLimit", "RequiredCreditProductId", "RequiredCreditTypeId", "CreditCost", "CreditConsumptionPolicyId"]);
+        const numberFields = new Set(["UnlockAfterValue", "UnlockAfterUnit", "EstimatedDurationMinutes", "Format", "DurationMinutes", "Capacity", "BookingAccess", "BookingEligibility", "EnrollmentBookingLimit", "RequiredCreditProductId", "RequiredCreditTypeId", "CreditCost", "CreditConsumptionPolicyId", "ExamId", "MinimumPassingScore", "FailureAction"]);
         item[input.dataset.editorField] = input.type === "checkbox"
             ? input.checked
             : input.dataset.editorField === "MeetingAtUtc"
@@ -417,6 +513,14 @@
             }
             renderMain();
         }
+        if (input.dataset.editorField === "ExamId") {
+            const option = state.ExamOptions.find(function (candidate) { return Number(candidate.Id) === Number(item.ExamId); });
+            if (option) {
+                item.Title = option.Name;
+                item.PublishStatus = option.PublishStatus;
+            }
+            render();
+        }
         markDirty();
     }
 
@@ -438,17 +542,23 @@
 
     function addChild(sectionId, type) {
         const section = findSection(sectionId); if (!section) return;
+        if (type === "exam" && !state.ExamOptions.length) {
+            if (window.confirm("You do not have an active exam to select. Save the course and create one now?")) startCreateExam(section);
+            return;
+        }
         const item = type === "lecture"
             ? { Id: nextTemporaryId--, Title: "Untitled lecture", OrderNumber: mixedChildren(section).length, Description: "", ContentType: 0, VideoReference: null, UnlockAfterValue: null, UnlockAfterUnit: 1, SourceFiles: [] }
             : type === "assignment"
                 ? { Id: nextTemporaryId--, Title: "Untitled assignment", OrderNumber: mixedChildren(section).length, Description: "", EstimatedDurationMinutes: null, Instructions: "", InstructionalVideoReference: null, SupportingFiles: [] }
-                : { Id: nextTemporaryId--, Title: "Untitled class", OrderNumber: mixedChildren(section).length, UnlockAfterValue: null, UnlockAfterUnit: 1, MeetingLink: "", MeetingAtUtc: null, Format: 1, DurationMinutes: 60, Capacity: 1, BookingAccess: 1, BookingEligibility: 1, IsVisibleForStudentBooking: true, IsRequiredForCompletion: false, EnrollmentBookingLimit: null, RequiredCreditProductId: null, RequiredCreditTypeId: null, CreditCost: 1, CreditConsumptionPolicyId: null, UpcomingSessionCount: 0 };
+                : type === "exam"
+                    ? { Id: nextTemporaryId--, ExamId: state.ExamOptions[0].Id, Title: state.ExamOptions[0].Name, PublishStatus: state.ExamOptions[0].PublishStatus, OrderNumber: mixedChildren(section).length, UnlockAfterValue: null, UnlockAfterUnit: 1, IsRequiredForCompletion: true, MinimumPassingScore: 0, FailureAction: 2 }
+                    : { Id: nextTemporaryId--, Title: "Untitled class", OrderNumber: mixedChildren(section).length, UnlockAfterValue: null, UnlockAfterUnit: 1, MeetingLink: "", MeetingAtUtc: null, Format: 1, DurationMinutes: 60, Capacity: 1, BookingAccess: 1, BookingEligibility: 1, IsVisibleForStudentBooking: true, IsRequiredForCompletion: false, EnrollmentBookingLimit: null, RequiredCreditProductId: null, RequiredCreditTypeId: null, CreditCost: 1, CreditConsumptionPolicyId: null, UpcomingSessionCount: 0 };
         section[collectionKey(type)].push(item);
         expanded.add(sectionId); selected = { type: type, id: item.Id }; markDirty(); render();
     }
 
     function addSection() {
-        const section = { Id: nextTemporaryId--, Title: "Untitled section", OrderNumber: state.Sections.length, UnlockAfterValue: null, UnlockAfterUnit: 1, Lectures: [], Assignments: [], Classes: [] };
+        const section = { Id: nextTemporaryId--, Title: "Untitled section", OrderNumber: state.Sections.length, UnlockAfterValue: null, UnlockAfterUnit: 1, Lectures: [], Assignments: [], Classes: [], Exams: [] };
         state.Sections.push(section); expanded.add(section.Id); selected = { type: "section", id: section.Id }; markDirty(); render();
     }
 

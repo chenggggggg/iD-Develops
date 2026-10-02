@@ -23,6 +23,9 @@ namespace iD_Develops.Pages.Portal.Examination
         [BindProperty(SupportsGet = true)]
         public int QuestionId { get; set; }
 
+        [BindProperty(SupportsGet = true)]
+        public int? ReturnCourseId { get; set; }
+
         [BindProperty]
         public CreateExamInputModel Settings { get; set; } = new();
         public Question? Question { get; set; }
@@ -67,7 +70,12 @@ namespace iD_Develops.Pages.Portal.Examination
                 return NotFound();
 
             if (pageData.RedirectToCanonicalQuestion)
-                return RedirectToPage(new { examId = ExamId, questionId = pageData.ResolvedQuestionId });
+                return RedirectToPage(new
+                {
+                    examId = ExamId,
+                    questionId = pageData.ResolvedQuestionId,
+                    returnCourseId = ReturnCourseId
+                });
 
             QuestionId = pageData.ResolvedQuestionId;
             Header = pageData.Header;
@@ -191,7 +199,7 @@ namespace iD_Develops.Pages.Portal.Examination
             if (!result.Success)
                 return StatusCode(result.StatusCode);
 
-            return RedirectToPage(new { ExamId, QuestionId });
+            return RedirectToPage(new { ExamId, QuestionId, ReturnCourseId });
         }
 
         public async Task<IActionResult> OnPostSaveQuickSettingsAsync()
@@ -220,7 +228,7 @@ namespace iD_Develops.Pages.Portal.Examination
                 });
             }
 
-            return RedirectToPage(new { ExamId, QuestionId });
+            return RedirectToPage(new { ExamId, QuestionId, ReturnCourseId });
         }
 
         public async Task<IActionResult> OnPostSaveHeaderSettingsAsync(int examId, string field, string? name, int? timeLimit)

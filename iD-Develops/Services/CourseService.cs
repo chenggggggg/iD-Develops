@@ -123,7 +123,17 @@ namespace iD_Develops.Services
             var course = await _dbContext.Courses
                 .AsNoTracking()
                 .Where(item => item.Id == courseId)
-                .Select(item => new { item.Id, item.Name, item.CreatedByUserId })
+                .Select(item => new
+                {
+                    item.Id,
+                    item.Name,
+                    item.CreatedByUserId,
+                    Sections = item.Sections
+                        .OrderBy(section => section.OrderNumber)
+                        .ThenBy(section => section.Id)
+                        .Select(section => new CourseSectionAccessOption(section.Id, section.Title, section.OrderNumber))
+                        .ToList()
+                })
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (course == null)
@@ -206,7 +216,8 @@ namespace iD_Develops.Services
                 course.Id,
                 course.Name,
                 users.ToList(),
-                assignableUsers);
+                assignableUsers,
+                course.Sections);
         }
 
         public async Task<OperationResult> AssignUserAsync(
@@ -230,10 +241,21 @@ namespace iD_Develops.Services
             if (!await CanManageCourseAsync(courseId, grantedByUserId, canManageAll, cancellationToken))
                 return Failure("You are not allowed to manage access for this course.");
 
-            var courseExists = await _dbContext.Courses
+            var course = await _dbContext.Courses
                 .AsNoTracking()
-                .AnyAsync(course => course.Id == courseId, cancellationToken);
-            if (!courseExists)
+                .Where(course => course.Id == courseId)
+                .Select(course => new
+                {
+                    course.Id,
+                    Sections = course.Sections.Select(section => new
+                    {
+                        section.Id,
+                        section.UnlockAfterValue,
+                        section.UnlockAfterUnit
+                    }).ToList()
+                })
+                .FirstOrDefaultAsync(cancellationToken);
+            if (course == null)
                 return Failure("Course not found.");
 
             var userExists = await _dbContext.Users
@@ -249,14 +271,27 @@ namespace iD_Develops.Services
             if (alreadyAssigned)
                 return Failure("This user already has access to the course.");
 
+            var grantedAtUtc = DateTime.UtcNow;
             _dbContext.UserCourses.Add(new UserCourse
             {
                 CourseId = courseId,
                 UserId = userId,
-                GrantedAtUtc = DateTime.UtcNow,
+                GrantedAtUtc = grantedAtUtc,
                 AssignmentSource = CourseAssignmentSource.Admin,
                 GrantedByUserId = grantedByUserId
             });
+            _dbContext.CourseSectionUserAccesses.AddRange(course.Sections.Select(section =>
+                new CourseSectionUserAccess
+                {
+                    UserId = userId,
+                    CourseSectionId = section.Id,
+                    UnlockAtUtc = CalculateUnlockAtUtc(
+                        grantedAtUtc,
+                        section.UnlockAfterValue,
+                        section.UnlockAfterUnit),
+                    UpdatedAtUtc = grantedAtUtc,
+                    UpdatedByUserId = grantedByUserId
+                }));
             await _dbContext.SaveChangesAsync(cancellationToken);
 
             return Success();
@@ -291,9 +326,57 @@ namespace iD_Develops.Services
             if (assignment == null)
                 return Failure("This user no longer has access to the course.");
 
+            var sectionAccesses = await _dbContext.CourseSectionUserAccesses
+                .Where(access =>
+                    access.UserId == userId &&
+                    access.CourseSection.CourseId == courseId)
+                .ToListAsync(cancellationToken);
+            _dbContext.CourseSectionUserAccesses.RemoveRange(sectionAccesses);
             _dbContext.UserCourses.Remove(assignment);
             await _dbContext.SaveChangesAsync(cancellationToken);
 
+            return Success();
+        }
+
+        public async Task<OperationResult> SetSectionUnlockAsync(
+            int courseId,
+            int sectionId,
+            string userId,
+            DateTime unlockAtUtc,
+            string actorUserId,
+            bool canManageAll,
+            CancellationToken cancellationToken = default)
+        {
+            if (!await CanManageCourseAsync(courseId, actorUserId, canManageAll, cancellationToken))
+                return Failure("You are not allowed to manage access for this course.");
+
+            var isEnrolled = await _dbContext.UserCourses
+                .AsNoTracking()
+                .AnyAsync(access => access.CourseId == courseId && access.UserId == userId, cancellationToken);
+            var sectionExists = await _dbContext.CourseSections
+                .AsNoTracking()
+                .AnyAsync(section => section.Id == sectionId && section.CourseId == courseId, cancellationToken);
+            if (!isEnrolled || !sectionExists)
+                return Failure("The selected user or section is no longer available.");
+
+            var normalizedUnlockAtUtc = NormalizeUtc(unlockAtUtc) ?? DateTime.UtcNow;
+            var access = await _dbContext.CourseSectionUserAccesses
+                .FirstOrDefaultAsync(item => item.UserId == userId && item.CourseSectionId == sectionId, cancellationToken);
+            if (access == null)
+            {
+                access = new CourseSectionUserAccess
+                {
+                    UserId = userId,
+                    CourseSectionId = sectionId
+                };
+                _dbContext.CourseSectionUserAccesses.Add(access);
+            }
+
+            access.UnlockAtUtc = normalizedUnlockAtUtc;
+            access.IsManualOverride = true;
+            access.UpdatedAtUtc = DateTime.UtcNow;
+            access.UpdatedByUserId = actorUserId;
+            await _dbContext.SaveChangesAsync(cancellationToken);
             return Success();
         }
 
@@ -322,6 +405,11 @@ namespace iD_Develops.Services
                         .ThenInclude(assignment => assignment.SupportingFiles)
                 .Include(item => item.Sections)
                     .ThenInclude(section => section.Classes)
+                .Include(item => item.Sections)
+                    .ThenInclude(section => section.Exams)
+                        .ThenInclude(placement => placement.Exam)
+                .Include(item => item.Sections)
+                    .ThenInclude(section => section.UserAccesses)
                 .FirstOrDefaultAsync(item => item.Id == courseId, cancellationToken);
 
             if (course == null)
@@ -393,6 +481,25 @@ namespace iD_Develops.Services
                     .ToListAsync(cancellationToken))
                     .ToHashSet();
 
+            var placedExamIds = course.Sections
+                .SelectMany(section => section.Exams)
+                .Where(placement => placement.Exam.PublishStatus == ExamPublishStatus.Published)
+                .Select(placement => placement.ExamId)
+                .Distinct()
+                .ToArray();
+            var completedExamScores = placedExamIds.Length == 0
+                ? new Dictionary<int, double>()
+                : await _dbContext.Records
+                    .AsNoTracking()
+                    .Where(record =>
+                        record.UserId == userId &&
+                        record.ExamStatus == ExamStatus.Completed &&
+                        !record.IsDeleted &&
+                        placedExamIds.Contains(record.ExamId))
+                    .GroupBy(record => record.ExamId)
+                    .Select(group => new { ExamId = group.Key, BestScore = group.Max(record => record.Score) })
+                    .ToDictionaryAsync(item => item.ExamId, item => item.BestScore, cancellationToken);
+
             var now = DateTime.UtcNow;
             var orderedCourseSections = course.Sections
                 .OrderBy(section => section.OrderNumber)
@@ -401,10 +508,12 @@ namespace iD_Develops.Services
             var sections = orderedCourseSections
                 .Select(section =>
                 {
-                    var sectionUnlockAtUtc = CalculateUnlockAtUtc(
-                        accessDateUtc,
-                        section.UnlockAfterValue,
-                        section.UnlockAfterUnit);
+                    var sectionUnlockAtUtc = section.UserAccesses
+                        .FirstOrDefault(item => item.UserId == userId)?.UnlockAtUtc
+                        ?? CalculateUnlockAtUtc(
+                            accessDateUtc,
+                            section.UnlockAfterValue,
+                            section.UnlockAfterUnit);
                     var sectionLocked = IsLocked(sectionUnlockAtUtc, canManageCourse, now);
                     var lectures = section.Lectures
                         .OrderBy(lecture => lecture.OrderNumber)
@@ -472,6 +581,37 @@ namespace iD_Develops.Services
                                 courseClass.MeetingAtUtc);
                         })
                         .ToList();
+                    var exams = section.Exams
+                        .Where(placement =>
+                            canManageCourse ||
+                            placement.Exam.PublishStatus == ExamPublishStatus.Published)
+                        .OrderBy(placement => placement.OrderNumber)
+                        .ThenBy(placement => placement.Id)
+                        .Select(placement =>
+                        {
+                            var examUnlockAtUtc = CalculateUnlockAtUtc(
+                                accessDateUtc,
+                                placement.UnlockAfterValue,
+                                placement.UnlockAfterUnit);
+                            var effectiveUnlockAtUtc = Latest(sectionUnlockAtUtc, examUnlockAtUtc);
+                            var hasCompletedAttempt = completedExamScores.TryGetValue(placement.ExamId, out var bestScore);
+                            var hasPassed = hasCompletedAttempt &&
+                                (placement.FailureAction == CourseExamFailureAction.AllowProgress ||
+                                 bestScore >= placement.MinimumPassingScore);
+                            return new CourseExamItem(
+                                placement.Id,
+                                placement.ExamId,
+                                placement.Exam.Name,
+                                placement.OrderNumber,
+                                effectiveUnlockAtUtc,
+                                IsLocked(effectiveUnlockAtUtc, canManageCourse, now) ||
+                                    (!canManageCourse && placement.Exam.PublishStatus != ExamPublishStatus.Published),
+                                placement.IsRequiredForCompletion,
+                                hasCompletedAttempt,
+                                hasPassed,
+                                placement.Exam.PublishStatus);
+                        })
+                        .ToList();
 
                     return new CourseSectionItem(
                         section.Id,
@@ -481,7 +621,8 @@ namespace iD_Develops.Services
                         sectionLocked,
                         lectures,
                         assignments,
-                        classes);
+                        classes,
+                        exams);
                 })
                 .ToList();
 
@@ -500,8 +641,12 @@ namespace iD_Develops.Services
                 canManageCourse,
                 access?.GrantedAtUtc,
                 access?.PurchasedAtUtc,
-                completedLectureIds.Count + completedAssignmentIds.Count + completedClassIds.Count,
-                lectureIds.Length + assignmentIds.Length + requiredClassIds.Length,
+                completedLectureIds.Count + completedAssignmentIds.Count + completedClassIds.Count +
+                    sections.SelectMany(section => section.Exams)
+                        .Count(exam => exam.IsRequiredForCompletion && exam.IsPassed),
+                lectureIds.Length + assignmentIds.Length + requiredClassIds.Length +
+                    sections.SelectMany(section => section.Exams)
+                        .Count(exam => exam.IsRequiredForCompletion && exam.PublishStatus == ExamPublishStatus.Published),
                 sections,
                 selectedContent);
         }
@@ -717,14 +862,28 @@ namespace iD_Develops.Services
                                item.CreditConsumptionPolicyId.HasValue)
                 .SelectMany(
                     item => item.CreditGrants.OrderBy(grant => grant.Id).Take(1),
-                    (item, grant) => new CourseCreditProductOption(
-                        item.Id,
-                        item.Name,
-                        item.IsSalesActive && item.Status != CatalogProductStatus.Archived,
-                        grant.CreditTypeId,
-                        item.CreditConsumptionPolicyId!.Value))
-                .OrderByDescending(item => item.IsActive)
-                .ThenBy(item => item.Name)
+                    (item, grant) => new { Product = item, Grant = grant })
+                .OrderByDescending(item =>
+                    item.Product.IsSalesActive &&
+                    item.Product.Status != CatalogProductStatus.Archived)
+                .ThenBy(item => item.Product.Name)
+                .Select(item => new CourseCreditProductOption(
+                    item.Product.Id,
+                    item.Product.Name,
+                    item.Product.IsSalesActive &&
+                        item.Product.Status != CatalogProductStatus.Archived,
+                    item.Grant.CreditTypeId,
+                    item.Product.CreditConsumptionPolicyId!.Value))
+                .ToListAsync(cancellationToken);
+            var examOptions = await _dbContext.Exams
+                .AsNoTracking()
+                .Where(exam =>
+                    !exam.IsDeleted &&
+                    exam.CreatedByUserId == userId &&
+                    exam.PublishStatus != ExamPublishStatus.Archived)
+                .OrderByDescending(exam => exam.PublishStatus == ExamPublishStatus.Published)
+                .ThenBy(exam => exam.Name)
+                .Select(exam => new CourseExamOption(exam.Id, exam.Name, exam.PublishStatus))
                 .ToListAsync(cancellationToken);
             var classIds = course.Sections.SelectMany(section => section.Classes).Select(item => item.Id).ToArray();
             var upcomingSessionCounts = await _dbContext.ScheduledEvents
@@ -742,6 +901,7 @@ namespace iD_Develops.Services
                 CourseId = course.Id,
                 Name = course.Name,
                 CreditProducts = creditProducts,
+                ExamOptions = examOptions,
                 Sections = course.Sections
                     .OrderBy(section => section.OrderNumber)
                     .ThenBy(section => section.Id)
@@ -830,6 +990,23 @@ namespace iD_Develops.Services
                                 RecommendationWindowValue = courseClass.RecommendationWindowValue,
                                 RecommendationWindowUnit = courseClass.RecommendationWindowUnit
                             })
+                            .ToList(),
+                        Exams = section.Exams
+                            .OrderBy(placement => placement.OrderNumber)
+                            .ThenBy(placement => placement.Id)
+                            .Select(placement => new CourseExamEditItem
+                            {
+                                Id = placement.Id,
+                                ExamId = placement.ExamId,
+                                Title = placement.Exam.Name,
+                                PublishStatus = placement.Exam.PublishStatus,
+                                OrderNumber = placement.OrderNumber,
+                                UnlockAfterValue = placement.UnlockAfterValue,
+                                UnlockAfterUnit = placement.UnlockAfterUnit,
+                                IsRequiredForCompletion = placement.IsRequiredForCompletion,
+                                MinimumPassingScore = placement.MinimumPassingScore,
+                                FailureAction = placement.FailureAction
+                            })
                             .ToList()
                     })
                     .ToList()
@@ -872,6 +1049,7 @@ namespace iD_Develops.Services
                 HasDuplicatePositiveIds(content.Sections.SelectMany(section => section.Assignments).Select(assignment => assignment.Id)) ||
                 HasDuplicatePositiveIds(content.Sections.SelectMany(section => section.Lectures).Select(lecture => lecture.Id)) ||
                 HasDuplicatePositiveIds(content.Sections.SelectMany(section => section.Classes).Select(courseClass => courseClass.Id)) ||
+                HasDuplicatePositiveIds(content.Sections.SelectMany(section => section.Exams).Select(exam => exam.Id)) ||
                 HasDuplicatePositiveIds(content.Sections
                     .SelectMany(section => section.Lectures)
                     .SelectMany(lecture => lecture.SourceFiles)
@@ -882,6 +1060,44 @@ namespace iD_Develops.Services
                     .Select(file => file.Id)))
             {
                 return Failure("The course content contains duplicate items.");
+            }
+
+            var existingExamsById = course.Sections
+                .SelectMany(section => section.Exams)
+                .ToDictionary(placement => placement.Id);
+            var examInputs = content.Sections.SelectMany(section => section.Exams).ToList();
+            if (examInputs.Any(input =>
+                    input.ExamId <= 0 ||
+                    input.MinimumPassingScore < 0 ||
+                    !Enum.IsDefined(input.FailureAction)))
+            {
+                return Failure("Select valid exam settings.");
+            }
+
+            var newExamIds = examInputs
+                .Where(input => input.Id <= 0)
+                .Select(input => input.ExamId)
+                .Distinct()
+                .ToArray();
+            var ownedExamIds = await _dbContext.Exams
+                .AsNoTracking()
+                .Where(exam =>
+                    newExamIds.Contains(exam.Id) &&
+                    !exam.IsDeleted &&
+                    exam.PublishStatus != ExamPublishStatus.Archived &&
+                    exam.CreatedByUserId == userId)
+                .Select(exam => exam.Id)
+                .ToListAsync(cancellationToken);
+            if (ownedExamIds.Count != newExamIds.Length)
+                return Failure("You can only add your own active exams to a course.");
+
+            if (examInputs
+                .Where(input => input.Id > 0)
+                .Any(input =>
+                    !existingExamsById.TryGetValue(input.Id, out var existing) ||
+                    existing.ExamId != input.ExamId))
+            {
+                return Failure("An exam placement no longer belongs to this course.");
             }
 
             var classInputs = content.Sections.SelectMany(section => section.Classes).ToList();
@@ -974,10 +1190,15 @@ namespace iD_Develops.Services
                 .Where(courseClass => courseClass.Id > 0)
                 .Select(courseClass => courseClass.Id)
                 .ToHashSet();
+            var submittedExamPlacementIds = examInputs
+                .Where(exam => exam.Id > 0)
+                .Select(exam => exam.Id)
+                .ToHashSet();
 
             if (submittedLectureIds.Any(id => !existingLecturesById.ContainsKey(id)) ||
                 submittedAssignmentIds.Any(id => !existingAssignmentsById.ContainsKey(id)) ||
-                submittedClassIds.Any(id => !existingClassesById.ContainsKey(id)))
+                submittedClassIds.Any(id => !existingClassesById.ContainsKey(id)) ||
+                submittedExamPlacementIds.Any(id => !existingExamsById.ContainsKey(id)))
             {
                 return Failure("Course content no longer belongs to this course.");
             }
@@ -1183,6 +1404,43 @@ namespace iD_Develops.Services
                     courseClass.RecommendationWindowValue = null;
                     courseClass.RecommendationWindowUnit = null;
                 }
+
+                if (sectionInput.Exams
+                    .GroupBy(exam => exam.ExamId)
+                    .Any(group => group.Count() > 1))
+                {
+                    return Failure("An exam can only be added once to the same section.");
+                }
+
+                foreach (var examInput in sectionInput.Exams.OrderBy(exam => exam.OrderNumber))
+                {
+                    var placement = examInput.Id > 0
+                        ? existingExamsById.GetValueOrDefault(examInput.Id)
+                        : null;
+                    if (placement == null)
+                    {
+                        placement = new CourseSectionExam
+                        {
+                            CourseSection = section,
+                            ExamId = examInput.ExamId
+                        };
+                        section.Exams.Add(placement);
+                    }
+                    else
+                    {
+                        placement.CourseSection = section;
+                    }
+
+                    placement.OrderNumber = examInput.OrderNumber;
+                    var examDelay = NormalizeUnlockDelay(
+                        examInput.UnlockAfterValue,
+                        examInput.UnlockAfterUnit);
+                    placement.UnlockAfterValue = examDelay.Value;
+                    placement.UnlockAfterUnit = examDelay.Unit;
+                    placement.IsRequiredForCompletion = examInput.IsRequiredForCompletion;
+                    placement.MinimumPassingScore = examInput.MinimumPassingScore;
+                    placement.FailureAction = examInput.FailureAction;
+                }
             }
 
             _dbContext.Lectures.RemoveRange(existingLecturesById.Values
@@ -1191,8 +1449,11 @@ namespace iD_Develops.Services
                 .Where(assignment => !submittedAssignmentIds.Contains(assignment.Id)));
             _dbContext.CourseClasses.RemoveRange(existingClassesById.Values
                 .Where(courseClass => !submittedClassIds.Contains(courseClass.Id)));
+            _dbContext.CourseSectionExams.RemoveRange(existingExamsById.Values
+                .Where(exam => !submittedExamPlacementIds.Contains(exam.Id)));
             _dbContext.CourseSections.RemoveRange(sectionsToRemove);
 
+            SynchronizeSectionAccessSchedules(course, sectionsToRemove, userId);
             await _dbContext.SaveChangesAsync(cancellationToken);
             return Success();
         }
@@ -1250,12 +1511,64 @@ namespace iD_Develops.Services
                         .ThenInclude(assignment => assignment.SupportingFiles)
                 .Include(course => course.Sections)
                     .ThenInclude(section => section.Classes)
+                .Include(course => course.Sections)
+                    .ThenInclude(section => section.Exams)
+                        .ThenInclude(placement => placement.Exam)
+                .Include(course => course.Sections)
+                    .ThenInclude(section => section.UserAccesses)
                 .FirstOrDefaultAsync(course =>
                     course.Id == courseId &&
                     (canViewAll ||
                      course.CreatedByUserId == userId ||
                      course.Instructors.Any(instructor => instructor.UserId == userId)),
                     cancellationToken);
+        }
+
+        private static void SynchronizeSectionAccessSchedules(
+            Course course,
+            IReadOnlyCollection<CourseSection> sectionsToRemove,
+            string actorUserId)
+        {
+            var removedIds = sectionsToRemove.Select(section => section.Id).ToHashSet();
+            var now = DateTime.UtcNow;
+            foreach (var section in course.Sections.Where(section => section.Id <= 0 || !removedIds.Contains(section.Id)))
+            {
+                foreach (var enrollment in course.UserCourses)
+                {
+                    var accessDateUtc = enrollment.PurchasedAtUtc ?? enrollment.GrantedAtUtc;
+                    var calculatedUnlock = CalculateUnlockAtUtc(
+                        accessDateUtc,
+                        section.UnlockAfterValue,
+                        section.UnlockAfterUnit);
+                    var existing = section.UserAccesses.FirstOrDefault(item => item.UserId == enrollment.UserId);
+                    if (existing == null)
+                    {
+                        section.UserAccesses.Add(new CourseSectionUserAccess
+                        {
+                            UserId = enrollment.UserId,
+                            UnlockAtUtc = calculatedUnlock,
+                            UpdatedAtUtc = now,
+                            UpdatedByUserId = actorUserId
+                        });
+                        continue;
+                    }
+
+                    if (existing.UnlockAtUtc.HasValue && existing.UnlockAtUtc.Value <= now)
+                        continue;
+
+                    if (existing.IsManualOverride &&
+                        (!calculatedUnlock.HasValue ||
+                         existing.UnlockAtUtc <= calculatedUnlock))
+                    {
+                        continue;
+                    }
+
+                    existing.UnlockAtUtc = calculatedUnlock;
+                    existing.IsManualOverride = false;
+                    existing.UpdatedAtUtc = now;
+                    existing.UpdatedByUserId = actorUserId;
+                }
+            }
         }
 
         private static CourseSourceFileEditItem MapSourceFile(LectureSourceFile file)
@@ -1426,6 +1739,7 @@ namespace iD_Develops.Services
                 "lecture" when contentId.HasValue => SelectLecture(course, sections, completedLectureIds, contentId.Value),
                 "assignment" when contentId.HasValue => SelectAssignment(course, sections, completedAssignmentIds, contentId.Value),
                 "class" when contentId.HasValue => SelectClass(course, sections, completedClassIds, contentId.Value),
+                "exam" when contentId.HasValue => SelectExam(sections, contentId.Value),
                 _ => null
             };
 
@@ -1596,11 +1910,51 @@ namespace iD_Develops.Services
                 Array.Empty<CourseSourceFileItem>());
         }
 
+        private static CourseSelectedContent? SelectExam(
+            IReadOnlyList<CourseSectionItem> sections,
+            int placementId)
+        {
+            var exam = sections
+                .SelectMany(section => section.Exams)
+                .FirstOrDefault(item => item.Id == placementId);
+            if (exam == null)
+                return null;
+
+            var statusDescription = exam.PublishStatus switch
+            {
+                ExamPublishStatus.Draft => "This exam is still a draft and is not visible to students.",
+                ExamPublishStatus.Archived => "This exam is archived and is not visible to students.",
+                _ when exam.IsPassed => "You passed this exam.",
+                _ when exam.IsCompleted => "You completed this exam.",
+                _ => "Open the exam when you are ready to begin."
+            };
+
+            return new CourseSelectedContent(
+                CourseContentKind.Exam,
+                exam.Id,
+                exam.Title,
+                statusDescription,
+                LectureContentType.None,
+                null,
+                exam.UnlockAtUtc,
+                exam.IsLocked,
+                exam.IsPassed,
+                null,
+                null,
+                null,
+                null,
+                Array.Empty<CourseSourceFileItem>(),
+                exam.ExamId,
+                exam.PublishStatus);
+        }
+
         private static IQueryable<CourseListItem> ProjectCourseList(IQueryable<Course> query)
             => query.Select(course => new CourseListItem(
                 course.Id,
                 course.Name,
-                course.Exams.Count(exam => !exam.IsDeleted),
+                course.Exams.Count(exam => !exam.IsDeleted) +
+                    course.Sections.SelectMany(section => section.Exams)
+                        .Count(placement => !placement.Exam.IsDeleted),
                 course.LearningMaterials.Count));
     }
 }

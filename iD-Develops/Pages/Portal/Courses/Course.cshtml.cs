@@ -15,19 +15,22 @@ namespace iD_Develops.Pages.Portal.Courses
         private readonly IConfiguration _configuration;
         private readonly ICourseMediaService _courseMediaService;
         private readonly ISchedulingService _schedulingService;
+        private readonly IExamAttemptService _examAttemptService;
 
         public CourseModel(
             ICourseService courseService,
             CatalogProductFileStorageService fileStorageService,
             IConfiguration configuration,
             ICourseMediaService courseMediaService,
-            ISchedulingService schedulingService)
+            ISchedulingService schedulingService,
+            IExamAttemptService examAttemptService)
         {
             _courseService = courseService;
             _fileStorageService = fileStorageService;
             _configuration = configuration;
             _courseMediaService = courseMediaService;
             _schedulingService = schedulingService;
+            _examAttemptService = examAttemptService;
         }
 
         public CourseViewData Course { get; private set; } = null!;
@@ -46,6 +49,12 @@ namespace iD_Develops.Pages.Portal.Courses
 
         [BindProperty]
         public string CourseContentJson { get; set; } = string.Empty;
+
+        [BindProperty]
+        public int CreateExamSectionId { get; set; }
+
+        [BindProperty]
+        public int CreateExamSectionOrder { get; set; }
 
         public bool CanManageAccess =>
             Course is not null &&
@@ -129,6 +138,73 @@ namespace iD_Develops.Pages.Portal.Courses
 
             TempData["StatusMessage"] = "Course content saved.";
             return RedirectToPage(new { courseId, edit = true });
+        }
+
+        public async Task<IActionResult> OnPostSaveAndCreateExamAsync(
+            int courseId,
+            CancellationToken cancellationToken)
+        {
+            if (!CanManageCourseContent())
+                return Forbid();
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userId))
+                return Challenge();
+
+            CourseContentEditData? content;
+            try
+            {
+                content = JsonSerializer.Deserialize<CourseContentEditData>(
+                    CourseContentJson,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            }
+            catch (JsonException)
+            {
+                content = null;
+            }
+
+            if (content == null)
+            {
+                ModelState.AddModelError(string.Empty, "The course content could not be read. Refresh and try again.");
+                IsEditMode = true;
+                return await LoadCourseAsync(courseId, null, null, edit: true, cancellationToken)
+                    ? Page()
+                    : NotFound();
+            }
+
+            var result = await _courseService.SaveCourseContentAsync(
+                courseId,
+                userId,
+                CanViewAllCourses(),
+                content,
+                cancellationToken);
+            if (!result.Success)
+            {
+                ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Course content could not be saved.");
+                IsEditMode = true;
+                if (!await LoadCourseAsync(courseId, null, null, edit: true, cancellationToken))
+                    return NotFound();
+                EditData = content;
+                return Page();
+            }
+
+            var saved = await _courseService.GetCourseEditAsync(
+                courseId,
+                userId,
+                CanViewAllCourses(),
+                cancellationToken);
+            var section = CreateExamSectionId > 0
+                ? saved?.Sections.FirstOrDefault(item => item.Id == CreateExamSectionId)
+                : saved?.Sections.FirstOrDefault(item => item.OrderNumber == CreateExamSectionOrder);
+            if (section == null)
+            {
+                TempData["ErrorMessage"] = "The course was saved, but the selected section could not be found.";
+                return RedirectToPage(new { courseId, edit = true });
+            }
+
+            return RedirectToPage(
+                "/Portal/Exams/Create",
+                new { courseId, courseSectionId = section.Id });
         }
 
         public async Task<IActionResult> OnPostSetLectureCompletionAsync(
@@ -268,6 +344,25 @@ namespace iD_Develops.Pages.Portal.Courses
             TempData[result.Success ? "StatusMessage" : "ErrorMessage"] =
                 result.Success ? "Booking cancelled." : result.ErrorMessage;
             return RedirectToPage(new { courseId, contentType = "class", contentId = classId });
+        }
+
+        public async Task<IActionResult> OnPostLaunchExamAsync(
+            int courseId,
+            int placementId,
+            int examId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userId))
+                return Challenge();
+
+            var result = await _examAttemptService.StartAsync(userId, examId);
+            if (!result.Success || !result.RecordId.HasValue)
+            {
+                TempData["ErrorMessage"] = result.ErrorMessage ?? "The exam could not be started.";
+                return RedirectToPage(new { courseId, contentType = "exam", contentId = placementId });
+            }
+
+            return RedirectToPage("/Portal/Examination/Index", new { recordId = result.RecordId.Value });
         }
 
         private bool IsCompletionAjaxRequest()
@@ -461,19 +556,29 @@ namespace iD_Develops.Pages.Portal.Courses
                     lecture.OrderNumber,
                     lecture,
                     null,
+                    null,
                     null))
                 .Concat(section.Assignments.Select(assignment => new CourseChildNavigationItem(
                     CourseContentKind.Assignment,
                     assignment.OrderNumber,
                     null,
                     assignment,
+                    null,
                     null)))
                 .Concat(section.Classes.Select(courseClass => new CourseChildNavigationItem(
                     CourseContentKind.Class,
                     courseClass.OrderNumber,
                     null,
                     null,
-                    courseClass)))
+                    courseClass,
+                    null)))
+                .Concat(section.Exams.Select(exam => new CourseChildNavigationItem(
+                    CourseContentKind.Exam,
+                    exam.OrderNumber,
+                    null,
+                    null,
+                    null,
+                    exam)))
                 .OrderBy(item => item.OrderNumber)
                 .ThenBy(item => item.Kind)
                 .ToList();
@@ -483,6 +588,7 @@ namespace iD_Develops.Pages.Portal.Courses
             int OrderNumber,
             CourseLectureItem? Lecture,
             CourseAssignmentItem? Assignment,
-            CourseClassItem? Class);
+            CourseClassItem? Class,
+            CourseExamItem? Exam);
     }
 }

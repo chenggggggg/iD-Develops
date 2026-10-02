@@ -28,5 +28,9 @@ namespace iD_Develops.Models
         public ICollection<CourseAssignment> Assignments { get; set; } = new List<CourseAssignment>();
 
         public ICollection<CourseClass> Classes { get; set; } = new List<CourseClass>();
+
+        public ICollection<CourseSectionExam> Exams { get; set; } = new List<CourseSectionExam>();
+
+        public ICollection<CourseSectionUserAccess> UserAccesses { get; set; } = new List<CourseSectionUserAccess>();
     }
 }

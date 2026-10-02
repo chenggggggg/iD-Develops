@@ -37,6 +37,8 @@ namespace iD_Develops.Models
         public ICollection<Record> Records { get; set; } = new List<Record>();
         public ICollection<ExamVersion> Versions { get; set; } = new List<ExamVersion>();
         public ICollection<ExamGradeBand> GradeBands { get; set; } = new List<ExamGradeBand>();
+        public ICollection<CourseSectionExam> CoursePlacements { get; set; } = new List<CourseSectionExam>();
+        public ICollection<ExamAttemptGrant> AttemptGrants { get; set; } = new List<ExamAttemptGrant>();
 
         public int? TimeLimit { get; set; }
 

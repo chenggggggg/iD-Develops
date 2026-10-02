@@ -18,6 +18,12 @@ namespace iD_Develops.Pages.Portal.Exams
         [BindProperty]
         public CreateExamInputModel Input { get; set; } = new();
 
+        [BindProperty(SupportsGet = true)]
+        public int? CourseId { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public int? CourseSectionId { get; set; }
+
         public CreateModel(IExamService examService)
         {
             _examService = examService;
@@ -56,13 +62,19 @@ namespace iD_Develops.Pages.Portal.Exams
                 Questions = new List<Question>()
             };
 
-            var result = await _examService.CreateExamAsync(exam);
+            var result = CourseSectionId.HasValue
+                ? await _examService.CreateCourseExamAsync(
+                    exam,
+                    CourseSectionId.Value,
+                    User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+                : await _examService.CreateExamAsync(exam);
             if (!result.Success)
             {
                 ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Failed to create exam draft.");
+                return Page();
             }
 
-            return RedirectToPage("/Portal/Examination/Edit", new { examId = exam.Id });
+            return RedirectToPage("/Portal/Examination/Edit", new { examId = exam.Id, returnCourseId = CourseId });
         }
         private static int NormalizeMaxAttempts(int? maxAttempts)
             => maxAttempts is >= 1 ? maxAttempts.Value : -1;

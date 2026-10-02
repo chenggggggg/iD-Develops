@@ -1,5 +1,8 @@
 ﻿using iD_Develops.Models;
 
+using iD_Develops.Data;
+using Microsoft.EntityFrameworkCore;
+
 namespace iD_Develops.Services
 {
     public class ExamAttemptService : IExamAttemptService
@@ -7,15 +10,18 @@ namespace iD_Develops.Services
         private readonly IExamVersionService _examVersionService;
         private readonly IRecordService _recordService;
         private readonly IExamAccessService _examAccessService;
+        private readonly ApplicationDbContext? _dbContext;
 
         public ExamAttemptService(
             IExamVersionService examVersionService,
             IRecordService recordService,
-            IExamAccessService examAccessService)
+            IExamAccessService examAccessService,
+            ApplicationDbContext? dbContext = null)
         {
             _examVersionService = examVersionService;
             _recordService = recordService;
             _examAccessService = examAccessService;
+            _dbContext = dbContext;
         }
 
         public async Task<AttemptState> GetStateAsync(string userId, int examId)
@@ -23,9 +29,20 @@ namespace iD_Develops.Services
             if (string.IsNullOrWhiteSpace(userId) || examId <= 0)
                 return new AttemptState(examId, 1, false, 0, 0, null, false, false, false, "Invalid user or exam.");
 
-            if (!await _examAccessService.CanTakeExamAsync(userId, examId))
+            var access = await _examAccessService.GetAccessDecisionAsync(userId, examId);
+            if (!access.CanTake)
             {
-                return new AttemptState(examId, 1, false, 0, 0, null, false, false, false, "This exam is not assigned to your account.");
+                return new AttemptState(
+                    examId,
+                    1,
+                    false,
+                    0,
+                    0,
+                    null,
+                    false,
+                    false,
+                    false,
+                    access.BlockReason ?? "This exam is not assigned to your account.");
             }
 
             // Uses your existing method
@@ -33,7 +50,15 @@ namespace iD_Develops.Services
             if (descriptor == null)
                 return new AttemptState(examId, 1, false, 0, 0, null, false, false, false, "Exam not found.");
 
-            var maxAttempts = descriptor.MaxAttempts; // -1 unlimited, 1..N fixed
+            var grantedAttempts = _dbContext == null
+                ? 0
+                : await _dbContext.ExamAttemptGrants
+                    .AsNoTracking()
+                    .Where(grant => grant.UserId == userId && grant.ExamId == examId)
+                    .SumAsync(grant => (int?)grant.AdditionalAttempts) ?? 0;
+            var maxAttempts = descriptor.MaxAttempts < 0
+                ? -1
+                : descriptor.MaxAttempts + grantedAttempts; // -1 unlimited, 1..N fixed plus grants
 
             // Self-heal duplicates deterministically: keep latest InProgress, cancel others
             var inProgress = await _recordService.GetInProgressRecordsAsync(userId, examId, descriptor.ExamVersionId);

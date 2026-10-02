@@ -1,10 +1,47 @@
 using iD_Develops.Models;
 using iD_Develops.Services;
+using iD_Develops.Tests.Infrastructure;
 
 namespace iD_Develops.Tests.Services;
 
 public sealed class ExamAttemptServiceTests
 {
+    [Fact]
+    public async Task GetStateAsync_AddsAuditedAttemptGrantsToThePublishedLimit()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var user = new ApplicationUser { Id = "student-grant", UserName = "student@example.com" };
+        var exam = new Exam
+        {
+            Name = "Granted exam",
+            CreatedByUserId = "teacher",
+            DifficultyValue = 1,
+            IntroductionPrimaryLanguage = string.Empty,
+            PublishStatus = ExamPublishStatus.Published
+        };
+        db.AddRange(user, exam);
+        await db.SaveChangesAsync();
+        db.ExamAttemptGrants.Add(new ExamAttemptGrant
+        {
+            UserId = user.Id,
+            ExamId = exam.Id,
+            AdditionalAttempts = 2
+        });
+        await db.SaveChangesAsync();
+
+        var versionService = new StubExamVersionService(new PublishedExamDescriptor(
+            exam.Id, 4, exam.Name, string.Empty, 0, string.Empty, null, 2, null, null));
+        var records = new StubRecordService { AttemptsUsed = 2, InProgressRecords = [] };
+        var service = new ExamAttemptService(versionService, records, new StubExamAccessService(), db);
+
+        var state = await service.GetStateAsync(user.Id, exam.Id);
+
+        Assert.Equal(4, state.MaxAttempts);
+        Assert.Equal(2, state.AttemptsLeft);
+        Assert.True(state.CanStart);
+    }
+
     [Fact]
     public async Task GetStateAsync_UsesLatestVersionForAttemptCounting()
     {

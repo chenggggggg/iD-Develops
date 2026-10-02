@@ -118,6 +118,7 @@
                                        {
                                            CourseContentKind.Lecture => "fa-solid fa-circle-play",
                                            CourseContentKind.Assignment => "fa-solid fa-clipboard-check",
+                                           CourseContentKind.Exam => "fa-solid fa-file-circle-check",
                                            _ => "fa-solid fa-calendar-days"
                                        })" aria-hidden="true"></i>
                         }
@@ -220,6 +221,44 @@
                         }
                     </div>
                 }
+                else if (selected.Kind == CourseContentKind.Exam)
+                {
+                    <div class="course-class-preview">
+                        <span class="course-preview-symbol" aria-hidden="true">
+                            <i class="fa-solid fa-file-circle-check"></i>
+                        </span>
+                        <p class="course-kicker">Exam</p>
+                        <h2>@selected.Title</h2>
+                        @if (!string.IsNullOrWhiteSpace(selected.Description))
+                        {
+                            <p class="course-muted">@selected.Description</p>
+                        }
+                        @if (selected.IsCompleted)
+                        {
+                            <span><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Passed</span>
+                        }
+                        else if (selected.ExamId.HasValue &&
+                                 selected.ExamPublishStatus == iD_Develops.Models.ExamPublishStatus.Published)
+                        {
+                            <form method="post" asp-page-handler="LaunchExam" asp-route-courseId="@Model.Course.Id" class="tw:mt-4">
+                                <input type="hidden" name="placementId" value="@selected.Id" />
+                                <input type="hidden" name="examId" value="@selected.ExamId.Value" />
+                                <button class="portal-btn portal-btn-primary" type="submit">
+                                    <i class="fa-solid fa-play" aria-hidden="true"></i>Open exam
+                                </button>
+                            </form>
+                        }
+                        else if (Model.Course.CanManage && selected.ExamId.HasValue)
+                        {
+                            <a class="portal-btn portal-btn-primary tw:mt-4"
+                               asp-page="/Portal/Examination/Edit"
+                               asp-route-examId="@selected.ExamId.Value"
+                               asp-route-returnCourseId="@Model.Course.Id">
+                                <i class="fa-solid fa-pen" aria-hidden="true"></i>Continue editing exam
+                            </a>
+                        }
+                    </div>
+                }
                 else
                 {
                     var courseSection = Model.Course.Sections.First(item => item.Id == selected.Id);
@@ -230,6 +269,7 @@
                             <span>@courseSection.Lectures.Count lecture@(courseSection.Lectures.Count == 1 ? string.Empty : "s")</span>
                             <span>@courseSection.Assignments.Count assignment@(courseSection.Assignments.Count == 1 ? string.Empty : "s")</span>
                             <span>@courseSection.Classes.Count class@(courseSection.Classes.Count == 1 ? string.Empty : "es")</span>
+                            <span>@courseSection.Exams.Count exam@(courseSection.Exams.Count == 1 ? string.Empty : "s")</span>
                         </div>
                     </div>
                 }
@@ -330,7 +370,7 @@
                     }
                     else if (selected.Kind == CourseContentKind.Section)
                     {
-                        <p class="course-muted">Choose a lecture, assignment, or class from this section to continue.</p>
+                        <p class="course-muted">Choose a lecture, assignment, class, or exam from this section to continue.</p>
                     }
                     else
                     {
@@ -381,8 +421,8 @@
     <aside class="course-content-panel" id="courseContentPanel" data-course-panel>
         <div class="course-panel-header">
             <div>
-                <p class="course-kicker">Navigation</p>
-                <h2>Course content</h2>
+                <p class="course-kicker">@(Model.IsEditMode ? "Course builder" : "Navigation")</p>
+                <h2>@(Model.IsEditMode ? "Manage content" : "Course content")</h2>
             </div>
             <div class="course-panel-header-actions">
                 <button class="course-panel-collapse"
@@ -403,7 +443,7 @@
             <div class="course-editor-create-actions">
                 <button type="button" data-course-add-top="section">
                     <i class="fa-solid fa-plus" aria-hidden="true"></i>
-                    Section
+                    New section
                 </button>
             </div>
             <nav class="course-outline course-editor-outline" aria-label="Edit course content" data-course-editor-outline></nav>
@@ -416,7 +456,8 @@
                 var availableItemCount = Model.Course.Sections.Sum(section =>
                     section.Lectures.Count(item => !item.IsLocked) +
                     section.Assignments.Count(item => !item.IsLocked) +
-                    section.Classes.Count(item => item.IsRequiredForCompletion && (!item.IsLocked || item.IsBookingEligible)));
+                    section.Classes.Count(item => item.IsRequiredForCompletion && (!item.IsLocked || item.IsBookingEligible)) +
+                    section.Exams.Count(item => item.IsRequiredForCompletion && !item.IsLocked));
                 var isCaughtUp = Model.Course.CompletedItemCount < Model.Course.TotalItemCount &&
                                  Model.Course.CompletedItemCount >= availableItemCount;
                 <div class="course-progress"
@@ -630,6 +671,45 @@
                                                 <span class="course-outline-item-meta">
                                                     <i class="@(courseClass.IsCompleted ? "fa-solid fa-circle-check" : courseClass.IsLocked ? "fa-solid fa-lock" : "fa-solid fa-calendar-days")" aria-hidden="true"></i>
                                                     <span>@(courseClass.IsCompleted ? "Complete" : courseClass.IsLocked ? "Booking available before content unlocks" : meetingLabel)</span>
+                                                </span>
+                                            </span>
+                                        </a>
+                                    }
+                                }
+                                else if (childItem.Exam != null)
+                                {
+                                    var exam = childItem.Exam;
+                                    var examSelected = selected?.Kind == CourseContentKind.Exam && selected.Id == exam.Id;
+                                    @if (exam.IsLocked)
+                                    {
+                                        <div class="course-outline-item course-outline-child is-locked">
+                                            <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                                            <span class="course-outline-item-copy">
+                                                <span class="course-outline-item-title">@exam.Title</span>
+                                                <span class="course-outline-item-meta">
+                                                    <i class="fa-solid fa-file-circle-check" aria-hidden="true"></i>
+                                                    <span>@(exam.PublishStatus != iD_Develops.Models.ExamPublishStatus.Published ? $"{exam.PublishStatus} · hidden from students" : exam.UnlockAtUtc.HasValue ? $"Unlocks {exam.UnlockAtUtc.Value:dd MMM yyyy}" : "Upcoming")</span>
+                                                </span>
+                                            </span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <a class="course-outline-item course-outline-child course-outline-content-item @(examSelected ? "is-selected" : null)"
+                                           asp-route-courseId="@Model.Course.Id"
+                                           asp-route-contentType="exam"
+                                           asp-route-contentId="@exam.Id">
+                                            <span class="course-outline-item-copy">
+                                                <span class="course-outline-item-title">
+                                                    @exam.Title
+                                                    @if (exam.IsRequiredForCompletion)
+                                                    {
+                                                        <small>@(exam.IsPassed ? " · Passed" : " · Required")</small>
+                                                    }
+                                                </span>
+                                                <span class="course-outline-item-meta">
+                                                    <i class="@(exam.IsPassed ? "fa-solid fa-circle-check" : "fa-solid fa-file-circle-check")" aria-hidden="true"></i>
+                                                    <span>@(exam.PublishStatus != iD_Develops.Models.ExamPublishStatus.Published ? $"{exam.PublishStatus} · hidden from students" : exam.IsPassed ? "Complete" : exam.IsCompleted ? "Completed · passing score required" : "Ready")</span>
                                                 </span>
                                             </span>
                                         </a>

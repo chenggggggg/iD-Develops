@@ -8,6 +8,7 @@
     ViewData["Title"] = "Exam Editor";
     Layout = "/Pages/Shared/Examination/_ExaminationLayout.cshtml";
     ViewData["ExaminationBodyClass"] = "examination-editor-body";
+    ViewData["ReturnCourseId"] = Model.ReturnCourseId;
 }
 
 <partial name="/Pages/Shared/Examination/_ExaminationHeader.cshtml"
@@ -51,6 +52,7 @@
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="ExamId" />
             <input type="hidden" asp-for="QuestionId" />
+            <input type="hidden" asp-for="ReturnCourseId" />
 
             <div>
                 <label asp-for="Settings.DifficultyValue" class="public-label">Difficulty</label>
@@ -80,7 +82,8 @@
                 </button>
                 <a class="public-btn public-btn-outline"
                    asp-page="/Portal/Examination/Settings"
-                   asp-route-examId="@Model.ExamId">
+                   asp-route-examId="@Model.ExamId"
+                   asp-route-returnCourseId="@Model.ReturnCourseId">
                     <i class="fa-solid fa-gears"></i>Advanced settings
                 </a>
                 <button type="button" class="public-btn public-btn-outline" data-exam-settings-close>

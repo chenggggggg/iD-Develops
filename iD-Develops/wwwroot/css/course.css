@@ -867,7 +867,6 @@ body.course-panel-open {
 .course-topbar-view-link,
 .course-save-button,
 .course-editor-create-actions,
-.course-editor-child-actions,
 .course-editor-resources-header,
 .course-editor-resources-header button {
     display: flex;
@@ -937,7 +936,6 @@ body.course-panel-open {
 }
 
 .course-editor-create-actions button,
-.course-editor-child-actions button,
 .course-editor-resources-header button {
     min-height: 2.25rem;
     display: inline-flex;
@@ -959,8 +957,6 @@ body.course-panel-open {
 
 .course-editor-create-actions button:hover,
 .course-editor-create-actions button:focus-visible,
-.course-editor-child-actions button:hover,
-.course-editor-child-actions button:focus-visible,
 .course-editor-resources-header button:hover,
 .course-editor-resources-header button:focus-visible {
     border-color: var(--course-accent);
@@ -1265,17 +1261,6 @@ body.course-panel-open {
     justify-content: center;
     color: var(--course-blue);
     line-height: 1;
-}
-
-.course-editor-child-actions {
-    gap: 0.4rem;
-    padding: 0.4rem 0.25rem 0.25rem;
-}
-
-.course-editor-child-actions button {
-    min-height: 2rem;
-    padding-block: 0.25rem;
-    font-size: 0.72rem;
 }
 
 .course-editor-heading {

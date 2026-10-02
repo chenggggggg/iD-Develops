@@ -15,9 +15,15 @@
     <form method="post" asp-page-handler="Continue" id="exam-form" class="exam-create-panel">
         @Html.AntiForgeryToken()
         <input id="RequestVerificationToken" type="hidden" value="@requestToken" />
+        <input asp-for="CourseId" type="hidden" />
+        <input asp-for="CourseSectionId" type="hidden" />
 
         <div class="exam-create-heading">
-            <a class="exam-create-back" asp-page="/Portal/Exams/List" aria-label="Back to exams">
+            <a class="exam-create-back"
+               asp-page="@(Model.CourseId.HasValue ? "/Portal/Courses/Course" : "/Portal/Exams/List")"
+               asp-route-courseId="@Model.CourseId"
+               asp-route-edit="@(Model.CourseId.HasValue ? true : null)"
+               aria-label="Back">
                 <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
             </a>
             <div>
