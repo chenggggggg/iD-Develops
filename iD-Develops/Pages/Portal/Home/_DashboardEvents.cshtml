@@ -1,0 +1,36 @@
+@model iD_Develops.Pages.Portal.Home.DashboardEventsModel
+<section class="tw:rounded-xl tw:border tw:border-[#dfe5ec] tw:bg-white tw:p-5 tw:shadow-[0_1px_3px_rgba(2,7,47,0.05)]" aria-labelledby="eventsHeading">
+    <div class="tw:flex tw:items-end tw:justify-between tw:gap-4">
+        <div>
+            <p class="tw:m-0 tw:text-xs tw:font-semibold tw:uppercase tw:tracking-[0.1em] tw:text-[#64748b]">Schedule</p>
+            <h2 id="eventsHeading" class="tw:mt-1 tw:mb-0 tw:text-xl tw:font-semibold tw:text-[#071f3d]">@Model.Title</h2>
+        </div>
+        <a class="tw:text-sm tw:font-semibold tw:text-[#005190] tw:no-underline hover:tw:underline" asp-page="/Portal/Schedule/Index">Full calendar</a>
+    </div>
+    @if (Model.Events.Count == 0)
+    {
+        <p class="tw:mt-5 tw:mb-0 tw:rounded-lg tw:bg-[#f6f8fa] tw:px-4 tw:py-5 tw:text-sm tw:text-[#64748b]">Nothing is scheduled during the next seven days.</p>
+    }
+    else
+    {
+        <div class="tw:mt-5 tw:divide-y tw:divide-[#e5eaf0]">
+            @foreach (var item in Model.Events)
+            {
+                <article class="tw:grid tw:gap-3 tw:py-4 first:tw:pt-0 last:tw:pb-0 tw:sm:grid-cols-[8rem_minmax(0,1fr)_auto] tw:sm:items-center">
+                    <div>
+                        <time class="tw:block tw:text-sm tw:font-semibold tw:text-[#005190]" datetime="@item.StartAtUtc.ToString("O")">@item.StartAtUtc.ToString("ddd, d MMM")</time>
+                        <span class="tw:text-xs tw:text-[#64748b]">@item.StartAtUtc.ToString("HH:mm")–@item.EndAtUtc.ToString("HH:mm") UTC</span>
+                    </div>
+                    <div class="tw:min-w-0">
+                        <h3 class="tw:m-0 tw:truncate tw:text-sm tw:font-semibold tw:text-[#071f3d]">@item.Title</h3>
+                        <p class="tw:mt-1 tw:mb-0 tw:truncate tw:text-xs tw:text-[#64748b]">@(string.IsNullOrWhiteSpace(item.CourseName) ? "Independent session" : item.CourseName) · @item.TeacherName</p>
+                    </div>
+                    @if (Model.ShowStatus)
+                    {
+                        <span class="tw:rounded-full tw:bg-[#eef6f4] tw:px-2.5 tw:py-1 tw:text-xs tw:font-semibold tw:text-[#287a55]">Scheduled</span>
+                    }
+                </article>
+            }
+        </div>
+    }
+</section>

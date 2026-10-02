@@ -12,6 +12,7 @@ namespace iD_Develops.Data
         public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
         public DbSet<Exam> Exams { get; set; }
         public DbSet<UserExam> UserExams { get; set; }
+        public DbSet<ExamAttemptGrant> ExamAttemptGrants { get; set; }
         public DbSet<Question> Questions { get; set; }
         public DbSet<MultipleChoiceQuestion> MultipleChoiceQuestions { get; set; }
         public DbSet<MultipleChoiceAnswer> MultipleChoiceAnswers { get; set; }
@@ -23,6 +24,8 @@ namespace iD_Develops.Data
         public DbSet<CourseInstructor> CourseInstructors { get; set; }
         public DbSet<LearningMaterial> LearningMaterials { get; set; }
         public DbSet<CourseSection> CourseSections { get; set; }
+        public DbSet<CourseSectionExam> CourseSectionExams { get; set; }
+        public DbSet<CourseSectionUserAccess> CourseSectionUserAccesses { get; set; }
         public DbSet<Lecture> Lectures { get; set; }
         public DbSet<LectureSourceFile> LectureSourceFiles { get; set; }
         public DbSet<LectureCompletion> LectureCompletions { get; set; }
@@ -202,6 +205,38 @@ namespace iD_Develops.Data
                 .HasForeignKey(ue => ue.ExamId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<UserExam>()
+                .HasOne(ue => ue.AssignedByUser)
+                .WithMany()
+                .HasForeignKey(ue => ue.AssignedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<UserExam>()
+                .Property(ue => ue.AssignedAtUtc)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            modelBuilder.Entity<ExamAttemptGrant>()
+                .HasOne(grant => grant.User)
+                .WithMany(user => user.ExamAttemptGrants)
+                .HasForeignKey(grant => grant.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ExamAttemptGrant>()
+                .HasOne(grant => grant.Exam)
+                .WithMany(exam => exam.AttemptGrants)
+                .HasForeignKey(grant => grant.ExamId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ExamAttemptGrant>()
+                .HasOne(grant => grant.GrantedByUser)
+                .WithMany()
+                .HasForeignKey(grant => grant.GrantedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<ExamAttemptGrant>()
+                .Property(grant => grant.GrantedAtUtc)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
             modelBuilder.Entity<UserCourse>()
                 .HasKey(uc => new { uc.UserId, uc.CourseId });
 
@@ -281,6 +316,54 @@ namespace iD_Develops.Data
             modelBuilder.Entity<CourseSection>()
                 .Property(section => section.UnlockAfterUnit)
                 .HasConversion<string>();
+
+            modelBuilder.Entity<CourseSectionExam>()
+                .HasOne(placement => placement.CourseSection)
+                .WithMany(section => section.Exams)
+                .HasForeignKey(placement => placement.CourseSectionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CourseSectionExam>()
+                .HasOne(placement => placement.Exam)
+                .WithMany(exam => exam.CoursePlacements)
+                .HasForeignKey(placement => placement.ExamId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CourseSectionExam>()
+                .HasIndex(placement => new { placement.CourseSectionId, placement.OrderNumber });
+
+            modelBuilder.Entity<CourseSectionExam>()
+                .HasIndex(placement => new { placement.CourseSectionId, placement.ExamId })
+                .IsUnique();
+
+            modelBuilder.Entity<CourseSectionExam>()
+                .Property(placement => placement.UnlockAfterUnit)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<CourseSectionExam>()
+                .Property(placement => placement.FailureAction)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<CourseSectionUserAccess>()
+                .HasKey(access => new { access.UserId, access.CourseSectionId });
+
+            modelBuilder.Entity<CourseSectionUserAccess>()
+                .HasOne(access => access.User)
+                .WithMany(user => user.CourseSectionAccesses)
+                .HasForeignKey(access => access.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CourseSectionUserAccess>()
+                .HasOne(access => access.CourseSection)
+                .WithMany(section => section.UserAccesses)
+                .HasForeignKey(access => access.CourseSectionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CourseSectionUserAccess>()
+                .HasOne(access => access.UpdatedByUser)
+                .WithMany()
+                .HasForeignKey(access => access.UpdatedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<Lecture>()
                 .HasOne(lecture => lecture.CourseSection)

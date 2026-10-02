@@ -12,25 +12,30 @@ namespace iD_Develops.Pages.Portal.Exams
     public class ListModel : PageModel
     {
         public IReadOnlyList<Exam> Exams { get; private set; } = Array.Empty<Exam>();
+        public IReadOnlyDictionary<int, ExamAccessDecision> AvailabilityByExamId { get; private set; } =
+            new Dictionary<int, ExamAccessDecision>();
         private readonly IAuthorizationService _authorizationService;
         private readonly IExamService _examService;
         private readonly IExamVersionService _examVersionService;
         private readonly IExamAttemptService _attemptService;
+        private readonly IExamAccessService _examAccessService;
 
         public ListModel(
             IAuthorizationService authorizationService,
             IExamService examService,
             IExamVersionService examVersionService,
-            IExamAttemptService attemptService)
+            IExamAttemptService attemptService,
+            IExamAccessService examAccessService)
         {
             Exams = new List<Exam>();
             _authorizationService = authorizationService;
             _examService = examService;
             _examVersionService = examVersionService;
             _attemptService = attemptService;
+            _examAccessService = examAccessService;
         }
 
-        public async Task OnGetAsync()
+        public async Task OnGetAsync(CancellationToken cancellationToken)
         {
             if ((User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
             {
@@ -52,7 +57,20 @@ namespace iD_Develops.Pages.Portal.Exams
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 Exams = string.IsNullOrWhiteSpace(userId)
                     ? Array.Empty<Exam>()
-                    : await _examService.GetPublishedExamsForUserAsync(userId, HttpContext.RequestAborted);
+                    : await _examService.GetPublishedExamsForUserAsync(userId, cancellationToken);
+
+                if (!string.IsNullOrWhiteSpace(userId))
+                {
+                    var availability = new Dictionary<int, ExamAccessDecision>();
+                    foreach (var exam in Exams)
+                    {
+                        availability[exam.Id] = await _examAccessService.GetAccessDecisionAsync(
+                            userId,
+                            exam.Id,
+                            cancellationToken);
+                    }
+                    AvailabilityByExamId = availability;
+                }
             }
         }
 

@@ -16,7 +16,19 @@ namespace iD_Develops.Services
             _dbContext = dbContext;
         }
 
-        public async Task<OperationResult> CreateExamAsync(Exam exam)
+        public Task<OperationResult> CreateExamAsync(Exam exam)
+            => CreateExamInternalAsync(exam, null, false);
+
+        public Task<OperationResult> CreateCourseExamAsync(
+            Exam exam,
+            int courseSectionId,
+            bool canManageAllCourses = false)
+            => CreateExamInternalAsync(exam, courseSectionId, canManageAllCourses);
+
+        private async Task<OperationResult> CreateExamInternalAsync(
+            Exam exam,
+            int? courseSectionId,
+            bool canManageAllCourses)
         {
             var result = new OperationResult();
 
@@ -31,7 +43,41 @@ namespace iD_Develops.Services
             {
                 ValidateExamForCreate(exam);
 
+                CourseSection? courseSection = null;
+                if (courseSectionId.HasValue)
+                {
+                    courseSection = await _dbContext.CourseSections
+                        .Include(section => section.Exams)
+                        .Include(section => section.Lectures)
+                        .Include(section => section.Assignments)
+                        .Include(section => section.Classes)
+                        .FirstOrDefaultAsync(section =>
+                            section.Id == courseSectionId.Value &&
+                            (canManageAllCourses ||
+                             section.Course.CreatedByUserId == exam.CreatedByUserId ||
+                             section.Course.Instructors.Any(instructor => instructor.UserId == exam.CreatedByUserId)));
+                    if (courseSection == null)
+                        throw new ValidationException("The selected course section could not be found or managed.");
+                }
+
                 await _dbContext.Exams.AddAsync(exam);
+                if (courseSection != null)
+                {
+                    var existingOrderNumbers = courseSection.Lectures.Select(item => item.OrderNumber)
+                        .Concat(courseSection.Assignments.Select(item => item.OrderNumber))
+                        .Concat(courseSection.Classes.Select(item => item.OrderNumber))
+                        .Concat(courseSection.Exams.Select(item => item.OrderNumber));
+                    courseSection.Exams.Add(new CourseSectionExam
+                    {
+                        Exam = exam,
+                        OrderNumber = !existingOrderNumbers.Any()
+                            ? 0
+                            : existingOrderNumbers.Max() + 1,
+                        IsRequiredForCompletion = true,
+                        MinimumPassingScore = 0,
+                        FailureAction = CourseExamFailureAction.RequirePassingScore
+                    });
+                }
                 await _dbContext.SaveChangesAsync();
 
                 result.Success = true;
@@ -81,9 +127,12 @@ namespace iD_Develops.Services
                 .Where(exam =>
                     !exam.IsDeleted &&
                     exam.PublishStatus == ExamPublishStatus.Published &&
-                    (exam.CourseId == null ||
-                     exam.UserExams!.Any(access => access.UserId == userId) ||
-                     exam.Course!.UserCourses.Any(access => access.UserId == userId)))
+                    (exam.UserExams!.Any(access => access.UserId == userId) ||
+                     exam.CoursePlacements.Any(placement =>
+                         placement.CourseSection.Course.UserCourses.Any(access => access.UserId == userId)) ||
+                     (exam.CourseId != null &&
+                      exam.Course!.UserCourses.Any(access => access.UserId == userId))))
+                .Distinct()
                 .ToListAsync(cancellationToken);
         }
 

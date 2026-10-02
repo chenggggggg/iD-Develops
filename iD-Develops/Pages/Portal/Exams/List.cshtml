@@ -115,6 +115,21 @@
                     <tr>
                         <td>
                             <div class="portal-exam-name">@exam.Name</div>
+                            @if (!canManageExams && Model.AvailabilityByExamId.TryGetValue(exam.Id, out var availability))
+                            {
+                                @if (availability.CanTake)
+                                {
+                                    <small class="tw:mt-1 tw:block tw:font-medium tw:text-emerald-700">Available now</small>
+                                }
+                                else if (availability.UnlockAtUtc.HasValue)
+                                {
+                                    <small class="tw:mt-1 tw:block tw:font-medium tw:text-amber-700">Unlocks @availability.UnlockAtUtc.Value.ToString("dd MMM yyyy HH:mm") UTC</small>
+                                }
+                                else
+                                {
+                                    <small class="tw:mt-1 tw:block tw:font-medium tw:text-slate-500">@availability.BlockReason</small>
+                                }
+                            }
                         </td>
                         <td>
                             <span class="portal-table-pill">@exam.Difficulty</span>
@@ -138,17 +153,28 @@
                             </td>
                         }
                         <td class="portal-exams-table-actions">
+                            @{
+                                Model.AvailabilityByExamId.TryGetValue(exam.Id, out var rowAvailability);
+                                var examCanLaunch = canManageExams || rowAvailability == null || rowAvailability.CanTake;
+                            }
                             <button type="button"
                                     class="portal-btn portal-btn-primary portal-btn-sm portal-exam-start-btn"
                                     data-portal-dialog-open="examLaunchDialog"
                                     data-exam-launch
                                     data-exam-id="@exam.Id"
-                                    title="Start exam">
-                                <i class="fa-solid fa-play" aria-hidden="true"></i>
-                                <span>Start</span>
+                                    disabled="@(!examCanLaunch)"
+                                    title="@(examCanLaunch ? "Start exam" : rowAvailability?.BlockReason ?? "Exam is locked")">
+                                <i class="fa-solid @(examCanLaunch ? "fa-play" : "fa-lock")" aria-hidden="true"></i>
+                                <span>@(examCanLaunch ? "Start" : "Locked")</span>
                             </button>
                             @if (User.IsInRole("Teacher") || (User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
                             {
+                                <a class="portal-btn portal-btn-sm portal-btn-icon"
+                                   asp-page="/Portal/Exams/Assignments"
+                                   asp-route-examId="@exam.Id"
+                                   title="Assign users and grant attempts">
+                                    <i class="fa-solid fa-user-check" aria-hidden="true"></i>
+                                </a>
                                 <a class="portal-btn portal-btn-sm portal-btn-icon portal-exam-action-edit"
                                    role="button"
                                    asp-page="/Portal/Examination/Edit"

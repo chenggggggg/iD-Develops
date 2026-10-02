@@ -12,10 +12,16 @@ namespace iD_Develops.Services
 
     public sealed record CourseAssignableUser(string UserId, string Name, string Email, string Role);
 
-    public sealed record CourseAccessPageData(
-        int CourseId, string CourseName, IReadOnlyList<CourseAccessListItem> Users, IReadOnlyList<CourseAssignableUser> AssignableUsers);
+    public sealed record CourseSectionAccessOption(int Id, string Title, int OrderNumber);
 
-    public enum CourseContentKind { Section, Lecture, Assignment, Class }
+    public sealed record CourseAccessPageData(
+        int CourseId,
+        string CourseName,
+        IReadOnlyList<CourseAccessListItem> Users,
+        IReadOnlyList<CourseAssignableUser> AssignableUsers,
+        IReadOnlyList<CourseSectionAccessOption> Sections);
+
+    public enum CourseContentKind { Section, Lecture, Assignment, Class, Exam }
 
     public sealed record CourseSourceFileItem(int Id, string Name, string FileReference, string? Url = null);
 
@@ -38,6 +44,18 @@ namespace iD_Develops.Services
         string? MeetingLink,
         DateTime? MeetingAtUtc);
 
+    public sealed record CourseExamItem(
+        int Id,
+        int ExamId,
+        string Title,
+        int OrderNumber,
+        DateTime? UnlockAtUtc,
+        bool IsLocked,
+        bool IsRequiredForCompletion,
+        bool IsCompleted,
+        bool IsPassed,
+        Models.ExamPublishStatus PublishStatus);
+
     public sealed record CourseSectionItem(
         int Id,
         string Title,
@@ -46,7 +64,8 @@ namespace iD_Develops.Services
         bool IsLocked,
         IReadOnlyList<CourseLectureItem> Lectures,
         IReadOnlyList<CourseAssignmentItem> Assignments,
-        IReadOnlyList<CourseClassItem> Classes);
+        IReadOnlyList<CourseClassItem> Classes,
+        IReadOnlyList<CourseExamItem> Exams);
 
     public sealed record CourseSelectedContent(
         CourseContentKind Kind,
@@ -62,7 +81,9 @@ namespace iD_Develops.Services
         string? Instructions,
         string? MeetingLink,
         DateTime? MeetingAtUtc,
-        IReadOnlyList<CourseSourceFileItem> SourceFiles);
+        IReadOnlyList<CourseSourceFileItem> SourceFiles,
+        int? ExamId = null,
+        Models.ExamPublishStatus? ExamPublishStatus = null);
 
     public sealed record CourseViewData(
         int Id,
@@ -80,8 +101,11 @@ namespace iD_Develops.Services
         public int CourseId { get; set; }
         public string Name { get; set; } = string.Empty;
         public List<CourseCreditProductOption> CreditProducts { get; set; } = new();
+        public List<CourseExamOption> ExamOptions { get; set; } = new();
         public List<CourseSectionEditItem> Sections { get; set; } = new();
     }
+
+    public sealed record CourseExamOption(int Id, string Name, Models.ExamPublishStatus PublishStatus);
 
     public sealed record CourseCreditTypeOption(int Id, string Name, bool IsActive);
 
@@ -104,6 +128,7 @@ namespace iD_Develops.Services
         public List<CourseLectureEditItem> Lectures { get; set; } = new();
         public List<CourseAssignmentEditItem> Assignments { get; set; } = new();
         public List<CourseClassEditItem> Classes { get; set; } = new();
+        public List<CourseExamEditItem> Exams { get; set; } = new();
     }
 
     public sealed class CourseLectureEditItem
@@ -160,6 +185,20 @@ namespace iD_Develops.Services
         public CourseUnlockUnit? RecommendationWindowUnit { get; set; }
     }
 
+    public sealed class CourseExamEditItem
+    {
+        public int Id { get; set; }
+        public int ExamId { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public Models.ExamPublishStatus PublishStatus { get; set; }
+        public int OrderNumber { get; set; }
+        public int? UnlockAfterValue { get; set; }
+        public CourseUnlockUnit? UnlockAfterUnit { get; set; }
+        public bool IsRequiredForCompletion { get; set; } = true;
+        public double MinimumPassingScore { get; set; }
+        public CourseExamFailureAction FailureAction { get; set; } = CourseExamFailureAction.RequirePassingScore;
+    }
+
     public sealed class CourseSourceFileEditItem
     {
         public int Id { get; set; }
@@ -178,6 +217,7 @@ namespace iD_Develops.Services
         Task<CourseAccessPageData?> GetCourseAccessAsync(int courseId, string? search, CourseAccessSortField sortField, bool descending, CancellationToken cancellationToken = default);
         Task<OperationResult> AssignUserAsync(int courseId, string userId, string grantedByUserId, bool canManageAll, CancellationToken cancellationToken = default);
         Task<OperationResult> RemoveUserAsync(int courseId, string userId, string actorUserId, bool canManageAll, CancellationToken cancellationToken = default);
+        Task<OperationResult> SetSectionUnlockAsync(int courseId, int sectionId, string userId, DateTime unlockAtUtc, string actorUserId, bool canManageAll, CancellationToken cancellationToken = default);
         Task<CourseViewData?> GetCourseViewAsync(int courseId, string userId, bool canViewAll, bool canManage, string? contentType, int? contentId, CancellationToken cancellationToken = default);
         Task<OperationResult> SetLectureCompletionAsync(int courseId, int lectureId, string userId, bool isCompleted, bool canViewAll, bool canManage, CancellationToken cancellationToken = default);
         Task<OperationResult> SetAssignmentCompletionAsync(int courseId, int assignmentId, string userId, bool isCompleted, bool canViewAll, bool canManage, CancellationToken cancellationToken = default);

@@ -6,6 +6,8 @@ namespace iD_Develops.Services
     public interface IExamService
     {
         Task<OperationResult> CreateExamAsync(Exam exam);
+        Task<OperationResult> CreateCourseExamAsync(Exam exam, int courseSectionId, bool canManageAllCourses = false)
+            => CreateExamAsync(exam);
         Task<List<Exam>> GetAllExamsAsync();
         Task<List<Exam>> GetExamsByTeacherAsync(string teacherUserId);
         Task<List<Exam>> GetPublishedExamsAsync();

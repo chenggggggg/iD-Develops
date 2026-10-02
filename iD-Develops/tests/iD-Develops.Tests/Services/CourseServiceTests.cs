@@ -164,6 +164,252 @@ public sealed class CourseServiceTests
     }
 
     [Fact]
+    public async Task GetCourseEditAsync_ProjectsAndOrdersCreditProductsWithRelationalProvider()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var dbContext = factory.CreateDbContext();
+
+        var teacher = new ApplicationUser
+        {
+            Id = "course-editor-credit-teacher",
+            UserName = "credit-editor@example.com",
+            Email = "credit-editor@example.com"
+        };
+        var course = new Course
+        {
+            Name = "Credit-backed course",
+            CreatedByUserId = teacher.Id
+        };
+        var creditType = new CreditType
+        {
+            Name = "Class credit",
+            NormalizedName = "CLASS CREDIT",
+            SingularLabel = "class credit",
+            PluralLabel = "class credits"
+        };
+        var policy = new CreditConsumptionPolicy
+        {
+            Name = "Standard policy",
+            NormalizedName = "STANDARD POLICY"
+        };
+        var activeProduct = new CatalogProduct
+        {
+            Name = "Active credits",
+            Slug = "active-credits",
+            ProductType = CatalogProductType.Credit,
+            WorkflowType = CatalogWorkflowType.FormSubmission,
+            Status = CatalogProductStatus.Published,
+            IsSalesActive = true,
+            CreditConsumptionPolicy = policy
+        };
+        activeProduct.CreditGrants.Add(new CatalogProductCreditGrant
+        {
+            CreditType = creditType,
+            Quantity = 1
+        });
+        var archivedProduct = new CatalogProduct
+        {
+            Name = "Archived credits",
+            Slug = "archived-credits",
+            ProductType = CatalogProductType.Credit,
+            WorkflowType = CatalogWorkflowType.FormSubmission,
+            Status = CatalogProductStatus.Archived,
+            IsSalesActive = true,
+            CreditConsumptionPolicy = policy
+        };
+        archivedProduct.CreditGrants.Add(new CatalogProductCreditGrant
+        {
+            CreditType = creditType,
+            Quantity = 1
+        });
+
+        dbContext.AddRange(teacher, course, creditType, policy, activeProduct, archivedProduct);
+        await dbContext.SaveChangesAsync();
+
+        var service = new CourseService(dbContext);
+        var editData = await service.GetCourseEditAsync(
+            course.Id,
+            teacher.Id,
+            canViewAll: false);
+
+        Assert.NotNull(editData);
+        Assert.Equal(
+            [activeProduct.Id, archivedProduct.Id],
+            editData!.CreditProducts.Select(product => product.Id).ToArray());
+        Assert.True(editData.CreditProducts[0].IsActive);
+        Assert.False(editData.CreditProducts[1].IsActive);
+        Assert.All(editData.CreditProducts, product =>
+        {
+            Assert.Equal(creditType.Id, product.CreditTypeId);
+            Assert.Equal(policy.Id, product.CreditConsumptionPolicyId);
+        });
+    }
+
+    [Fact]
+    public async Task GetCourseEditAsync_ReturnsOnlyCurrentTeachersActiveExams()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var dbContext = factory.CreateDbContext();
+
+        var teacher = new ApplicationUser { Id = "exam-option-teacher", UserName = "owner@example.com" };
+        var otherTeacher = new ApplicationUser { Id = "exam-option-other", UserName = "other@example.com" };
+        var course = new Course { Name = "Owned course", CreatedByUserId = teacher.Id };
+        dbContext.AddRange(
+            teacher,
+            otherTeacher,
+            course,
+            new Exam
+            {
+                Name = "Published exam",
+                CreatedByUserId = teacher.Id,
+                DifficultyValue = (int)DifficultyLevel.A1,
+                IntroductionPrimaryLanguage = string.Empty,
+                PublishStatus = ExamPublishStatus.Published
+            },
+            new Exam
+            {
+                Name = "Draft exam",
+                CreatedByUserId = teacher.Id,
+                DifficultyValue = (int)DifficultyLevel.A1,
+                IntroductionPrimaryLanguage = string.Empty,
+                PublishStatus = ExamPublishStatus.Draft
+            },
+            new Exam
+            {
+                Name = "Archived exam",
+                CreatedByUserId = teacher.Id,
+                DifficultyValue = (int)DifficultyLevel.A1,
+                IntroductionPrimaryLanguage = string.Empty,
+                PublishStatus = ExamPublishStatus.Archived
+            },
+            new Exam
+            {
+                Name = "Deleted exam",
+                CreatedByUserId = teacher.Id,
+                DifficultyValue = (int)DifficultyLevel.A1,
+                IntroductionPrimaryLanguage = string.Empty,
+                PublishStatus = ExamPublishStatus.Published,
+                IsDeleted = true
+            },
+            new Exam
+            {
+                Name = "Another teacher's exam",
+                CreatedByUserId = otherTeacher.Id,
+                DifficultyValue = (int)DifficultyLevel.A1,
+                IntroductionPrimaryLanguage = string.Empty,
+                PublishStatus = ExamPublishStatus.Published
+            });
+        await dbContext.SaveChangesAsync();
+
+        var editData = await new CourseService(dbContext).GetCourseEditAsync(
+            course.Id,
+            teacher.Id,
+            canViewAll: false);
+
+        Assert.NotNull(editData);
+        Assert.Equal(
+            ["Published exam", "Draft exam"],
+            editData!.ExamOptions.Select(exam => exam.Name).ToArray());
+        Assert.Equal(
+            [ExamPublishStatus.Published, ExamPublishStatus.Draft],
+            editData.ExamOptions.Select(exam => exam.PublishStatus).ToArray());
+    }
+
+    [Fact]
+    public async Task SaveCourseContentAsync_AttachesOwnedExamAndRejectsAnotherTeachersExam()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var dbContext = factory.CreateDbContext();
+
+        var teacher = new ApplicationUser { Id = "placement-teacher", UserName = "owner@example.com" };
+        var otherTeacher = new ApplicationUser { Id = "placement-other", UserName = "other@example.com" };
+        var course = new Course { Name = "Assessment course", CreatedByUserId = teacher.Id };
+        var section = new CourseSection { Course = course, Title = "Assessment", OrderNumber = 0 };
+        course.Sections.Add(section);
+        var ownedExam = new Exam
+        {
+            Name = "Owned exam",
+            CreatedByUserId = teacher.Id,
+            DifficultyValue = (int)DifficultyLevel.A1,
+            IntroductionPrimaryLanguage = string.Empty,
+            PublishStatus = ExamPublishStatus.Published
+        };
+        var otherExam = new Exam
+        {
+            Name = "Other exam",
+            CreatedByUserId = otherTeacher.Id,
+            DifficultyValue = (int)DifficultyLevel.A1,
+            IntroductionPrimaryLanguage = string.Empty,
+            PublishStatus = ExamPublishStatus.Published
+        };
+        dbContext.AddRange(teacher, otherTeacher, course, ownedExam, otherExam);
+        await dbContext.SaveChangesAsync();
+
+        var service = new CourseService(dbContext);
+        var content = new CourseContentEditData
+        {
+            CourseId = course.Id,
+            Name = course.Name,
+            Sections =
+            [
+                new CourseSectionEditItem
+                {
+                    Id = section.Id,
+                    Title = section.Title,
+                    OrderNumber = section.OrderNumber,
+                    Exams =
+                    [
+                        new CourseExamEditItem
+                        {
+                            Id = -1,
+                            ExamId = ownedExam.Id,
+                            Title = ownedExam.Name,
+                            OrderNumber = 0,
+                            UnlockAfterValue = 2,
+                            UnlockAfterUnit = CourseUnlockUnit.Days,
+                            IsRequiredForCompletion = true,
+                            MinimumPassingScore = 70,
+                            FailureAction = CourseExamFailureAction.RequirePassingScore
+                        }
+                    ]
+                }
+            ]
+        };
+
+        var attachResult = await service.SaveCourseContentAsync(
+            course.Id,
+            teacher.Id,
+            canViewAll: false,
+            content);
+
+        Assert.True(attachResult.Success);
+        var placement = await dbContext.CourseSectionExams.SingleAsync();
+        Assert.Equal(ownedExam.Id, placement.ExamId);
+        Assert.Equal(2, placement.UnlockAfterValue);
+        Assert.Equal(CourseUnlockUnit.Days, placement.UnlockAfterUnit);
+        Assert.Equal(70, placement.MinimumPassingScore);
+        Assert.Equal(CourseExamFailureAction.RequirePassingScore, placement.FailureAction);
+
+        content.Sections[0].Exams.Add(new CourseExamEditItem
+        {
+            Id = -2,
+            ExamId = otherExam.Id,
+            Title = otherExam.Name,
+            OrderNumber = 1
+        });
+        content.Sections[0].Exams[0].Id = placement.Id;
+
+        var unauthorizedResult = await service.SaveCourseContentAsync(
+            course.Id,
+            teacher.Id,
+            canViewAll: false,
+            content);
+
+        Assert.False(unauthorizedResult.Success);
+        Assert.Equal(ownedExam.Id, Assert.Single(await dbContext.CourseSectionExams.ToListAsync()).ExamId);
+    }
+
+    [Fact]
     public async Task CourseAccess_SortsByRoleAndSupportsSearchAndRemoval()
     {
         using var factory = new SqliteTestDbFactory();
@@ -744,5 +990,89 @@ public sealed class CourseServiceTests
         Assert.False(Assert.Single(managerView!.Sections).IsLocked);
         Assert.Equal(CourseContentKind.Lecture, managerView.SelectedContent!.Kind);
         Assert.Null(unavailableView);
+    }
+
+    [Fact]
+    public async Task SaveCourseContentAsync_RecalculatesFutureSectionUnlocksForExistingEnrollments()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var dbContext = factory.CreateDbContext();
+        var teacher = new ApplicationUser { Id = "unlock-teacher", UserName = "teacher@example.com" };
+        var students = new[]
+        {
+            new ApplicationUser { Id = "unlock-student-1", UserName = "student1@example.com" },
+            new ApplicationUser { Id = "unlock-student-2", UserName = "student2@example.com" },
+            new ApplicationUser { Id = "unlock-student-3", UserName = "student3@example.com" }
+        };
+        var course = new Course { Name = "Timed learning", CreatedByUserId = teacher.Id };
+        var section = new CourseSection
+        {
+            Course = course,
+            Title = "Section A",
+            OrderNumber = 1,
+            UnlockAfterValue = 7,
+            UnlockAfterUnit = CourseUnlockUnit.Days
+        };
+        course.Sections.Add(section);
+        dbContext.Users.Add(teacher);
+        dbContext.Users.AddRange(students);
+        dbContext.Courses.Add(course);
+        await dbContext.SaveChangesAsync();
+
+        var now = DateTime.UtcNow;
+        var grantedDates = new[] { now.AddDays(-1), now.AddDays(-4), now };
+        for (var index = 0; index < students.Length; index++)
+        {
+            dbContext.UserCourses.Add(new UserCourse
+            {
+                UserId = students[index].Id,
+                CourseId = course.Id,
+                GrantedAtUtc = grantedDates[index]
+            });
+        }
+        dbContext.CourseSectionUserAccesses.AddRange(
+            new CourseSectionUserAccess
+            {
+                UserId = students[0].Id,
+                CourseSectionId = section.Id,
+                UnlockAtUtc = grantedDates[0].AddDays(7)
+            },
+            new CourseSectionUserAccess
+            {
+                UserId = students[1].Id,
+                CourseSectionId = section.Id,
+                UnlockAtUtc = grantedDates[1].AddDays(7)
+            });
+        await dbContext.SaveChangesAsync();
+
+        var service = new CourseService(dbContext);
+        var result = await service.SaveCourseContentAsync(
+            course.Id,
+            teacher.Id,
+            canViewAll: false,
+            new CourseContentEditData
+            {
+                CourseId = course.Id,
+                Name = course.Name,
+                Sections =
+                [
+                    new CourseSectionEditItem
+                    {
+                        Id = section.Id,
+                        Title = section.Title,
+                        OrderNumber = section.OrderNumber,
+                        UnlockAfterValue = 3,
+                        UnlockAfterUnit = CourseUnlockUnit.Days
+                    }
+                ]
+            });
+
+        Assert.True(result.Success);
+        var accessRows = await dbContext.CourseSectionUserAccesses
+            .Where(access => access.CourseSectionId == section.Id)
+            .ToDictionaryAsync(access => access.UserId);
+        Assert.Equal(grantedDates[0].AddDays(3), accessRows[students[0].Id].UnlockAtUtc);
+        Assert.Equal(grantedDates[1].AddDays(3), accessRows[students[1].Id].UnlockAtUtc);
+        Assert.Equal(grantedDates[2].AddDays(3), accessRows[students[2].Id].UnlockAtUtc);
     }
 }

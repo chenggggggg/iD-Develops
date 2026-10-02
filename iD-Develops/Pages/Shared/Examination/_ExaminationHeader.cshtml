@@ -10,7 +10,12 @@
                 <div class="exam-header-group">
                     @if (Model.Mode == PaginationMode.Editing)
                     {
-                        <a class="exam-header-back" asp-page="/Portal/Exams/List" aria-label="Back to exams">
+                        var returnCourseId = ViewData["ReturnCourseId"] as int?;
+                        <a class="exam-header-back"
+                           asp-page="@(returnCourseId.HasValue ? "/Portal/Courses/Course" : "/Portal/Exams/List")"
+                           asp-route-courseId="@returnCourseId"
+                           asp-route-edit="@(returnCourseId.HasValue ? true : null)"
+                           aria-label="@(returnCourseId.HasValue ? "Back to course editor" : "Back to exams")">
                             <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
                         </a>
                     }

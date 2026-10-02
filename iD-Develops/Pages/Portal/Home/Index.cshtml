@@ -2,40 +2,150 @@
 @model iD_Develops.Pages.Portal.Home.IndexModel
 @{
     Layout = "_PortalLayout";
-    ViewData["Title"] = "Portal";
+    ViewData["Title"] = "Home";
     ViewData["HideFooterNavigation"] = true;
 }
-<section class="portal-section">
-    <div class="portal-page-shell">
-        <div class="portal-grid portal-grid-main-aside">
-            <div>
-                <div class="portal-card portal-card-lg">
-                    <p class="portal-eyebrow">Portal</p>
-                    <h1 class="portal-title">Your workspace for exams, learners, and admin tools.</h1>
-                    <p class="portal-copy">
-                        The public website stays focused on product and company information. Everything that requires an account now starts here in the Portal.
-                    </p>
+
+<section class="tw:mx-auto tw:flex tw:w-full tw:max-w-[1440px] tw:flex-col tw:gap-6 tw:px-4 tw:py-6 tw:sm:px-6 tw:lg:px-8">
+    <header class="tw:flex tw:flex-col tw:justify-between tw:gap-4 tw:sm:flex-row tw:sm:items-end">
+        <div>
+            <p class="tw:m-0 tw:text-xs tw:font-semibold tw:uppercase tw:tracking-[0.14em] tw:text-[#005190]">Dashboard</p>
+            <h1 class="tw:mt-1 tw:mb-0 tw:text-3xl tw:font-semibold tw:tracking-tight tw:text-[#071f3d]">Welcome back, @Model.DisplayName.</h1>
+            <p class="tw:mt-2 tw:mb-0 tw:text-sm tw:text-[#64748b]">
+                @switch (Model.Role)
+                {
+                    case DashboardRole.Admin:
+                        <text>Here is the current operational picture across your learning platform.</text>
+                        break;
+                    case DashboardRole.Teacher:
+                        <text>Your courses, learners, exams, and upcoming teaching schedule at a glance.</text>
+                        break;
+                    default:
+                        <text>Pick up where you left off and see what is coming next.</text>
+                        break;
+                }
+            </p>
+        </div>
+        <div class="tw:flex tw:flex-wrap tw:gap-2">
+            @if (Model.Role == DashboardRole.Student)
+            {
+                <a class="portal-btn portal-btn-primary" asp-page="/Portal/Courses/Index">Continue learning</a>
+                <a class="portal-btn portal-btn-outline" asp-page="/Portal/Exams/List">View exams</a>
+            }
+            else
+            {
+                <a class="portal-btn portal-btn-primary" asp-page="/Portal/Schedule/Index">Open schedule</a>
+                <a class="portal-btn portal-btn-outline" asp-page="/Portal/Exams/Create">Create exam</a>
+            }
+        </div>
+    </header>
+
+    @if (Model.Role == DashboardRole.Student && Model.Student is { } student)
+    {
+        <div class="tw:grid tw:gap-3 tw:sm:grid-cols-2 tw:xl:grid-cols-4" aria-label="Your learning overview">
+            <partial name="_DashboardMetric" model='new DashboardMetric("Average exam score", student.AverageExamScore.HasValue ? student.AverageExamScore.Value.ToString("0.#") : "—", "fa-chart-line", "blue")' />
+            <partial name="_DashboardMetric" model='new DashboardMetric("Assigned exams", student.AssignedExamCount.ToString(), "fa-file-circle-check", "green")' />
+            <partial name="_DashboardMetric" model='new DashboardMetric("Attended sessions", student.AttendedSessionCount.ToString(), "fa-calendar-check", "rose")' />
+            <partial name="_DashboardMetric" model='new DashboardMetric("Completed lectures", student.CompletedLectureCount.ToString(), "fa-book-open-reader", "amber")' />
+        </div>
+
+        <div class="tw:grid tw:gap-6 tw:xl:grid-cols-[minmax(0,1.6fr)_minmax(20rem,0.9fr)]">
+            <section class="tw:rounded-xl tw:border tw:border-[#dfe5ec] tw:bg-white tw:p-5 tw:shadow-[0_1px_3px_rgba(2,7,47,0.05)]" aria-labelledby="courseProgressHeading">
+                <div class="tw:flex tw:items-end tw:justify-between tw:gap-4">
+                    <div>
+                        <p class="tw:m-0 tw:text-xs tw:font-semibold tw:uppercase tw:tracking-[0.1em] tw:text-[#64748b]">Learning</p>
+                        <h2 id="courseProgressHeading" class="tw:mt-1 tw:mb-0 tw:text-xl tw:font-semibold tw:text-[#071f3d]">Course progress</h2>
+                    </div>
+                    <a class="tw:text-sm tw:font-semibold tw:text-[#005190] tw:no-underline hover:tw:underline" asp-page="/Portal/Courses/Index">All courses</a>
                 </div>
-            </div>
-            <div>
-                <div class="portal-card">
-                    <h2 class="portal-title-sm">Quick access</h2>
-                    <div class="portal-actions-stack">
-                        <a class="portal-btn portal-btn-primary" asp-page="/Portal/Exams/List">Go to exams</a>
-                        <a class="portal-btn portal-btn-outline" asp-page="/Portal/Settings/Index">Open settings</a>
-                        @if (User.IsInRole("Teacher") || (User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
+                @if (student.Courses.Count == 0)
+                {
+                    <p class="tw:mt-6 tw:mb-0 tw:rounded-lg tw:bg-[#f6f8fa] tw:px-4 tw:py-5 tw:text-sm tw:text-[#64748b]">No courses are assigned to your account yet.</p>
+                }
+                else
+                {
+                    <div class="tw:mt-5 tw:grid tw:gap-3">
+                        @foreach (var course in student.Courses)
                         {
-                            <a class="portal-btn portal-btn-outline" asp-page="/Portal/Exams/Create">Create exam</a>
-                        }
-                        @if ((User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
-                        {
-                            <a class="portal-btn portal-btn-outline" asp-page="/Portal/Admin/Index">Admin</a>
-                            <a class="portal-btn portal-btn-outline" asp-page="/Portal/Admin/Users">Manage users</a>
-                            <a class="portal-btn portal-btn-outline" asp-page="/Portal/Admin/Roles">Manage roles</a>
+                            <a class="tw:block tw:rounded-lg tw:border tw:border-[#e5eaf0] tw:p-4 tw:text-inherit tw:no-underline tw:transition hover:tw:border-[#8eb8d6] hover:tw:bg-[#f8fbfd]" asp-page="/Portal/Courses/Course" asp-route-courseId="@course.Id">
+                                <div class="tw:flex tw:items-center tw:justify-between tw:gap-4">
+                                    <strong class="tw:text-sm tw:font-semibold tw:text-[#071f3d]">@course.Name</strong>
+                                    <span class="tw:text-xs tw:font-semibold tw:text-[#005190]">@course.ProgressPercent%</span>
+                                </div>
+                                <progress class="tw:mt-3 tw:block tw:h-2 tw:w-full tw:overflow-hidden tw:rounded-full tw:accent-[#005190]" max="100" value="@course.ProgressPercent" aria-label="@course.Name progress"></progress>
+                                <span class="tw:mt-2 tw:block tw:text-xs tw:text-[#64748b]">@course.CompletedItemCount of @course.TotalItemCount required items complete</span>
+                            </a>
                         }
                     </div>
-                </div>
+                }
+            </section>
+
+            <div class="tw:grid tw:content-start tw:gap-4">
+                <section class="tw:rounded-xl tw:bg-[#071f3d] tw:p-5 tw:text-white" aria-labelledby="continueHeading">
+                    <p class="tw:m-0 tw:text-xs tw:font-semibold tw:uppercase tw:tracking-[0.1em] tw:text-[#9fc7e4]">Up next</p>
+                    @if (student.NextItem is { } nextItem)
+                    {
+                        <h2 id="continueHeading" class="tw:mt-2 tw:mb-1 tw:text-xl tw:font-semibold">@nextItem.Title</h2>
+                        <p class="tw:m-0 tw:text-sm tw:text-[#cbd8e5]">@nextItem.CourseName · @nextItem.ContentType</p>
+                        <a class="tw:mt-5 tw:inline-flex tw:items-center tw:gap-2 tw:rounded-md tw:bg-white tw:px-4 tw:py-2 tw:text-sm tw:font-semibold tw:text-[#071f3d] tw:no-underline" asp-page="/Portal/Courses/Course" asp-route-courseId="@nextItem.CourseId" asp-route-contentType="@nextItem.ContentType" asp-route-contentId="@nextItem.ContentId">Open item <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+                    }
+                    else
+                    {
+                        <h2 id="continueHeading" class="tw:mt-2 tw:mb-1 tw:text-xl tw:font-semibold">You are all caught up</h2>
+                        <p class="tw:m-0 tw:text-sm tw:text-[#cbd8e5]">There are no unlocked incomplete course items right now.</p>
+                    }
+                </section>
+                <section class="tw:rounded-xl tw:border tw:border-[#dfe5ec] tw:bg-white tw:p-5">
+                    <p class="tw:m-0 tw:text-xs tw:font-semibold tw:uppercase tw:tracking-[0.1em] tw:text-[#64748b]">Next course unlock</p>
+                    @if (student.NextUnlockAtUtc.HasValue)
+                    {
+                        <time class="tw:mt-2 tw:block tw:text-lg tw:font-semibold tw:text-[#071f3d]" datetime="@student.NextUnlockAtUtc.Value.ToString("O")">@student.NextUnlockAtUtc.Value.ToString("ddd, d MMM yyyy · HH:mm") UTC</time>
+                    }
+                    else
+                    {
+                        <p class="tw:mt-2 tw:mb-0 tw:text-sm tw:text-[#64748b]">No future course unlocks are scheduled.</p>
+                    }
+                </section>
             </div>
         </div>
-    </div>
+
+        <partial name="_DashboardEvents" model='new DashboardEventsModel("Your next 7 days", student.UpcomingEvents, false)' />
+    }
+    else if (Model.Staff is { } staff)
+    {
+        <div class="tw:grid tw:gap-3 tw:sm:grid-cols-2 tw:xl:grid-cols-4" aria-label="Dashboard overview">
+            @if (Model.Role == DashboardRole.Admin)
+            {
+                <partial name="_DashboardMetric" model='new DashboardMetric("Active users", staff.PeopleCount.ToString(), "fa-users", "blue")' />
+                <partial name="_DashboardMetric" model='new DashboardMetric("Courses", staff.CourseCount.ToString(), "fa-graduation-cap", "green")' />
+                <partial name="_DashboardMetric" model='new DashboardMetric("Published exams", staff.ExamCount.ToString(), "fa-file-circle-check", "rose")' />
+                <partial name="_DashboardMetric" model='new DashboardMetric("Draft exams", staff.DraftExamCount.ToString(), "fa-pen-to-square", "amber")' />
+            }
+            else
+            {
+                <partial name="_DashboardMetric" model='new DashboardMetric("Events this week", staff.UpcomingEventCount.ToString(), "fa-calendar-days", "blue")' />
+                <partial name="_DashboardMetric" model='new DashboardMetric("My courses", staff.CourseCount.ToString(), "fa-graduation-cap", "green")' />
+                <partial name="_DashboardMetric" model='new DashboardMetric("My exams", staff.ExamCount.ToString(), "fa-file-circle-check", "rose")' />
+                <partial name="_DashboardMetric" model='new DashboardMetric("Course learners", staff.PeopleCount.ToString(), "fa-users", "amber")' />
+            }
+        </div>
+
+        <div class="tw:grid tw:gap-6 tw:xl:grid-cols-[minmax(0,1.6fr)_minmax(19rem,0.8fr)]">
+            <partial name="_DashboardEvents" model='new DashboardEventsModel(Model.Role == DashboardRole.Admin ? "Platform schedule · next 7 days" : "Your teaching week", staff.UpcomingEvents, Model.Role == DashboardRole.Admin)' />
+            <section class="tw:rounded-xl tw:border tw:border-[#dfe5ec] tw:bg-white tw:p-5 tw:shadow-[0_1px_3px_rgba(2,7,47,0.05)]" aria-labelledby="quickActionsHeading">
+                <p class="tw:m-0 tw:text-xs tw:font-semibold tw:uppercase tw:tracking-[0.1em] tw:text-[#64748b]">Shortcuts</p>
+                <h2 id="quickActionsHeading" class="tw:mt-1 tw:mb-4 tw:text-xl tw:font-semibold tw:text-[#071f3d]">Quick actions</h2>
+                <div class="tw:grid tw:gap-2">
+                    <a class="portal-btn portal-btn-primary tw:justify-center" asp-page="/Portal/Exams/Create"><i class="fa-solid fa-plus" aria-hidden="true"></i> Create exam</a>
+                    <a class="portal-btn portal-btn-outline tw:justify-center" asp-page="/Portal/Exams/Assignments"><i class="fa-solid fa-user-check" aria-hidden="true"></i> Assign exam</a>
+                    <a class="portal-btn portal-btn-outline tw:justify-center" asp-page="/Portal/Courses/Index"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> Manage courses</a>
+                    <a class="portal-btn portal-btn-outline tw:justify-center" asp-page="/Portal/Schedule/Index"><i class="fa-solid fa-calendar" aria-hidden="true"></i> Open schedule</a>
+                    @if (Model.Role == DashboardRole.Admin)
+                    {
+                        <a class="portal-btn portal-btn-outline tw:justify-center" asp-page="/Portal/Admin/Users"><i class="fa-solid fa-users-gear" aria-hidden="true"></i> Manage users</a>
+                    }
+                </div>
+            </section>
+        </div>
+    }
 </section>

@@ -312,6 +312,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 // ----------------------------
 builder.Services.AddScoped<IExamService, ExamService>();
 builder.Services.AddScoped<IExamAccessService, ExamAccessService>();
+builder.Services.AddScoped<IExamAssignmentService, ExamAssignmentService>();
 builder.Services.AddScoped<IExamVersionService, ExamVersionService>();
 builder.Services.AddScoped<IExamTransferService, ExamTransferService>();
 builder.Services.AddScoped<ICourseService, CourseService>();
