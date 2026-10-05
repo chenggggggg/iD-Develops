@@ -1,9 +1,9 @@
-@page "/portal/schedule/appointment-types"
+@page "/portal/calendar/appointment-types"
 @using System.Text.Json
 @model iD_Develops.Pages.Portal.Schedule.AppointmentsModel
 @{
     Layout = "_PortalLayout";
-    ViewData["Title"] = "Appointment types";
+    ViewData["Title"] = "Private session types";
 }
 
 <section class="portal-page-shell appointment-page" data-appointment-admin>
@@ -11,10 +11,10 @@
         <div>
             <a class="roster-back-link" asp-page="/Portal/Schedule/Index"><i class="fa-solid fa-arrow-left"></i> Calendar</a>
             <p class="portal-eyebrow">Private scheduling</p>
-            <h1 class="portal-title-sm">Appointment types</h1>
+            <h1 class="portal-title-sm">Private session types</h1>
             <p class="portal-copy">Define which private sessions students can book with credits.</p>
         </div>
-        <button type="button" class="portal-btn portal-btn-primary" data-appointment-new><i class="fa-solid fa-plus"></i> New appointment type</button>
+        <button type="button" class="portal-btn portal-btn-primary" data-appointment-new><i class="fa-solid fa-plus"></i> New session type</button>
     </header>
 
     @if (TempData["StatusMessage"] is string status) { <div class="schedule-notice" role="status">@status</div> }

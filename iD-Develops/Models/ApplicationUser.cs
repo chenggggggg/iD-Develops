@@ -34,6 +34,7 @@ namespace iD_Develops.Models
         public ICollection<UserExam> UserExams { get; set; } = new List<UserExam>();
         public ICollection<ExamAttemptGrant> ExamAttemptGrants { get; set; } = new List<ExamAttemptGrant>();
         public ICollection<CourseSectionUserAccess> CourseSectionAccesses { get; set; } = new List<CourseSectionUserAccess>();
+        public ICollection<CourseContentUserAccess> CourseContentAccesses { get; set; } = new List<CourseContentUserAccess>();
         public ICollection<UserCourse> UserCourses { get; set; } = new List<UserCourse>();
         public ICollection<UserCourse> GrantedCourseEnrollments { get; set; } = new List<UserCourse>();
         public ICollection<Course> CreatedCourses { get; set; } = new List<Course>();

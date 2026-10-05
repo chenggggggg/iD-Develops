@@ -325,6 +325,8 @@ namespace iD_Develops.Services
                     cancellationToken);
             if (assignment == null)
                 return Failure("This user no longer has access to the course.");
+            if (assignment.AssignmentSource == CourseAssignmentSource.Purchase)
+                return Failure("Purchased access cannot be removed with Unassign.");
 
             var sectionAccesses = await _dbContext.CourseSectionUserAccesses
                 .Where(access =>
@@ -332,6 +334,10 @@ namespace iD_Develops.Services
                     access.CourseSection.CourseId == courseId)
                 .ToListAsync(cancellationToken);
             _dbContext.CourseSectionUserAccesses.RemoveRange(sectionAccesses);
+            var contentAccesses = await _dbContext.CourseContentUserAccesses
+                .Where(access => access.UserId == userId && access.CourseId == courseId)
+                .ToListAsync(cancellationToken);
+            _dbContext.CourseContentUserAccesses.RemoveRange(contentAccesses);
             _dbContext.UserCourses.Remove(assignment);
             await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -376,6 +382,93 @@ namespace iD_Develops.Services
             access.IsManualOverride = true;
             access.UpdatedAtUtc = DateTime.UtcNow;
             access.UpdatedByUserId = actorUserId;
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            return Success();
+        }
+
+        public async Task<OperationResult> SetContentUnlockAsync(
+            int courseId,
+            CourseContentKind contentKind,
+            int contentId,
+            string userId,
+            DateTime? unlockAtUtc,
+            bool resetToDefault,
+            string actorUserId,
+            bool canManageAll,
+            CancellationToken cancellationToken = default)
+        {
+            if (!await CanManageCourseAsync(courseId, actorUserId, canManageAll, cancellationToken))
+                return Failure("You are not allowed to manage access for this course.");
+            if (string.IsNullOrWhiteSpace(userId) || contentId <= 0)
+                return Failure("Select a learner and course item.");
+
+            var isEnrolled = await _dbContext.UserCourses
+                .AsNoTracking()
+                .AnyAsync(access => access.CourseId == courseId && access.UserId == userId, cancellationToken);
+            if (!isEnrolled || !await ContentBelongsToCourseAsync(courseId, contentKind, contentId, cancellationToken))
+                return Failure("The selected learner or course item is no longer available.");
+
+            if (contentKind == CourseContentKind.Section)
+            {
+                var existingSectionAccess = await _dbContext.CourseSectionUserAccesses
+                    .FirstOrDefaultAsync(access =>
+                        access.UserId == userId && access.CourseSectionId == contentId,
+                        cancellationToken);
+                if (resetToDefault)
+                {
+                    if (existingSectionAccess != null)
+                        _dbContext.CourseSectionUserAccesses.Remove(existingSectionAccess);
+                }
+                else
+                {
+                    if (!unlockAtUtc.HasValue)
+                        return Failure("Choose an unlock time or unlock the item now.");
+                    existingSectionAccess ??= new CourseSectionUserAccess
+                    {
+                        UserId = userId,
+                        CourseSectionId = contentId
+                    };
+                    if (_dbContext.Entry(existingSectionAccess).State == EntityState.Detached)
+                        _dbContext.CourseSectionUserAccesses.Add(existingSectionAccess);
+                    existingSectionAccess.UnlockAtUtc = NormalizeUtc(unlockAtUtc) ?? DateTime.UtcNow;
+                    existingSectionAccess.IsManualOverride = true;
+                    existingSectionAccess.UpdatedAtUtc = DateTime.UtcNow;
+                    existingSectionAccess.UpdatedByUserId = actorUserId;
+                }
+            }
+            else
+            {
+                var kind = contentKind.ToString();
+                var existing = await _dbContext.CourseContentUserAccesses.FirstOrDefaultAsync(access =>
+                    access.CourseId == courseId &&
+                    access.UserId == userId &&
+                    access.ContentKind == kind &&
+                    access.ContentId == contentId,
+                    cancellationToken);
+                if (resetToDefault)
+                {
+                    if (existing != null)
+                        _dbContext.CourseContentUserAccesses.Remove(existing);
+                }
+                else
+                {
+                    if (!unlockAtUtc.HasValue)
+                        return Failure("Choose an unlock time or unlock the item now.");
+                    existing ??= new CourseContentUserAccess
+                    {
+                        CourseId = courseId,
+                        UserId = userId,
+                        ContentKind = kind,
+                        ContentId = contentId
+                    };
+                    if (_dbContext.Entry(existing).State == EntityState.Detached)
+                        _dbContext.CourseContentUserAccesses.Add(existing);
+                    existing.UnlockAtUtc = NormalizeUtc(unlockAtUtc) ?? DateTime.UtcNow;
+                    existing.UpdatedAtUtc = DateTime.UtcNow;
+                    existing.UpdatedByUserId = actorUserId;
+                }
+            }
+
             await _dbContext.SaveChangesAsync(cancellationToken);
             return Success();
         }
@@ -427,6 +520,17 @@ namespace iD_Develops.Services
                 return null;
 
             var accessDateUtc = access?.PurchasedAtUtc ?? access?.GrantedAtUtc;
+
+            var contentUnlockOverrides = await _dbContext.CourseContentUserAccesses
+                .AsNoTracking()
+                .Where(item => item.CourseId == courseId && item.UserId == userId)
+                .Select(item => new { item.ContentKind, item.ContentId, item.UnlockAtUtc })
+                .ToListAsync(cancellationToken);
+            var unlockOverrides = contentUnlockOverrides
+                .Where(item => Enum.TryParse<CourseContentKind>(item.ContentKind, out _))
+                .ToDictionary(
+                    item => (Enum.Parse<CourseContentKind>(item.ContentKind), item.ContentId),
+                    item => (DateTime?)item.UnlockAtUtc);
 
             var lectureIds = course.Sections
                 .SelectMany(section => section.Lectures)
@@ -524,7 +628,9 @@ namespace iD_Develops.Services
                                 accessDateUtc,
                                 lecture.UnlockAfterValue,
                                 lecture.UnlockAfterUnit);
-                            var effectiveUnlockAtUtc = Latest(sectionUnlockAtUtc, lectureUnlockAtUtc);
+                            var effectiveUnlockAtUtc = unlockOverrides.GetValueOrDefault(
+                                (CourseContentKind.Lecture, lecture.Id),
+                                Latest(sectionUnlockAtUtc, lectureUnlockAtUtc));
                             return new CourseLectureItem(
                                 lecture.Id,
                                 lecture.Title,
@@ -538,13 +644,19 @@ namespace iD_Develops.Services
                     var assignments = section.Assignments
                         .OrderBy(assignment => assignment.OrderNumber)
                         .ThenBy(assignment => assignment.Id)
-                        .Select(assignment => new CourseAssignmentItem(
-                            assignment.Id,
-                            assignment.Title,
-                            assignment.OrderNumber,
-                            assignment.EstimatedDurationMinutes,
-                            sectionLocked,
-                            completedAssignmentIds.Contains(assignment.Id)))
+                        .Select(assignment =>
+                        {
+                            var assignmentUnlockAtUtc = unlockOverrides.GetValueOrDefault(
+                                (CourseContentKind.Assignment, assignment.Id),
+                                sectionUnlockAtUtc);
+                            return new CourseAssignmentItem(
+                                assignment.Id,
+                                assignment.Title,
+                                assignment.OrderNumber,
+                                assignment.EstimatedDurationMinutes,
+                                IsLocked(assignmentUnlockAtUtc, canManageCourse, now),
+                                completedAssignmentIds.Contains(assignment.Id));
+                        })
                         .ToList();
                     var classes = section.Classes
                         .OrderBy(courseClass => courseClass.OrderNumber)
@@ -555,7 +667,9 @@ namespace iD_Develops.Services
                                 accessDateUtc,
                                 courseClass.UnlockAfterValue,
                                 courseClass.UnlockAfterUnit);
-                            var effectiveUnlockAtUtc = Latest(sectionUnlockAtUtc, classUnlockAtUtc);
+                            var effectiveUnlockAtUtc = unlockOverrides.GetValueOrDefault(
+                                (CourseContentKind.Class, courseClass.Id),
+                                Latest(sectionUnlockAtUtc, classUnlockAtUtc));
                             var previousSection = orderedCourseSections
                                 .TakeWhile(item => item.Id != section.Id)
                                 .LastOrDefault();
@@ -593,7 +707,9 @@ namespace iD_Develops.Services
                                 accessDateUtc,
                                 placement.UnlockAfterValue,
                                 placement.UnlockAfterUnit);
-                            var effectiveUnlockAtUtc = Latest(sectionUnlockAtUtc, examUnlockAtUtc);
+                            var effectiveUnlockAtUtc = unlockOverrides.GetValueOrDefault(
+                                (CourseContentKind.Exam, placement.Id),
+                                Latest(sectionUnlockAtUtc, examUnlockAtUtc));
                             var hasCompletedAttempt = completedExamScores.TryGetValue(placement.ExamId, out var bestScore);
                             var hasPassed = hasCompletedAttempt &&
                                 (placement.FailureAction == CourseExamFailureAction.AllowProgress ||
@@ -879,12 +995,48 @@ namespace iD_Develops.Services
                 .AsNoTracking()
                 .Where(exam =>
                     !exam.IsDeleted &&
-                    exam.CreatedByUserId == userId &&
-                    exam.PublishStatus != ExamPublishStatus.Archived)
-                .OrderByDescending(exam => exam.PublishStatus == ExamPublishStatus.Published)
-                .ThenBy(exam => exam.Name)
+                    exam.PublishStatus == ExamPublishStatus.Published &&
+                    (canViewAll || exam.CreatedByUserId == userId))
+                .OrderBy(exam => exam.Name)
                 .Select(exam => new CourseExamOption(exam.Id, exam.Name, exam.PublishStatus))
                 .ToListAsync(cancellationToken);
+            var learnerRows = await _dbContext.UserCourses
+                .AsNoTracking()
+                .Where(access =>
+                    access.CourseId == courseId &&
+                    access.UserId != course.CreatedByUserId &&
+                    !access.ApplicationUser.IsDeleted)
+                .Select(access => new
+                {
+                    access.UserId,
+                    access.ApplicationUser.FirstName,
+                    access.ApplicationUser.LastName,
+                    access.ApplicationUser.UserName,
+                    access.ApplicationUser.Email
+                })
+                .OrderBy(access => access.FirstName)
+                .ThenBy(access => access.LastName)
+                .ToListAsync(cancellationToken);
+            var contentOverrides = await _dbContext.CourseContentUserAccesses
+                .AsNoTracking()
+                .Where(access => access.CourseId == courseId)
+                .Select(access => new
+                {
+                    access.UserId,
+                    access.ContentKind,
+                    access.ContentId,
+                    access.UnlockAtUtc
+                })
+                .ToListAsync(cancellationToken);
+            var sectionOverrides = course.Sections
+                .SelectMany(section => section.UserAccesses
+                    .Where(access => access.IsManualOverride && access.UnlockAtUtc.HasValue)
+                    .Select(access => new CourseContentUnlockOverride(
+                        access.UserId,
+                        CourseContentKind.Section,
+                        section.Id,
+                        access.UnlockAtUtc!.Value)))
+                .ToList();
             var classIds = course.Sections.SelectMany(section => section.Classes).Select(item => item.Id).ToArray();
             var upcomingSessionCounts = await _dbContext.ScheduledEvents
                 .AsNoTracking()
@@ -902,6 +1054,17 @@ namespace iD_Develops.Services
                 Name = course.Name,
                 CreditProducts = creditProducts,
                 ExamOptions = examOptions,
+                Learners = learnerRows.Select(learner => new CourseLearnerOption(
+                    learner.UserId,
+                    FormatDisplayName(learner.FirstName, learner.LastName, learner.UserName, learner.Email),
+                    learner.Email ?? learner.UserName ?? string.Empty)).ToList(),
+                UnlockOverrides = sectionOverrides.Concat(contentOverrides
+                    .Where(access => Enum.TryParse<CourseContentKind>(access.ContentKind, out _))
+                    .Select(access => new CourseContentUnlockOverride(
+                        access.UserId,
+                        Enum.Parse<CourseContentKind>(access.ContentKind),
+                        access.ContentId,
+                        access.UnlockAtUtc))).ToList(),
                 Sections = course.Sections
                     .OrderBy(section => section.OrderNumber)
                     .ThenBy(section => section.Id)
@@ -1079,17 +1242,17 @@ namespace iD_Develops.Services
                 .Select(input => input.ExamId)
                 .Distinct()
                 .ToArray();
-            var ownedExamIds = await _dbContext.Exams
+            var selectableExamIds = await _dbContext.Exams
                 .AsNoTracking()
                 .Where(exam =>
                     newExamIds.Contains(exam.Id) &&
                     !exam.IsDeleted &&
-                    exam.PublishStatus != ExamPublishStatus.Archived &&
-                    exam.CreatedByUserId == userId)
+                    exam.PublishStatus == ExamPublishStatus.Published &&
+                    (canViewAll || exam.CreatedByUserId == userId))
                 .Select(exam => exam.Id)
                 .ToListAsync(cancellationToken);
-            if (ownedExamIds.Count != newExamIds.Length)
-                return Failure("You can only add your own active exams to a course.");
+            if (selectableExamIds.Count != newExamIds.Length)
+                return Failure("Select a published exam that you are allowed to use.");
 
             if (examInputs
                 .Where(input => input.Id > 0)
@@ -1571,6 +1734,26 @@ namespace iD_Develops.Services
             }
         }
 
+        private Task<bool> ContentBelongsToCourseAsync(
+            int courseId,
+            CourseContentKind contentKind,
+            int contentId,
+            CancellationToken cancellationToken)
+            => contentKind switch
+            {
+                CourseContentKind.Section => _dbContext.CourseSections.AsNoTracking()
+                    .AnyAsync(item => item.Id == contentId && item.CourseId == courseId, cancellationToken),
+                CourseContentKind.Lecture => _dbContext.Lectures.AsNoTracking()
+                    .AnyAsync(item => item.Id == contentId && item.CourseSection.CourseId == courseId, cancellationToken),
+                CourseContentKind.Assignment => _dbContext.CourseAssignments.AsNoTracking()
+                    .AnyAsync(item => item.Id == contentId && item.CourseSection.CourseId == courseId, cancellationToken),
+                CourseContentKind.Class => _dbContext.CourseClasses.AsNoTracking()
+                    .AnyAsync(item => item.Id == contentId && item.CourseSection.CourseId == courseId, cancellationToken),
+                CourseContentKind.Exam => _dbContext.CourseSectionExams.AsNoTracking()
+                    .AnyAsync(item => item.Id == contentId && item.CourseSection.CourseId == courseId, cancellationToken),
+                _ => Task.FromResult(false)
+            };
+
         private static CourseSourceFileEditItem MapSourceFile(LectureSourceFile file)
             => new()
             {
@@ -1955,6 +2138,13 @@ namespace iD_Develops.Services
                 course.Exams.Count(exam => !exam.IsDeleted) +
                     course.Sections.SelectMany(section => section.Exams)
                         .Count(placement => !placement.Exam.IsDeleted),
-                course.LearningMaterials.Count));
+                course.LearningMaterials.Count,
+                course.Sections.Count,
+                course.UserCourses.Count,
+                course.Sections.Sum(section =>
+                    section.Lectures.Count +
+                    section.Assignments.Count +
+                    section.Classes.Count +
+                    section.Exams.Count)));
     }
 }

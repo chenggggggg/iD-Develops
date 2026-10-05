@@ -19,6 +19,8 @@ namespace iD_Develops.Models
 
         public ICollection<CourseInstructor> Instructors { get; set; } = new List<CourseInstructor>();
 
+        public ICollection<CourseContentUserAccess> ContentUserAccesses { get; set; } = new List<CourseContentUserAccess>();
+
         public ICollection<Exam> Exams { get; set; } = new List<Exam>();
 
         public ICollection<LearningMaterial> LearningMaterials { get; set; } = new List<LearningMaterial>();

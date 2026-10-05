@@ -207,6 +207,56 @@ namespace iD_Develops.Pages.Portal.Courses
                 new { courseId, courseSectionId = section.Id });
         }
 
+        public async Task<IActionResult> OnPostSetContentUnlockAsync(
+            int courseId,
+            string contentKind,
+            int contentId,
+            string learnerUserId,
+            DateTime? unlockAtAmsterdam,
+            bool unlockNow,
+            bool resetToDefault,
+            CancellationToken cancellationToken)
+        {
+            if (!CanManageCourseContent())
+                return Forbid();
+            var actorUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(actorUserId))
+                return Challenge();
+            if (!Enum.TryParse<CourseContentKind>(contentKind, true, out var kind))
+                return BadRequest(new { success = false, errorMessage = "Select a valid course item." });
+
+            DateTime? unlockAtUtc = null;
+            if (!resetToDefault)
+            {
+                if (unlockNow)
+                {
+                    unlockAtUtc = DateTime.UtcNow;
+                }
+                else if (unlockAtAmsterdam.HasValue)
+                {
+                    var amsterdam = TimeZoneInfo.FindSystemTimeZoneById("Europe/Amsterdam");
+                    var local = DateTime.SpecifyKind(unlockAtAmsterdam.Value, DateTimeKind.Unspecified);
+                    if (amsterdam.IsInvalidTime(local))
+                        return BadRequest(new { success = false, errorMessage = "That Amsterdam time does not exist because of a daylight-saving change." });
+                    unlockAtUtc = TimeZoneInfo.ConvertTimeToUtc(local, amsterdam);
+                }
+            }
+
+            var result = await _courseService.SetContentUnlockAsync(
+                courseId,
+                kind,
+                contentId,
+                learnerUserId,
+                unlockAtUtc,
+                resetToDefault,
+                actorUserId,
+                CanViewAllCourses(),
+                cancellationToken);
+            return result.Success
+                ? new JsonResult(new { success = true, unlockAtUtc })
+                : BadRequest(new { success = false, errorMessage = result.ErrorMessage });
+        }
+
         public async Task<IActionResult> OnPostSetLectureCompletionAsync(
             int courseId,
             int lectureId,

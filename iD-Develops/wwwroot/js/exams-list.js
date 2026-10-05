@@ -1,4 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
+    initializeExamActionPopovers();
+
     document.querySelectorAll("[data-delete-exam]").forEach(function (button) {
         button.addEventListener("click", function (event) {
             event.preventDefault();
@@ -16,6 +18,46 @@ document.addEventListener("DOMContentLoaded", function () {
     displayDivMessage(successMessage, true);
     sessionStorage.removeItem("successMessage");
 });
+
+function initializeExamActionPopovers() {
+    const popovers = Array.from(document.querySelectorAll("[data-exam-actions-popover]"));
+    if (!popovers.length) return;
+
+    function positionPopover(popover) {
+        const trigger = document.querySelector(`[data-exam-actions-trigger="${CSS.escape(popover.id)}"]`);
+        if (!trigger || !popover.matches(":popover-open")) return;
+
+        const gutter = 8;
+        const gap = 6;
+        const triggerBounds = trigger.getBoundingClientRect();
+        const popoverBounds = popover.getBoundingClientRect();
+        const left = Math.min(
+            window.innerWidth - popoverBounds.width - gutter,
+            Math.max(gutter, triggerBounds.right - popoverBounds.width));
+        const spaceBelow = window.innerHeight - triggerBounds.bottom - gutter;
+        const top = spaceBelow >= popoverBounds.height + gap
+            ? triggerBounds.bottom + gap
+            : Math.max(gutter, triggerBounds.top - popoverBounds.height - gap);
+
+        popover.style.left = `${left}px`;
+        popover.style.top = `${top}px`;
+    }
+
+    popovers.forEach(function (popover) {
+        popover.addEventListener("toggle", function (event) {
+            if (event.newState === "open") {
+                window.requestAnimationFrame(function () { positionPopover(popover); });
+            }
+        });
+    });
+
+    function repositionOpenPopovers() {
+        popovers.forEach(positionPopover);
+    }
+
+    window.addEventListener("resize", repositionOpenPopovers);
+    document.addEventListener("scroll", repositionOpenPopovers, true);
+}
 
 function initializeExamLaunchDialog() {
     const dialog = document.getElementById("examLaunchDialog");

@@ -3,7 +3,14 @@ using iD_Develops.Utilities;
 
 namespace iD_Develops.Services
 {
-    public sealed record CourseListItem(int Id, string Name, int ExamCount, int LearningMaterialCount);
+    public sealed record CourseListItem(
+        int Id,
+        string Name,
+        int ExamCount,
+        int LearningMaterialCount,
+        int SectionCount,
+        int LearnerCount,
+        int ContentCount);
 
     public enum CourseAccessSortField { Name, Role, RegisteredOn }
 
@@ -11,6 +18,14 @@ namespace iD_Develops.Services
         string UserId, string Name, string Email, string Role, DateTime GrantedAtUtc, string AssignedBy, bool IsOwner);
 
     public sealed record CourseAssignableUser(string UserId, string Name, string Email, string Role);
+
+    public sealed record CourseLearnerOption(string UserId, string Name, string Email);
+
+    public sealed record CourseContentUnlockOverride(
+        string UserId,
+        CourseContentKind ContentKind,
+        int ContentId,
+        DateTime UnlockAtUtc);
 
     public sealed record CourseSectionAccessOption(int Id, string Title, int OrderNumber);
 
@@ -102,6 +117,8 @@ namespace iD_Develops.Services
         public string Name { get; set; } = string.Empty;
         public List<CourseCreditProductOption> CreditProducts { get; set; } = new();
         public List<CourseExamOption> ExamOptions { get; set; } = new();
+        public List<CourseLearnerOption> Learners { get; set; } = new();
+        public List<CourseContentUnlockOverride> UnlockOverrides { get; set; } = new();
         public List<CourseSectionEditItem> Sections { get; set; } = new();
     }
 
@@ -218,6 +235,7 @@ namespace iD_Develops.Services
         Task<OperationResult> AssignUserAsync(int courseId, string userId, string grantedByUserId, bool canManageAll, CancellationToken cancellationToken = default);
         Task<OperationResult> RemoveUserAsync(int courseId, string userId, string actorUserId, bool canManageAll, CancellationToken cancellationToken = default);
         Task<OperationResult> SetSectionUnlockAsync(int courseId, int sectionId, string userId, DateTime unlockAtUtc, string actorUserId, bool canManageAll, CancellationToken cancellationToken = default);
+        Task<OperationResult> SetContentUnlockAsync(int courseId, CourseContentKind contentKind, int contentId, string userId, DateTime? unlockAtUtc, bool resetToDefault, string actorUserId, bool canManageAll, CancellationToken cancellationToken = default);
         Task<CourseViewData?> GetCourseViewAsync(int courseId, string userId, bool canViewAll, bool canManage, string? contentType, int? contentId, CancellationToken cancellationToken = default);
         Task<OperationResult> SetLectureCompletionAsync(int courseId, int lectureId, string userId, bool isCompleted, bool canViewAll, bool canManage, CancellationToken cancellationToken = default);
         Task<OperationResult> SetAssignmentCompletionAsync(int courseId, int assignmentId, string userId, bool isCompleted, bool canViewAll, bool canManage, CancellationToken cancellationToken = default);

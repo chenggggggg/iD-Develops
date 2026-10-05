@@ -60,6 +60,7 @@ namespace iD_Develops.Services
                         .Where(placement => placement.CourseSection.Course.UserCourses.Any(access => access.UserId == userId))
                         .Select(placement => new
                         {
+                            placement.Id,
                             placement.UnlockAfterValue,
                             placement.UnlockAfterUnit,
                             SectionUnlockAfterValue = placement.CourseSection.UnlockAfterValue,
@@ -71,6 +72,13 @@ namespace iD_Develops.Services
                             SectionOverride = placement.CourseSection.UserAccesses
                                 .Where(access => access.UserId == userId)
                                 .Select(access => access.UnlockAtUtc)
+                                .FirstOrDefault(),
+                            ExamOverride = placement.CourseSection.Course.ContentUserAccesses
+                                .Where(access =>
+                                    access.UserId == userId &&
+                                    access.ContentKind == "Exam" &&
+                                    access.ContentId == placement.Id)
+                                .Select(access => (DateTime?)access.UnlockAtUtc)
                                 .FirstOrDefault()
                         })
                         .ToList()
@@ -98,7 +106,7 @@ namespace iD_Develops.Services
                         placement.SectionUnlockAfterValue,
                         placement.SectionUnlockAfterUnit);
                     var examUnlock = AddDelay(accessDate, placement.UnlockAfterValue, placement.UnlockAfterUnit);
-                    return Latest(sectionUnlock, examUnlock);
+                    return placement.ExamOverride ?? Latest(sectionUnlock, examUnlock);
                 })
                 .ToList();
             if (placementUnlocks.Any(unlockAtUtc => !unlockAtUtc.HasValue || unlockAtUtc <= now))

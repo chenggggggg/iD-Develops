@@ -1,16 +1,8 @@
 (function () {
     "use strict";
 
-    const storageKey = "id-develops.schedule-display-zone";
-
     function selectedTimeZone() {
-        try {
-            return window.localStorage.getItem(storageKey) === "Europe/Amsterdam"
-                ? "Europe/Amsterdam"
-                : undefined;
-        } catch (_error) {
-            return undefined;
-        }
+        return "Europe/Amsterdam";
     }
 
     function formatter(options) {
@@ -52,8 +44,4 @@
     } else {
         apply(document);
     }
-    window.addEventListener("storage", function (event) {
-        if (event.key === storageKey) apply(document);
-    });
-    window.addEventListener("portal-schedule-time-zone-changed", function () { apply(document); });
 }());

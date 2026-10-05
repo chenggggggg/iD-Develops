@@ -9,10 +9,13 @@
     if (!dataElement || !outline || !main || !form || !jsonInput) return;
 
     const state = JSON.parse(dataElement.textContent || "{}");
+    const defaultFormAction = form.action;
     state.Sections = state.Sections || [];
     state.CreditTypes = state.CreditTypes || [];
     state.CreditPolicies = state.CreditPolicies || [];
     state.ExamOptions = state.ExamOptions || [];
+    state.Learners = state.Learners || [];
+    state.UnlockOverrides = state.UnlockOverrides || [];
     state.Sections.forEach(function (section) {
         section.Lectures = section.Lectures || [];
         section.Assignments = section.Assignments || [];
@@ -26,6 +29,25 @@
     let nextTemporaryId = Math.min(-1, ...collectIds().filter(function (id) { return id < 0; })) - 1;
     let dragged = null;
     let dirty = false;
+    let allowConfirmedSubmit = false;
+    let createExamPlaceholderId = null;
+
+    const originalUnlockRules = new Map();
+    state.Sections.forEach(function (section) {
+        rememberUnlockRule("section", section);
+        (section.Lectures || []).forEach(function (item) { rememberUnlockRule("lecture", item); });
+        (section.Classes || []).forEach(function (item) { rememberUnlockRule("class", item); });
+        (section.Exams || []).forEach(function (item) { rememberUnlockRule("exam", item); });
+    });
+
+    function rememberUnlockRule(type, item) {
+        if (Number(item.Id) <= 0) return;
+        originalUnlockRules.set(`${type}:${item.Id}`, {
+            title: item.Title || `Untitled ${type}`,
+            value: item.UnlockAfterValue ? Number(item.UnlockAfterValue) : null,
+            unit: item.UnlockAfterValue ? Number(item.UnlockAfterUnit) || 1 : null
+        });
+    }
 
     function collectIds() {
         return state.Sections.flatMap(function (section) {
@@ -93,8 +115,8 @@
     }
 
     function addContentOption(sectionId, type, icon, label, description) {
-        return `<button class="tw:group tw:flex tw:min-h-12 tw:w-full tw:items-center tw:gap-3 tw:rounded-md tw:border-0 tw:bg-transparent tw:px-2.5 tw:py-2 tw:text-left tw:text-slate-700 tw:transition-colors hover:tw:bg-slate-50 hover:tw:text-slate-950 focus-visible:tw:bg-slate-50 focus-visible:tw:outline-2 focus-visible:tw:outline-offset-1 focus-visible:tw:outline-[#b23a48]" type="button" data-add-child="${type}" data-section-id="${sectionId}">
-            <span class="tw:grid tw:size-8 tw:shrink-0 tw:place-items-center tw:rounded-md tw:bg-slate-100 tw:text-sm tw:text-slate-600 group-hover:tw:bg-white group-hover:tw:text-[#b23a48]" aria-hidden="true"><i class="fa-solid ${icon}"></i></span>
+        return `<button class="tw:group tw:flex tw:min-h-12 tw:w-full tw:items-center tw:gap-3 tw:rounded-md tw:border-0 tw:bg-transparent tw:px-2.5 tw:py-2 tw:text-left tw:text-slate-700 tw:transition-colors tw:hover:bg-slate-50 tw:hover:text-slate-950 tw:focus-visible:bg-slate-50 tw:focus-visible:outline-2 tw:focus-visible:outline-offset-1 tw:focus-visible:outline-[#b23a48]" type="button" data-add-child="${type}" data-section-id="${sectionId}">
+            <span class="tw:grid tw:size-8 tw:shrink-0 tw:place-items-center tw:rounded-md tw:bg-slate-100 tw:text-sm tw:text-slate-600 tw:group-hover:bg-white tw:group-hover:text-[#b23a48]" aria-hidden="true"><i class="fa-solid ${icon}"></i></span>
             <span class="tw:min-w-0 tw:flex-1">
                 <span class="tw:block tw:text-sm tw:font-semibold tw:leading-5">${label}</span>
                 <span class="tw:block tw:text-xs tw:leading-4 tw:text-slate-500">${description}</span>
@@ -106,8 +128,8 @@
     function addContentMenu(section) {
         const menuId = `course-add-content-${section.Id}`;
         return `<div class="tw:relative tw:px-1 tw:pb-1 tw:pt-2" data-add-content-root>
-            <button class="tw:flex tw:min-h-10 tw:w-full tw:items-center tw:gap-2 tw:rounded-md tw:border tw:border-dashed tw:border-slate-300 tw:bg-white tw:px-3 tw:py-2 tw:text-sm tw:font-semibold tw:text-slate-600 tw:transition-colors hover:tw:border-[#b23a48] hover:tw:bg-rose-50/50 hover:tw:text-[#b23a48] focus-visible:tw:outline-2 focus-visible:tw:outline-offset-2 focus-visible:tw:outline-[#b23a48]" type="button" data-add-content-toggle aria-controls="${menuId}" aria-expanded="false">
-                <i class="fa-solid fa-plus tw:text-xs" aria-hidden="true"></i>
+            <button class="tw:group tw:flex tw:min-h-11 tw:w-full tw:items-center tw:gap-2.5 tw:rounded-lg tw:border tw:border-dashed tw:border-slate-300 tw:bg-white tw:px-3 tw:py-2 tw:text-sm tw:font-semibold tw:text-slate-600 tw:shadow-sm tw:transition-all tw:duration-200 tw:hover:border-[#b23a48] tw:hover:bg-[#fff7f8] tw:hover:text-[#b23a48] tw:hover:shadow-md tw:focus-visible:outline-2 tw:focus-visible:outline-offset-2 tw:focus-visible:outline-[#b23a48]" type="button" data-add-content-toggle aria-controls="${menuId}" aria-expanded="false">
+                <span class="tw:grid tw:size-7 tw:place-items-center tw:rounded-full tw:bg-slate-100 tw:text-xs tw:transition-colors tw:group-hover:bg-[#b23a48] tw:group-hover:text-white"><i class="fa-solid fa-plus" aria-hidden="true"></i></span>
                 <span class="tw:flex-1 tw:text-left">Add content</span>
                 <i class="fa-solid fa-chevron-down tw:text-[0.65rem] tw:transition-transform" data-add-content-chevron aria-hidden="true"></i>
             </button>
@@ -232,6 +254,62 @@
         </span></label>`;
     }
 
+    function formatAmsterdamInput(utcValue) {
+        if (!utcValue) return "";
+        const parts = {};
+        new Intl.DateTimeFormat("en-CA", {
+            timeZone: "Europe/Amsterdam",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            hourCycle: "h23"
+        }).formatToParts(new Date(utcValue)).forEach(function (part) {
+            if (part.type !== "literal") parts[part.type] = part.value;
+        });
+        return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`;
+    }
+
+    function unlockKindMatches(value, type) {
+        const numericKinds = { section: 0, lecture: 1, assignment: 2, class: 3, exam: 4 };
+        return String(value).toLowerCase() === type || Number(value) === numericKinds[type];
+    }
+
+    function learnerUnlockPanel(type, item) {
+        if (Number(item.Id) <= 0) {
+            return `<section class="tw:mt-5 tw:rounded-xl tw:border tw:border-slate-200 tw:bg-slate-50 tw:p-4">
+                <strong class="tw:block tw:text-sm tw:text-slate-900">Learner-specific access</strong>
+                <p class="tw:mb-0 tw:mt-1 tw:text-sm tw:text-slate-500">Save this content before adding learner-specific access.</p>
+            </section>`;
+        }
+        if (!state.Learners.length) return "";
+        const kind = type.charAt(0).toUpperCase() + type.slice(1);
+        const overrides = state.UnlockOverrides.filter(function (entry) {
+            return unlockKindMatches(entry.ContentKind, type) && Number(entry.ContentId) === Number(item.Id);
+        });
+        const options = state.Learners.map(function (learner) {
+            return `<option value="${escapeHtml(learner.UserId)}">${escapeHtml(learner.Name)} (${escapeHtml(learner.Email)})</option>`;
+        }).join("");
+        return `<section class="tw:mt-5 tw:rounded-xl tw:border tw:border-slate-200 tw:bg-white tw:p-4" data-unlock-panel data-content-kind="${kind}" data-content-id="${item.Id}">
+            <div class="tw:flex tw:flex-wrap tw:items-start tw:justify-between tw:gap-2">
+                <div><strong class="tw:block tw:text-sm tw:text-slate-900">Learner-specific access</strong><p class="tw:mb-0 tw:mt-1 tw:text-xs tw:text-slate-500">These changes save immediately. Times use Europe/Amsterdam.</p></div>
+                <span class="tw:rounded-full tw:bg-slate-100 tw:px-2.5 tw:py-1 tw:text-xs tw:font-semibold tw:text-slate-600" data-unlock-count>${overrides.length} override${overrides.length === 1 ? "" : "s"}</span>
+            </div>
+            <div class="tw:mt-4 tw:grid tw:gap-3 tw:md:grid-cols-2">
+                <label class="course-editor-field"><span>Learner</span><span class="course-editor-editable"><select data-unlock-user><option value="">Select learner</option>${options}</select></span></label>
+                <label class="course-editor-field"><span>Unlock at (Amsterdam)</span><span class="course-editor-editable"><input type="datetime-local" data-unlock-at /></span></label>
+            </div>
+            <p class="tw:mb-0 tw:mt-2 tw:text-xs tw:text-slate-500" data-unlock-current>No learner selected.</p>
+            <p class="tw:mb-0 tw:mt-2 tw:text-sm tw:text-red-700" data-unlock-error hidden></p>
+            <div class="tw:mt-3 tw:flex tw:flex-wrap tw:gap-2">
+                <button class="tw:inline-flex tw:min-h-9 tw:items-center tw:justify-center tw:rounded-lg tw:border tw:border-[#b23a48] tw:bg-[#b23a48] tw:px-3 tw:py-2 tw:text-sm tw:font-semibold tw:text-white tw:transition-colors tw:hover:border-[#902f3b] tw:hover:bg-[#902f3b] tw:disabled:cursor-not-allowed tw:disabled:opacity-50" type="button" data-unlock-save>Set unlock time</button>
+                <button class="tw:inline-flex tw:min-h-9 tw:items-center tw:justify-center tw:rounded-lg tw:border tw:border-slate-300 tw:bg-white tw:px-3 tw:py-2 tw:text-sm tw:font-semibold tw:text-slate-700 tw:transition-colors tw:hover:border-[#b23a48] tw:hover:text-[#b23a48] tw:disabled:cursor-not-allowed tw:disabled:opacity-50" type="button" data-unlock-now>Unlock now</button>
+                <button class="tw:inline-flex tw:min-h-9 tw:items-center tw:justify-center tw:rounded-lg tw:border tw:border-slate-300 tw:bg-white tw:px-3 tw:py-2 tw:text-sm tw:font-semibold tw:text-slate-700 tw:transition-colors tw:hover:border-[#b23a48] tw:hover:text-[#b23a48] tw:disabled:cursor-not-allowed tw:disabled:opacity-50" type="button" data-unlock-reset>Reset to default</button>
+            </div>
+        </section>`;
+    }
+
     function renderCourse() {
         return `<section class="course-editor-heading"><p class="course-kicker"><i class="fa-solid fa-book-open" aria-hidden="true"></i> Course</p><div class="course-editor-title-field"><input type="text" value="${escapeHtml(state.Name)}" maxlength="200" data-editor-field="Name" placeholder="Course name" /><i class="fa-solid fa-pencil" aria-hidden="true"></i></div></section>
             <section class="course-editor-empty-preview"><i class="fa-solid fa-layer-group" aria-hidden="true"></i><strong>Course structure</strong></section>`;
@@ -240,7 +318,7 @@
     function renderSection(section) {
         return `${heading("Section", null, section, "Untitled section")}
             <section class="course-editor-section-preview"><strong>${escapeHtml(section.Title || "Untitled section")}</strong><span>${section.Lectures.length} lectures &middot; ${section.Assignments.length} assignments &middot; ${section.Classes.length} classes &middot; ${section.Exams.length} exams</span></section>
-            <section class="course-editor-fields">${unlockField(section)}</section>`;
+            <section class="course-editor-fields">${unlockField(section)}</section>${learnerUnlockPanel("section", section)}`;
     }
 
     function renderLecture(lecture) {
@@ -261,7 +339,7 @@
                 ${type === 1 || type === 3 ? uploadBox("video", "Upload video", ".mp4,.mov,.mkv,.avi,.webm,.mpeg,.mpg") : ""}
                 ${type === 2 || type === 3 ? uploadBox("file", type === 2 ? "Upload article files" : "Upload PDF", type === 3 ? ".pdf" : ".pdf,.doc,.docx,.txt,.zip") : ""}
                 ${renderFiles(lecture.SourceFiles || [], "Article files")}
-            </section>`;
+            </section>${learnerUnlockPanel("lecture", lecture)}`;
     }
 
     function renderAssignment(assignment) {
@@ -276,30 +354,36 @@
                 ${uploadBox("video", "Upload instructional video", ".mp4,.mov,.mkv,.avi,.webm,.mpeg,.mpg")}
                 ${uploadBox("file", "Upload supporting files", ".pdf,.zip,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.mp3,.m4a")}
                 ${renderFiles(assignment.SupportingFiles || [], "Supporting files")}
-            </section>`;
+            </section>${learnerUnlockPanel("assignment", assignment)}`;
     }
 
     function renderExam(exam) {
         const examOptions = state.ExamOptions.map(function (option) {
-            const status = Number(option.PublishStatus) === 1 ? "Published" : "Draft";
-            return { value: option.Id, label: `${option.Name} (${status})` };
+            return { value: option.Id, label: option.Name };
         });
+        if (Number(exam.ExamId) > 0 && !examOptions.some(function (option) { return Number(option.value) === Number(exam.ExamId); })) {
+            examOptions.unshift({
+                value: exam.ExamId,
+                label: `${exam.Title} (${Number(exam.PublishStatus) === 2 ? "Archived" : "Draft — already attached"})`
+            });
+        }
         const status = Number(exam.PublishStatus) === 1 ? "Published" : Number(exam.PublishStatus) === 2 ? "Archived" : "Draft";
         return `${heading("Exam", "fa-file-circle-check", exam, "Exam")}
             <div class="tw:mb-5 tw:rounded-xl tw:border ${Number(exam.PublishStatus) === 1 ? "tw:border-emerald-200 tw:bg-emerald-50 tw:text-emerald-900" : "tw:border-amber-200 tw:bg-amber-50 tw:text-amber-900"} tw:px-4 tw:py-3 tw:text-sm">
                 <strong>${status}</strong>${Number(exam.PublishStatus) === 1 ? " · visible when this content unlocks" : " · not visible to students until published"}
             </div>
             <section class="course-editor-fields">
-                ${selectField("Exam", "ExamId", exam.ExamId, examOptions, "Select an exam")}
+                ${selectField("Exam", "ExamId", exam.ExamId, examOptions, "No exam selected")}
+                ${!Number(exam.ExamId) ? '<p class="tw:col-span-full tw:-mt-2 tw:text-sm tw:text-red-700" data-exam-selection-error>Select a published exam before saving.</p>' : ""}
                 ${unlockField(exam)}
                 ${checkboxField("Required for completion", "IsRequiredForCompletion", exam.IsRequiredForCompletion !== false)}
                 ${field("Minimum passing score", "MinimumPassingScore", exam.MinimumPassingScore ?? 0, { type: "number", min: 0, max: 100000 })}
                 ${selectField("When the learner does not pass", "FailureAction", exam.FailureAction || 2, [{ value: 1, label: "Allow course progress" }, { value: 2, label: "Require a passing score" }])}
             </section>
             <div class="tw:mt-5 tw:flex tw:flex-wrap tw:gap-2">
-                <a class="portal-btn portal-btn-outline portal-btn-sm" href="/portal/examination/edit?examId=${Number(exam.ExamId)}"><i class="fa-solid fa-pen" aria-hidden="true"></i>Edit exam</a>
-                <button class="portal-btn portal-btn-outline portal-btn-sm" type="button" data-create-new-exam data-section-id="${findTarget(selected).parent?.Id || ""}"><i class="fa-solid fa-plus" aria-hidden="true"></i>Create and attach new exam</button>
-            </div>`;
+                ${Number(exam.ExamId) > 0 ? `<a class="tw:inline-flex tw:min-h-10 tw:items-center tw:justify-center tw:gap-2 tw:rounded-lg tw:border tw:border-slate-300 tw:bg-white tw:px-4 tw:py-2 tw:text-sm tw:font-semibold tw:text-slate-700 tw:no-underline tw:transition-colors tw:hover:border-[#b23a48] tw:hover:text-[#b23a48]" href="/portal/examination/edit?examId=${Number(exam.ExamId)}"><i class="fa-solid fa-pen" aria-hidden="true"></i>Edit exam</a>` : ""}
+                <button class="tw:inline-flex tw:min-h-10 tw:items-center tw:justify-center tw:gap-2 tw:rounded-lg tw:border tw:border-[#b23a48] tw:bg-[#b23a48] tw:px-4 tw:py-2 tw:text-sm tw:font-semibold tw:text-white tw:shadow-sm tw:transition-all tw:hover:-translate-y-0.5 tw:hover:border-[#902f3b] tw:hover:bg-[#902f3b] tw:hover:shadow-md" type="button" data-create-new-exam data-section-id="${findTarget(selected).parent?.Id || ""}"><i class="fa-solid fa-plus" aria-hidden="true"></i>Create and attach new exam</button>
+            </div>${learnerUnlockPanel("exam", exam)}`;
     }
 
     function renderClass(courseClass) {
@@ -316,7 +400,7 @@
             ? "Add a date and time so learners can book this class."
             : "Review the available dates or add another session.";
         const sessionAction = Number(courseClass.Id) > 0
-            ? `<a href="/Portal/Schedule/Roster?courseClassId=${Number(courseClass.Id)}&mode=single#schedule-session" class="tw:inline-flex tw:items-center tw:justify-center tw:gap-2 tw:rounded-lg tw:bg-sky-700 tw:px-4 tw:py-2.5 tw:text-sm tw:font-semibold tw:text-white tw:transition hover:tw:bg-sky-800"><i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>${upcomingSessionCount === 0 ? "Add session" : "Manage sessions"}</a>`
+            ? `<a href="/portal/calendar/roster?courseClassId=${Number(courseClass.Id)}&mode=single#schedule-session" class="tw:inline-flex tw:items-center tw:justify-center tw:gap-2 tw:rounded-lg tw:bg-sky-700 tw:px-4 tw:py-2.5 tw:text-sm tw:font-semibold tw:text-white tw:transition tw:hover:bg-sky-800"><i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>${upcomingSessionCount === 0 ? "Add session" : "Manage sessions"}</a>`
             : `<span class="tw:text-xs tw:text-slate-500">Save the course before adding sessions.</span>`;
         return `${heading("Class", "fa-calendar-days", courseClass, "Untitled class")}
             <section class="course-editor-class-preview"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i><strong>${escapeHtml(courseClass.Title || "Untitled class")}</strong><span>${Number(courseClass.DurationMinutes) || 0} min · ${format === 2 ? "One-to-one" : "Group"}</span></section>
@@ -353,7 +437,7 @@
                     <span><strong class="tw:block tw:text-sm tw:text-slate-900">${sessionStatus}</strong><small class="tw:mt-1 tw:block tw:text-xs tw:text-slate-500">${sessionHelp}</small></span>
                     ${sessionAction}
                 </section>
-            </div>`;
+            </div>${learnerUnlockPanel("class", courseClass)}`;
     }
 
     function toDateTimeLocal(value) {
@@ -467,10 +551,113 @@
             const match = findTarget(selected);
             if (match.parent) startCreateExam(match.parent);
         });
+        main.querySelectorAll("[data-unlock-panel]").forEach(bindLearnerUnlockPanel);
+    }
+
+    function bindLearnerUnlockPanel(panel) {
+        const userSelect = panel.querySelector("[data-unlock-user]");
+        const unlockInput = panel.querySelector("[data-unlock-at]");
+        const current = panel.querySelector("[data-unlock-current]");
+
+        function selectedOverride() {
+            return state.UnlockOverrides.find(function (entry) {
+                return entry.UserId === userSelect.value &&
+                    unlockKindMatches(entry.ContentKind, panel.dataset.contentKind.toLowerCase()) &&
+                    Number(entry.ContentId) === Number(panel.dataset.contentId);
+            });
+        }
+
+        userSelect.addEventListener("change", function () {
+            const override = selectedOverride();
+            unlockInput.value = override ? formatAmsterdamInput(override.UnlockAtUtc) : "";
+            current.textContent = !userSelect.value
+                ? "No learner selected."
+                : override
+                    ? `Current override: ${new Date(override.UnlockAtUtc).toLocaleString("en-GB", { timeZone: "Europe/Amsterdam", dateStyle: "medium", timeStyle: "short" })}`
+                    : "This learner follows the default unlock schedule.";
+        });
+
+        panel.querySelector("[data-unlock-save]").addEventListener("click", function () { saveLearnerUnlock(panel, "set"); });
+        panel.querySelector("[data-unlock-now]").addEventListener("click", function () { saveLearnerUnlock(panel, "now"); });
+        panel.querySelector("[data-unlock-reset]").addEventListener("click", function () { saveLearnerUnlock(panel, "reset"); });
+    }
+
+    async function saveLearnerUnlock(panel, mode) {
+        const userSelect = panel.querySelector("[data-unlock-user]");
+        const unlockInput = panel.querySelector("[data-unlock-at]");
+        const error = panel.querySelector("[data-unlock-error]");
+        const buttons = panel.querySelectorAll("button");
+        error.hidden = true;
+
+        if (!userSelect.value) {
+            error.textContent = "Select a learner first.";
+            error.hidden = false;
+            return;
+        }
+        if (mode === "set" && !unlockInput.value) {
+            error.textContent = "Choose an unlock date and time.";
+            error.hidden = false;
+            return;
+        }
+
+        buttons.forEach(function (button) { button.disabled = true; });
+        try {
+            const token = form.querySelector('input[name="__RequestVerificationToken"]')?.value || "";
+            const body = new URLSearchParams({
+                learnerUserId: userSelect.value,
+                contentKind: panel.dataset.contentKind,
+                contentId: panel.dataset.contentId,
+                unlockAtAmsterdam: mode === "set" ? unlockInput.value : "",
+                unlockNow: String(mode === "now"),
+                resetToDefault: String(mode === "reset"),
+                __RequestVerificationToken: token
+            });
+            const response = await fetch(`${window.location.pathname}?handler=SetContentUnlock&courseId=${courseId}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+                body: body
+            });
+            const json = await response.json().catch(function () { return {}; });
+            if (!response.ok || json.success === false) throw new Error(json.errorMessage || "The unlock time could not be saved.");
+
+            state.UnlockOverrides = state.UnlockOverrides.filter(function (entry) {
+                return !(entry.UserId === userSelect.value &&
+                    unlockKindMatches(entry.ContentKind, panel.dataset.contentKind.toLowerCase()) &&
+                    Number(entry.ContentId) === Number(panel.dataset.contentId));
+            });
+            if (!json.resetToDefault && json.unlockAtUtc) {
+                state.UnlockOverrides.push({
+                    UserId: userSelect.value,
+                    ContentKind: panel.dataset.contentKind,
+                    ContentId: Number(panel.dataset.contentId),
+                    UnlockAtUtc: json.unlockAtUtc
+                });
+            }
+            bindMainAfterUnlockSave(panel, userSelect.value);
+        } catch (requestError) {
+            error.textContent = requestError.message || "The unlock time could not be saved.";
+            error.hidden = false;
+        } finally {
+            buttons.forEach(function (button) { button.disabled = false; });
+        }
+    }
+
+    function bindMainAfterUnlockSave(panel, userId) {
+        const kind = panel.dataset.contentKind.toLowerCase();
+        const overrides = state.UnlockOverrides.filter(function (entry) {
+            return unlockKindMatches(entry.ContentKind, kind) && Number(entry.ContentId) === Number(panel.dataset.contentId);
+        });
+        const override = overrides.find(function (entry) { return entry.UserId === userId; });
+        panel.querySelector("[data-unlock-count]").textContent = `${overrides.length} override${overrides.length === 1 ? "" : "s"}`;
+        panel.querySelector("[data-unlock-at]").value = override ? formatAmsterdamInput(override.UnlockAtUtc) : "";
+        panel.querySelector("[data-unlock-current]").textContent = override
+            ? `Current override: ${new Date(override.UnlockAtUtc).toLocaleString("en-GB", { timeZone: "Europe/Amsterdam", dateStyle: "medium", timeStyle: "short" })}`
+            : "This learner follows the default unlock schedule.";
     }
 
     function startCreateExam(section) {
         normalizeOrders();
+        createExamPlaceholderId = selected.type === "exam" && !findTarget(selected).item.ExamId ? selected.id : null;
         function addValue(name, value) {
             let input = form.querySelector(`input[name="${name}"]`);
             if (!input) {
@@ -542,16 +729,12 @@
 
     function addChild(sectionId, type) {
         const section = findSection(sectionId); if (!section) return;
-        if (type === "exam" && !state.ExamOptions.length) {
-            if (window.confirm("You do not have an active exam to select. Save the course and create one now?")) startCreateExam(section);
-            return;
-        }
         const item = type === "lecture"
             ? { Id: nextTemporaryId--, Title: "Untitled lecture", OrderNumber: mixedChildren(section).length, Description: "", ContentType: 0, VideoReference: null, UnlockAfterValue: null, UnlockAfterUnit: 1, SourceFiles: [] }
             : type === "assignment"
                 ? { Id: nextTemporaryId--, Title: "Untitled assignment", OrderNumber: mixedChildren(section).length, Description: "", EstimatedDurationMinutes: null, Instructions: "", InstructionalVideoReference: null, SupportingFiles: [] }
                 : type === "exam"
-                    ? { Id: nextTemporaryId--, ExamId: state.ExamOptions[0].Id, Title: state.ExamOptions[0].Name, PublishStatus: state.ExamOptions[0].PublishStatus, OrderNumber: mixedChildren(section).length, UnlockAfterValue: null, UnlockAfterUnit: 1, IsRequiredForCompletion: true, MinimumPassingScore: 0, FailureAction: 2 }
+                    ? { Id: nextTemporaryId--, ExamId: null, Title: "Exam", PublishStatus: 0, OrderNumber: mixedChildren(section).length, UnlockAfterValue: null, UnlockAfterUnit: 1, IsRequiredForCompletion: true, MinimumPassingScore: 0, FailureAction: 2 }
                     : { Id: nextTemporaryId--, Title: "Untitled class", OrderNumber: mixedChildren(section).length, UnlockAfterValue: null, UnlockAfterUnit: 1, MeetingLink: "", MeetingAtUtc: null, Format: 1, DurationMinutes: 60, Capacity: 1, BookingAccess: 1, BookingEligibility: 1, IsVisibleForStudentBooking: true, IsRequiredForCompletion: false, EnrollmentBookingLimit: null, RequiredCreditProductId: null, RequiredCreditTypeId: null, CreditCost: 1, CreditConsumptionPolicyId: null, UpcomingSessionCount: 0 };
         section[collectionKey(type)].push(item);
         expanded.add(sectionId); selected = { type: type, id: item.Id }; markDirty(); render();
@@ -674,7 +857,88 @@
 
     function render() { renderOutline(); renderMain(); }
 
+    function changedUnlockRules() {
+        const changes = [];
+        state.Sections.forEach(function (section) {
+            [{ type: "section", item: section }]
+                .concat((section.Lectures || []).map(function (item) { return { type: "lecture", item: item }; }))
+                .concat((section.Classes || []).map(function (item) { return { type: "class", item: item }; }))
+                .concat((section.Exams || []).map(function (item) { return { type: "exam", item: item }; }))
+                .forEach(function (entry) {
+                    const original = originalUnlockRules.get(`${entry.type}:${entry.item.Id}`);
+                    if (!original) return;
+                    const value = entry.item.UnlockAfterValue ? Number(entry.item.UnlockAfterValue) : null;
+                    const unit = value ? Number(entry.item.UnlockAfterUnit) || 1 : null;
+                    if (original.value !== value || original.unit !== unit) {
+                        changes.push(`${entry.item.Title || original.title}: ${original.value ? `${original.value} ${unlockUnitLabel(original.unit, original.value)}` : "immediate"} to ${value ? `${value} ${unlockUnitLabel(unit, value)}` : "immediate"}`);
+                    }
+                });
+        });
+        return changes;
+    }
+
+    function unlockUnitLabel(unit, value) {
+        const label = Number(unit) === 3 ? "month" : Number(unit) === 2 ? "week" : "day";
+        return Number(value) === 1 ? label : `${label}s`;
+    }
+
+    function findUnselectedExam(exemptId) {
+        for (const section of state.Sections) {
+            const exam = section.Exams.find(function (item) { return !item.ExamId && Number(item.Id) !== Number(exemptId); });
+            if (exam) return exam;
+        }
+        return null;
+    }
+
+    function serializeForSubmit() {
+        normalizeOrders();
+        const submissionState = JSON.parse(JSON.stringify(state));
+        if (createExamPlaceholderId !== null) {
+            submissionState.Sections.forEach(function (section) {
+                section.Exams = section.Exams.filter(function (exam) { return Number(exam.Id) !== Number(createExamPlaceholderId); });
+            });
+        }
+        jsonInput.value = JSON.stringify(submissionState);
+    }
+
     document.querySelector('[data-course-add-top="section"]')?.addEventListener("click", addSection);
-    form.addEventListener("submit", function () { destroyRichEditor(); normalizeOrders(); jsonInput.value = JSON.stringify(state); });
+    form.addEventListener("submit", function (event) {
+        const invalidExam = findUnselectedExam(createExamPlaceholderId);
+        if (invalidExam) {
+            event.preventDefault();
+            selected = { type: "exam", id: Number(invalidExam.Id) };
+            render();
+            main.querySelector('[data-editor-field="ExamId"]')?.focus();
+            return;
+        }
+
+        const unlockChanges = changedUnlockRules();
+        if (!allowConfirmedSubmit && unlockChanges.length) {
+            event.preventDefault();
+            const dialog = document.getElementById("courseUnlockConfirmDialog");
+            const list = dialog?.querySelector("[data-course-unlock-change-list]");
+            if (list) list.innerHTML = unlockChanges.map(function (change) { return `<li>${escapeHtml(change)}</li>`; }).join("");
+            dialog?.showModal();
+            return;
+        }
+
+        destroyRichEditor();
+        serializeForSubmit();
+    });
+
+    document.querySelector("[data-course-unlock-confirm]")?.addEventListener("click", function () {
+        document.getElementById("courseUnlockConfirmDialog")?.close();
+        allowConfirmedSubmit = true;
+        form.requestSubmit();
+    });
+    document.querySelector("[data-course-unlock-cancel]")?.addEventListener("click", function () {
+        document.getElementById("courseUnlockConfirmDialog")?.close();
+        form.action = defaultFormAction;
+        createExamPlaceholderId = null;
+    });
+    document.getElementById("courseUnlockConfirmDialog")?.addEventListener("cancel", function () {
+        form.action = defaultFormAction;
+        createExamPlaceholderId = null;
+    });
     render();
 }());

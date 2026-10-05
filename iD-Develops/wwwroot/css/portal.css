@@ -727,7 +727,7 @@ body.portal-dialog-open {
 
 .portal-nav-group-chevron {
     width: auto;
-    font-size: 0.72rem;
+    font-size: 0.58rem;
     transition: transform 0.18s ease;
 }
 
@@ -1373,6 +1373,7 @@ body.portal-dialog-open {
 }
 
 .portal-exams-table-actions {
+    position: relative;
     white-space: nowrap;
 }
 
@@ -1381,8 +1382,18 @@ body.portal-dialog-open {
     min-width: 2.25rem;
 }
 
-.portal-exams-table-actions .portal-btn + .portal-btn {
-    margin-left: 0.45rem;
+.portal-exam-actions-popover {
+    position: fixed;
+    inset: auto;
+    margin: 0;
+}
+
+.portal-exam-actions-popover:popover-open {
+    display: grid;
+}
+
+.portal-exam-actions-popover::backdrop {
+    background: transparent;
 }
 
 .portal-exam-start-btn {
@@ -2232,6 +2243,16 @@ body.portal-dialog-open {
         flex-direction: column;
         height: calc(100vh - 2.5rem);
         min-height: 0;
+    }
+
+    .portal-schedule-page .portal-data-page.schedule-page {
+        display: grid;
+        height: auto;
+    }
+
+    .portal-schedule-page .portal-data-page.schedule-page {
+        display: grid;
+        height: auto;
     }
 
     .portal-data-page > .portal-page-header,

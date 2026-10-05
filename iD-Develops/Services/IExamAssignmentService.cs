@@ -23,11 +23,24 @@ namespace iD_Develops.Services
         string GrantedBy,
         string? Reason);
 
+    public sealed record ExamCoursePlacementItem(
+        int PlacementId,
+        int CourseId,
+        string CourseName,
+        int SectionId,
+        string SectionTitle,
+        int SectionOrder,
+        int ContentOrder,
+        int? UnlockAfterValue,
+        Enums.CourseUnlockUnit? UnlockAfterUnit,
+        bool IsRequiredForCompletion);
+
     public sealed record ExamAssignmentPageData(
         int ExamId,
         string ExamName,
         ExamPublishStatus PublishStatus,
         IReadOnlyList<ExamAssignmentItem> Assignments,
+        IReadOnlyList<ExamCoursePlacementItem> CoursePlacements,
         IReadOnlyList<ExamAssignmentUserOption> UserOptions,
         IReadOnlyList<ExamAttemptGrantItem> AttemptGrants);
 

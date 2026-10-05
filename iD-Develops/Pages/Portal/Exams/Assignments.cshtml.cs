@@ -46,11 +46,19 @@ namespace iD_Develops.Pages.Portal.Exams
             if (string.IsNullOrWhiteSpace(actor))
                 return Challenge();
 
+            var unlockAtUtc = ToUtcFromAmsterdam(UnlockAtUtc);
+            var dueAtUtc = ToUtcFromAmsterdam(DueAtUtc);
+            if ((UnlockAtUtc.HasValue && !unlockAtUtc.HasValue) || (DueAtUtc.HasValue && !dueAtUtc.HasValue))
+            {
+                TempData["ErrorMessage"] = "That time does not exist in Europe/Amsterdam because of the daylight-saving transition.";
+                return RedirectToPage(new { examId });
+            }
+
             var result = await _assignmentService.AssignAsync(
                 examId,
                 SelectedUserId,
-                UnlockAtUtc,
-                DueAtUtc,
+                unlockAtUtc,
+                dueAtUtc,
                 actor,
                 CanManageAll(),
                 cancellationToken);
@@ -111,5 +119,23 @@ namespace iD_Develops.Pages.Portal.Exams
         }
 
         private bool CanManageAll() => User.IsInRole("Admin") || User.IsInRole("SuperAdmin");
+
+        public static DateTime? ToAmsterdam(DateTime? utcValue)
+            => utcValue.HasValue
+                ? TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utcValue.Value, DateTimeKind.Utc), AmsterdamTimeZone)
+                : null;
+
+        private static DateTime? ToUtcFromAmsterdam(DateTime? localValue)
+        {
+            if (!localValue.HasValue)
+                return null;
+            var unspecified = DateTime.SpecifyKind(localValue.Value, DateTimeKind.Unspecified);
+            return AmsterdamTimeZone.IsInvalidTime(unspecified)
+                ? null
+                : TimeZoneInfo.ConvertTimeToUtc(unspecified, AmsterdamTimeZone);
+        }
+
+        private static TimeZoneInfo AmsterdamTimeZone { get; } =
+            TimeZoneInfo.FindSystemTimeZoneById("Europe/Amsterdam");
     }
 }

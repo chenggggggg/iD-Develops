@@ -106,7 +106,7 @@
                     {
                         <th>Status</th>
                     }
-                    <th></th>
+                    <th class="portal-table-cell-end">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -152,68 +152,63 @@
                                 <span class="portal-table-pill portal-table-pill-status">@exam.PublishStatus</span>
                             </td>
                         }
-                        <td class="portal-exams-table-actions">
+                        <td class="portal-exams-table-actions portal-table-cell-end">
                             @{
                                 Model.AvailabilityByExamId.TryGetValue(exam.Id, out var rowAvailability);
                                 var examCanLaunch = canManageExams || rowAvailability == null || rowAvailability.CanTake;
+                                var actionsPopoverId = $"exam-actions-{exam.Id}";
                             }
-                            <button type="button"
-                                    class="portal-btn portal-btn-primary portal-btn-sm portal-exam-start-btn"
-                                    data-portal-dialog-open="examLaunchDialog"
-                                    data-exam-launch
-                                    data-exam-id="@exam.Id"
-                                    disabled="@(!examCanLaunch)"
-                                    title="@(examCanLaunch ? "Start exam" : rowAvailability?.BlockReason ?? "Exam is locked")">
-                                <i class="fa-solid @(examCanLaunch ? "fa-play" : "fa-lock")" aria-hidden="true"></i>
-                                <span>@(examCanLaunch ? "Start" : "Locked")</span>
-                            </button>
-                            @if (User.IsInRole("Teacher") || (User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
-                            {
-                                <a class="portal-btn portal-btn-sm portal-btn-icon"
-                                   asp-page="/Portal/Exams/Assignments"
-                                   asp-route-examId="@exam.Id"
-                                   title="Assign users and grant attempts">
-                                    <i class="fa-solid fa-user-check" aria-hidden="true"></i>
-                                </a>
-                                <a class="portal-btn portal-btn-sm portal-btn-icon portal-exam-action-edit"
-                                   role="button"
-                                   asp-page="/Portal/Examination/Edit"
-                                   asp-route-examId="@exam.Id"
-                                   title="Edit">
-                                    <i class="fa-solid fa-pencil"></i>
-                                </a>
-
-                                <a class="portal-btn portal-btn-sm portal-btn-icon"
-                                   asp-page="/Portal/Exams/Transfer"
-                                   asp-page-handler="Export"
-                                   asp-route-examId="@exam.Id"
-                                   title="Export">
-                                    <i class="fa-solid fa-file-export" aria-hidden="true"></i>
-                                </a>
-
-                                @if (exam.PublishStatus != iD_Develops.Models.ExamPublishStatus.Archived)
+                            <div class="tw:flex tw:items-center tw:justify-end tw:gap-2">
+                                <button type="button"
+                                        class="portal-btn portal-btn-primary portal-btn-sm portal-exam-start-btn"
+                                        data-portal-dialog-open="examLaunchDialog"
+                                        data-exam-launch
+                                        data-exam-id="@exam.Id"
+                                        disabled="@(!examCanLaunch)"
+                                        title="@(examCanLaunch ? "Start exam" : rowAvailability?.BlockReason ?? "Exam is locked")">
+                                    <i class="fa-solid @(examCanLaunch ? "fa-play" : "fa-lock")" aria-hidden="true"></i>
+                                    <span class="@(canManageExams ? "tw:sr-only" : null)">@(examCanLaunch ? "Start" : "Locked")</span>
+                                </button>
+                                @if (User.IsInRole("Teacher") || (User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
                                 {
-                                    <form method="post"
-                                          asp-page-handler="ArchiveExam"
-                                          asp-route-examId="@exam.Id"
-                                          class="tw:inline-flex tw:m-0"
-                                          onsubmit="return confirm('Archive this exam? Existing attempts and results will remain available.');">
-                                        <button type="submit"
-                                                class="portal-btn portal-btn-sm portal-btn-icon"
-                                                title="Archive">
-                                            <i class="fa-solid fa-box-archive" aria-hidden="true"></i>
-                                        </button>
-                                    </form>
-                                }
+                                    <a class="portal-btn portal-btn-outline portal-btn-sm portal-btn-icon"
+                                       asp-page="/Portal/Exams/Assignments"
+                                       asp-route-examId="@exam.Id"
+                                       title="Assign users and grant attempts">
+                                        <i class="fa-solid fa-user-check" aria-hidden="true"></i>
+                                    </a>
+                                    <a class="portal-btn portal-btn-sm portal-btn-icon portal-exam-action-edit"
+                                       role="button"
+                                       asp-page="/Portal/Examination/Edit"
+                                       asp-route-examId="@exam.Id"
+                                       title="Edit">
+                                        <i class="fa-solid fa-pencil"></i>
+                                    </a>
 
-                                <a class="portal-btn portal-btn-sm portal-btn-icon portal-exam-action-delete"
-                                   title="Delete"
-                                   data-delete-url="@Url.Page("/Portal/Exams/List", "DeleteExam", new { examId = exam.Id })"
-                                   data-exam-id="@exam.Id"
-                                   data-delete-exam>
-                                    <i class="fa-solid fa-trash"></i>
-                                </a>
-                            }
+                                    <button type="button"
+                                            class="portal-btn portal-btn-outline portal-btn-sm portal-btn-icon"
+                                            title="More actions"
+                                            aria-label="More actions for @exam.Name"
+                                            aria-haspopup="true"
+                                            popovertarget="@actionsPopoverId"
+                                            data-exam-actions-trigger="@actionsPopoverId">
+                                        <i class="fa-solid fa-ellipsis" aria-hidden="true"></i>
+                                    </button>
+                                    <div id="@actionsPopoverId"
+                                         class="portal-exam-actions-popover tw:w-44 tw:gap-1 tw:rounded-lg tw:border tw:border-slate-200 tw:bg-white tw:p-1.5 tw:text-left tw:shadow-xl"
+                                         popover="auto"
+                                         data-exam-actions-popover>
+                                        <a class="tw:flex tw:items-center tw:gap-2 tw:rounded-md tw:px-3 tw:py-2 tw:text-sm tw:font-semibold tw:text-slate-700 tw:no-underline tw:hover:bg-slate-50" asp-page="/Portal/Exams/Transfer" asp-page-handler="Export" asp-route-examId="@exam.Id"><i class="fa-solid fa-file-export tw:w-4" aria-hidden="true"></i>Export</a>
+                                        @if (exam.PublishStatus != iD_Develops.Models.ExamPublishStatus.Archived)
+                                        {
+                                            <form method="post" asp-page-handler="ArchiveExam" asp-route-examId="@exam.Id" class="tw:m-0" onsubmit="return confirm('Archive this exam? Existing attempts and results will remain available.');">
+                                                <button type="submit" class="tw:flex tw:w-full tw:items-center tw:gap-2 tw:rounded-md tw:border-0 tw:bg-transparent tw:px-3 tw:py-2 tw:text-left tw:text-sm tw:font-semibold tw:text-slate-700 tw:hover:bg-slate-50"><i class="fa-solid fa-box-archive tw:w-4" aria-hidden="true"></i>Archive</button>
+                                            </form>
+                                        }
+                                        <button type="button" class="tw:flex tw:w-full tw:items-center tw:gap-2 tw:rounded-md tw:border-0 tw:bg-transparent tw:px-3 tw:py-2 tw:text-left tw:text-sm tw:font-semibold tw:text-red-700 tw:hover:bg-red-50" data-delete-url="@Url.Page("/Portal/Exams/List", "DeleteExam", new { examId = exam.Id })" data-exam-id="@exam.Id" data-delete-exam><i class="fa-solid fa-trash tw:w-4" aria-hidden="true"></i>Delete</button>
+                                    </div>
+                                }
+                            </div>
                         </td>
                     </tr>
                 }

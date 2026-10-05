@@ -27,4 +27,16 @@ public sealed class PortalEntitlementSmokeTests : Microsoft.Playwright.Xunit.Pag
 
         Assert.Contains("/Identity/Account/Login", Page.Url, StringComparison.OrdinalIgnoreCase);
     }
+
+    [Fact]
+    public async Task PortalCalendar_UsesConsistentRouteAndRequiresAuthentication()
+    {
+        var response = await Page.GotoAsync(
+            $"{BaseUrl}/portal/calendar",
+            new Microsoft.Playwright.PageGotoOptions { WaitUntil = Microsoft.Playwright.WaitUntilState.DOMContentLoaded });
+
+        Assert.NotNull(response);
+        Assert.Contains("/Identity/Account/Login", Page.Url, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("/portal/calendar", Uri.UnescapeDataString(Page.Url), StringComparison.OrdinalIgnoreCase);
+    }
 }

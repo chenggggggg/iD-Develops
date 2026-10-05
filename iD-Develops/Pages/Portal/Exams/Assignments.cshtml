@@ -26,10 +26,41 @@
         <div class="tw:mb-4 tw:rounded-xl tw:border tw:border-red-200 tw:bg-red-50 tw:p-4 tw:text-sm tw:text-red-900" role="alert">@error</div>
     }
 
+    <section class="tw:mb-6 tw:rounded-xl tw:border tw:border-slate-200 tw:bg-white tw:shadow-sm">
+        <div class="tw:flex tw:flex-wrap tw:items-center tw:justify-between tw:gap-2 tw:border-b tw:border-slate-100 tw:px-5 tw:py-4">
+            <div><h2 class="tw:m-0 tw:text-base tw:font-semibold tw:text-slate-900">Course usage</h2><p class="tw:mb-0 tw:mt-1 tw:text-sm tw:text-slate-500">Every course section where this exam is currently placed.</p></div>
+            <span class="tw:rounded-full tw:bg-slate-100 tw:px-2.5 tw:py-1 tw:text-xs tw:font-semibold tw:text-slate-600">@Model.Data.CoursePlacements.Count placement@(Model.Data.CoursePlacements.Count == 1 ? "" : "s")</span>
+        </div>
+        @if (Model.Data.CoursePlacements.Count == 0)
+        {
+            <div class="tw:px-5 tw:py-7 tw:text-sm tw:text-slate-500">This exam is not attached to a course. It is only visible through direct assignments.</div>
+        }
+        else
+        {
+            <div class="portal-table-wrap">
+                <table class="portal-exams-table">
+                    <thead><tr><th>Course</th><th>Section</th><th>Unlock rule</th><th>Required</th><th>Actions</th></tr></thead>
+                    <tbody>
+                    @foreach (var placement in Model.Data.CoursePlacements)
+                    {
+                        <tr>
+                            <td><strong>@placement.CourseName</strong></td>
+                            <td>@placement.SectionTitle <small class="tw:block tw:text-slate-500">Section @(placement.SectionOrder + 1) · item @(placement.ContentOrder + 1)</small></td>
+                            <td>@(placement.UnlockAfterValue.HasValue ? $"After {placement.UnlockAfterValue} {placement.UnlockAfterUnit?.ToString().ToLowerInvariant()}" : "Section default")</td>
+                            <td>@(placement.IsRequiredForCompletion ? "Yes" : "No")</td>
+                            <td><a class="portal-btn portal-btn-outline portal-btn-sm portal-btn-icon" asp-page="/Portal/Courses/Course" asp-route-courseId="@placement.CourseId" asp-route-edit="true" asp-route-contentType="exam" asp-route-contentId="@placement.PlacementId" title="Edit in course"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i><span class="tw:sr-only">Edit in course</span></a></td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+
     <div class="tw:grid tw:gap-5 tw:lg:grid-cols-2">
         <form method="post" asp-page-handler="Assign" asp-route-examId="@Model.Data.ExamId" class="tw:rounded-xl tw:border tw:border-slate-200 tw:bg-white tw:p-5 tw:shadow-sm">
             <h2 class="tw:m-0 tw:text-lg tw:font-semibold tw:text-slate-900">Direct assignment</h2>
-            <p class="tw:mt-1 tw:text-sm tw:text-slate-500">The exam stays private to the selected user. Dates are UTC.</p>
+            <p class="tw:mt-1 tw:text-sm tw:text-slate-500">The exam stays private to the selected user. Dates use Europe/Amsterdam.</p>
             <div class="tw:mt-4 tw:grid tw:gap-4">
                 <label class="tw:grid tw:gap-1 tw:text-sm tw:font-medium tw:text-slate-700">User
                     <select asp-for="SelectedUserId" class="portal-field" required>
@@ -80,7 +111,7 @@
         <div class="tw:border-b tw:border-slate-100 tw:px-5 tw:py-4"><h2 class="tw:m-0 tw:text-base tw:font-semibold tw:text-slate-900">Directly assigned users</h2></div>
         <div class="portal-table-wrap">
             <table class="portal-exams-table">
-                <thead><tr><th>User</th><th>Unlock</th><th>Due</th><th>Assigned</th><th></th></tr></thead>
+                <thead><tr><th>User</th><th>Unlock</th><th>Due</th><th>Assigned</th><th>Actions</th></tr></thead>
                 <tbody>
                 @if (Model.Data.Assignments.Count == 0)
                 {
@@ -90,9 +121,9 @@
                 {
                     <tr>
                         <td><strong class="tw:block">@assignment.Name</strong><small>@assignment.Email</small></td>
-                        <td>@(assignment.UnlockAtUtc?.ToString("dd MMM yyyy HH:mm") ?? "Immediately")</td>
-                        <td>@(assignment.DueAtUtc?.ToString("dd MMM yyyy HH:mm") ?? "No due date")</td>
-                        <td>@assignment.AssignedAtUtc.ToString("dd MMM yyyy")<small class="tw:block">by @assignment.AssignedBy</small></td>
+                        <td>@(AssignmentsModel.ToAmsterdam(assignment.UnlockAtUtc)?.ToString("dd MMM yyyy HH:mm") ?? "Immediately")</td>
+                        <td>@(AssignmentsModel.ToAmsterdam(assignment.DueAtUtc)?.ToString("dd MMM yyyy HH:mm") ?? "No due date")</td>
+                        <td>@AssignmentsModel.ToAmsterdam(assignment.AssignedAtUtc)!.Value.ToString("dd MMM yyyy")<small class="tw:block">by @assignment.AssignedBy</small></td>
                         <td><form method="post" asp-page-handler="Remove" asp-route-examId="@Model.Data.ExamId" onsubmit="return confirm('Remove this direct assignment?');"><input type="hidden" name="userId" value="@assignment.UserId" /><button class="portal-btn portal-btn-danger portal-btn-sm" type="submit">Remove</button></form></td>
                     </tr>
                 }

@@ -26,6 +26,7 @@ namespace iD_Develops.Data
         public DbSet<CourseSection> CourseSections { get; set; }
         public DbSet<CourseSectionExam> CourseSectionExams { get; set; }
         public DbSet<CourseSectionUserAccess> CourseSectionUserAccesses { get; set; }
+        public DbSet<CourseContentUserAccess> CourseContentUserAccesses { get; set; }
         public DbSet<Lecture> Lectures { get; set; }
         public DbSet<LectureSourceFile> LectureSourceFiles { get; set; }
         public DbSet<LectureCompletion> LectureCompletions { get; set; }
@@ -360,6 +361,27 @@ namespace iD_Develops.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<CourseSectionUserAccess>()
+                .HasOne(access => access.UpdatedByUser)
+                .WithMany()
+                .HasForeignKey(access => access.UpdatedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<CourseContentUserAccess>()
+                .HasKey(access => new { access.UserId, access.CourseId, access.ContentKind, access.ContentId });
+
+            modelBuilder.Entity<CourseContentUserAccess>()
+                .HasOne(access => access.User)
+                .WithMany(user => user.CourseContentAccesses)
+                .HasForeignKey(access => access.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CourseContentUserAccess>()
+                .HasOne(access => access.Course)
+                .WithMany(course => course.ContentUserAccesses)
+                .HasForeignKey(access => access.CourseId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CourseContentUserAccess>()
                 .HasOne(access => access.UpdatedByUser)
                 .WithMany()
                 .HasForeignKey(access => access.UpdatedByUserId)

@@ -301,18 +301,23 @@ public sealed class CourseServiceTests
             });
         await dbContext.SaveChangesAsync();
 
-        var editData = await new CourseService(dbContext).GetCourseEditAsync(
+        var service = new CourseService(dbContext);
+        var editData = await service.GetCourseEditAsync(
             course.Id,
             teacher.Id,
             canViewAll: false);
+        var adminEditData = await service.GetCourseEditAsync(
+            course.Id,
+            teacher.Id,
+            canViewAll: true);
 
         Assert.NotNull(editData);
+        Assert.Equal(["Published exam"], editData!.ExamOptions.Select(exam => exam.Name).ToArray());
+        Assert.All(editData.ExamOptions, exam => Assert.Equal(ExamPublishStatus.Published, exam.PublishStatus));
+        Assert.NotNull(adminEditData);
         Assert.Equal(
-            ["Published exam", "Draft exam"],
-            editData!.ExamOptions.Select(exam => exam.Name).ToArray());
-        Assert.Equal(
-            [ExamPublishStatus.Published, ExamPublishStatus.Draft],
-            editData.ExamOptions.Select(exam => exam.PublishStatus).ToArray());
+            ["Another teacher's exam", "Published exam"],
+            adminEditData!.ExamOptions.Select(exam => exam.Name).ToArray());
     }
 
     [Fact]
@@ -1074,5 +1079,77 @@ public sealed class CourseServiceTests
         Assert.Equal(grantedDates[0].AddDays(3), accessRows[students[0].Id].UnlockAtUtc);
         Assert.Equal(grantedDates[1].AddDays(3), accessRows[students[1].Id].UnlockAtUtc);
         Assert.Equal(grantedDates[2].AddDays(3), accessRows[students[2].Id].UnlockAtUtc);
+    }
+
+    [Fact]
+    public async Task SetContentUnlockAsync_SavesAndResetsLectureOverride()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var dbContext = factory.CreateDbContext();
+        var teacher = new ApplicationUser { Id = "content-unlock-teacher", UserName = "teacher@example.com" };
+        var student = new ApplicationUser { Id = "content-unlock-student", UserName = "student@example.com" };
+        var course = new Course { Name = "Override course", CreatedByUserId = teacher.Id };
+        var section = new CourseSection { Course = course, Title = "First section", OrderNumber = 0 };
+        var lecture = new Lecture { CourseSection = section, Title = "First lecture", OrderNumber = 0 };
+        section.Lectures.Add(lecture);
+        course.Sections.Add(section);
+        dbContext.AddRange(teacher, student, course);
+        await dbContext.SaveChangesAsync();
+        dbContext.UserCourses.Add(new UserCourse { UserId = student.Id, CourseId = course.Id });
+        await dbContext.SaveChangesAsync();
+        var service = new CourseService(dbContext);
+        var unlockAtUtc = DateTime.UtcNow.AddDays(2);
+
+        var saveResult = await service.SetContentUnlockAsync(
+            course.Id, CourseContentKind.Lecture, lecture.Id, student.Id, unlockAtUtc,
+            resetToDefault: false, teacher.Id, canManageAll: false);
+
+        Assert.True(saveResult.Success);
+        var saved = await dbContext.CourseContentUserAccesses.SingleAsync();
+        Assert.Equal("Lecture", saved.ContentKind);
+        Assert.Equal(unlockAtUtc, saved.UnlockAtUtc);
+        Assert.Equal(teacher.Id, saved.UpdatedByUserId);
+
+        var resetResult = await service.SetContentUnlockAsync(
+            course.Id, CourseContentKind.Lecture, lecture.Id, student.Id, null,
+            resetToDefault: true, teacher.Id, canManageAll: false);
+
+        Assert.True(resetResult.Success);
+        Assert.Empty(dbContext.CourseContentUserAccesses);
+    }
+
+    [Fact]
+    public async Task RemoveUserAsync_RejectsPurchasedAccessAndRemovesManualOverrides()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var dbContext = factory.CreateDbContext();
+        var teacher = new ApplicationUser { Id = "remove-teacher", UserName = "teacher@example.com" };
+        var purchased = new ApplicationUser { Id = "remove-purchased", UserName = "purchased@example.com" };
+        var assigned = new ApplicationUser { Id = "remove-assigned", UserName = "assigned@example.com" };
+        var course = new Course { Name = "Access course", CreatedByUserId = teacher.Id };
+        dbContext.AddRange(teacher, purchased, assigned, course);
+        await dbContext.SaveChangesAsync();
+        dbContext.UserCourses.AddRange(
+            new UserCourse { UserId = purchased.Id, CourseId = course.Id, AssignmentSource = CourseAssignmentSource.Purchase },
+            new UserCourse { UserId = assigned.Id, CourseId = course.Id, AssignmentSource = CourseAssignmentSource.Admin });
+        dbContext.CourseContentUserAccesses.Add(new CourseContentUserAccess
+        {
+            UserId = assigned.Id,
+            CourseId = course.Id,
+            ContentKind = "Lecture",
+            ContentId = 77,
+            UnlockAtUtc = DateTime.UtcNow.AddDays(1)
+        });
+        await dbContext.SaveChangesAsync();
+        var service = new CourseService(dbContext);
+
+        var purchaseResult = await service.RemoveUserAsync(course.Id, purchased.Id, teacher.Id, false);
+        var assignedResult = await service.RemoveUserAsync(course.Id, assigned.Id, teacher.Id, false);
+
+        Assert.False(purchaseResult.Success);
+        Assert.True(assignedResult.Success);
+        Assert.True(await dbContext.UserCourses.AnyAsync(item => item.UserId == purchased.Id));
+        Assert.False(await dbContext.UserCourses.AnyAsync(item => item.UserId == assigned.Id));
+        Assert.Empty(dbContext.CourseContentUserAccesses);
     }
 }

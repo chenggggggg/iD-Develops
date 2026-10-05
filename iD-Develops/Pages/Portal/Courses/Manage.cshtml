@@ -40,43 +40,6 @@
         <div class="tw:mb-4 tw:rounded-xl tw:border tw:border-red-200 tw:bg-red-50 tw:p-4 tw:text-sm tw:text-red-900" role="alert">@errorMessage</div>
     }
 
-    @if (Model.CourseAccess.Users.Count > 0 && Model.CourseAccess.Sections.Count > 0)
-    {
-        <details class="tw:mb-4 tw:rounded-xl tw:border tw:border-slate-200 tw:bg-white tw:shadow-sm">
-            <summary class="tw:flex tw:cursor-pointer tw:list-none tw:items-center tw:justify-between tw:px-5 tw:py-4">
-                <span><strong class="tw:block tw:text-sm tw:text-slate-900">Adjust section access</strong><small class="tw:mt-1 tw:block tw:text-xs tw:text-slate-500">Unlock a section early or set a learner-specific UTC unlock time.</small></span>
-                <i class="fa-solid fa-chevron-down tw:text-slate-400" aria-hidden="true"></i>
-            </summary>
-            <form method="post" asp-page-handler="SetSectionUnlock" asp-route-courseId="@Model.CourseAccess.CourseId" class="tw:grid tw:gap-4 tw:border-t tw:border-slate-100 tw:p-5 tw:md:grid-cols-3">
-                <label class="tw:grid tw:gap-1 tw:text-sm tw:font-medium tw:text-slate-700">Learner
-                    <select name="userId" class="portal-field" required>
-                        <option value="">Select learner</option>
-                        @foreach (var user in Model.CourseAccess.Users.Where(user => !user.IsOwner))
-                        {
-                            <option value="@user.UserId">@user.Name (@user.Email)</option>
-                        }
-                    </select>
-                </label>
-                <label class="tw:grid tw:gap-1 tw:text-sm tw:font-medium tw:text-slate-700">Section
-                    <select name="sectionId" class="portal-field" required>
-                        <option value="">Select section</option>
-                        @foreach (var courseSection in Model.CourseAccess.Sections)
-                        {
-                            <option value="@courseSection.Id">@courseSection.Title</option>
-                        }
-                    </select>
-                </label>
-                <label class="tw:grid tw:gap-1 tw:text-sm tw:font-medium tw:text-slate-700">Unlock at (UTC)
-                    <input name="unlockAtUtc" type="datetime-local" class="portal-field" />
-                </label>
-                <div class="tw:flex tw:flex-wrap tw:gap-2 tw:md:col-span-3">
-                    <button class="portal-btn portal-btn-primary" type="submit" name="unlockNow" value="false">Set unlock time</button>
-                    <button class="portal-btn portal-btn-outline" type="submit" name="unlockNow" value="true">Unlock now</button>
-                </div>
-            </form>
-        </details>
-    }
-
     @if (!ViewData.ModelState.IsValid)
     {
         <div class="public-alert public-alert-danger" role="alert">
@@ -155,13 +118,14 @@
                             </a>
                         </th>
                         <th scope="col">Assigned by</th>
+                        <th scope="col" class="portal-table-cell-end">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (Model.CourseAccess.Users.Count == 0)
                     {
                         <tr>
-                            <td colspan="4" class="portal-empty-table-cell">
+                            <td colspan="5" class="portal-empty-table-cell">
                                 @(string.IsNullOrWhiteSpace(Model.Search)
                                     ? "No users have been assigned to this course."
                                     : "No course users match your search.")
@@ -183,29 +147,24 @@
                                         {
                                             <span class="course-owner-pill">Creator</span>
                                         }
-                                        else
-                                        {
-                                            <form method="post"
-                                                  asp-page-handler="Remove"
-                                                  asp-route-courseId="@Model.CourseAccess.CourseId"
-                                                  asp-route-userId="@user.UserId"
-                                                  class="tw:m-0">
-                                                <input type="hidden" asp-for="Search" />
-                                                <input type="hidden" asp-for="Sort" />
-                                                <input type="hidden" asp-for="Direction" />
-                                                <button class="course-access-remove"
-                                                        type="submit"
-                                                        title="Remove access"
-                                                        aria-label="Remove @user.Name from this course">
-                                                    <i class="fa-solid fa-user-minus" aria-hidden="true"></i>
-                                                </button>
-                                            </form>
-                                        }
                                     </div>
                                 </td>
                                 <td><span class="course-role-pill" data-role="@user.Role">@user.Role</span></td>
                                 <td><time datetime="@user.GrantedAtUtc.ToString("O")">@user.GrantedAtUtc.ToString("dd MMM yyyy, HH:mm") UTC</time></td>
                                 <td><span class="course-assignment-source" data-source="@user.AssignedBy">@user.AssignedBy</span></td>
+                                <td class="portal-table-cell-end">
+                                    @if (!user.IsOwner && !string.Equals(user.AssignedBy, "Purchase", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        <form method="post" asp-page-handler="Remove" asp-route-courseId="@Model.CourseAccess.CourseId" asp-route-userId="@user.UserId" class="tw:m-0" onsubmit="return confirm('Unassign @user.Name from this course?');">
+                                            <input type="hidden" asp-for="Search" /><input type="hidden" asp-for="Sort" /><input type="hidden" asp-for="Direction" />
+                                            <button class="portal-btn portal-btn-danger portal-btn-sm portal-btn-icon" type="submit" title="Unassign user" aria-label="Unassign @user.Name from this course"><i class="fa-solid fa-user-minus" aria-hidden="true"></i></button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span class="tw:text-xs tw:text-slate-400" title="@(user.IsOwner ? "The course creator cannot be unassigned." : "Purchased access cannot be removed with Unassign.")"><i class="fa-solid fa-lock" aria-hidden="true"></i><span class="tw:sr-only">Access cannot be unassigned</span></span>
+                                    }
+                                </td>
                             </tr>
                         }
                     }
