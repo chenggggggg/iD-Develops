@@ -17,7 +17,7 @@
     <partial name="_CookiebotBanner" />
     @await RenderSectionAsync("Styles", required: false)
 </head>
-<body class="course-layout">
+<body class="course-layout @ViewData["BodyClass"]">
     @RenderBody()
 
     <script src="~/js/course-view.js" asp-append-version="true"></script>

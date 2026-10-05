@@ -76,6 +76,32 @@ public sealed class ExamAssignmentServiceTests
         Assert.Equal("Extra practice", grant.Reason);
     }
 
+    [Fact]
+    public async Task GetPageAsync_IncludesEveryCourseSectionPlacement()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var owner = new ApplicationUser { Id = "placement-owner", UserName = "owner@example.com" };
+        var exam = CreateExam(owner.Id);
+        var course = new Course { Name = "Placed course", CreatedByUserId = owner.Id };
+        var firstSection = new CourseSection { Course = course, Title = "Introduction", OrderNumber = 0 };
+        var secondSection = new CourseSection { Course = course, Title = "Review", OrderNumber = 1 };
+        firstSection.Exams.Add(new CourseSectionExam { Exam = exam, OrderNumber = 2, IsRequiredForCompletion = true });
+        secondSection.Exams.Add(new CourseSectionExam { Exam = exam, OrderNumber = 0, UnlockAfterValue = 2, UnlockAfterUnit = iD_Develops.Enums.CourseUnlockUnit.Weeks });
+        course.Sections.Add(firstSection);
+        course.Sections.Add(secondSection);
+        db.AddRange(owner, course);
+        await db.SaveChangesAsync();
+
+        var data = await new ExamAssignmentService(db).GetPageAsync(exam.Id, owner.Id, canManageAll: false);
+
+        Assert.NotNull(data);
+        Assert.Equal(2, data!.CoursePlacements.Count);
+        Assert.Equal(["Introduction", "Review"], data.CoursePlacements.Select(item => item.SectionTitle).ToArray());
+        Assert.Equal(course.Id, data.CoursePlacements[0].CourseId);
+        Assert.Equal(2, data.CoursePlacements[1].UnlockAfterValue);
+    }
+
     private static Exam CreateExam(string ownerId)
         => new()
         {

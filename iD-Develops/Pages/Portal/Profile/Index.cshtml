@@ -5,15 +5,70 @@
     ViewData["Title"] = "My Profile";
 }
 
-<section class="portal-page-shell">
-    <div class="portal-card portal-card-lg">
-        <p class="portal-eyebrow">My Profile</p>
-        <h1 class="portal-title-sm">Under construction</h1>
-        <p class="portal-copy portal-copy-spaced">
-            This page is ready as a destination for the portal navigation, and you can fill in the actual profile experience next.
-        </p>
-        <a class="portal-btn portal-btn-outline" asp-page="/Portal/Home/Index">
-            <i class="fa-solid fa-arrow-left-long" aria-hidden="true"></i>Back to home
-        </a>
+<section class="portal-page-shell portal-data-page">
+    <div class="portal-page-header">
+        <div class="portal-page-header-copy">
+            <p class="portal-eyebrow">My profile</p>
+            <h1 class="portal-title-sm">@Model.DisplayName</h1>
+            <p class="portal-copy">Your account overview, learning activity, and available booking credits.</p>
+        </div>
+        <a class="portal-btn portal-btn-outline" asp-page="/Portal/Settings/Index"><i class="fa-solid fa-gear" aria-hidden="true"></i>Account settings</a>
+    </div>
+
+    <div class="tw:grid tw:gap-4 tw:lg:grid-cols-[minmax(0,1.4fr)_minmax(18rem,0.6fr)]">
+        <div class="tw:grid tw:gap-4">
+            <section class="tw:rounded-xl tw:border tw:border-slate-200 tw:bg-white tw:p-5 tw:shadow-sm">
+                <div class="tw:flex tw:flex-wrap tw:items-center tw:gap-4">
+                    <span class="tw:grid tw:size-14 tw:place-items-center tw:rounded-full tw:bg-[#eaf3fa] tw:text-xl tw:text-[#005190]" aria-hidden="true"><i class="fa-solid fa-user"></i></span>
+                    <div class="tw:min-w-0 tw:flex-1"><h2 class="tw:m-0 tw:text-xl tw:font-bold tw:text-slate-950">@Model.DisplayName</h2><p class="tw:mb-0 tw:mt-1 tw:text-sm tw:text-slate-500">@Model.Email</p></div>
+                    <span class="tw:rounded-full tw:bg-slate-100 tw:px-3 tw:py-1 tw:text-xs tw:font-semibold tw:text-slate-700">@Model.Role</span>
+                </div>
+                <div class="tw:mt-5 tw:grid tw:gap-3 tw:sm:grid-cols-3">
+                    <div class="tw:rounded-lg tw:bg-slate-50 tw:p-4"><small class="tw:block tw:font-semibold tw:uppercase tw:tracking-wide tw:text-slate-500">Courses</small><strong class="tw:mt-1 tw:block tw:text-2xl tw:text-slate-950">@Model.CourseCount</strong></div>
+                    <div class="tw:rounded-lg tw:bg-slate-50 tw:p-4"><small class="tw:block tw:font-semibold tw:uppercase tw:tracking-wide tw:text-slate-500">Completed exams</small><strong class="tw:mt-1 tw:block tw:text-2xl tw:text-slate-950">@Model.CompletedExamCount</strong></div>
+                    <div class="tw:rounded-lg tw:bg-slate-50 tw:p-4"><small class="tw:block tw:font-semibold tw:uppercase tw:tracking-wide tw:text-slate-500">Attended sessions</small><strong class="tw:mt-1 tw:block tw:text-2xl tw:text-slate-950">@Model.AttendedSessionCount</strong></div>
+                </div>
+            </section>
+
+            <section class="tw:rounded-xl tw:border tw:border-slate-200 tw:bg-white tw:shadow-sm">
+                <div class="tw:border-b tw:border-slate-100 tw:px-5 tw:py-4"><h2 class="tw:m-0 tw:text-base tw:font-semibold tw:text-slate-900">Recent credit activity</h2><p class="tw:mb-0 tw:mt-1 tw:text-sm tw:text-slate-500">Your latest grants, reservations, returns, and uses.</p></div>
+                @if (Model.RecentCreditActivity.Count == 0)
+                {
+                    <div class="tw:px-5 tw:py-8 tw:text-sm tw:text-slate-500">No credit activity yet.</div>
+                }
+                else
+                {
+                    <ul class="tw:m-0 tw:divide-y tw:divide-slate-100 tw:p-0">
+                    @foreach (var activity in Model.RecentCreditActivity)
+                    {
+                        <li class="tw:flex tw:list-none tw:items-center tw:gap-3 tw:px-5 tw:py-3">
+                            <span class="tw:grid tw:size-8 tw:place-items-center tw:rounded-full @(activity.QuantityDelta >= 0 ? "tw:bg-emerald-50 tw:text-emerald-700" : "tw:bg-amber-50 tw:text-amber-700")" aria-hidden="true"><i class="fa-solid @(activity.QuantityDelta >= 0 ? "fa-plus" : "fa-minus")"></i></span>
+                            <span class="tw:min-w-0 tw:flex-1"><strong class="tw:block tw:text-sm tw:text-slate-900">@activity.CreditType · @activity.TransactionType</strong><small class="tw:block tw:truncate tw:text-slate-500">@(activity.Description ?? activity.CreatedAtUtc.ToString("dd MMM yyyy"))</small></span>
+                            <strong class="tw:text-sm @(activity.QuantityDelta >= 0 ? "tw:text-emerald-700" : "tw:text-amber-700")">@(activity.QuantityDelta > 0 ? "+" : "")@activity.QuantityDelta</strong>
+                        </li>
+                    }
+                    </ul>
+                }
+            </section>
+        </div>
+
+        <aside class="tw:rounded-xl tw:border tw:border-slate-200 tw:bg-white tw:p-5 tw:shadow-sm">
+            <div class="tw:flex tw:items-start tw:justify-between tw:gap-3"><div><p class="portal-eyebrow">Available credits</p><h2 class="tw:m-0 tw:text-lg tw:font-semibold tw:text-slate-950">Booking balance</h2></div><span class="tw:grid tw:size-9 tw:place-items-center tw:rounded-lg tw:bg-[#f7eff1] tw:text-[#b23a48]" aria-hidden="true"><i class="fa-solid fa-coins"></i></span></div>
+            @if (Model.CreditBalances.Count == 0)
+            {
+                <div class="tw:my-5 tw:rounded-lg tw:border tw:border-dashed tw:border-slate-300 tw:bg-slate-50 tw:p-4 tw:text-sm tw:text-slate-600">You do not currently have any available credits.</div>
+            }
+            else
+            {
+                <div class="tw:my-5 tw:grid tw:gap-3">
+                @foreach (var balance in Model.CreditBalances)
+                {
+                    <div class="tw:rounded-lg tw:border tw:border-slate-200 tw:p-4"><small class="tw:block tw:font-semibold tw:text-slate-500">@balance.Name</small><strong class="tw:mt-1 tw:block tw:text-2xl tw:text-slate-950">@balance.Quantity <span class="tw:text-sm tw:font-medium tw:text-slate-500">@balance.UnitLabel</span></strong>@if (balance.NextExpiryUtc.HasValue){<small class="tw:mt-2 tw:block tw:text-amber-700">Next expiry @balance.NextExpiryUtc.Value.ToString("dd MMM yyyy")</small>}</div>
+                }
+                </div>
+            }
+            <a class="portal-btn portal-btn-primary tw:w-full tw:justify-center" asp-page="/Products" asp-route-type="credit"><i class="fa-solid fa-plus" aria-hidden="true"></i>Add credits</a>
+            <p class="tw:mb-0 tw:mt-4 tw:text-xs tw:leading-5 tw:text-slate-500">Member since @Model.MemberSinceUtc.ToString("MMMM yyyy"). Level-test results will appear here once that feature is available.</p>
+        </aside>
     </div>
 </section>

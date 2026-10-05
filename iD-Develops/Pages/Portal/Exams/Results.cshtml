@@ -77,7 +77,7 @@
                             <th>Status</th>
                             <th>Version</th>
                             <th>Score</th>
-                            <th></th>
+                            <th class="portal-table-cell-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -102,7 +102,7 @@
                             <td>
                                 <span class="portal-table-meta">@(record.MaxScore > 0 ? $"{record.Score:0.##} / {record.MaxScore:0.##}" : "—")</span>
                             </td>
-                            <td class="portal-exams-table-actions">
+                            <td class="portal-exams-table-actions portal-table-cell-end">
                                 <a class="portal-btn portal-btn-outline portal-btn-sm"
                                    asp-page="/Portal/Exams/Record"
                                    asp-route-recordId="@record.RecordId">

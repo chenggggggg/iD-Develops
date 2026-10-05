@@ -20,10 +20,13 @@ namespace iD_Develops.Pages
 
         public List<ProductCard> Products { get; private set; } = new();
 
-        public async Task OnGetAsync(CancellationToken ct)
+        public async Task OnGetAsync(string? type, CancellationToken ct)
         {
-            Products = await BuildProductCardsAsync(
-                await _catalogProductService.GetPublishedProductsAsync(ct));
+            var products = await _catalogProductService.GetPublishedProductsAsync(ct);
+            if (string.Equals(type, "credit", StringComparison.OrdinalIgnoreCase))
+                products = products.Where(product => product.ProductType == CatalogProductType.Credit).ToList();
+
+            Products = await BuildProductCardsAsync(products);
         }
 
         private async Task<List<ProductCard>> BuildProductCardsAsync(IEnumerable<CatalogProduct> products)

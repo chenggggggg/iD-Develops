@@ -11,9 +11,7 @@
     const dialog = root.querySelector("[data-schedule-dialog]");
     const token = root.querySelector('input[name="__RequestVerificationToken"]')?.value || "";
     const toast = root.querySelector("[data-schedule-toast]");
-    const displayZoneSelect = root.querySelector("[data-schedule-display-zone]");
-    const displayZoneStorageKey = "id-develops.schedule-display-zone";
-    let displayTimeZone = readDisplayTimeZone();
+    const displayTimeZone = "Europe/Amsterdam";
     let selectedEvent = null;
 
     const by = function (name) { return dialog.querySelector(`[data-schedule-${name}]`); };
@@ -34,18 +32,8 @@
         return eventPalettes[category] || eventPalettes.available;
     }
 
-    function readDisplayTimeZone() {
-        try {
-            return window.localStorage.getItem(displayZoneStorageKey) === "Europe/Amsterdam"
-                ? "Europe/Amsterdam"
-                : "local";
-        } catch (_error) {
-            return "local";
-        }
-    }
-
     function intlTimeZone() {
-        return displayTimeZone === "Europe/Amsterdam" ? "Europe/Amsterdam" : undefined;
+        return "Europe/Amsterdam";
     }
 
     class IntlNamedTimeZone {
@@ -377,18 +365,6 @@
             });
         });
     });
-
-    if (displayZoneSelect) {
-        displayZoneSelect.value = displayTimeZone;
-        displayZoneSelect.addEventListener("change", function () {
-            displayTimeZone = displayZoneSelect.value === "Europe/Amsterdam" ? "Europe/Amsterdam" : "local";
-            try { window.localStorage.setItem(displayZoneStorageKey, displayTimeZone); } catch (_error) { }
-            window.dispatchEvent(new CustomEvent("portal-schedule-time-zone-changed"));
-            calendar.setOption("timeZone", displayTimeZone);
-            calendar.refetchEvents();
-            refreshOverview().catch(function (error) { showToast(error.message, true); });
-        });
-    }
 
     by("dialog-close").addEventListener("click", closeDialog);
     dialog.addEventListener("click", function (event) {

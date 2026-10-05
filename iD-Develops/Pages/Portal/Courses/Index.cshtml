@@ -3,8 +3,9 @@
 @{
     Layout = "_PortalLayout";
     ViewData["Title"] = "Courses";
-    var totalExamCount = Model.Courses.Sum(course => course.ExamCount);
-    var totalLearningMaterialCount = Model.Courses.Sum(course => course.LearningMaterialCount);
+    var totalLearnerCount = Model.Courses.Sum(course => course.LearnerCount);
+    var totalSectionCount = Model.Courses.Sum(course => course.SectionCount);
+    var totalContentCount = Model.Courses.Sum(course => course.ContentCount);
 }
 
 <section class="portal-page-shell portal-data-page">
@@ -49,15 +50,15 @@
     <div class="tw:mb-4 tw:grid tw:flex-none tw:gap-3 tw:sm:grid-cols-3" aria-label="Course overview">
         <article class="tw:flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-[#dfe5ec] tw:bg-white tw:px-4 tw:py-3 tw:shadow-[0_1px_2px_rgba(2,7,47,0.04)]">
             <span class="tw:grid tw:size-9 tw:flex-none tw:place-items-center tw:rounded-md tw:bg-[#eaf3fa] tw:text-[#005190]" aria-hidden="true"><i class="fa-solid fa-graduation-cap"></i></span>
-            <span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">Courses</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@Model.Courses.Count</strong></span>
+            <span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">@(Model.CanManageCourses ? "Enrolled learners" : "Your courses")</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@(Model.CanManageCourses ? totalLearnerCount : Model.Courses.Count)</strong></span>
         </article>
         <article class="tw:flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-[#dfe5ec] tw:bg-white tw:px-4 tw:py-3 tw:shadow-[0_1px_2px_rgba(2,7,47,0.04)]">
             <span class="tw:grid tw:size-9 tw:flex-none tw:place-items-center tw:rounded-md tw:bg-[#eef6f4] tw:text-[#287a55]" aria-hidden="true"><i class="fa-solid fa-file-circle-check"></i></span>
-            <span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">Linked exams</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@totalExamCount</strong></span>
+            <span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">Course sections</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@totalSectionCount</strong></span>
         </article>
         <article class="tw:flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-[#dfe5ec] tw:bg-white tw:px-4 tw:py-3 tw:shadow-[0_1px_2px_rgba(2,7,47,0.04)]">
             <span class="tw:grid tw:size-9 tw:flex-none tw:place-items-center tw:rounded-md tw:bg-[#f7eff1] tw:text-[#B23A48]" aria-hidden="true"><i class="fa-solid fa-book-open"></i></span>
-            <span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">Learning materials</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@totalLearningMaterialCount</strong></span>
+            <span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">Course activities</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@totalContentCount</strong></span>
         </article>
     </div>
 
@@ -72,19 +73,16 @@
                 <thead>
                     <tr>
                         <th scope="col">Name</th>
-                        <th scope="col">Exams</th>
-                        <th scope="col">Learning materials</th>
-                        @if (Model.CanManageCourses)
-                        {
-                            <th scope="col" class="portal-table-cell-end">Actions</th>
-                        }
+                        <th scope="col">Structure</th>
+                        <th scope="col">Learners</th>
+                        <th scope="col" class="portal-table-cell-end">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (Model.Courses.Count == 0)
                     {
                         <tr>
-                            <td colspan="@(Model.CanManageCourses ? 4 : 3)" class="portal-empty-table-cell">
+                            <td colspan="4" class="portal-empty-table-cell">
                                 @(Model.CanManageCourses ? "No courses created yet." : "No courses are assigned to you yet.")
                             </td>
                         </tr>
@@ -101,20 +99,18 @@
                                         @course.Name
                                     </a>
                                 </td>
-                                <td><span class="portal-table-meta">@course.ExamCount</span></td>
-                                <td><span class="portal-table-meta">@course.LearningMaterialCount</span></td>
-                                @if (Model.CanManageCourses)
-                                {
-                                    <td class="portal-table-cell-end">
-                                        <a class="portal-btn portal-btn-outline portal-btn-sm"
-                                           asp-page="/Portal/Courses/Course"
-                                           asp-route-courseId="@course.Id"
-                                           asp-route-edit="true">
-                                            <i class="fa-solid fa-sliders" aria-hidden="true"></i>
-                                            Manage
-                                        </a>
-                                    </td>
-                                }
+                                <td><span class="portal-table-meta">@course.SectionCount sections · @course.ContentCount activities</span></td>
+                                <td><span class="portal-table-meta">@course.LearnerCount</span></td>
+                                <td class="portal-table-cell-end">
+                                    <div class="tw:flex tw:justify-end tw:gap-2">
+                                        <a class="portal-btn portal-btn-outline portal-btn-sm portal-btn-icon" asp-page="/Portal/Courses/Course" asp-route-courseId="@course.Id" title="Open course"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i><span class="tw:sr-only">Open course</span></a>
+                                        @if (Model.CanManageCourses)
+                                        {
+                                            <a class="portal-btn portal-btn-outline portal-btn-sm portal-btn-icon" asp-page="/Portal/Courses/Course" asp-route-courseId="@course.Id" asp-route-edit="true" title="Edit course"><i class="fa-solid fa-pencil" aria-hidden="true"></i><span class="tw:sr-only">Edit course</span></a>
+                                            <a class="portal-btn portal-btn-outline portal-btn-sm portal-btn-icon" asp-page="/Portal/Courses/Manage" asp-route-courseId="@course.Id" title="Manage access"><i class="fa-solid fa-users-gear" aria-hidden="true"></i><span class="tw:sr-only">Manage access</span></a>
+                                        }
+                                    </div>
+                                </td>
                             </tr>
                         }
                     }

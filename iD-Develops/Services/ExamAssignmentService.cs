@@ -60,6 +60,25 @@ namespace iD_Develops.Services
                 .ThenBy(user => user.LastName)
                 .ToListAsync(cancellationToken);
 
+            var coursePlacements = await _dbContext.CourseSectionExams
+                .AsNoTracking()
+                .Where(placement => placement.ExamId == examId)
+                .OrderBy(placement => placement.CourseSection.Course.Name)
+                .ThenBy(placement => placement.CourseSection.OrderNumber)
+                .ThenBy(placement => placement.OrderNumber)
+                .Select(placement => new ExamCoursePlacementItem(
+                    placement.Id,
+                    placement.CourseSection.CourseId,
+                    placement.CourseSection.Course.Name,
+                    placement.CourseSectionId,
+                    placement.CourseSection.Title,
+                    placement.CourseSection.OrderNumber,
+                    placement.OrderNumber,
+                    placement.UnlockAfterValue,
+                    placement.UnlockAfterUnit,
+                    placement.IsRequiredForCompletion))
+                .ToListAsync(cancellationToken);
+
             var grantRows = await _dbContext.ExamAttemptGrants
                 .AsNoTracking()
                 .Where(grant => grant.ExamId == examId)
@@ -95,6 +114,7 @@ namespace iD_Develops.Services
                     item.DueAtUtc,
                     FormatName(item.AssignedByFirstName, item.AssignedByLastName, item.AssignedByUserName, item.AssignedByEmail)))
                     .ToList(),
+                coursePlacements,
                 userRows.Select(user => new ExamAssignmentUserOption(
                     user.Id,
                     FormatName(user.FirstName, user.LastName, user.UserName, user.Email),

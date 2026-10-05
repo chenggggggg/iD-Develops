@@ -12,25 +12,21 @@
     const timeZoneLabel = root.querySelector("[data-appointment-time-zone]");
 
     function selectedTimeZone() {
-        try {
-            return window.localStorage.getItem("id-develops.schedule-display-zone") === "Europe/Amsterdam"
-                ? "Europe/Amsterdam"
-                : undefined;
-        } catch (_error) {
-            return undefined;
-        }
+        return "Europe/Amsterdam";
     }
 
     function formatter(options) {
         return new Intl.DateTimeFormat(undefined, Object.assign({}, options, { timeZone: selectedTimeZone() }));
     }
 
-    timeZoneLabel.textContent = selectedTimeZone()
-        ? "Times shown in Amsterdam time"
-        : "Times shown in your local time";
+    timeZoneLabel.textContent = "Times shown in Amsterdam time";
 
     const today = new Date();
-    dateInput.value = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, "0"), String(today.getDate()).padStart(2, "0")].join("-");
+    const amsterdamDateParts = {};
+    new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Amsterdam", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(today).forEach(function (part) {
+        if (part.type !== "literal") amsterdamDateParts[part.type] = part.value;
+    });
+    dateInput.value = `${amsterdamDateParts.year}-${amsterdamDateParts.month}-${amsterdamDateParts.day}`;
     dateInput.min = dateInput.value;
 
     function selectedType() { return options.find(item => String(item.id) === typeSelect.value); }

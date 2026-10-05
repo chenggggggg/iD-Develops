@@ -10,6 +10,7 @@
     --course-blue: #005190;
     --course-panel-width: 330px;
     --course-topbar-height: 68px;
+    --course-statusbar-height: 1.75rem;
     --course-heading: "Playfair Display", Georgia, serif;
     --course-body: "Source Sans 3", system-ui, sans-serif;
     --course-label: "IBM Plex Mono", monospace;
@@ -115,6 +116,35 @@ body.course-panel-open {
 .course-page {
     min-height: 100vh;
     padding-top: var(--course-topbar-height);
+}
+
+.course-edit-mode .course-page {
+    padding-bottom: var(--course-statusbar-height);
+}
+
+.course-edit-mode .course-content-panel,
+.course-edit-mode .course-panel-backdrop {
+    bottom: var(--course-statusbar-height);
+}
+
+.course-edit-mode .product-edit-mode-bar {
+    height: var(--course-statusbar-height);
+}
+
+.course-edit-mode .product-edit-mode-bar-inner {
+    min-height: var(--course-statusbar-height);
+    padding-inline: 1rem;
+}
+
+.course-edit-mode .product-edit-mode-bar-copy {
+    gap: 0.4rem;
+    font-size: 0.68rem;
+    line-height: 1;
+}
+
+.course-edit-mode .product-edit-mode-dot {
+    width: 0.4rem;
+    height: 0.4rem;
 }
 
 .course-main {

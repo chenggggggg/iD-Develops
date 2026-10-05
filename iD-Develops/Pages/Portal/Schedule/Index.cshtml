@@ -1,4 +1,4 @@
-@page "/portal/schedule"
+@page "/portal/calendar"
 @model iD_Develops.Pages.Portal.Schedule.IndexModel
 @{
     Layout = "_PortalLayout";
@@ -18,43 +18,19 @@
             <p class="portal-copy">@(Model.ViewingStudentCalendar ? "Booked meetings on this student's calendar." : "Your meetings and course classes that are currently available to book.")</p>
         </div>
         <div class="portal-page-header-actions">
-            <label class="schedule-display-zone">
-                <span>Display time</span>
-                <select data-schedule-display-zone>
-                    <option value="local">Local time</option>
-                    <option value="Europe/Amsterdam">Amsterdam time</option>
-                </select>
-            </label>
             @if (Model.CanManageSchedule)
             {
-                <form method="get" class="schedule-calendar-view-form">
-                    <label for="scheduleCalendarView">Calendar</label>
-                    <select id="scheduleCalendarView" name="CalendarView" onchange="this.form.submit()">
-                        <option value="mine" selected="@(Model.CalendarView == "mine" ? "selected" : null)">My calendar</option>
-                        <option value="all" selected="@(Model.CalendarView == "all" ? "selected" : null)">All calendars</option>
-                        <optgroup label="Teachers">
-                            @foreach (var teacher in Model.Teachers)
-                            {
-                                var value = $"teacher:{teacher.Id}";
-                                <option value="@value" selected="@(Model.CalendarView == value ? "selected" : null)">@teacher.Name (@teacher.Email)</option>
-                            }
-                        </optgroup>
-                        <optgroup label="Students">
-                            @foreach (var student in Model.Students)
-                            {
-                                var value = $"student:{student.Id}";
-                                <option value="@value" selected="@(Model.CalendarView == value ? "selected" : null)">@student.Email</option>
-                            }
-                        </optgroup>
-                    </select>
-                </form>
-                <a class="portal-btn portal-btn-primary" asp-page="/Portal/Schedule/Roster">
+                <a class="portal-btn portal-btn-primary" asp-page="/Portal/Schedule/Roster" asp-fragment="schedule-session">
                     <i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>
-                    Manage roster
+                    Schedule event
                 </a>
-                <a class="portal-btn" asp-page="/Portal/Schedule/Appointments">
-                    <i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>
-                    Appointment types
+                <a class="portal-btn portal-btn-outline" asp-page="/Portal/Schedule/Roster">
+                    <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+                    Recurring roster
+                </a>
+                <a class="portal-btn portal-btn-outline" asp-page="/Portal/Schedule/Appointments">
+                    <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+                    Private session types
                 </a>
             }
             else
@@ -77,8 +53,46 @@
     }
 
     <div class="schedule-summary" aria-label="Schedule summary">
-        <div><span>Upcoming</span><strong data-schedule-upcoming-count>@Model.Overview.UpcomingCount</strong></div>
-        <div><span>@(Model.CanManageSchedule && !Model.ViewingStudentCalendar ? "Scheduled" : "Booked")</span><strong data-schedule-booked-count>@(Model.CanManageSchedule && !Model.ViewingStudentCalendar ? Model.Overview.UpcomingCount : Model.Overview.BookedCount)</strong></div>
+        <div class="schedule-summary-metrics">
+            <div><span>Upcoming</span><strong data-schedule-upcoming-count>@Model.Overview.UpcomingCount</strong></div>
+            <div><span>@(Model.CanManageSchedule && !Model.ViewingStudentCalendar ? "Scheduled" : "Booked")</span><strong data-schedule-booked-count>@(Model.CanManageSchedule && !Model.ViewingStudentCalendar ? Model.Overview.UpcomingCount : Model.Overview.BookedCount)</strong></div>
+        </div>
+        <div class="schedule-summary-controls">
+            @if (Model.CanManageSchedule)
+            {
+                <form method="get" class="schedule-calendar-view-form">
+                    <label for="scheduleCalendarView">
+                        <span class="tw:sr-only">Select calendar</span>
+                        <span class="schedule-calendar-select">
+                            <select id="scheduleCalendarView" name="CalendarView" onchange="this.form.submit()">
+                                <option value="mine" selected="@(Model.CalendarView == "mine" ? "selected" : null)">My calendar</option>
+                                <option value="all" selected="@(Model.CalendarView == "all" ? "selected" : null)">All calendars</option>
+                                <optgroup label="Teachers">
+                                    @foreach (var teacher in Model.Teachers)
+                                    {
+                                        var value = $"teacher:{teacher.Id}";
+                                        <option value="@value" selected="@(Model.CalendarView == value ? "selected" : null)">@teacher.Name (@teacher.Email)</option>
+                                    }
+                                </optgroup>
+                                <optgroup label="Students">
+                                    @foreach (var student in Model.Students)
+                                    {
+                                        var value = $"student:{student.Id}";
+                                        <option value="@value" selected="@(Model.CalendarView == value ? "selected" : null)">@student.Email</option>
+                                    }
+                                </optgroup>
+                            </select>
+                            <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                        </span>
+                    </label>
+                </form>
+            }
+            <div class="schedule-time-zone">
+                <span class="schedule-time-zone-icon" aria-hidden="true"><i class="fa-solid fa-earth-europe"></i></span>
+                <span><small>Time zone</small><strong>Amsterdam</strong></span>
+                <span class="tw:sr-only">Europe/Amsterdam</span>
+            </div>
+        </div>
     </div>
 
     <div class="schedule-workspace">

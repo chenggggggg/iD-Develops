@@ -99,44 +99,10 @@ namespace iD_Develops.Pages.Portal.Courses
                 actorUserId,
                 User.IsInRole("Admin") || User.IsInRole("SuperAdmin"),
                 cancellationToken);
-            TempData["StatusMessage"] = result.Success
+            TempData[result.Success ? "StatusMessage" : "ErrorMessage"] = result.Success
                 ? "Course access removed."
                 : result.ErrorMessage ?? "Course access could not be removed.";
 
-            return RedirectToPage(new { courseId, Search, Sort, Direction });
-        }
-
-        public async Task<IActionResult> OnPostSetSectionUnlockAsync(
-            int courseId,
-            string userId,
-            int sectionId,
-            DateTime? unlockAtUtc,
-            bool unlockNow,
-            CancellationToken cancellationToken)
-        {
-            if (!await CanManageCourseAsync(courseId, cancellationToken))
-                return Forbid();
-
-            var actorUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrWhiteSpace(actorUserId))
-                return Challenge();
-            if (string.IsNullOrWhiteSpace(userId) || sectionId <= 0 || (!unlockNow && !unlockAtUtc.HasValue))
-            {
-                TempData["ErrorMessage"] = "Select a learner, section, and unlock time.";
-                return RedirectToPage(new { courseId, Search, Sort, Direction });
-            }
-
-            var result = await _courseService.SetSectionUnlockAsync(
-                courseId,
-                sectionId,
-                userId,
-                unlockNow ? DateTime.UtcNow : unlockAtUtc!.Value,
-                actorUserId,
-                User.IsInRole("Admin") || User.IsInRole("SuperAdmin"),
-                cancellationToken);
-            TempData[result.Success ? "StatusMessage" : "ErrorMessage"] = result.Success
-                ? "Section access updated."
-                : result.ErrorMessage ?? "Section access could not be updated.";
             return RedirectToPage(new { courseId, Search, Sort, Direction });
         }
 

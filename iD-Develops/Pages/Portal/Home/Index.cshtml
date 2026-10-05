@@ -34,7 +34,7 @@
             }
             else
             {
-                <a class="portal-btn portal-btn-primary" asp-page="/Portal/Schedule/Index">Open schedule</a>
+                <a class="portal-btn portal-btn-primary" asp-page="/Portal/Schedule/Index">Open calendar</a>
                 <a class="portal-btn portal-btn-outline" asp-page="/Portal/Exams/Create">Create exam</a>
             }
         </div>
@@ -139,7 +139,7 @@
                     <a class="portal-btn portal-btn-primary tw:justify-center" asp-page="/Portal/Exams/Create"><i class="fa-solid fa-plus" aria-hidden="true"></i> Create exam</a>
                     <a class="portal-btn portal-btn-outline tw:justify-center" asp-page="/Portal/Exams/Assignments"><i class="fa-solid fa-user-check" aria-hidden="true"></i> Assign exam</a>
                     <a class="portal-btn portal-btn-outline tw:justify-center" asp-page="/Portal/Courses/Index"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> Manage courses</a>
-                    <a class="portal-btn portal-btn-outline tw:justify-center" asp-page="/Portal/Schedule/Index"><i class="fa-solid fa-calendar" aria-hidden="true"></i> Open schedule</a>
+                    <a class="portal-btn portal-btn-outline tw:justify-center" asp-page="/Portal/Schedule/Index"><i class="fa-solid fa-calendar" aria-hidden="true"></i> Open calendar</a>
                     @if (Model.Role == DashboardRole.Admin)
                     {
                         <a class="portal-btn portal-btn-outline tw:justify-center" asp-page="/Portal/Admin/Users"><i class="fa-solid fa-users-gear" aria-hidden="true"></i> Manage users</a>
