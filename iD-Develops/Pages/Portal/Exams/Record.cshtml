@@ -112,14 +112,14 @@
 
                         @if (!string.IsNullOrWhiteSpace(question.ScenarioHtml))
                         {
-                            <div class="record-content-muted tw:mt-4">@Html.Raw(question.ScenarioHtml)</div>
+                            <div class="record-content-muted mt-4">@Html.Raw(question.ScenarioHtml)</div>
                         }
 
-                        <div class="tw:mt-4">@Html.Raw(question.QuestionHtml)</div>
+                        <div class="mt-4">@Html.Raw(question.QuestionHtml)</div>
 
                         @if (!string.IsNullOrWhiteSpace(question.ImageUrl))
                         {
-                            <div class="record-question-image-card tw:mt-4">
+                            <div class="record-question-image-card mt-4">
                                 <p class="portal-eyebrow">Question image</p>
                                 <img src="@question.ImageUrl" class="record-question-image" alt="Question image" />
                             </div>
@@ -127,12 +127,12 @@
 
                         @if (!string.IsNullOrWhiteSpace(question.MessageBeforeQuestionHtml))
                         {
-                            <div class="record-note tw:mt-4">
+                            <div class="record-note mt-4">
                                 @Html.Raw(question.MessageBeforeQuestionHtml)
                             </div>
                         }
 
-                        <div class="record-answer-grid tw:mt-4">
+                        <div class="record-answer-grid mt-4">
                             <div>
                                 <div class="record-answer-card">
                                     <p class="portal-eyebrow">Your answer</p>

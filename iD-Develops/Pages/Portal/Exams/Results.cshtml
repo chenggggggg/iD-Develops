@@ -36,30 +36,30 @@
         </div>
     </div>
 
-    <div class="tw:mb-4 tw:grid tw:flex-none tw:gap-3 tw:sm:grid-cols-3" aria-label="Results overview">
-        <article class="tw:flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-[#dfe5ec] tw:bg-white tw:px-4 tw:py-3 tw:shadow-[0_1px_2px_rgba(2,7,47,0.04)]">
-            <span class="tw:grid tw:size-9 tw:flex-none tw:place-items-center tw:rounded-md tw:bg-[#eaf3fa] tw:text-[#005190]" aria-hidden="true"><i class="fa-solid fa-list-check"></i></span>
-            <span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">Results</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@Model.Results.Count</strong></span>
+    <div class="mb-4 grid flex-none gap-3 sm:grid-cols-3" aria-label="Results overview">
+        <article class="flex items-center gap-3 rounded-lg border border-[#dfe5ec] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(2,7,47,0.04)]">
+            <span class="grid size-9 flex-none place-items-center rounded-md bg-[#eaf3fa] text-[#005190]" aria-hidden="true"><i class="fa-solid fa-list-check"></i></span>
+            <span><span class="block text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[#64748b]">Results</span><strong class="block text-xl font-semibold leading-tight text-[#071f3d]">@Model.Results.Count</strong></span>
         </article>
-        <article class="tw:flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-[#dfe5ec] tw:bg-white tw:px-4 tw:py-3 tw:shadow-[0_1px_2px_rgba(2,7,47,0.04)]">
-            <span class="tw:grid tw:size-9 tw:flex-none tw:place-items-center tw:rounded-md tw:bg-[#eef6f4] tw:text-[#287a55]" aria-hidden="true"><i class="fa-solid fa-file-circle-check"></i></span>
-            <span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">Exams completed</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@uniqueExamCount</strong></span>
+        <article class="flex items-center gap-3 rounded-lg border border-[#dfe5ec] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(2,7,47,0.04)]">
+            <span class="grid size-9 flex-none place-items-center rounded-md bg-[#eef6f4] text-[#287a55]" aria-hidden="true"><i class="fa-solid fa-file-circle-check"></i></span>
+            <span><span class="block text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[#64748b]">Exams completed</span><strong class="block text-xl font-semibold leading-tight text-[#071f3d]">@uniqueExamCount</strong></span>
         </article>
-        <article class="tw:flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-[#dfe5ec] tw:bg-white tw:px-4 tw:py-3 tw:shadow-[0_1px_2px_rgba(2,7,47,0.04)]">
-            <span class="tw:grid tw:size-9 tw:flex-none tw:place-items-center tw:rounded-md tw:bg-[#f7eff1] tw:text-[#B23A48]" aria-hidden="true"><i class="fa-solid fa-chart-line"></i></span>
-            <span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">Average score</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@(scoredResults.Count == 0 ? "—" : $"{averageScorePercentage:0}%")</strong></span>
+        <article class="flex items-center gap-3 rounded-lg border border-[#dfe5ec] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(2,7,47,0.04)]">
+            <span class="grid size-9 flex-none place-items-center rounded-md bg-[#f7eff1] text-[#B23A48]" aria-hidden="true"><i class="fa-solid fa-chart-line"></i></span>
+            <span><span class="block text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[#64748b]">Average score</span><strong class="block text-xl font-semibold leading-tight text-[#071f3d]">@(scoredResults.Count == 0 ? "—" : $"{averageScorePercentage:0}%")</strong></span>
         </article>
     </div>
 
-    <div class="tw:mb-2 tw:flex tw:flex-none tw:items-end tw:justify-between tw:gap-4">
-        <div><p class="tw:m-0 tw:text-sm tw:font-semibold tw:text-[#071f3d]">Result history</p><p class="tw:m-0 tw:text-xs tw:text-[#64748b]">Review scores and open the details of a result.</p></div>
-        <span class="tw:text-xs tw:font-medium tw:text-[#64748b]">@Model.Results.Count records</span>
+    <div class="mb-2 flex flex-none items-end justify-between gap-4">
+        <div><p class="m-0 text-sm font-semibold text-[#071f3d]">Result history</p><p class="m-0 text-xs text-[#64748b]">Review scores and open the details of a result.</p></div>
+        <span class="text-xs font-medium text-[#64748b]">@Model.Results.Count records</span>
     </div>
 
     <div class="portal-table-card portal-exams-table-card">
         @if (Model.Results.Count == 0)
         {
-            <div class="portal-card-centered tw:p-6 tw:lg:p-10">
+            <div class="portal-card-centered p-6 lg:p-10">
                 <p class="portal-eyebrow">No results yet</p>
                 <h2 class="portal-title-sm">Your completed records will appear here</h2>
                 <p class="portal-copy portal-copy-spaced">Once you finish an exam, you will be able to review the record from this page.</p>

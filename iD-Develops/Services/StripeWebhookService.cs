@@ -68,7 +68,7 @@ namespace iD_Develops.Services
                 if (!session.Metadata.TryGetValue("catalog_product_id", out var catalogProductIdRaw) ||
                     !int.TryParse(catalogProductIdRaw, out var catalogProductId))
                 {
-                    _logger.LogInformation("Ignoring checkout session without catalog product metadata.");
+                    _logger.LogDebug("Ignoring checkout session without catalog product metadata.");
                     return Results.Json(new { status = "ignored" });
                 }
 

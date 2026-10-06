@@ -82,7 +82,7 @@ namespace iD_Develops.Services
 
             if (recordToUpdate == null)
             {
-                _logger.LogInformation("No record found for completion. RecordId={RecordId}", id);
+                _logger.LogDebug("No record found for completion. RecordId={RecordId}", id);
                 return;
             }
 

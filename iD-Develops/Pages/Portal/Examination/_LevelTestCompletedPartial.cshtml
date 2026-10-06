@@ -1,25 +1,25 @@
 @model iD_Develops.Pages.Portal.Examination.CompletedModel
 
-<div class="tw:flex tw:min-h-screen tw:w-full">
-    <div class="content-panel tw:flex tw:flex-col tw:items-center tw:justify-center">
+<div class="flex min-h-screen w-full">
+    <div class="content-panel flex flex-col items-center justify-center">
         <div class="content-panel-inner">
             @if (!string.IsNullOrWhiteSpace(Model.LevelTestSuccessMessage))
             {
-                <div class="tw:text-center">
-                    <p class="completion-message tw:m-0 tw:text-center">
+                <div class="text-center">
+                    <p class="completion-message m-0 text-center">
                         @Model.LevelTestSuccessMessage
                     </p>
 
                     @if (Model.IsSignedInPortalUser)
                     {
-                        <p class="tw:m-0">
+                        <p class="m-0">
                             <a asp-page="/Portal/Profile/Index" class="completion-link">Return to your profile</a>
                         </p>
                     }
                     else
                     {
-                        <div class="completion-help tw:my-6 tw:text-center">
-                            <p class="tw:m-0">
+                        <div class="completion-help my-6 text-center">
+                            <p class="m-0">
                                 Didn't receive an email? Check your spam folder or
                             </p>
 
@@ -28,14 +28,14 @@
                                 <button type="submit" class="completion-inline-button">click here to resend</button>.
                             </form>
 
-                            <p class="completion-divider tw:my-1">or</p>
+                            <p class="completion-divider my-1">or</p>
 
-                            <p class="tw:mb-4">
+                            <p class="mb-4">
                                 Contact us at <a class="completion-link" href="mailto:@Model.SupportEmail">@Model.SupportEmail</a>
                             </p>
                         </div>
 
-                        <p class="tw:m-0">
+                        <p class="m-0">
                             <a asp-page="/Index" class="completion-link">Return to the home page</a>
                         </p>
                     }
@@ -43,8 +43,8 @@
             }
             else
             {
-                <h2 class="tw:text-center">Dutch Language Awaits!</h2>
-                <p class="subtitle tw:text-center">
+                <h2 class="text-center">Dutch Language Awaits!</h2>
+                <p class="subtitle text-center">
                     Well done on completing your level test!
                     <br />Your results are just around the corner.
                     @if (!Model.IsSignedInPortalUser)
@@ -65,24 +65,24 @@
                     </div>
                 }
 
-                <div class="tw:flex tw:justify-center tw:pt-2">
+                <div class="flex justify-center pt-2">
                     <form method="post" asp-page-handler="SubmitForm" class="completed-form">
                         <input type="hidden" name="RecordId" value="@Model.RecordId" />
 
                         @if (!Model.IsSignedInPortalUser)
                         {
-                            <label asp-for="Name" class="tw:sr-only">Name:</label>
+                            <label asp-for="Name" class="sr-only">Name:</label>
                             <input asp-for="Name" placeholder="Name" />
 
-                            <label asp-for="Email" class="tw:sr-only">Email:</label>
+                            <label asp-for="Email" class="sr-only">Email:</label>
                             <input asp-for="Email" placeholder="Email" />
                         }
 
                         @if (!Model.IsSignedInPortalUser)
                         {
-                            <div class="tw:mt-4 tw:flex tw:items-start tw:gap-2">
-                                <input class="tw:mt-1" asp-for="SubscribeNewsletter" type="checkbox" />
-                                <label class="consent-label tw:font-light" asp-for="SubscribeNewsletter">
+                            <div class="mt-4 flex items-start gap-2">
+                                <input class="mt-1" asp-for="SubscribeNewsletter" type="checkbox" />
+                                <label class="consent-label font-light" asp-for="SubscribeNewsletter">
                                     I would like to receive newsletters and updates.
                                 </label>
                             </div>
@@ -94,9 +94,9 @@
                             <partial name="_Turnstile" />
                         }
 
-                        <input type="submit" value="@(Model.IsSignedInPortalUser ? "View my results!" : "Send my results!")" class="submit-button tw:mt-4" />
+                        <input type="submit" value="@(Model.IsSignedInPortalUser ? "View my results!" : "Send my results!")" class="submit-button mt-4" />
 
-                        <div asp-validation-summary="All" class="public-invalid-feedback tw:mt-4"></div>
+                        <div asp-validation-summary="All" class="public-invalid-feedback mt-4"></div>
                     </form>
                 </div>
             }

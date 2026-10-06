@@ -278,9 +278,9 @@ namespace iD_Develops.Services
                 await CleanupExternalEventAsync(scheduleEvent, cancellationToken);
                 return booked;
             }
-            catch (DbUpdateException exception)
+            catch (DbUpdateException)
             {
-                _logger.LogInformation(exception, "Appointment slot was taken before it could be saved for teacher {TeacherUserId}.", teacherUserId);
+                _logger.LogDebug("Appointment slot was taken before it could be saved for teacher {TeacherUserId}.", teacherUserId);
                 await CleanupExternalEventAsync(scheduleEvent, cancellationToken);
                 return Failure("That time was just booked by someone else. Choose another slot.");
             }

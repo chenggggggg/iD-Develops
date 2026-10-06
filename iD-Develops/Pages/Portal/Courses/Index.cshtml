@@ -47,24 +47,24 @@
         </div>
     }
 
-    <div class="tw:mb-4 tw:grid tw:flex-none tw:gap-3 tw:sm:grid-cols-3" aria-label="Course overview">
-        <article class="tw:flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-[#dfe5ec] tw:bg-white tw:px-4 tw:py-3 tw:shadow-[0_1px_2px_rgba(2,7,47,0.04)]">
-            <span class="tw:grid tw:size-9 tw:flex-none tw:place-items-center tw:rounded-md tw:bg-[#eaf3fa] tw:text-[#005190]" aria-hidden="true"><i class="fa-solid fa-graduation-cap"></i></span>
-            <span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">@(Model.CanManageCourses ? "Enrolled learners" : "Your courses")</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@(Model.CanManageCourses ? totalLearnerCount : Model.Courses.Count)</strong></span>
+    <div class="mb-4 grid flex-none gap-3 sm:grid-cols-3" aria-label="Course overview">
+        <article class="flex items-center gap-3 rounded-lg border border-[#dfe5ec] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(2,7,47,0.04)]">
+            <span class="grid size-9 flex-none place-items-center rounded-md bg-[#eaf3fa] text-[#005190]" aria-hidden="true"><i class="fa-solid fa-graduation-cap"></i></span>
+            <span><span class="block text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[#64748b]">@(Model.CanManageCourses ? "Enrolled learners" : "Your courses")</span><strong class="block text-xl font-semibold leading-tight text-[#071f3d]">@(Model.CanManageCourses ? totalLearnerCount : Model.Courses.Count)</strong></span>
         </article>
-        <article class="tw:flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-[#dfe5ec] tw:bg-white tw:px-4 tw:py-3 tw:shadow-[0_1px_2px_rgba(2,7,47,0.04)]">
-            <span class="tw:grid tw:size-9 tw:flex-none tw:place-items-center tw:rounded-md tw:bg-[#eef6f4] tw:text-[#287a55]" aria-hidden="true"><i class="fa-solid fa-file-circle-check"></i></span>
-            <span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">Course sections</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@totalSectionCount</strong></span>
+        <article class="flex items-center gap-3 rounded-lg border border-[#dfe5ec] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(2,7,47,0.04)]">
+            <span class="grid size-9 flex-none place-items-center rounded-md bg-[#eef6f4] text-[#287a55]" aria-hidden="true"><i class="fa-solid fa-file-circle-check"></i></span>
+            <span><span class="block text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[#64748b]">Course sections</span><strong class="block text-xl font-semibold leading-tight text-[#071f3d]">@totalSectionCount</strong></span>
         </article>
-        <article class="tw:flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-[#dfe5ec] tw:bg-white tw:px-4 tw:py-3 tw:shadow-[0_1px_2px_rgba(2,7,47,0.04)]">
-            <span class="tw:grid tw:size-9 tw:flex-none tw:place-items-center tw:rounded-md tw:bg-[#f7eff1] tw:text-[#B23A48]" aria-hidden="true"><i class="fa-solid fa-book-open"></i></span>
-            <span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">Course activities</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@totalContentCount</strong></span>
+        <article class="flex items-center gap-3 rounded-lg border border-[#dfe5ec] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(2,7,47,0.04)]">
+            <span class="grid size-9 flex-none place-items-center rounded-md bg-[#f7eff1] text-[#B23A48]" aria-hidden="true"><i class="fa-solid fa-book-open"></i></span>
+            <span><span class="block text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[#64748b]">Course activities</span><strong class="block text-xl font-semibold leading-tight text-[#071f3d]">@totalContentCount</strong></span>
         </article>
     </div>
 
-    <div class="tw:mb-2 tw:flex tw:flex-none tw:items-end tw:justify-between tw:gap-4">
-        <div><p class="tw:m-0 tw:text-sm tw:font-semibold tw:text-[#071f3d]">Course library</p><p class="tw:m-0 tw:text-xs tw:text-[#64748b]">Open a course or manage its content and access.</p></div>
-        <span class="tw:text-xs tw:font-medium tw:text-[#64748b]">@Model.Courses.Count total</span>
+    <div class="mb-2 flex flex-none items-end justify-between gap-4">
+        <div><p class="m-0 text-sm font-semibold text-[#071f3d]">Course library</p><p class="m-0 text-xs text-[#64748b]">Open a course or manage its content and access.</p></div>
+        <span class="text-xs font-medium text-[#64748b]">@Model.Courses.Count total</span>
     </div>
 
     <div class="portal-table-card">
@@ -102,12 +102,12 @@
                                 <td><span class="portal-table-meta">@course.SectionCount sections · @course.ContentCount activities</span></td>
                                 <td><span class="portal-table-meta">@course.LearnerCount</span></td>
                                 <td class="portal-table-cell-end">
-                                    <div class="tw:flex tw:justify-end tw:gap-2">
-                                        <a class="portal-btn portal-btn-outline portal-btn-sm portal-btn-icon" asp-page="/Portal/Courses/Course" asp-route-courseId="@course.Id" title="Open course"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i><span class="tw:sr-only">Open course</span></a>
+                                    <div class="flex justify-end gap-2">
+                                        <a class="portal-btn portal-btn-outline portal-btn-sm portal-btn-icon" asp-page="/Portal/Courses/Course" asp-route-courseId="@course.Id" title="Open course"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i><span class="sr-only">Open course</span></a>
                                         @if (Model.CanManageCourses)
                                         {
-                                            <a class="portal-btn portal-btn-outline portal-btn-sm portal-btn-icon" asp-page="/Portal/Courses/Course" asp-route-courseId="@course.Id" asp-route-edit="true" title="Edit course"><i class="fa-solid fa-pencil" aria-hidden="true"></i><span class="tw:sr-only">Edit course</span></a>
-                                            <a class="portal-btn portal-btn-outline portal-btn-sm portal-btn-icon" asp-page="/Portal/Courses/Manage" asp-route-courseId="@course.Id" title="Manage access"><i class="fa-solid fa-users-gear" aria-hidden="true"></i><span class="tw:sr-only">Manage access</span></a>
+                                            <a class="portal-btn portal-btn-outline portal-btn-sm portal-btn-icon" asp-page="/Portal/Courses/Course" asp-route-courseId="@course.Id" asp-route-edit="true" title="Edit course"><i class="fa-solid fa-pencil" aria-hidden="true"></i><span class="sr-only">Edit course</span></a>
+                                            <a class="portal-btn portal-btn-outline portal-btn-sm portal-btn-icon" asp-page="/Portal/Courses/Manage" asp-route-courseId="@course.Id" title="Manage access"><i class="fa-solid fa-users-gear" aria-hidden="true"></i><span class="sr-only">Manage access</span></a>
                                         }
                                     </div>
                                 </td>

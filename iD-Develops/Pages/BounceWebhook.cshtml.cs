@@ -48,7 +48,7 @@ namespace iD_Develops.Pages
 
             var email = emailToken.ToString();
             var bounceType = bounceTypeToken.ToString();
-            _logger.LogInformation("Received bounce webhook of type {BounceType} for {Email}", bounceType, email);
+            _logger.LogInformation("Received bounce webhook of type {BounceType}.", bounceType);
             var isHardBounce = bounceType == "HardBounce";
 
             var prospect = await _prospectService.UpdateProspectHardBounceAsync(email, isHardBounce);

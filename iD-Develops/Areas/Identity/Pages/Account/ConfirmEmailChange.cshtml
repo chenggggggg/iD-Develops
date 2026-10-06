@@ -5,13 +5,13 @@
     ViewData["Title"] = "Confirm email change";
 }
 
-<div class="tw:w-full tw:text-center">
-    <h1 class="tw:m-0 tw:mb-6 tw:font-['Playfair_Display',Georgia,serif] tw:text-[clamp(2rem,5vw,3rem)] tw:font-medium tw:leading-[1.08] tw:tracking-[-0.015em] tw:text-[#071F3D]">@ViewData["Title"]</h1>
+<div class="w-full text-center">
+    <h1 class="m-0 mb-6 font-['Playfair_Display',Georgia,serif] text-[clamp(2rem,5vw,3rem)] font-medium leading-[1.08] tracking-[-0.015em] text-[#071F3D]">@ViewData["Title"]</h1>
     @if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
     {
-        <p class="tw:mb-4 tw:rounded-md tw:border tw:border-[#B23A48]/20 tw:bg-[#B23A48]/[0.07] tw:px-4 tw:py-3 tw:text-base tw:leading-relaxed tw:text-[#1A1A1A]">@Model.StatusMessage</p>
+        <p class="mb-4 rounded-md border border-[#B23A48]/20 bg-[#B23A48]/[0.07] px-4 py-3 text-base leading-relaxed text-[#1A1A1A]">@Model.StatusMessage</p>
     }
-    <p class="tw:mb-0 tw:text-base tw:leading-relaxed tw:text-[#6B6B6B]">
+    <p class="mb-0 text-base leading-relaxed text-[#6B6B6B]">
         You can return to your account after the email change has been processed.
     </p>
 </div>

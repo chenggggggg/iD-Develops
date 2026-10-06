@@ -32,15 +32,15 @@
 
     @if (TempData["ExamActionSuccess"] is string actionSuccess)
     {
-        <div class="tw:mb-4 tw:rounded-xl tw:border tw:border-emerald-200 tw:bg-emerald-50 tw:p-4 tw:text-sm tw:text-emerald-900" role="status">
-            <i class="fa-solid fa-circle-check tw:mr-2" aria-hidden="true"></i>@actionSuccess
+        <div class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900" role="status">
+            <i class="fa-solid fa-circle-check mr-2" aria-hidden="true"></i>@actionSuccess
         </div>
     }
 
     @if (TempData["ExamActionError"] is string actionError)
     {
-        <div class="tw:mb-4 tw:rounded-xl tw:border tw:border-red-200 tw:bg-red-50 tw:p-4 tw:text-sm tw:text-red-900" role="alert">
-            <i class="fa-solid fa-circle-exclamation tw:mr-2" aria-hidden="true"></i>@actionError
+        <div class="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-900" role="alert">
+            <i class="fa-solid fa-circle-exclamation mr-2" aria-hidden="true"></i>@actionError
         </div>
     }
 
@@ -74,24 +74,24 @@
         </div>
     }
 
-    <div class="tw:mb-4 tw:grid tw:flex-none tw:gap-3 tw:sm:grid-cols-3" aria-label="Exam overview">
-        <article class="tw:flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-[#dfe5ec] tw:bg-white tw:px-4 tw:py-3 tw:shadow-[0_1px_2px_rgba(2,7,47,0.04)]">
-            <span class="tw:grid tw:size-9 tw:flex-none tw:place-items-center tw:rounded-md tw:bg-[#eaf3fa] tw:text-[#005190]" aria-hidden="true"><i class="fa-solid fa-file-lines"></i></span>
-            <span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">@(canManageExams ? "Total exams" : "Assigned exams")</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@Model.Exams.Count</strong></span>
+    <div class="mb-4 grid flex-none gap-3 sm:grid-cols-3" aria-label="Exam overview">
+        <article class="flex items-center gap-3 rounded-lg border border-[#dfe5ec] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(2,7,47,0.04)]">
+            <span class="grid size-9 flex-none place-items-center rounded-md bg-[#eaf3fa] text-[#005190]" aria-hidden="true"><i class="fa-solid fa-file-lines"></i></span>
+            <span><span class="block text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[#64748b]">@(canManageExams ? "Total exams" : "Assigned exams")</span><strong class="block text-xl font-semibold leading-tight text-[#071f3d]">@Model.Exams.Count</strong></span>
         </article>
-        <article class="tw:flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-[#dfe5ec] tw:bg-white tw:px-4 tw:py-3 tw:shadow-[0_1px_2px_rgba(2,7,47,0.04)]">
-            <span class="tw:grid tw:size-9 tw:flex-none tw:place-items-center tw:rounded-md tw:bg-[#eef6f4] tw:text-[#287a55]" aria-hidden="true"><i class="fa-solid @(canManageExams ? "fa-circle-check" : "fa-clock")"></i></span>
-            <span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">@(canManageExams ? "Published" : "Timed exams")</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@(canManageExams ? publishedExamCount : timedExamCount)</strong></span>
+        <article class="flex items-center gap-3 rounded-lg border border-[#dfe5ec] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(2,7,47,0.04)]">
+            <span class="grid size-9 flex-none place-items-center rounded-md bg-[#eef6f4] text-[#287a55]" aria-hidden="true"><i class="fa-solid @(canManageExams ? "fa-circle-check" : "fa-clock")"></i></span>
+            <span><span class="block text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[#64748b]">@(canManageExams ? "Published" : "Timed exams")</span><strong class="block text-xl font-semibold leading-tight text-[#071f3d]">@(canManageExams ? publishedExamCount : timedExamCount)</strong></span>
         </article>
-        <article class="tw:flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-[#dfe5ec] tw:bg-white tw:px-4 tw:py-3 tw:shadow-[0_1px_2px_rgba(2,7,47,0.04)]">
-            <span class="tw:grid tw:size-9 tw:flex-none tw:place-items-center tw:rounded-md tw:bg-[#f7eff1] tw:text-[#B23A48]" aria-hidden="true"><i class="fa-solid @(canManageExams ? "fa-pen-ruler" : "fa-layer-group")"></i></span>
-            <span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">@(canManageExams ? "Drafts" : "Levels")</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@(canManageExams ? draftExamCount : difficultyCount)</strong></span>
+        <article class="flex items-center gap-3 rounded-lg border border-[#dfe5ec] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(2,7,47,0.04)]">
+            <span class="grid size-9 flex-none place-items-center rounded-md bg-[#f7eff1] text-[#B23A48]" aria-hidden="true"><i class="fa-solid @(canManageExams ? "fa-pen-ruler" : "fa-layer-group")"></i></span>
+            <span><span class="block text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[#64748b]">@(canManageExams ? "Drafts" : "Levels")</span><strong class="block text-xl font-semibold leading-tight text-[#071f3d]">@(canManageExams ? draftExamCount : difficultyCount)</strong></span>
         </article>
     </div>
 
-    <div class="tw:mb-2 tw:flex tw:flex-none tw:items-end tw:justify-between tw:gap-4">
-        <div><p class="tw:m-0 tw:text-sm tw:font-semibold tw:text-[#071f3d]">@(canManageExams ? "Exam library" : "Your exams")</p><p class="tw:m-0 tw:text-xs tw:text-[#64748b]">@(canManageExams ? "Start, edit, export, or archive an examination." : "Choose an exam when you are ready to begin.")</p></div>
-        <span class="tw:text-xs tw:font-medium tw:text-[#64748b]">@Model.Exams.Count total</span>
+    <div class="mb-2 flex flex-none items-end justify-between gap-4">
+        <div><p class="m-0 text-sm font-semibold text-[#071f3d]">@(canManageExams ? "Exam library" : "Your exams")</p><p class="m-0 text-xs text-[#64748b]">@(canManageExams ? "Start, edit, export, or archive an examination." : "Choose an exam when you are ready to begin.")</p></div>
+        <span class="text-xs font-medium text-[#64748b]">@Model.Exams.Count total</span>
     </div>
 
     <div class="portal-table-card portal-exams-table-card">
@@ -119,15 +119,15 @@
                             {
                                 @if (availability.CanTake)
                                 {
-                                    <small class="tw:mt-1 tw:block tw:font-medium tw:text-emerald-700">Available now</small>
+                                    <small class="mt-1 block font-medium text-emerald-700">Available now</small>
                                 }
                                 else if (availability.UnlockAtUtc.HasValue)
                                 {
-                                    <small class="tw:mt-1 tw:block tw:font-medium tw:text-amber-700">Unlocks @availability.UnlockAtUtc.Value.ToString("dd MMM yyyy HH:mm") UTC</small>
+                                    <small class="mt-1 block font-medium text-amber-700">Unlocks @availability.UnlockAtUtc.Value.ToString("dd MMM yyyy HH:mm") UTC</small>
                                 }
                                 else
                                 {
-                                    <small class="tw:mt-1 tw:block tw:font-medium tw:text-slate-500">@availability.BlockReason</small>
+                                    <small class="mt-1 block font-medium text-slate-500">@availability.BlockReason</small>
                                 }
                             }
                         </td>
@@ -158,7 +158,7 @@
                                 var examCanLaunch = canManageExams || rowAvailability == null || rowAvailability.CanTake;
                                 var actionsPopoverId = $"exam-actions-{exam.Id}";
                             }
-                            <div class="tw:flex tw:items-center tw:justify-end tw:gap-2">
+                            <div class="flex items-center justify-end gap-2">
                                 <button type="button"
                                         class="portal-btn portal-btn-primary portal-btn-sm portal-exam-start-btn"
                                         data-portal-dialog-open="examLaunchDialog"
@@ -167,7 +167,7 @@
                                         disabled="@(!examCanLaunch)"
                                         title="@(examCanLaunch ? "Start exam" : rowAvailability?.BlockReason ?? "Exam is locked")">
                                     <i class="fa-solid @(examCanLaunch ? "fa-play" : "fa-lock")" aria-hidden="true"></i>
-                                    <span class="@(canManageExams ? "tw:sr-only" : null)">@(examCanLaunch ? "Start" : "Locked")</span>
+                                    <span class="@(canManageExams ? "sr-only" : null)">@(examCanLaunch ? "Start" : "Locked")</span>
                                 </button>
                                 @if (User.IsInRole("Teacher") || (User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
                                 {
@@ -195,17 +195,17 @@
                                         <i class="fa-solid fa-ellipsis" aria-hidden="true"></i>
                                     </button>
                                     <div id="@actionsPopoverId"
-                                         class="portal-exam-actions-popover tw:w-44 tw:gap-1 tw:rounded-lg tw:border tw:border-slate-200 tw:bg-white tw:p-1.5 tw:text-left tw:shadow-xl"
+                                         class="portal-exam-actions-popover w-44 gap-1 rounded-lg border border-slate-200 bg-white p-1.5 text-left shadow-xl"
                                          popover="auto"
                                          data-exam-actions-popover>
-                                        <a class="tw:flex tw:items-center tw:gap-2 tw:rounded-md tw:px-3 tw:py-2 tw:text-sm tw:font-semibold tw:text-slate-700 tw:no-underline tw:hover:bg-slate-50" asp-page="/Portal/Exams/Transfer" asp-page-handler="Export" asp-route-examId="@exam.Id"><i class="fa-solid fa-file-export tw:w-4" aria-hidden="true"></i>Export</a>
+                                        <a class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold text-slate-700 no-underline hover:bg-slate-50" asp-page="/Portal/Exams/Transfer" asp-page-handler="Export" asp-route-examId="@exam.Id"><i class="fa-solid fa-file-export w-4" aria-hidden="true"></i>Export</a>
                                         @if (exam.PublishStatus != iD_Develops.Models.ExamPublishStatus.Archived)
                                         {
-                                            <form method="post" asp-page-handler="ArchiveExam" asp-route-examId="@exam.Id" class="tw:m-0" onsubmit="return confirm('Archive this exam? Existing attempts and results will remain available.');">
-                                                <button type="submit" class="tw:flex tw:w-full tw:items-center tw:gap-2 tw:rounded-md tw:border-0 tw:bg-transparent tw:px-3 tw:py-2 tw:text-left tw:text-sm tw:font-semibold tw:text-slate-700 tw:hover:bg-slate-50"><i class="fa-solid fa-box-archive tw:w-4" aria-hidden="true"></i>Archive</button>
+                                            <form method="post" asp-page-handler="ArchiveExam" asp-route-examId="@exam.Id" class="m-0" onsubmit="return confirm('Archive this exam? Existing attempts and results will remain available.');">
+                                                <button type="submit" class="flex w-full items-center gap-2 rounded-md border-0 bg-transparent px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50"><i class="fa-solid fa-box-archive w-4" aria-hidden="true"></i>Archive</button>
                                             </form>
                                         }
-                                        <button type="button" class="tw:flex tw:w-full tw:items-center tw:gap-2 tw:rounded-md tw:border-0 tw:bg-transparent tw:px-3 tw:py-2 tw:text-left tw:text-sm tw:font-semibold tw:text-red-700 tw:hover:bg-red-50" data-delete-url="@Url.Page("/Portal/Exams/List", "DeleteExam", new { examId = exam.Id })" data-exam-id="@exam.Id" data-delete-exam><i class="fa-solid fa-trash tw:w-4" aria-hidden="true"></i>Delete</button>
+                                        <button type="button" class="flex w-full items-center gap-2 rounded-md border-0 bg-transparent px-3 py-2 text-left text-sm font-semibold text-red-700 hover:bg-red-50" data-delete-url="@Url.Page("/Portal/Exams/List", "DeleteExam", new { examId = exam.Id })" data-exam-id="@exam.Id" data-delete-exam><i class="fa-solid fa-trash w-4" aria-hidden="true"></i>Delete</button>
                                     </div>
                                 }
                             </div>

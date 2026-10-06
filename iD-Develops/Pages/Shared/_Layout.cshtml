@@ -50,8 +50,8 @@
 </head>
 <body class="public-site @ViewData["BodyClass"]">
 
-    <main class="@(isHomePage ? "tw:!mt-0 tw:!pt-0" : string.Empty)" role="main">
-        <header class="public-header @(isHomePage ? "tw:!fixed" : string.Empty) tw:opacity-0 tw:-translate-y-full tw:transition-[opacity,translate] tw:duration-1000 tw:ease-out" data-reveal="load">
+    <main class="@(isHomePage ? "!mt-0 !pt-0" : string.Empty)" role="main">
+        <header class="public-header @(isHomePage ? "!fixed" : string.Empty) opacity-0 -translate-y-full transition-[opacity,translate] duration-1000 ease-out" data-reveal="load">
             <div class="public-container">
                 <nav class="public-nav" aria-label="@localizer["Nav_Menu"]">
                     <a class="public-nav-brand" asp-page="/index">
@@ -60,15 +60,15 @@
                     <button class="public-menu-toggle" type="button" data-public-menu-toggle aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
                         <span class="public-menu-toggle-bars" aria-hidden="true"></span>
                     </button>
-                    <div class="tw:hidden tw:lg:contents" id="navbarSupportedContent">
+                    <div class="hidden lg:contents" id="navbarSupportedContent">
                         <ul class="public-nav-list">
                             <li class="public-nav-item">
-                                <div class="tw:group tw:relative tw:flex tw:h-16 tw:items-center" data-services-menu data-open="false">
-                                    <button class="public-nav-link tw:border-0 tw:bg-transparent tw:p-0" type="button" aria-expanded="false" aria-controls="services-menu" data-services-toggle>@(currentCulture == "nl-NL" ? "Diensten" : "Services") <i class="fa-solid fa-chevron-down tw:transition-transform tw:duration-200 tw:group-hover:rotate-180 tw:group-focus-within:rotate-180 tw:group-data-[open=true]:rotate-180" aria-hidden="true"></i></button>
-                                    <ul class="tw:pointer-events-none tw:absolute tw:-left-4 tw:top-full tw:z-50 tw:m-0 tw:grid tw:min-w-64 tw:origin-top tw:scale-y-95 tw:list-none tw:border tw:border-[var(--serif-border)] tw:bg-[#FAFAF8]/[0.98] tw:px-4 tw:py-[0.65rem] tw:opacity-0 tw:transition-[opacity,transform] tw:duration-[180ms] tw:ease-out tw:group-hover:pointer-events-auto tw:group-hover:scale-y-100 tw:group-hover:opacity-100 tw:group-focus-within:pointer-events-auto tw:group-focus-within:scale-y-100 tw:group-focus-within:opacity-100 tw:group-data-[open=true]:pointer-events-auto tw:group-data-[open=true]:scale-y-100 tw:group-data-[open=true]:opacity-100" id="services-menu" data-services-panel>
-                                        <li><a class="tw:block tw:px-0 tw:py-[0.55rem] tw:text-left tw:text-xs tw:font-light tw:uppercase tw:tracking-[0.1em] tw:text-[#6B6B6B] tw:no-underline tw:transition-colors tw:hover:text-[#1A1A1A] tw:hover:no-underline tw:focus:text-[#1A1A1A] tw:focus:no-underline tw:[font-family:var(--serif-label)]" asp-page="/nt2-integration">@(currentCulture == "nl-NL" ? "NT2 & Integratie" : "NT2 & Integration")</a></li>
-                                        <li><a class="tw:block tw:px-0 tw:py-[0.55rem] tw:text-left tw:text-xs tw:font-light tw:uppercase tw:tracking-[0.1em] tw:text-[#6B6B6B] tw:no-underline tw:transition-colors tw:hover:text-[#1A1A1A] tw:hover:no-underline tw:focus:text-[#1A1A1A] tw:focus:no-underline tw:[font-family:var(--serif-label)]" asp-page="/personal-development">@(currentCulture == "nl-NL" ? "Persoonlijke Ontwikkeling" : "Personal Development")</a></li>
-                                        <li><a class="tw:block tw:px-0 tw:py-[0.55rem] tw:text-left tw:text-xs tw:font-light tw:uppercase tw:tracking-[0.1em] tw:text-[#6B6B6B] tw:no-underline tw:transition-colors tw:hover:text-[#1A1A1A] tw:hover:no-underline tw:focus:text-[#1A1A1A] tw:focus:no-underline tw:[font-family:var(--serif-label)]" asp-page="/Language-And-Communication/Index">@(currentCulture == "nl-NL" ? "Taal & Communicatie" : "Language & Communication")</a></li>
+                                <div class="group relative flex h-16 items-center" data-services-menu data-open="false">
+                                    <button class="public-nav-link border-0 bg-transparent p-0" type="button" aria-expanded="false" aria-controls="services-menu" data-services-toggle>@(currentCulture == "nl-NL" ? "Diensten" : "Services") <i class="fa-solid fa-chevron-down transition-transform duration-200 group-hover:rotate-180 group-focus-within:rotate-180 group-data-[open=true]:rotate-180" aria-hidden="true"></i></button>
+                                    <ul class="pointer-events-none absolute -left-4 top-full z-50 m-0 grid min-w-64 origin-top scale-y-95 list-none border border-[var(--serif-border)] bg-[#FAFAF8]/[0.98] px-4 py-[0.65rem] opacity-0 transition-[opacity,transform] duration-[180ms] ease-out group-hover:pointer-events-auto group-hover:scale-y-100 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:scale-y-100 group-focus-within:opacity-100 group-data-[open=true]:pointer-events-auto group-data-[open=true]:scale-y-100 group-data-[open=true]:opacity-100" id="services-menu" data-services-panel>
+                                        <li><a class="block px-0 py-[0.55rem] text-left text-xs font-light uppercase tracking-[0.1em] text-[#6B6B6B] no-underline transition-colors hover:text-[#1A1A1A] hover:no-underline focus:text-[#1A1A1A] focus:no-underline [font-family:var(--serif-label)]" asp-page="/nt2-integration">@(currentCulture == "nl-NL" ? "NT2 & Integratie" : "NT2 & Integration")</a></li>
+                                        <li><a class="block px-0 py-[0.55rem] text-left text-xs font-light uppercase tracking-[0.1em] text-[#6B6B6B] no-underline transition-colors hover:text-[#1A1A1A] hover:no-underline focus:text-[#1A1A1A] focus:no-underline [font-family:var(--serif-label)]" asp-page="/personal-development">@(currentCulture == "nl-NL" ? "Persoonlijke Ontwikkeling" : "Personal Development")</a></li>
+                                        <li><a class="block px-0 py-[0.55rem] text-left text-xs font-light uppercase tracking-[0.1em] text-[#6B6B6B] no-underline transition-colors hover:text-[#1A1A1A] hover:no-underline focus:text-[#1A1A1A] focus:no-underline [font-family:var(--serif-label)]" asp-page="/Language-And-Communication/Index">@(currentCulture == "nl-NL" ? "Taal & Communicatie" : "Language & Communication")</a></li>
                                     </ul>
                                 </div>
                             </li>
@@ -96,7 +96,7 @@
                     <div class="public-menu-backdrop" data-public-menu-backdrop hidden></div>
                     <div class="public-mobile-menu" tabindex="-1" id="sidebarMenu" aria-labelledby="sidebarMenuLabel" data-public-menu hidden>
                         <div class="public-mobile-menu-header">
-                            <h2 class="tw:m-0 tw:text-xl tw:font-semibold tw:text-[#071f3d]" id="sidebarMenuLabel">@localizer["Nav_Menu"]</h2>
+                            <h2 class="m-0 text-xl font-semibold text-[#071f3d]" id="sidebarMenuLabel">@localizer["Nav_Menu"]</h2>
                             <button type="button" class="public-menu-close" data-public-menu-close aria-label="Close">&times;</button>
                         </div>
                         <ul class="public-mobile-menu-list">
@@ -201,8 +201,8 @@
                                     </span>
                                     @if (currentCulture == "en-US")
                                     {
-                                        <span class="tw:inline-flex tw:size-5 tw:items-center tw:justify-center tw:rounded-full tw:bg-[#071F3D] tw:text-white" aria-hidden="true">
-                                            <svg class="tw:size-3" viewBox="0 0 20 20" fill="none">
+                                        <span class="inline-flex size-5 items-center justify-center rounded-full bg-[#071F3D] text-white" aria-hidden="true">
+                                            <svg class="size-3" viewBox="0 0 20 20" fill="none">
                                                 <path d="M4.5 10.25 8 13.5l7.5-7.25" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" />
                                             </svg>
                                         </span>
@@ -218,8 +218,8 @@
                                     </span>
                                     @if (currentCulture == "nl-NL")
                                     {
-                                        <span class="tw:inline-flex tw:size-5 tw:items-center tw:justify-center tw:rounded-full tw:bg-[#071F3D] tw:text-white" aria-hidden="true">
-                                            <svg class="tw:size-3" viewBox="0 0 20 20" fill="none">
+                                        <span class="inline-flex size-5 items-center justify-center rounded-full bg-[#071F3D] text-white" aria-hidden="true">
+                                            <svg class="size-3" viewBox="0 0 20 20" fill="none">
                                                 <path d="M4.5 10.25 8 13.5l7.5-7.25" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" />
                                             </svg>
                                         </span>

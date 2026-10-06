@@ -80,9 +80,9 @@
                     data-published="@(Model.IsPublished ? "true" : "false")"
                     onclick="toggleExamPublishState()"
                     aria-label="@(Model.IsPublished ? "Unpublish exam" : "Publish exam")">
-                <i class="fa-regular fa-share-from-square tw:inline-flex tw:size-4 tw:flex-none tw:items-center tw:justify-center @(Model.IsPublished ? "exam-hidden" : "")" data-publish-icon></i>
-                <i class="fa-solid fa-eye-slash tw:inline-flex tw:size-4 tw:flex-none tw:items-center tw:justify-center @(!Model.IsPublished ? "exam-hidden" : "")" data-unpublish-icon></i>
-                <span class="exam-spinner tw:inline-flex tw:size-4 tw:flex-none tw:items-center tw:justify-center exam-hidden"
+                <i class="fa-regular fa-share-from-square inline-flex size-4 flex-none items-center justify-center @(Model.IsPublished ? "exam-hidden" : "")" data-publish-icon></i>
+                <i class="fa-solid fa-eye-slash inline-flex size-4 flex-none items-center justify-center @(!Model.IsPublished ? "exam-hidden" : "")" data-unpublish-icon></i>
+                <span class="exam-spinner inline-flex size-4 flex-none items-center justify-center exam-hidden"
                       role="status"
                       aria-hidden="true"
                       data-publish-spinner></span>
@@ -111,7 +111,7 @@
                 {
                     <form method="post"
                           asp-page-handler="Continue"
-                          class="tw:m-0 exam-pagination-form">
+                          class="m-0 exam-pagination-form">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="examId" value="@Model.ExamId" />
 
@@ -129,7 +129,7 @@
                     @* Normal Start (no in-progress exists) *@
                     <form method="post"
                           asp-page-handler="CreateRecord"
-                          class="tw:m-0 exam-pagination-form">
+                          class="m-0 exam-pagination-form">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="examId" value="@Model.ExamId" />
 
@@ -145,7 +145,7 @@
                     @* In-progress exists: allow restart if attempts left (or unlimited). *@
                     <form method="post"
                           asp-page-handler="Restart"
-                          class="tw:m-0 exam-pagination-form">
+                          class="m-0 exam-pagination-form">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="examId" value="@Model.ExamId" />
 
@@ -175,7 +175,7 @@
 
                     @if (!hasAttemptsLeft && !hasInProgress && !isUnlimited)
                     {
-                        <span class="tw:ml-2">(No attempts remaining)</span>
+                        <span class="ml-2">(No attempts remaining)</span>
                     }
                 </div>
 

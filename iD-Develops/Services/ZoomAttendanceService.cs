@@ -87,7 +87,7 @@ namespace iD_Develops.Services
                     .FirstOrDefaultAsync(item => item.ZoomMeetingId == meetingId, cancellationToken);
                 if (scheduleEvent == null)
                 {
-                    _logger.LogInformation("Ignoring Zoom webhook for unknown meeting {MeetingId}.", meetingId);
+                    _logger.LogDebug("Ignoring Zoom webhook for unknown meeting {MeetingId}.", meetingId);
                     return new(true, StatusCodes.Status204NoContent, null, null, null);
                 }
 
@@ -108,7 +108,7 @@ namespace iD_Develops.Services
                 var registrantId = ReadString(participant, "registrant_id");
                 if (string.IsNullOrWhiteSpace(registrantId))
                 {
-                    _logger.LogInformation(
+                    _logger.LogDebug(
                         "Ignoring Zoom attendance without a registrant ID for meeting {MeetingId}.",
                         meetingId);
                     return new(true, StatusCodes.Status204NoContent, null, null, null);
@@ -121,7 +121,7 @@ namespace iD_Develops.Services
                         cancellationToken);
                 if (booking == null)
                 {
-                    _logger.LogInformation(
+                    _logger.LogDebug(
                         "Ignoring Zoom registrant {RegistrantId} without a portal booking for event {EventId}.",
                         registrantId,
                         scheduleEvent.Id);
