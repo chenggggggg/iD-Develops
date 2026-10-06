@@ -37,7 +37,7 @@
 
     @if (TempData["ErrorMessage"] is string errorMessage)
     {
-        <div class="tw:mb-4 tw:rounded-xl tw:border tw:border-red-200 tw:bg-red-50 tw:p-4 tw:text-sm tw:text-red-900" role="alert">@errorMessage</div>
+        <div class="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-900" role="alert">@errorMessage</div>
     }
 
     @if (!ViewData.ModelState.IsValid)
@@ -50,10 +50,10 @@
         </div>
     }
 
-    <div class="tw:mb-4 tw:grid tw:flex-none tw:gap-3 tw:sm:grid-cols-3" aria-label="Course access overview">
-        <article class="tw:flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-[#dfe5ec] tw:bg-white tw:px-4 tw:py-3 tw:shadow-[0_1px_2px_rgba(2,7,47,0.04)]"><span class="tw:grid tw:size-9 tw:flex-none tw:place-items-center tw:rounded-md tw:bg-[#eaf3fa] tw:text-[#005190]" aria-hidden="true"><i class="fa-solid fa-users"></i></span><span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">Assigned users</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@Model.CourseAccess.Users.Count</strong></span></article>
-        <article class="tw:flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-[#dfe5ec] tw:bg-white tw:px-4 tw:py-3 tw:shadow-[0_1px_2px_rgba(2,7,47,0.04)]"><span class="tw:grid tw:size-9 tw:flex-none tw:place-items-center tw:rounded-md tw:bg-[#eef6f4] tw:text-[#287a55]" aria-hidden="true"><i class="fa-solid fa-user-plus"></i></span><span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">Available to assign</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@Model.CourseAccess.AssignableUsers.Count</strong></span></article>
-        <article class="tw:flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-[#dfe5ec] tw:bg-white tw:px-4 tw:py-3 tw:shadow-[0_1px_2px_rgba(2,7,47,0.04)]"><span class="tw:grid tw:size-9 tw:flex-none tw:place-items-center tw:rounded-md tw:bg-[#f7eff1] tw:text-[#B23A48]" aria-hidden="true"><i class="fa-solid fa-user-shield"></i></span><span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">Roles represented</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@assignedRoleCount</strong></span></article>
+    <div class="mb-4 grid flex-none gap-3 sm:grid-cols-3" aria-label="Course access overview">
+        <article class="flex items-center gap-3 rounded-lg border border-[#dfe5ec] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(2,7,47,0.04)]"><span class="grid size-9 flex-none place-items-center rounded-md bg-[#eaf3fa] text-[#005190]" aria-hidden="true"><i class="fa-solid fa-users"></i></span><span><span class="block text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[#64748b]">Assigned users</span><strong class="block text-xl font-semibold leading-tight text-[#071f3d]">@Model.CourseAccess.Users.Count</strong></span></article>
+        <article class="flex items-center gap-3 rounded-lg border border-[#dfe5ec] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(2,7,47,0.04)]"><span class="grid size-9 flex-none place-items-center rounded-md bg-[#eef6f4] text-[#287a55]" aria-hidden="true"><i class="fa-solid fa-user-plus"></i></span><span><span class="block text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[#64748b]">Available to assign</span><strong class="block text-xl font-semibold leading-tight text-[#071f3d]">@Model.CourseAccess.AssignableUsers.Count</strong></span></article>
+        <article class="flex items-center gap-3 rounded-lg border border-[#dfe5ec] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(2,7,47,0.04)]"><span class="grid size-9 flex-none place-items-center rounded-md bg-[#f7eff1] text-[#B23A48]" aria-hidden="true"><i class="fa-solid fa-user-shield"></i></span><span><span class="block text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[#64748b]">Roles represented</span><strong class="block text-xl font-semibold leading-tight text-[#071f3d]">@assignedRoleCount</strong></span></article>
     </div>
 
     <div class="course-access-toolbar">
@@ -62,7 +62,7 @@
             <input type="hidden" name="direction" value="@Model.Direction" />
             <label class="course-access-search-field">
                 <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-                <span class="tw:sr-only">Search course access</span>
+                <span class="sr-only">Search course access</span>
                 <input type="search"
                        name="search"
                        value="@Model.Search"
@@ -155,14 +155,14 @@
                                 <td class="portal-table-cell-end">
                                     @if (!user.IsOwner && !string.Equals(user.AssignedBy, "Purchase", StringComparison.OrdinalIgnoreCase))
                                     {
-                                        <form method="post" asp-page-handler="Remove" asp-route-courseId="@Model.CourseAccess.CourseId" asp-route-userId="@user.UserId" class="tw:m-0" onsubmit="return confirm('Unassign @user.Name from this course?');">
+                                        <form method="post" asp-page-handler="Remove" asp-route-courseId="@Model.CourseAccess.CourseId" asp-route-userId="@user.UserId" class="m-0" onsubmit="return confirm('Unassign @user.Name from this course?');">
                                             <input type="hidden" asp-for="Search" /><input type="hidden" asp-for="Sort" /><input type="hidden" asp-for="Direction" />
                                             <button class="portal-btn portal-btn-danger portal-btn-sm portal-btn-icon" type="submit" title="Unassign user" aria-label="Unassign @user.Name from this course"><i class="fa-solid fa-user-minus" aria-hidden="true"></i></button>
                                         </form>
                                     }
                                     else
                                     {
-                                        <span class="tw:text-xs tw:text-slate-400" title="@(user.IsOwner ? "The course creator cannot be unassigned." : "Purchased access cannot be removed with Unassign.")"><i class="fa-solid fa-lock" aria-hidden="true"></i><span class="tw:sr-only">Access cannot be unassigned</span></span>
+                                        <span class="text-xs text-slate-400" title="@(user.IsOwner ? "The course creator cannot be unassigned." : "Purchased access cannot be removed with Unassign.")"><i class="fa-solid fa-lock" aria-hidden="true"></i><span class="sr-only">Access cannot be unassigned</span></span>
                                     }
                                 </td>
                             </tr>
@@ -203,7 +203,7 @@
             <div class="portal-dialog-body">
                 <label class="course-access-search-field course-assignee-search">
                     <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-                    <span class="tw:sr-only">Search users to assign</span>
+                    <span class="sr-only">Search users to assign</span>
                     <input type="search" placeholder="Find a user" autocomplete="off" data-course-assignee-search />
                 </label>
 

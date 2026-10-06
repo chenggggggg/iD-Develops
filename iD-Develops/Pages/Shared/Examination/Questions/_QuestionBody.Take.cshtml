@@ -36,20 +36,20 @@
                 <div>
                     @if (!string.IsNullOrWhiteSpace(question.Scenario))
                     {
-                        <div class="tw:mb-4">
+                        <div class="mb-4">
                             @Html.Raw(question.Scenario)
                         </div>
                     }
 
                     @if (hasAudio)
                     {
-                        <div class="tw:mb-4">
-                            <audio src="@audioUrl" class="tw:w-full" controls preload="metadata"></audio>
+                        <div class="mb-4">
+                            <audio src="@audioUrl" class="w-full" controls preload="metadata"></audio>
                         </div>
                     }
 
-                    <div class="tw:mb-4 tw:flex tw:items-baseline tw:font-bold take-question-line">
-                        <span class="tw:mr-2 take-question-no">@question.QuestionNumber.</span>
+                    <div class="mb-4 flex items-baseline font-bold take-question-line">
+                        <span class="mr-2 take-question-no">@question.QuestionNumber.</span>
                         <div class="take-question-text">@Html.Raw(question.Text)</div>
 
                         @if (hasHelpText)
@@ -72,7 +72,7 @@
                 }
             </div>
 
-            <div class="tw:mt-6">
+            <div class="mt-6">
                 <div class="question-answer-narrow">
                     <div id="question-answers">
                         @if (question is MultipleChoiceQuestion multipleChoiceQuestion)

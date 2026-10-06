@@ -72,7 +72,7 @@ namespace iD_Develops.Services
                     await File.WriteAllBytesAsync(attachmentPath, attachment, ct);
                 }
 
-                _logger.LogInformation("Mock email written to {Path} for {RecipientEmail}", htmlPath, recipientEmail);
+                _logger.LogDebug("Mock email written to {Path}.", htmlPath);
 
                 return new OperationResult
                 {
@@ -82,7 +82,7 @@ namespace iD_Develops.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error writing mock email for {RecipientEmail}", recipientEmail);
+                _logger.LogError(ex, "Writing a mock email failed.");
                 return new OperationResult { Success = false, ErrorMessage = ex.Message };
             }
         }

@@ -32,7 +32,7 @@
 
     <div class="question-edit-grid question-narrow">
         <div>
-            <div class="tw:mb-4 exam-rich-field" data-exam-rich-field>
+            <div class="mb-4 exam-rich-field" data-exam-rich-field>
                 <div class="question-rich-header">
                     <div>
                         <label class="portal-info-label">Context / Scenario:</label>
@@ -50,7 +50,7 @@
                           rows="2"
                           data-exam-rich-textarea>@Model.Scenario</textarea>
             </div>
-            <div class="tw:mb-4 exam-rich-field" data-exam-rich-field>
+            <div class="mb-4 exam-rich-field" data-exam-rich-field>
                 <div class="question-rich-header">
                     <div>
                         <label class="portal-info-label">Question:</label>
@@ -71,13 +71,13 @@
         </div>
         <div>
 
-            <div class="tw:mb-4" data-image-ui>
+            <div class="mb-4" data-image-ui>
                 <!-- Clickable upload area -->
                 <div id="imageUploadBox"
                      class="question-upload-box question-upload-box-image @(hasImage ? "exam-hidden" : "")"
                      style="cursor: @(uploadsEnabled ? "pointer" : "not-allowed");">
 
-                    <i class="fa-solid fa-cloud-arrow-up fa-2x tw:mb-2" style="color: #D3D3D3"></i>
+                    <i class="fa-solid fa-cloud-arrow-up fa-2x mb-2" style="color: #D3D3D3"></i>
                     <label>@(uploadsEnabled ? "Upload image" : "Image uploads disabled")</label>
                 </div>
 
@@ -111,13 +111,13 @@
                        hidden />
             </div>
 
-            <div class="tw:mb-4" data-audio-ui>
+            <div class="mb-4" data-audio-ui>
                 <!-- Clickable audio upload area -->
                 <div id="audioUploadBox"
                      class="question-upload-box question-upload-box-audio @(hasAudio ? "exam-hidden" : "")"
                      style="cursor: @(uploadsEnabled ? "pointer" : "not-allowed");">
 
-                    <i class="fa-solid fa-file-audio fa-xl tw:mb-2" style="color: #D3D3D3"></i>
+                    <i class="fa-solid fa-file-audio fa-xl mb-2" style="color: #D3D3D3"></i>
                     <label>@(uploadsEnabled ? "Upload audio (mp3/m4a)" : "Audio uploads disabled")</label>
                 </div>
 
@@ -161,7 +161,7 @@
 
         <div class="question-narrow">
             <div>
-                <div class="tw:mt-4 exam-rich-field" data-exam-rich-field>
+                <div class="mt-4 exam-rich-field" data-exam-rich-field>
                     <div class="question-rich-header">
                         <div>
                             <label class="portal-info-label">Correct answer (Open):</label>
@@ -189,19 +189,19 @@
         // Stored as a single letter ("A"/"B"/"C"/"D") in CorrectAnswers[0].Text
         var correct = (Model?.CorrectAnswers?.FirstOrDefault()?.Text ?? "").Trim().ToUpperInvariant();
 
-        <div class="tw:mt-4 question-answer-narrow">
+        <div class="mt-4 question-answer-narrow">
             <div>
 
                 <label class="portal-info-label">Answers:</label>
 
-                <div class="exam-field-help tw:mb-3">
+                <div class="exam-field-help mb-3">
                     Mark the correct answer (optional). <br />
                     Empty answer fields will automatically show as "A", "B", "C", or "D" during the exam.
                 </div>
 
                 <div class="question-option-row">
                     <label class="question-option-check">
-                        <input class="tw:size-4"
+                        <input class="size-4"
                                type="radio"
                                name="multipleChoiceCorrect"
                                id="mcA"
@@ -219,7 +219,7 @@
 
                 <div class="question-option-row">
                     <label class="question-option-check">
-                        <input class="tw:size-4"
+                        <input class="size-4"
                                type="radio"
                                name="multipleChoiceCorrect"
                                id="mcB"
@@ -237,7 +237,7 @@
 
                 <div class="question-option-row">
                     <label class="question-option-check">
-                        <input class="tw:size-4"
+                        <input class="size-4"
                                type="radio"
                                name="multipleChoiceCorrect"
                                id="mcC"
@@ -255,7 +255,7 @@
 
                 <div class="question-option-row">
                     <label class="question-option-check">
-                        <input class="tw:size-4"
+                        <input class="size-4"
                                type="radio"
                                name="multipleChoiceCorrect"
                                id="mcD"
@@ -302,7 +302,7 @@
         <hr class="flex-grow-1">
     </div>
 
-    <div class="question-edit-grid question-narrow tw:mb-4">
+    <div class="question-edit-grid question-narrow mb-4">
         <div class="exam-rich-field" data-exam-rich-field>
             <div class="question-rich-header">
                 <div>
@@ -337,7 +337,7 @@
         </div>
     </div>
 
-    <div class="question-edit-grid question-narrow tw:mb-4">
+    <div class="question-edit-grid question-narrow mb-4">
 
         <div class="exam-rich-field" data-exam-rich-field>
             <div class="question-rich-header">
@@ -369,7 +369,7 @@
 
     <div class="question-delete-wrap">
         <button type="button"
-                class="public-btn public-btn-danger tw:w-full"
+                class="public-btn public-btn-danger w-full"
                 style="max-width: 420px;"
                 id="deleteQuestionBtn"
                 data-question-id="@(Model?.Id ?? 0)">

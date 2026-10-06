@@ -6,49 +6,49 @@
     ViewData["Title"] = "Register";
 }
 
-<form class="tw:w-full" id="account" method="post">
-    <h1 class="tw:m-0 tw:mb-6 tw:text-center tw:font-['Playfair_Display',Georgia,serif] tw:text-[clamp(2rem,5vw,3rem)] tw:font-medium tw:leading-[1.08] tw:tracking-[-0.015em] tw:text-[#071F3D]">Register your account</h1>
-    <div asp-validation-summary="ModelOnly" class="tw:mt-1.5 tw:block tw:text-sm tw:text-[#B23A48]"></div>
+<form class="w-full" id="account" method="post">
+    <h1 class="m-0 mb-6 text-center font-['Playfair_Display',Georgia,serif] text-[clamp(2rem,5vw,3rem)] font-medium leading-[1.08] tracking-[-0.015em] text-[#071F3D]">Register your account</h1>
+    <div asp-validation-summary="ModelOnly" class="mt-1.5 block text-sm text-[#B23A48]"></div>
 
-    <div class="tw:mb-4 tw:grid tw:gap-4 tw:md:grid-cols-2">
+    <div class="mb-4 grid gap-4 md:grid-cols-2">
         <div>
-            <label asp-for="Input.FirstName" class="tw:mb-2 tw:block tw:text-base tw:leading-relaxed tw:text-[#6B6B6B]">First name</label>
-            <input asp-for="Input.FirstName" class="tw:min-h-12 tw:w-full tw:rounded-md tw:border tw:border-[#D8D3CC] tw:bg-white tw:px-3.5 tw:py-3 tw:text-[#1A1A1A] tw:outline-none tw:transition tw:focus:border-[#B23A48] tw:focus:shadow-[0_0_0_3px_rgba(178,58,72,0.12)]" />
-            <span asp-validation-for="Input.FirstName" class="tw:mt-1.5 tw:block tw:text-sm tw:text-[#B23A48]"></span>
+            <label asp-for="Input.FirstName" class="mb-2 block text-base leading-relaxed text-[#6B6B6B]">First name</label>
+            <input asp-for="Input.FirstName" class="min-h-12 w-full rounded-md border border-[#D8D3CC] bg-white px-3.5 py-3 text-[#1A1A1A] outline-none transition focus:border-[#B23A48] focus:shadow-[0_0_0_3px_rgba(178,58,72,0.12)]" />
+            <span asp-validation-for="Input.FirstName" class="mt-1.5 block text-sm text-[#B23A48]"></span>
         </div>
 
         <div>
-            <label asp-for="Input.LastName" class="tw:mb-2 tw:block tw:text-base tw:leading-relaxed tw:text-[#6B6B6B]">Last name</label>
-            <input asp-for="Input.LastName" class="tw:min-h-12 tw:w-full tw:rounded-md tw:border tw:border-[#D8D3CC] tw:bg-white tw:px-3.5 tw:py-3 tw:text-[#1A1A1A] tw:outline-none tw:transition tw:focus:border-[#B23A48] tw:focus:shadow-[0_0_0_3px_rgba(178,58,72,0.12)]" />
-            <span asp-validation-for="Input.LastName" class="tw:mt-1.5 tw:block tw:text-sm tw:text-[#B23A48]"></span>
+            <label asp-for="Input.LastName" class="mb-2 block text-base leading-relaxed text-[#6B6B6B]">Last name</label>
+            <input asp-for="Input.LastName" class="min-h-12 w-full rounded-md border border-[#D8D3CC] bg-white px-3.5 py-3 text-[#1A1A1A] outline-none transition focus:border-[#B23A48] focus:shadow-[0_0_0_3px_rgba(178,58,72,0.12)]" />
+            <span asp-validation-for="Input.LastName" class="mt-1.5 block text-sm text-[#B23A48]"></span>
         </div>
     </div>
 
-    <div class="tw:mb-4">
-        <label asp-for="Input.Email" class="tw:mb-2 tw:block tw:text-base tw:leading-relaxed tw:text-[#6B6B6B]">E-mail</label>
-        <input asp-for="Input.Email" class="tw:min-h-12 tw:w-full tw:rounded-md tw:border tw:border-[#D8D3CC] tw:bg-white tw:px-3.5 tw:py-3 tw:text-[#1A1A1A] tw:outline-none tw:transition tw:focus:border-[#B23A48] tw:focus:shadow-[0_0_0_3px_rgba(178,58,72,0.12)]" />
-        <span asp-validation-for="Input.Email" class="tw:mt-1.5 tw:block tw:text-sm tw:text-[#B23A48]"></span>
+    <div class="mb-4">
+        <label asp-for="Input.Email" class="mb-2 block text-base leading-relaxed text-[#6B6B6B]">E-mail</label>
+        <input asp-for="Input.Email" class="min-h-12 w-full rounded-md border border-[#D8D3CC] bg-white px-3.5 py-3 text-[#1A1A1A] outline-none transition focus:border-[#B23A48] focus:shadow-[0_0_0_3px_rgba(178,58,72,0.12)]" />
+        <span asp-validation-for="Input.Email" class="mt-1.5 block text-sm text-[#B23A48]"></span>
     </div>
 
-    <div class="tw:mb-4">
-        <label asp-for="Input.Password" class="tw:mb-2 tw:block tw:text-base tw:leading-relaxed tw:text-[#6B6B6B]">Password</label>
-        <input asp-for="Input.Password" class="tw:min-h-12 tw:w-full tw:rounded-md tw:border tw:border-[#D8D3CC] tw:bg-white tw:px-3.5 tw:py-3 tw:text-[#1A1A1A] tw:outline-none tw:transition tw:focus:border-[#B23A48] tw:focus:shadow-[0_0_0_3px_rgba(178,58,72,0.12)]" autocomplete="new-password" />
-        <span asp-validation-for="Input.Password" class="tw:mt-1.5 tw:block tw:text-sm tw:text-[#B23A48]"></span>
+    <div class="mb-4">
+        <label asp-for="Input.Password" class="mb-2 block text-base leading-relaxed text-[#6B6B6B]">Password</label>
+        <input asp-for="Input.Password" class="min-h-12 w-full rounded-md border border-[#D8D3CC] bg-white px-3.5 py-3 text-[#1A1A1A] outline-none transition focus:border-[#B23A48] focus:shadow-[0_0_0_3px_rgba(178,58,72,0.12)]" autocomplete="new-password" />
+        <span asp-validation-for="Input.Password" class="mt-1.5 block text-sm text-[#B23A48]"></span>
     </div>
 
-    <div class="tw:mb-4">
-        <label asp-for="Input.ConfirmPassword" class="tw:mb-2 tw:block tw:text-base tw:leading-relaxed tw:text-[#6B6B6B]">Confirm Password</label>
-        <input asp-for="Input.ConfirmPassword" class="tw:min-h-12 tw:w-full tw:rounded-md tw:border tw:border-[#D8D3CC] tw:bg-white tw:px-3.5 tw:py-3 tw:text-[#1A1A1A] tw:outline-none tw:transition tw:focus:border-[#B23A48] tw:focus:shadow-[0_0_0_3px_rgba(178,58,72,0.12)]" autocomplete="new-password" />
-        <span asp-validation-for="Input.ConfirmPassword" class="tw:mt-1.5 tw:block tw:text-sm tw:text-[#B23A48]"></span>
+    <div class="mb-4">
+        <label asp-for="Input.ConfirmPassword" class="mb-2 block text-base leading-relaxed text-[#6B6B6B]">Confirm Password</label>
+        <input asp-for="Input.ConfirmPassword" class="min-h-12 w-full rounded-md border border-[#D8D3CC] bg-white px-3.5 py-3 text-[#1A1A1A] outline-none transition focus:border-[#B23A48] focus:shadow-[0_0_0_3px_rgba(178,58,72,0.12)]" autocomplete="new-password" />
+        <span asp-validation-for="Input.ConfirmPassword" class="mt-1.5 block text-sm text-[#B23A48]"></span>
     </div>
 
-    <div class="tw:mb-4">
-        <button type="submit" class="tw:inline-flex tw:min-h-12 tw:w-full tw:items-center tw:justify-center tw:rounded-md tw:border tw:border-[#B23A48] tw:bg-[#B23A48] tw:px-4 tw:py-3 tw:text-sm tw:font-bold tw:text-white tw:no-underline tw:shadow-[0_10px_24px_rgba(159,47,61,0.18)] tw:transition tw:hover:border-[#9F2F3D] tw:hover:bg-[#9F2F3D] tw:hover:text-white tw:hover:no-underline tw:hover:shadow-[0_14px_30px_rgba(159,47,61,0.24)] tw:focus:border-[#9F2F3D] tw:focus:bg-[#9F2F3D] tw:focus:text-white tw:focus:no-underline">Register</button>
+    <div class="mb-4">
+        <button type="submit" class="inline-flex min-h-12 w-full items-center justify-center rounded-md border border-[#B23A48] bg-[#B23A48] px-4 py-3 text-sm font-bold text-white no-underline shadow-[0_10px_24px_rgba(159,47,61,0.18)] transition hover:border-[#9F2F3D] hover:bg-[#9F2F3D] hover:text-white hover:no-underline hover:shadow-[0_14px_30px_rgba(159,47,61,0.24)] focus:border-[#9F2F3D] focus:bg-[#9F2F3D] focus:text-white focus:no-underline">Register</button>
     </div>
 
-    <p class="tw:mb-0">
+    <p class="mb-0">
         Already have an account?
-        <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl" class="tw:font-semibold tw:text-[#B23A48] tw:no-underline tw:transition-colors tw:hover:text-[#8F2635] tw:hover:underline tw:hover:underline-offset-4 tw:focus:text-[#8F2635] tw:focus:underline tw:focus:underline-offset-4">Sign in</a>
+        <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl" class="font-semibold text-[#B23A48] no-underline transition-colors hover:text-[#8F2635] hover:underline hover:underline-offset-4 focus:text-[#8F2635] focus:underline focus:underline-offset-4">Sign in</a>
     </p>
 </form>
 

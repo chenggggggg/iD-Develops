@@ -5,17 +5,17 @@
     ViewData["Title"] = "Confirm email";
 }
 
-<div class="tw:w-full tw:text-center">
+<div class="w-full text-center">
 @if (Model.StatusMessage.Contains("Thank you"))
 {
-    <h1 class="tw:m-0 tw:mb-6 tw:font-['Playfair_Display',Georgia,serif] tw:text-[clamp(2rem,5vw,3rem)] tw:font-medium tw:leading-[1.08] tw:tracking-[-0.015em] tw:text-[#071F3D]">Email confirmed</h1>
-    <p class="tw:mb-2 tw:text-base tw:leading-relaxed tw:text-[#6B6B6B]">Your email has been successfully confirmed.</p>
-    <p class="tw:mb-0 tw:text-base tw:leading-relaxed tw:text-[#6B6B6B]">You can now <a asp-page="/Account/Login" class="tw:font-semibold tw:text-[#B23A48] tw:no-underline tw:transition-colors tw:hover:text-[#8F2635] tw:hover:underline tw:hover:underline-offset-4 tw:focus:text-[#8F2635] tw:focus:underline tw:focus:underline-offset-4">log in</a>.</p>
+    <h1 class="m-0 mb-6 font-['Playfair_Display',Georgia,serif] text-[clamp(2rem,5vw,3rem)] font-medium leading-[1.08] tracking-[-0.015em] text-[#071F3D]">Email confirmed</h1>
+    <p class="mb-2 text-base leading-relaxed text-[#6B6B6B]">Your email has been successfully confirmed.</p>
+    <p class="mb-0 text-base leading-relaxed text-[#6B6B6B]">You can now <a asp-page="/Account/Login" class="font-semibold text-[#B23A48] no-underline transition-colors hover:text-[#8F2635] hover:underline hover:underline-offset-4 focus:text-[#8F2635] focus:underline focus:underline-offset-4">log in</a>.</p>
 }
 else
 {
-    <h1 class="tw:m-0 tw:mb-6 tw:font-['Playfair_Display',Georgia,serif] tw:text-[clamp(2rem,5vw,3rem)] tw:font-medium tw:leading-[1.08] tw:tracking-[-0.015em] tw:text-[#071F3D]">Confirmation error</h1>
-    <p class="tw:mb-0 tw:text-base tw:leading-relaxed tw:text-[#6B6B6B]">There was an error confirming your email. Please try the link again or <a asp-page="/Account/Register" class="tw:font-semibold tw:text-[#B23A48] tw:no-underline tw:transition-colors tw:hover:text-[#8F2635] tw:hover:underline tw:hover:underline-offset-4 tw:focus:text-[#8F2635] tw:focus:underline tw:focus:underline-offset-4">register again</a>.</p>
+    <h1 class="m-0 mb-6 font-['Playfair_Display',Georgia,serif] text-[clamp(2rem,5vw,3rem)] font-medium leading-[1.08] tracking-[-0.015em] text-[#071F3D]">Confirmation error</h1>
+    <p class="mb-0 text-base leading-relaxed text-[#6B6B6B]">There was an error confirming your email. Please try the link again or <a asp-page="/Account/Register" class="font-semibold text-[#B23A48] no-underline transition-colors hover:text-[#8F2635] hover:underline hover:underline-offset-4 focus:text-[#8F2635] focus:underline focus:underline-offset-4">register again</a>.</p>
 }
 </div>
 

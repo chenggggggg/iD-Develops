@@ -7,10 +7,10 @@
 
 <section class="public-page product-page-shell @(Model.IsAdminEditMode ? "product-edit-mode-shell" : null)">
     <div class="public-container">
-    <div class="tw:mb-8 tw:flex tw:flex-col tw:justify-between tw:gap-3 tw:md:flex-row tw:md:items-center">
+    <div class="mb-8 flex flex-col justify-between gap-3 md:flex-row md:items-center">
         <div>
             <p class="public-catalog-label">Free downloads</p>
-            <h1 class="public-page-title tw:mb-0">Free Downloads</h1>
+            <h1 class="public-page-title mb-0">Free Downloads</h1>
         </div>
         @if (Model.IsAdminEditMode)
         {
@@ -58,12 +58,12 @@
                     @if (Model.IsAdminEditMode)
                     {
                         <article class="public-catalog-card free-download-edit-card">
-                            <div class="public-catalog-body tw:gap-3">
-                                <div class="tw:flex tw:items-center tw:justify-between tw:gap-2">
+                            <div class="public-catalog-body gap-3">
+                                <div class="flex items-center justify-between gap-2">
                                     <span class="public-status-pill @(download.Status == CatalogProductStatus.Published ? "public-status-pill-success" : "public-status-pill-warning")">@download.Status</span>
                                 </div>
 
-                                <form id="@saveFormId" method="post" enctype="multipart/form-data" asp-page-handler="Save" asp-route-id="@download.Id" class="tw:grid tw:gap-3" data-product-id="@download.Id">
+                                <form id="@saveFormId" method="post" enctype="multipart/form-data" asp-page-handler="Save" asp-route-id="@download.Id" class="grid gap-3" data-product-id="@download.Id">
                                     @Html.AntiForgeryToken()
                                     <div class="product-editable-field">
                                         <input class="product-editable-input"
@@ -86,7 +86,7 @@
                                             }
                                             <span class="free-download-image-picker-copy" data-upload-label="image">Select image</span>
                                         </button>
-                                        <input class="tw:hidden"
+                                        <input class="hidden"
                                                type="file"
                                                accept="@Model.ImageAccept"
                                                data-upload-input="image" />
@@ -112,12 +112,12 @@
 
                                     <div class="free-download-file-upload">
                                         <button type="button"
-                                                class="public-btn public-btn-outline tw:min-h-9 tw:px-3 tw:py-2 tw:text-xs"
+                                                class="public-btn public-btn-outline min-h-9 px-3 py-2 text-xs"
                                                 data-upload-trigger="download">
                                             <i class="fa-solid fa-paperclip" aria-hidden="true"></i>
                                             <span data-upload-label="download">Select download file</span>
                                         </button>
-                                        <input class="tw:hidden"
+                                        <input class="hidden"
                                                type="file"
                                                accept="@Model.DownloadAccept"
                                                data-upload-input="download" />
@@ -139,11 +139,11 @@
                                     </div>
                                 </form>
                             </div>
-                            <div class="tw:flex tw:items-center tw:justify-between tw:gap-2 tw:bg-white tw:px-6 tw:pb-6">
+                            <div class="flex items-center justify-between gap-2 bg-white px-6 pb-6">
                                 <button type="submit" form="@saveFormId" class="public-btn public-btn-primary" data-save-button data-save-label="@saveButtonLabel" data-save-icon="@saveButtonIcon">
                                     <i class="@saveButtonIcon" aria-hidden="true"></i>@saveButtonLabel
                                 </button>
-                                <form method="post" asp-page-handler="Delete" asp-route-id="@download.Id" class="tw:m-0">
+                                <form method="post" asp-page-handler="Delete" asp-route-id="@download.Id" class="m-0">
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="public-btn public-btn-outline free-download-delete-button" aria-label="Delete download">
                                         <i class="fa-solid fa-trash" aria-hidden="true"></i>
@@ -165,7 +165,7 @@
                                 <p class="public-catalog-summary">@download.Summary</p>
                                 @if (!string.IsNullOrWhiteSpace(downloadUrl))
                                 {
-                                    <a class="public-btn public-btn-outline tw:mt-6" href="@downloadUrl" target="_blank" rel="noopener">
+                                    <a class="public-btn public-btn-outline mt-6" href="@downloadUrl" target="_blank" rel="noopener">
                                         <i class="fa-solid fa-download" aria-hidden="true"></i>Download
                                     </a>
                                 }
@@ -178,7 +178,7 @@
             @if (Model.IsAdminEditMode)
             {
                 <div>
-                    <form method="post" asp-page-handler="Create" class="tw:h-full">
+                    <form method="post" asp-page-handler="Create" class="h-full">
                         @Html.AntiForgeryToken()
                         <button type="submit" class="free-download-add-card">
                             <span class="free-download-add-icon" aria-hidden="true">

@@ -2,16 +2,16 @@
 @{
     var colors = Model.Tone switch
     {
-        "green" => "tw:bg-[#eef6f4] tw:text-[#287a55]",
-        "rose" => "tw:bg-[#f7eff1] tw:text-[#B23A48]",
-        "amber" => "tw:bg-[#fff6e7] tw:text-[#9a6500]",
-        _ => "tw:bg-[#eaf3fa] tw:text-[#005190]"
+        "green" => "bg-[#eef6f4] text-[#287a55]",
+        "rose" => "bg-[#f7eff1] text-[#B23A48]",
+        "amber" => "bg-[#fff6e7] text-[#9a6500]",
+        _ => "bg-[#eaf3fa] text-[#005190]"
     };
 }
-<article class="tw:flex tw:items-center tw:gap-4 tw:rounded-xl tw:border tw:border-[#dfe5ec] tw:bg-white tw:p-4 tw:shadow-[0_1px_3px_rgba(2,7,47,0.05)]">
-    <span class="tw:grid tw:size-11 tw:flex-none tw:place-items-center tw:rounded-lg @colors" aria-hidden="true"><i class="fa-solid @Model.Icon"></i></span>
+<article class="flex items-center gap-4 rounded-xl border border-[#dfe5ec] bg-white p-4 shadow-[0_1px_3px_rgba(2,7,47,0.05)]">
+    <span class="grid size-11 flex-none place-items-center rounded-lg @colors" aria-hidden="true"><i class="fa-solid @Model.Icon"></i></span>
     <span>
-        <span class="tw:block tw:text-xs tw:font-semibold tw:uppercase tw:tracking-[0.07em] tw:text-[#64748b]">@Model.Label</span>
-        <strong class="tw:mt-0.5 tw:block tw:text-2xl tw:font-semibold tw:leading-none tw:text-[#071f3d]">@Model.Value</strong>
+        <span class="block text-xs font-semibold uppercase tracking-[0.07em] text-[#64748b]">@Model.Label</span>
+        <strong class="mt-0.5 block text-2xl font-semibold leading-none text-[#071f3d]">@Model.Value</strong>
     </span>
 </article>

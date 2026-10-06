@@ -109,7 +109,7 @@
 
                 @if (!isDraft)
                 {
-                    <form method="post" asp-page-handler="SetStatus" asp-route-slug="@Model.Product.Slug" class="tw:m-0">
+                    <form method="post" asp-page-handler="SetStatus" asp-route-slug="@Model.Product.Slug" class="m-0">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="status" value="@CatalogProductStatus.Draft" />
                         <button type="submit" class="public-btn public-btn-outline public-btn-sm">
@@ -120,7 +120,7 @@
 
                 @if (!isArchived)
                 {
-                    <form method="post" asp-page-handler="SetStatus" asp-route-slug="@Model.Product.Slug" class="tw:m-0">
+                    <form method="post" asp-page-handler="SetStatus" asp-route-slug="@Model.Product.Slug" class="m-0">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="status" value="@CatalogProductStatus.Archived" />
                         <button type="submit" class="public-btn public-btn-danger public-btn-sm">
@@ -464,48 +464,48 @@
                 </div>
                 @if (Model.Product.ProductType == CatalogProductType.Credit)
                 {
-                <section class="tw:col-span-full tw:grid tw:gap-4" data-credit-product-settings>
+                <section class="col-span-full grid gap-4" data-credit-product-settings>
                     <input type="hidden" asp-for="EditInput.CreditConfiguration.CreditTypeId" />
                     <input type="hidden" asp-for="EditInput.CreditConfiguration.CreditConsumptionPolicyId" />
 
-                    <details class="tw:group tw:rounded-2xl tw:border tw:border-slate-200 tw:bg-white tw:shadow-sm" open>
-                        <summary class="tw:flex tw:cursor-pointer tw:list-none tw:items-center tw:justify-between tw:gap-4 tw:px-5 tw:py-4">
+                    <details class="group rounded-2xl border border-slate-200 bg-white shadow-sm" open>
+                        <summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4">
                             <span>
-                                <span class="tw:block tw:text-sm tw:font-semibold tw:text-slate-900">Credit package</span>
-                                <span class="tw:mt-1 tw:block tw:text-xs tw:text-slate-500">Define what the customer receives and where it can be used.</span>
+                                <span class="block text-sm font-semibold text-slate-900">Credit package</span>
+                                <span class="mt-1 block text-xs text-slate-500">Define what the customer receives and where it can be used.</span>
                             </span>
-                            <i class="fa-solid fa-chevron-down tw:text-slate-400 tw:transition-transform tw:group-open:rotate-180" aria-hidden="true"></i>
+                            <i class="fa-solid fa-chevron-down text-slate-400 transition-transform group-open:rotate-180" aria-hidden="true"></i>
                         </summary>
-                        <div class="tw:grid tw:gap-4 tw:border-t tw:border-slate-100 tw:px-5 tw:py-5 tw:md:grid-cols-2">
-                            <label class="tw:grid tw:gap-1.5">
-                                <span class="tw:text-sm tw:font-medium tw:text-slate-800">Credit name</span>
+                        <div class="grid gap-4 border-t border-slate-100 px-5 py-5 md:grid-cols-2">
+                            <label class="grid gap-1.5">
+                                <span class="text-sm font-medium text-slate-800">Credit name</span>
                                 <input class="public-field product-admin-field" asp-for="EditInput.CreditConfiguration.Name" maxlength="150" placeholder="Private lesson credit" required />
-                                <span class="tw:text-xs tw:text-slate-500">Shown when selecting this Credit Product for a class.</span>
+                                <span class="text-xs text-slate-500">Shown when selecting this Credit Product for a class.</span>
                             </label>
-                            <label class="tw:grid tw:gap-1.5">
-                                <span class="tw:text-sm tw:font-medium tw:text-slate-800">Credits included</span>
+                            <label class="grid gap-1.5">
+                                <span class="text-sm font-medium text-slate-800">Credits included</span>
                                 <input class="public-field product-admin-field" asp-for="EditInput.CreditConfiguration.Quantity" type="number" min="1" max="100000" required />
-                                <span class="tw:text-xs tw:text-slate-500">The number added to the customer’s account after payment.</span>
+                                <span class="text-xs text-slate-500">The number added to the customer’s account after payment.</span>
                             </label>
-                            <label class="tw:grid tw:gap-1.5">
-                                <span class="tw:text-sm tw:font-medium tw:text-slate-800">Singular label</span>
+                            <label class="grid gap-1.5">
+                                <span class="text-sm font-medium text-slate-800">Singular label</span>
                                 <input class="public-field product-admin-field" asp-for="EditInput.CreditConfiguration.SingularLabel" maxlength="80" placeholder="credit" required />
                             </label>
-                            <label class="tw:grid tw:gap-1.5">
-                                <span class="tw:text-sm tw:font-medium tw:text-slate-800">Plural label</span>
+                            <label class="grid gap-1.5">
+                                <span class="text-sm font-medium text-slate-800">Plural label</span>
                                 <input class="public-field product-admin-field" asp-for="EditInput.CreditConfiguration.PluralLabel" maxlength="80" placeholder="credits" required />
                             </label>
-                            <label class="tw:grid tw:gap-1.5 tw:md:col-span-2">
-                                <span class="tw:text-sm tw:font-medium tw:text-slate-800">Internal description <span class="tw:font-normal tw:text-slate-400">(optional)</span></span>
+                            <label class="grid gap-1.5 md:col-span-2">
+                                <span class="text-sm font-medium text-slate-800">Internal description <span class="font-normal text-slate-400">(optional)</span></span>
                                 <textarea class="public-field product-admin-field" asp-for="EditInput.CreditConfiguration.Description" rows="2" maxlength="1000" placeholder="What this credit is intended for"></textarea>
                             </label>
-                            <div class="tw:grid tw:gap-4 tw:md:col-span-2 tw:md:grid-cols-2">
-                                <label class="tw:grid tw:gap-1.5">
-                                    <span class="tw:text-sm tw:font-medium tw:text-slate-800">Expires after <span class="tw:font-normal tw:text-slate-400">(optional)</span></span>
+                            <div class="grid gap-4 md:col-span-2 md:grid-cols-2">
+                                <label class="grid gap-1.5">
+                                    <span class="text-sm font-medium text-slate-800">Expires after <span class="font-normal text-slate-400">(optional)</span></span>
                                     <input class="public-field product-admin-field" asp-for="EditInput.CreditConfiguration.ValidityValue" type="number" min="1" max="3650" placeholder="Never expires" />
                                 </label>
-                                <label class="tw:grid tw:gap-1.5">
-                                    <span class="tw:text-sm tw:font-medium tw:text-slate-800">Expiration unit</span>
+                                <label class="grid gap-1.5">
+                                    <span class="text-sm font-medium text-slate-800">Expiration unit</span>
                                     <select class="public-field product-admin-field" asp-for="EditInput.CreditConfiguration.ValidityUnit">
                                         <option value="">No expiration</option>
                                         <option value="@CreditValidityUnit.Days">Days</option>
@@ -514,16 +514,16 @@
                                     </select>
                                 </label>
                             </div>
-                            <label class="tw:grid tw:gap-1.5 tw:md:col-span-2">
-                                <span class="tw:text-sm tw:font-medium tw:text-slate-800">Where can it be used?</span>
+                            <label class="grid gap-1.5 md:col-span-2">
+                                <span class="text-sm font-medium text-slate-800">Where can it be used?</span>
                                 <select class="public-field product-admin-field" asp-for="EditInput.CreditConfiguration.Scope" data-credit-product-scope>
                                     <option value="@CreditGrantScope.Global">Any class that accepts this Credit Product</option>
                                     <option value="@CreditGrantScope.Course">Classes in one specific course</option>
                                     <option value="@CreditGrantScope.CourseClass">One specific class</option>
                                 </select>
                             </label>
-                            <label class="tw:grid tw:gap-1.5 tw:md:col-span-2" data-credit-product-course>
-                                <span class="tw:text-sm tw:font-medium tw:text-slate-800">Course</span>
+                            <label class="grid gap-1.5 md:col-span-2" data-credit-product-course>
+                                <span class="text-sm font-medium text-slate-800">Course</span>
                                 <select class="public-field product-admin-field" asp-for="EditInput.CreditConfiguration.CourseId">
                                     <option value="">Select course</option>
                                     @foreach (var course in Model.CourseOptions)
@@ -532,8 +532,8 @@
                                     }
                                 </select>
                             </label>
-                            <label class="tw:grid tw:gap-1.5 tw:md:col-span-2" data-credit-product-class>
-                                <span class="tw:text-sm tw:font-medium tw:text-slate-800">Class</span>
+                            <label class="grid gap-1.5 md:col-span-2" data-credit-product-class>
+                                <span class="text-sm font-medium text-slate-800">Class</span>
                                 <select class="public-field product-admin-field" asp-for="EditInput.CreditConfiguration.CourseClassId">
                                     <option value="">Select class</option>
                                     @foreach (var courseClass in Model.CourseClassOptions)
@@ -545,37 +545,37 @@
                         </div>
                     </details>
 
-                    <details class="tw:group tw:rounded-2xl tw:border tw:border-slate-200 tw:bg-white tw:shadow-sm">
-                        <summary class="tw:flex tw:cursor-pointer tw:list-none tw:items-center tw:justify-between tw:gap-4 tw:px-5 tw:py-4">
+                    <details class="group rounded-2xl border border-slate-200 bg-white shadow-sm">
+                        <summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4">
                             <span>
-                                <span class="tw:block tw:text-sm tw:font-semibold tw:text-slate-900">Booking and cancellation rules</span>
-                                <span class="tw:mt-1 tw:block tw:text-xs tw:text-slate-500">Control when credits are reserved, consumed, or returned.</span>
+                                <span class="block text-sm font-semibold text-slate-900">Booking and cancellation rules</span>
+                                <span class="mt-1 block text-xs text-slate-500">Control when credits are reserved, consumed, or returned.</span>
                             </span>
-                            <i class="fa-solid fa-chevron-down tw:text-slate-400 tw:transition-transform tw:group-open:rotate-180" aria-hidden="true"></i>
+                            <i class="fa-solid fa-chevron-down text-slate-400 transition-transform group-open:rotate-180" aria-hidden="true"></i>
                         </summary>
-                        <div class="tw:grid tw:gap-4 tw:border-t tw:border-slate-100 tw:px-5 tw:py-5 tw:md:grid-cols-2">
-                            <label class="tw:grid tw:gap-1.5">
-                                <span class="tw:text-sm tw:font-medium tw:text-slate-800">When should a credit be charged?</span>
+                        <div class="grid gap-4 border-t border-slate-100 px-5 py-5 md:grid-cols-2">
+                            <label class="grid gap-1.5">
+                                <span class="text-sm font-medium text-slate-800">When should a credit be charged?</span>
                                 <select class="public-field product-admin-field" asp-for="EditInput.CreditConfiguration.ConsumptionTiming" data-credit-rule>
                                     <option value="@CreditConsumptionTiming.OnBooking">Reserve it when the learner books</option>
                                     <option value="@CreditConsumptionTiming.OnAttendance">Charge it after attendance is recorded</option>
                                 </select>
                             </label>
-                            <label class="tw:grid tw:gap-1.5">
-                                <span class="tw:text-sm tw:font-medium tw:text-slate-800">Cancellation notice</span>
-                                <span class="tw:flex tw:items-center tw:gap-2">
+                            <label class="grid gap-1.5">
+                                <span class="text-sm font-medium text-slate-800">Cancellation notice</span>
+                                <span class="flex items-center gap-2">
                                     <input class="public-field product-admin-field" asp-for="EditInput.CreditConfiguration.CancellationWindowHours" type="number" min="0" max="8760" data-credit-rule required />
-                                    <span class="tw:text-sm tw:text-slate-500">hours</span>
+                                    <span class="text-sm text-slate-500">hours</span>
                                 </span>
                             </label>
-                            <label class="tw:grid tw:gap-1.5"><span class="tw:text-sm tw:font-medium tw:text-slate-800">Learner attended</span><select class="public-field product-admin-field" asp-for="EditInput.CreditConfiguration.AttendedAction" data-credit-rule><option value="@CreditResolutionAction.Consume">Consume credit</option><option value="@CreditResolutionAction.Return">Return credit</option></select></label>
-                            <label class="tw:grid tw:gap-1.5"><span class="tw:text-sm tw:font-medium tw:text-slate-800">Learner did not attend</span><select class="public-field product-admin-field" asp-for="EditInput.CreditConfiguration.NoShowAction" data-credit-rule><option value="@CreditResolutionAction.Consume">Consume credit</option><option value="@CreditResolutionAction.Return">Return credit</option></select></label>
-                            <label class="tw:grid tw:gap-1.5"><span class="tw:text-sm tw:font-medium tw:text-slate-800">Cancelled with enough notice</span><select class="public-field product-admin-field" asp-for="EditInput.CreditConfiguration.EarlyCancellationAction" data-credit-rule><option value="@CreditResolutionAction.Return">Return credit</option><option value="@CreditResolutionAction.Consume">Consume credit</option></select></label>
-                            <label class="tw:grid tw:gap-1.5"><span class="tw:text-sm tw:font-medium tw:text-slate-800">Cancelled too late</span><select class="public-field product-admin-field" asp-for="EditInput.CreditConfiguration.LateCancellationAction" data-credit-rule><option value="@CreditResolutionAction.Consume">Consume credit</option><option value="@CreditResolutionAction.Return">Return credit</option></select></label>
-                            <label class="tw:grid tw:gap-1.5 tw:md:col-span-2"><span class="tw:text-sm tw:font-medium tw:text-slate-800">Teacher or administrator cancelled</span><select class="public-field product-admin-field" asp-for="EditInput.CreditConfiguration.StaffCancellationAction" data-credit-rule><option value="@CreditResolutionAction.Return">Return credit</option><option value="@CreditResolutionAction.Consume">Consume credit</option></select></label>
-                            <div class="tw:rounded-xl tw:border tw:border-sky-100 tw:bg-sky-50 tw:p-4 tw:md:col-span-2">
-                                <p class="tw:text-xs tw:font-semibold tw:uppercase tw:tracking-wide tw:text-sky-800">What learners can expect</p>
-                                <p class="tw:mt-1 tw:text-sm tw:leading-6 tw:text-slate-700" data-credit-rules-summary></p>
+                            <label class="grid gap-1.5"><span class="text-sm font-medium text-slate-800">Learner attended</span><select class="public-field product-admin-field" asp-for="EditInput.CreditConfiguration.AttendedAction" data-credit-rule><option value="@CreditResolutionAction.Consume">Consume credit</option><option value="@CreditResolutionAction.Return">Return credit</option></select></label>
+                            <label class="grid gap-1.5"><span class="text-sm font-medium text-slate-800">Learner did not attend</span><select class="public-field product-admin-field" asp-for="EditInput.CreditConfiguration.NoShowAction" data-credit-rule><option value="@CreditResolutionAction.Consume">Consume credit</option><option value="@CreditResolutionAction.Return">Return credit</option></select></label>
+                            <label class="grid gap-1.5"><span class="text-sm font-medium text-slate-800">Cancelled with enough notice</span><select class="public-field product-admin-field" asp-for="EditInput.CreditConfiguration.EarlyCancellationAction" data-credit-rule><option value="@CreditResolutionAction.Return">Return credit</option><option value="@CreditResolutionAction.Consume">Consume credit</option></select></label>
+                            <label class="grid gap-1.5"><span class="text-sm font-medium text-slate-800">Cancelled too late</span><select class="public-field product-admin-field" asp-for="EditInput.CreditConfiguration.LateCancellationAction" data-credit-rule><option value="@CreditResolutionAction.Consume">Consume credit</option><option value="@CreditResolutionAction.Return">Return credit</option></select></label>
+                            <label class="grid gap-1.5 md:col-span-2"><span class="text-sm font-medium text-slate-800">Teacher or administrator cancelled</span><select class="public-field product-admin-field" asp-for="EditInput.CreditConfiguration.StaffCancellationAction" data-credit-rule><option value="@CreditResolutionAction.Return">Return credit</option><option value="@CreditResolutionAction.Consume">Consume credit</option></select></label>
+                            <div class="rounded-xl border border-sky-100 bg-sky-50 p-4 md:col-span-2">
+                                <p class="text-xs font-semibold uppercase tracking-wide text-sky-800">What learners can expect</p>
+                                <p class="mt-1 text-sm leading-6 text-slate-700" data-credit-rules-summary></p>
                             </div>
                         </div>
                     </details>

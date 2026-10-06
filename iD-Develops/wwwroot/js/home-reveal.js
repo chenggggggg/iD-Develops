@@ -12,8 +12,8 @@
             }
 
             element.dataset.revealed = "true";
-            element.classList.remove("tw:opacity-0", "tw:-translate-y-full", "tw:translate-y-5", "tw:translate-y-6");
-            element.classList.add("tw:opacity-100", "tw:translate-y-0");
+            element.classList.remove("opacity-0", "-translate-y-full", "translate-y-5", "translate-y-6");
+            element.classList.add("opacity-100", "translate-y-0");
         };
 
         const loadElements = elements.filter((element) => element.dataset.reveal === "load");

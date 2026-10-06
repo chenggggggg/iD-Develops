@@ -40,10 +40,25 @@ builder.Services.AddDataProtection()
 // Logging
 // ----------------------------
 builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
-
-using var loggerFactory = LoggerFactory.Create(b => b.AddConsole());
-var logger = loggerFactory.CreateLogger("Program");
+if (builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Local"))
+{
+    builder.Logging.AddSimpleConsole(options =>
+    {
+        options.IncludeScopes = false;
+        options.SingleLine = true;
+        options.TimestampFormat = "yyyy-MM-dd HH:mm:ss ";
+        options.UseUtcTimestamp = true;
+    });
+}
+else
+{
+    builder.Logging.AddJsonConsole(options =>
+    {
+        options.IncludeScopes = true;
+        options.TimestampFormat = "O";
+        options.UseUtcTimestamp = true;
+    });
+}
 
 // ----------------------------
 // Host options (prevent background service exceptions from stopping the host)
@@ -97,7 +112,6 @@ else
         throw new InvalidOperationException("Stripe:SecretKey must be configured outside the Local environment.");
     }
 
-    logger.LogWarning("Stripe:SecretKey not configured. Stripe features are disabled for the Local environment.");
     builder.Services.AddScoped<IStripeService, DisabledStripeService>();
     builder.Services.AddScoped<ICatalogCheckoutService, DisabledCatalogCheckoutService>();
 }
@@ -124,9 +138,6 @@ builder.Services.AddDbContext<ApplicationDbContext>((sp, options) =>
     {
         // Do NOT crash the host. We want the app to boot and still serve static assets and the shared error page.
         // Any attempt to use the DB will fail later and be handled by the database-unavailable flow.
-        var log = sp.GetRequiredService<ILoggerFactory>().CreateLogger("Program");
-        log.LogCritical("Missing connection string 'ConnectionStrings:ApplicationDbContextConnection'. App will start in DB-offline mode.");
-
         // Intentionally invalid placeholder that will consistently fail on connect.
         cs = "Host=localhost;Port=5432;Database=__missing__;Username=__missing__;Password=__missing__;";
     }
@@ -418,6 +429,11 @@ builder.Services.Configure<AntiforgeryOptions>(options =>
 // ----------------------------
 var app = builder.Build();
 
+if (string.IsNullOrWhiteSpace(stripeSecretKey))
+{
+    app.Logger.LogWarning("Stripe is not configured. Stripe features are disabled for the Local environment.");
+}
+
 // ----------------------------
 // Connection string validation (Option A)
 // ----------------------------
@@ -452,16 +468,19 @@ if (!string.IsNullOrWhiteSpace(runtimeConnectionString))
         }
         catch (Exception ex) when (DatabaseAvailability.IsDatabaseUnavailable(ex) || ex is TimeoutException)
         {
-            app.Logger.LogWarning(ex,
-                "Database migration attempt {Attempt}/{MaxAttempts} failed because the database is unavailable.",
-                attempt,
-                migrationAttempts);
-
             if (attempt == migrationAttempts)
             {
-                app.Logger.LogWarning("Database migrations were skipped after repeated startup failures.");
+                app.Logger.LogError(ex,
+                    "Database migrations were skipped after {MaxAttempts} failed startup attempts.",
+                    migrationAttempts);
                 break;
             }
+
+            app.Logger.LogWarning(
+                "Database migration attempt {Attempt}/{MaxAttempts} failed with {ExceptionType}; retrying in 5 seconds.",
+                attempt,
+                migrationAttempts,
+                ex.GetType().Name);
 
             await Task.Delay(TimeSpan.FromSeconds(5));
         }
@@ -604,7 +623,7 @@ try
 catch (Exception ex)
 {
     // Never prevent host startup due to seeding.
-    logger.LogError(ex, "Admin seeding failed.");
+    app.Logger.LogError(ex, "Admin seeding failed.");
 }
 
 
@@ -613,7 +632,10 @@ catch (Exception ex)
 // ----------------------------
 app.UseForwardedHeaders();
 app.UseStaticFiles();
-app.UseHttpsRedirection();
+if (!app.Environment.IsEnvironment("Local"))
+{
+    app.UseHttpsRedirection();
+}
 
 // IMPORTANT: environment exception handling must be registered here (NOT inside other middleware)
 if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Local"))
@@ -735,10 +757,11 @@ app.Use(async (context, next) =>
         var errorCode = DatabaseAvailability.GetDatabaseErrorCode(ex);
         var redirectUrl = DatabaseAvailability.BuildErrorUrl(context.Request.Path, context.Request.QueryString, errorCode);
 
-        logger.LogWarning(ex,
-            "Database unavailable; redirecting to {RedirectUrl}. Original: {Original}",
+        app.Logger.LogWarning(
+            "Database unavailable; redirecting to {RedirectUrl}. Original: {Original}. Error: {ExceptionType}",
             redirectUrl,
-            original);
+            original,
+            ex.GetType().Name);
 
         context.Response.Clear();
         context.Response.Redirect(redirectUrl);

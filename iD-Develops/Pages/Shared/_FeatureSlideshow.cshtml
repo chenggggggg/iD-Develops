@@ -9,19 +9,19 @@
 @if (features.Count > 0)
 {
     <section id="@sectionId"
-             class="feature-slideshow tw:bg-[#FAFAF8] tw:py-28 tw:text-[#1A1A1A] tw:md:py-40"
+             class="feature-slideshow bg-[#FAFAF8] py-28 text-[#1A1A1A] md:py-40"
              data-feature-slideshow
              data-feature-interval="@intervalMilliseconds"
              style="--feature-slideshow-duration: @(intervalMilliseconds)ms;">
         <div class="public-container">
-            <header class="tw:mb-14 tw:text-center tw:md:mb-20">
+            <header class="mb-14 text-center md:mb-20">
                 <p class="public-eyebrow">@Model.Eyebrow</p>
-                <h2 class="tw:mx-auto tw:mb-0 tw:max-w-3xl tw:text-4xl tw:font-bold tw:leading-[1.05] tw:text-[#071f3d] tw:md:text-5xl tw:lg:text-6xl">
+                <h2 class="mx-auto mb-0 max-w-3xl text-4xl font-bold leading-[1.05] text-[#071f3d] md:text-5xl lg:text-6xl">
                     @Model.Title
                 </h2>
             </header>
 
-            <div class="feature-slideshow-layout tw:mx-auto tw:grid tw:max-w-[1200px] tw:items-center tw:gap-10 tw:lg:grid-cols-[minmax(320px,0.92fr)_minmax(0,1.08fr)] tw:lg:gap-16">
+            <div class="feature-slideshow-layout mx-auto grid max-w-[1200px] items-center gap-10 lg:grid-cols-[minmax(320px,0.92fr)_minmax(0,1.08fr)] lg:gap-16">
                 <div class="feature-slideshow-rail-wrap">
                     <div class="feature-slideshow-rail" role="tablist" aria-label="@Model.Eyebrow">
                         @for (var i = 0; i < features.Count; i++)
@@ -55,7 +55,7 @@
                     </div>
                 </div>
 
-                <figure class="feature-slideshow-figure tw:relative tw:m-0 tw:overflow-hidden tw:rounded-2xl tw:border tw:border-[#E8E4DF] tw:bg-[#F5F3F0] tw:shadow-[0_24px_70px_rgba(17,17,17,0.10)]">
+                <figure class="feature-slideshow-figure relative m-0 overflow-hidden rounded-2xl border border-[#E8E4DF] bg-[#F5F3F0] shadow-[0_24px_70px_rgba(17,17,17,0.10)]">
                     @for (var i = 0; i < features.Count; i++)
                     {
                         var feature = features[i];

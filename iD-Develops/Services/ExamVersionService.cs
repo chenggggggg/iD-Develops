@@ -254,6 +254,7 @@ namespace iD_Develops.Services
 
             var query = _dbContext.ExamVersions
                 .AsNoTracking()
+                .AsSplitQuery()
                 .Include(v => v.Questions)
                     .ThenInclude(q => q.CorrectAnswers)
                 .Include(v => v.GradeBands)

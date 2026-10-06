@@ -11,8 +11,8 @@
 <partial name="/Pages/Shared/Examination/_ExaminationHeader.cshtml"
          model="Model.Header" />
 
-<div class="exam-container tw:py-6">
-    <div class="tw:mx-auto tw:max-w-[980px]">
+<div class="exam-container py-6">
+    <div class="mx-auto max-w-[980px]">
         <div class="portal-page-header">
             <div>
                 <p class="portal-eyebrow">Exam Setup</p>
@@ -33,13 +33,13 @@
             </div>
         }
 
-        <div class="portal-table-card tw:py-6 tw:lg:py-10">
+        <div class="portal-table-card py-6 lg:py-10">
             <form method="post" id="exam-settings-page-form">
                 @Html.AntiForgeryToken()
                 <input type="hidden" asp-for="ExamId" />
                 <div class="public-alert public-alert-danger exam-hidden" role="alert" data-settings-client-summary></div>
 
-                <div class="portal-form-grid tw:mb-6">
+                <div class="portal-form-grid mb-6">
                     <div class="portal-field-group portal-field-group-half">
                         <label asp-for="Settings.Name" class="portal-info-label">Exam name</label>
                         <input asp-for="Settings.Name" class="portal-field" placeholder="Exam name" />
@@ -82,15 +82,15 @@
                     </div>
                 </div>
                 
-                <div class="tw:my-6 tw:flex tw:items-center">
-                    <hr class="tw:flex-1">
-                    <span class="tw:mx-4 tw:text-sm tw:font-bold tw:text-[#64748b]">
+                <div class="my-6 flex items-center">
+                    <hr class="flex-1">
+                    <span class="mx-4 text-sm font-bold text-[#64748b]">
                         Advanced Settings
                     </span>
-                    <hr class="tw:flex-1">
+                    <hr class="flex-1">
                 </div>
 
-                <div class="exam-rich-field tw:mb-6" data-exam-rich-field>
+                <div class="exam-rich-field mb-6" data-exam-rich-field>
                     <div class="exam-rich-header">
                         <div>
                             <label asp-for="Settings.IntroductionPrimaryLanguage" class="portal-info-label">Introduction text</label>
@@ -106,7 +106,7 @@
                     <span asp-validation-for="Settings.IntroductionPrimaryLanguage" class="portal-validation-message"></span>
                 </div>
 
-                <div class="exam-rich-field tw:mb-6" data-exam-rich-field>
+                <div class="exam-rich-field mb-6" data-exam-rich-field>
                     <div class="exam-rich-header">
                         <div>
                             <label asp-for="Settings.CompletionTextPrimary" class="portal-info-label">Completion text</label>
@@ -122,13 +122,13 @@
                     <span asp-validation-for="Settings.CompletionTextPrimary" class="portal-validation-message"></span>
                 </div>
 
-                <div class="tw:mb-6">
+                <div class="mb-6">
                     <label class="portal-info-label">Result grading</label>
-                    <div class="exam-field-help tw:mb-3">Create student-facing grade labels by choosing the highest score each grade covers. The maximum score is calculated automatically from your question points.</div>
+                    <div class="exam-field-help mb-3">Create student-facing grade labels by choosing the highest score each grade covers. The maximum score is calculated automatically from your question points.</div>
                     <div class="public-alert public-alert-danger exam-hidden" role="alert" data-grade-client-summary></div>
-                    <div class="tw:my-4 tw:flex tw:items-center tw:gap-2">
-                        <input asp-for="Settings.DisplayGradeOnResults" class="tw:size-4" type="checkbox" role="switch" id="settings-page-display-grade-on-results" />
-                        <label class="portal-info-label tw:mb-0" for="settings-page-display-grade-on-results">Custom grading</label>
+                    <div class="my-4 flex items-center gap-2">
+                        <input asp-for="Settings.DisplayGradeOnResults" class="size-4" type="checkbox" role="switch" id="settings-page-display-grade-on-results" />
+                        <label class="portal-info-label mb-0" for="settings-page-display-grade-on-results">Custom grading</label>
                     </div>
                     <span asp-validation-for="Settings.DisplayGradeOnResults" class="portal-validation-message"></span>
 
@@ -137,7 +137,7 @@
                             <strong>Current maximum score:</strong> @Model.MaximumScore.ToString("0.#", CultureInfo.InvariantCulture)
                             <div class="exam-field-help">This is calculated automatically from the points on all questions in this exam.</div>
                         </div>
-                        <div class="exam-field-help tw:mb-3">Each row ends a grade range. Example: if a row says up to 5, that grade covers scores from the previous row up to 5.</div>
+                        <div class="exam-field-help mb-3">Each row ends a grade range. Example: if a row says up to 5, that grade covers scores from the previous row up to 5.</div>
                         <div class="portal-table-wrap">
                             <table class="grade-settings-table">
                                 <thead>
@@ -164,7 +164,7 @@
                                                 <span asp-validation-for="Settings.ResultGradeBands[i].MaximumScore" class="portal-validation-message"></span>
                                             </td>
                                             <td class="grade-settings-cell">
-                                                <div class="exam-field-help tw:font-bold" data-grade-range-preview>Example: 0 - @Model.MaximumScore.ToString("0.#", CultureInfo.InvariantCulture)</div>
+                                                <div class="exam-field-help font-bold" data-grade-range-preview>Example: 0 - @Model.MaximumScore.ToString("0.#", CultureInfo.InvariantCulture)</div>
                                             </td>
                                             <td class="grade-settings-cell">
                                                 <input asp-for="Settings.ResultGradeBands[i].LabelPrimary" class="portal-field grade-settings-input" placeholder="Almost A1" />
@@ -178,17 +178,17 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div class="tw:mt-3 tw:flex tw:flex-wrap tw:items-center tw:gap-2">
+                        <div class="mt-3 flex flex-wrap items-center gap-2">
                             <button type="button" class="portal-btn portal-btn-outline portal-btn-sm grade-settings-add-btn" data-add-grade-row>Add grade</button>
                             <span class="portal-validation-message exam-hidden" data-grade-row-warning>At least 2 grades are required.</span>
                         </div>
-                        <div class="exam-field-help tw:mt-3">Only complete rows are saved. Enter rows in ascending order. The last row must end at the current maximum score so every result gets a grade.</div>
+                        <div class="exam-field-help mt-3">Only complete rows are saved. Enter rows in ascending order. The last row must end at the current maximum score so every result gets a grade.</div>
                     </div>
                 </div>
 
                 @if ((User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
                 {
-                    <div class="tw:mb-6">
+                    <div class="mb-6">
                         <label asp-for="Settings.PublicSlug" class="portal-info-label">Public slug</label>
                         <input asp-for="Settings.PublicSlug" class="portal-field" placeholder="level-test" />
                         <div class="exam-field-help">Set to <code>level-test</code> to use this exam for the public level test page.</div>
@@ -196,10 +196,10 @@
                     </div>
                 }
 
-                <details class="portal-card tw:mb-6">
-                    <summary class="tw:cursor-pointer tw:font-bold tw:text-[#10224d]">Additional language (optional)</summary>
-                    <div class="tw:mt-5">
-                                <div class="exam-rich-field tw:mb-5" data-exam-rich-field>
+                <details class="portal-card mb-6">
+                    <summary class="cursor-pointer font-bold text-[#10224d]">Additional language (optional)</summary>
+                    <div class="mt-5">
+                                <div class="exam-rich-field mb-5" data-exam-rich-field>
                                     <div class="exam-rich-header">
                                         <label asp-for="Settings.IntroductionSecondaryLanguage" class="portal-info-label">Introduction text (secondary)</label>
                                         <i class="fa-solid fa-pencil exam-rich-pencil" aria-hidden="true"></i>
@@ -227,7 +227,7 @@
                     </div>
                 </details>
 
-                <div class="tw:flex tw:flex-col tw:gap-2 tw:lg:flex-row">
+                <div class="flex flex-col gap-2 lg:flex-row">
                     <button type="submit" class="portal-btn portal-btn-primary">
                         <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>Save settings
                     </button>
@@ -235,7 +235,7 @@
                         <i class="fa-solid fa-arrow-left-long"></i>Back to Editor
                     </a>
                 </div>
-                <div class="portal-validation-message tw:mt-3 exam-hidden" data-settings-footer-summary>Some settings still need attention. Please check the red fields and messages on this page.</div>
+                <div class="portal-validation-message mt-3 exam-hidden" data-settings-footer-summary>Some settings still need attention. Please check the red fields and messages on this page.</div>
             </form>
         </div>
     </div>

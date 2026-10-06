@@ -29,9 +29,9 @@ namespace iD_Develops.Services
                     onRetry: (exception, timeSpan, retryCount, context) =>
                     {
                         _logger.LogWarning(
-                            exception,
-                            "Retry {RetryCount} encountered an email error. Waiting {Delay} before the next retry.",
+                            "Email delivery attempt {RetryCount} failed with {ExceptionType}. Waiting {Delay} before retrying.",
                             retryCount,
+                            exception.GetType().Name,
                             timeSpan);
                     });
         }
@@ -62,7 +62,7 @@ namespace iD_Develops.Services
 
                 return await _retryPolicy.ExecuteAsync(async () =>
                 {
-                    _logger.LogInformation("Sending email to {RecipientEmail}...", recipientEmail);
+                    _logger.LogDebug("Sending email.");
 
                     using var client = new SmtpClient();
                     var host = RequireSetting(_settings.Host, "Mail:Host");
@@ -79,13 +79,13 @@ namespace iD_Develops.Services
                     await client.SendAsync(message, ct);
                     await client.DisconnectAsync(true, ct);
 
-                    _logger.LogInformation("Email sent successfully to {RecipientEmail}", recipientEmail);
+                    _logger.LogDebug("Email sent successfully.");
                     return new OperationResult { Success = true, ErrorMessage = "Email sent successfully" };
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error sending email to {RecipientEmail}", recipientEmail);
+                _logger.LogError(ex, "Email delivery failed.");
                 return new OperationResult { Success = false, ErrorMessage = ex.Message };
             }
         }

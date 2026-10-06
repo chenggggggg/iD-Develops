@@ -40,13 +40,13 @@
         <div class="public-alert public-alert-warning">@statusMessage</div>
     }
 
-    <div class="tw:mb-4 tw:grid tw:flex-none tw:gap-3 tw:sm:grid-cols-3" aria-label="Product overview">
-        <article class="tw:flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-[#dfe5ec] tw:bg-white tw:px-4 tw:py-3 tw:shadow-[0_1px_2px_rgba(2,7,47,0.04)]"><span class="tw:grid tw:size-9 tw:flex-none tw:place-items-center tw:rounded-md tw:bg-[#eaf3fa] tw:text-[#005190]" aria-hidden="true"><i class="fa-solid fa-boxes-stacked"></i></span><span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">Products</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@Model.Products.Count</strong></span></article>
-        <article class="tw:flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-[#dfe5ec] tw:bg-white tw:px-4 tw:py-3 tw:shadow-[0_1px_2px_rgba(2,7,47,0.04)]"><span class="tw:grid tw:size-9 tw:flex-none tw:place-items-center tw:rounded-md tw:bg-[#eef6f4] tw:text-[#287a55]" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span><span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">Published</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@publishedProductCount</strong></span></article>
-        <article class="tw:flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-[#dfe5ec] tw:bg-white tw:px-4 tw:py-3 tw:shadow-[0_1px_2px_rgba(2,7,47,0.04)]"><span class="tw:grid tw:size-9 tw:flex-none tw:place-items-center tw:rounded-md tw:bg-[#f7eff1] tw:text-[#B23A48]" aria-hidden="true"><i class="fa-solid fa-pen-ruler"></i></span><span><span class="tw:block tw:text-[0.68rem] tw:font-semibold tw:uppercase tw:tracking-[0.08em] tw:text-[#64748b]">Drafts</span><strong class="tw:block tw:text-xl tw:font-semibold tw:leading-tight tw:text-[#071f3d]">@draftProductCount</strong></span></article>
+    <div class="mb-4 grid flex-none gap-3 sm:grid-cols-3" aria-label="Product overview">
+        <article class="flex items-center gap-3 rounded-lg border border-[#dfe5ec] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(2,7,47,0.04)]"><span class="grid size-9 flex-none place-items-center rounded-md bg-[#eaf3fa] text-[#005190]" aria-hidden="true"><i class="fa-solid fa-boxes-stacked"></i></span><span><span class="block text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[#64748b]">Products</span><strong class="block text-xl font-semibold leading-tight text-[#071f3d]">@Model.Products.Count</strong></span></article>
+        <article class="flex items-center gap-3 rounded-lg border border-[#dfe5ec] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(2,7,47,0.04)]"><span class="grid size-9 flex-none place-items-center rounded-md bg-[#eef6f4] text-[#287a55]" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span><span><span class="block text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[#64748b]">Published</span><strong class="block text-xl font-semibold leading-tight text-[#071f3d]">@publishedProductCount</strong></span></article>
+        <article class="flex items-center gap-3 rounded-lg border border-[#dfe5ec] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(2,7,47,0.04)]"><span class="grid size-9 flex-none place-items-center rounded-md bg-[#f7eff1] text-[#B23A48]" aria-hidden="true"><i class="fa-solid fa-pen-ruler"></i></span><span><span class="block text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[#64748b]">Drafts</span><strong class="block text-xl font-semibold leading-tight text-[#071f3d]">@draftProductCount</strong></span></article>
     </div>
 
-    <div class="tw:mb-2 tw:flex tw:flex-none tw:items-end tw:justify-between tw:gap-4"><div><p class="tw:m-0 tw:text-sm tw:font-semibold tw:text-[#071f3d]">Product catalogue</p><p class="tw:m-0 tw:text-xs tw:text-[#64748b]">Edit publication status, pricing, and product content.</p></div><span class="tw:text-xs tw:font-medium tw:text-[#64748b]">@Model.Products.Count total</span></div>
+    <div class="mb-2 flex flex-none items-end justify-between gap-4"><div><p class="m-0 text-sm font-semibold text-[#071f3d]">Product catalogue</p><p class="m-0 text-xs text-[#64748b]">Edit publication status, pricing, and product content.</p></div><span class="text-xs font-medium text-[#64748b]">@Model.Products.Count total</span></div>
 
     <div class="portal-table-card">
         <div class="portal-table-wrap">
@@ -110,7 +110,7 @@
 
                                 @if (product.Status == iD_Develops.Enums.CatalogProductStatus.Archived)
                                 {
-                                    <form method="post" asp-page-handler="Restore" asp-route-id="@product.Id" class="tw:m-0">
+                                    <form method="post" asp-page-handler="Restore" asp-route-id="@product.Id" class="m-0">
                                         <button type="submit" class="portal-btn portal-btn-outline portal-btn-sm">
                                             <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>Draft
                                         </button>
@@ -118,7 +118,7 @@
                                 }
                                 else
                                 {
-                                    <form method="post" asp-page-handler="Archive" asp-route-id="@product.Id" class="tw:m-0">
+                                    <form method="post" asp-page-handler="Archive" asp-route-id="@product.Id" class="m-0">
                                         <button type="submit" class="portal-btn portal-btn-outline portal-btn-sm">
                                             <i class="fa-solid fa-box-archive" aria-hidden="true"></i>Archive
                                         </button>
@@ -149,7 +149,7 @@
                 <div class="product-template-grid">
                     @foreach (var template in Model.Templates)
                     {
-                        <form method="post" asp-page-handler="Create" class="tw:m-0">
+                        <form method="post" asp-page-handler="Create" class="m-0">
                             <input type="hidden" name="templateKey" value="@template.Key" />
                             <button type="submit" class="product-template-card">
                                 <span class="product-template-icon" aria-hidden="true">

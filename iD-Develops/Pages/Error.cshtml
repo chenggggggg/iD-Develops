@@ -17,7 +17,7 @@
     <main class="error-shell">
         <div class="public-container">
             <section class="error-card">
-                <div class="tw:grid tw:items-center tw:lg:grid-cols-2">
+                <div class="grid items-center lg:grid-cols-2">
                     <div>
                         <div class="error-visual">
                             @if (!string.IsNullOrWhiteSpace(Model.ImagePath))
@@ -58,7 +58,7 @@
                     </a>
 
                     <div id="errorDiagnostics" class="error-diagnostics-panel" hidden>
-                        <div class="tw:grid tw:gap-3 tw:text-sm tw:sm:grid-cols-2">
+                        <div class="grid gap-3 text-sm sm:grid-cols-2">
                             <div>
                                 <div class="error-diagnostics-label">Status code</div>
                                 <div class="error-diagnostics-value">@Model.StatusCodeValue</div>

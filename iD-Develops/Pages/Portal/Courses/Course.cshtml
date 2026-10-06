@@ -241,7 +241,7 @@
                         else if (selected.ExamId.HasValue &&
                                  selected.ExamPublishStatus == iD_Develops.Models.ExamPublishStatus.Published)
                         {
-                            <form method="post" asp-page-handler="LaunchExam" asp-route-courseId="@Model.Course.Id" class="tw:mt-4">
+                            <form method="post" asp-page-handler="LaunchExam" asp-route-courseId="@Model.Course.Id" class="mt-4">
                                 <input type="hidden" name="placementId" value="@selected.Id" />
                                 <input type="hidden" name="examId" value="@selected.ExamId.Value" />
                                 <button class="portal-btn portal-btn-primary" type="submit">
@@ -251,7 +251,7 @@
                         }
                         else if (Model.Course.CanManage && selected.ExamId.HasValue)
                         {
-                            <a class="portal-btn portal-btn-primary tw:mt-4"
+                            <a class="portal-btn portal-btn-primary mt-4"
                                asp-page="/Portal/Examination/Edit"
                                asp-route-examId="@selected.ExamId.Value"
                                asp-route-returnCourseId="@Model.Course.Id">
@@ -729,18 +729,18 @@
 
 @if (Model.IsEditMode && Model.EditData != null)
 {
-    <dialog class="schedule-dialog tw:w-[min(34rem,calc(100%-2rem))] tw:rounded-2xl tw:border-0 tw:p-0 tw:shadow-2xl" id="courseUnlockConfirmDialog" aria-labelledby="courseUnlockConfirmTitle">
-        <section class="tw:p-6">
-            <div class="tw:flex tw:items-start tw:gap-4">
-                <span class="tw:grid tw:size-10 tw:shrink-0 tw:place-items-center tw:rounded-full tw:bg-amber-100 tw:text-amber-700" aria-hidden="true"><i class="fa-solid fa-clock-rotate-left"></i></span>
+    <dialog class="schedule-dialog w-[min(34rem,calc(100%-2rem))] rounded-2xl border-0 p-0 shadow-2xl" id="courseUnlockConfirmDialog" aria-labelledby="courseUnlockConfirmTitle">
+        <section class="p-6">
+            <div class="flex items-start gap-4">
+                <span class="grid size-10 shrink-0 place-items-center rounded-full bg-amber-100 text-amber-700" aria-hidden="true"><i class="fa-solid fa-clock-rotate-left"></i></span>
                 <div>
-                    <h2 class="tw:m-0 tw:text-lg tw:font-bold tw:text-slate-950" id="courseUnlockConfirmTitle">Update enrolled learners' schedules?</h2>
-                    <p class="tw:mb-0 tw:mt-2 tw:text-sm tw:leading-6 tw:text-slate-600">Changing a default unlock delay recalculates future unlock dates for all enrolled learners. Content that is already unlocked stays unlocked, and earlier learner-specific access is preserved.</p>
+                    <h2 class="m-0 text-lg font-bold text-slate-950" id="courseUnlockConfirmTitle">Update enrolled learners' schedules?</h2>
+                    <p class="mb-0 mt-2 text-sm leading-6 text-slate-600">Changing a default unlock delay recalculates future unlock dates for all enrolled learners. Content that is already unlocked stays unlocked, and earlier learner-specific access is preserved.</p>
                 </div>
             </div>
-            <ul class="tw:my-4 tw:max-h-40 tw:list-disc tw:overflow-y-auto tw:rounded-lg tw:bg-slate-50 tw:px-8 tw:py-3 tw:text-sm tw:text-slate-700" data-course-unlock-change-list></ul>
-            <p class="tw:mb-0 tw:text-xs tw:text-slate-500">Cancel keeps your edits on this page. You can restore the previous delay and save your other changes.</p>
-            <div class="tw:mt-6 tw:flex tw:justify-end tw:gap-2">
+            <ul class="my-4 max-h-40 list-disc overflow-y-auto rounded-lg bg-slate-50 px-8 py-3 text-sm text-slate-700" data-course-unlock-change-list></ul>
+            <p class="mb-0 text-xs text-slate-500">Cancel keeps your edits on this page. You can restore the previous delay and save your other changes.</p>
+            <div class="mt-6 flex justify-end gap-2">
                 <button class="portal-btn portal-btn-outline" type="button" data-course-unlock-cancel>Cancel</button>
                 <button class="portal-btn portal-btn-primary" type="button" data-course-unlock-confirm>Update schedules and save</button>
             </div>

@@ -9,31 +9,31 @@
 <section class="portal-page-shell portal-data-page">
     <div class="portal-page-header">
         <div class="portal-page-header-copy">
-            <a class="tw:mb-2 tw:inline-flex tw:items-center tw:gap-2 tw:text-sm tw:font-semibold tw:text-[#005190]" asp-page="/Portal/Exams/List"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i>Exams</a>
+            <a class="mb-2 inline-flex items-center gap-2 text-sm font-semibold text-[#005190]" asp-page="/Portal/Exams/List"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i>Exams</a>
             <p class="portal-eyebrow">Exam access</p>
             <h1 class="portal-title-sm">@Model.Data.ExamName</h1>
             <p class="portal-copy">Assign this exam directly, schedule access, or grant additional attempts.</p>
         </div>
-        <span class="tw:rounded-full tw:bg-slate-100 tw:px-3 tw:py-1 tw:text-xs tw:font-semibold tw:text-slate-700">@Model.Data.PublishStatus</span>
+        <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">@Model.Data.PublishStatus</span>
     </div>
 
     @if (TempData["StatusMessage"] is string status)
     {
-        <div class="tw:mb-4 tw:rounded-xl tw:border tw:border-emerald-200 tw:bg-emerald-50 tw:p-4 tw:text-sm tw:text-emerald-900" role="status">@status</div>
+        <div class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900" role="status">@status</div>
     }
     @if (TempData["ErrorMessage"] is string error)
     {
-        <div class="tw:mb-4 tw:rounded-xl tw:border tw:border-red-200 tw:bg-red-50 tw:p-4 tw:text-sm tw:text-red-900" role="alert">@error</div>
+        <div class="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-900" role="alert">@error</div>
     }
 
-    <section class="tw:mb-6 tw:rounded-xl tw:border tw:border-slate-200 tw:bg-white tw:shadow-sm">
-        <div class="tw:flex tw:flex-wrap tw:items-center tw:justify-between tw:gap-2 tw:border-b tw:border-slate-100 tw:px-5 tw:py-4">
-            <div><h2 class="tw:m-0 tw:text-base tw:font-semibold tw:text-slate-900">Course usage</h2><p class="tw:mb-0 tw:mt-1 tw:text-sm tw:text-slate-500">Every course section where this exam is currently placed.</p></div>
-            <span class="tw:rounded-full tw:bg-slate-100 tw:px-2.5 tw:py-1 tw:text-xs tw:font-semibold tw:text-slate-600">@Model.Data.CoursePlacements.Count placement@(Model.Data.CoursePlacements.Count == 1 ? "" : "s")</span>
+    <section class="mb-6 rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-5 py-4">
+            <div><h2 class="m-0 text-base font-semibold text-slate-900">Course usage</h2><p class="mb-0 mt-1 text-sm text-slate-500">Every course section where this exam is currently placed.</p></div>
+            <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">@Model.Data.CoursePlacements.Count placement@(Model.Data.CoursePlacements.Count == 1 ? "" : "s")</span>
         </div>
         @if (Model.Data.CoursePlacements.Count == 0)
         {
-            <div class="tw:px-5 tw:py-7 tw:text-sm tw:text-slate-500">This exam is not attached to a course. It is only visible through direct assignments.</div>
+            <div class="px-5 py-7 text-sm text-slate-500">This exam is not attached to a course. It is only visible through direct assignments.</div>
         }
         else
         {
@@ -45,10 +45,10 @@
                     {
                         <tr>
                             <td><strong>@placement.CourseName</strong></td>
-                            <td>@placement.SectionTitle <small class="tw:block tw:text-slate-500">Section @(placement.SectionOrder + 1) · item @(placement.ContentOrder + 1)</small></td>
+                            <td>@placement.SectionTitle <small class="block text-slate-500">Section @(placement.SectionOrder + 1) · item @(placement.ContentOrder + 1)</small></td>
                             <td>@(placement.UnlockAfterValue.HasValue ? $"After {placement.UnlockAfterValue} {placement.UnlockAfterUnit?.ToString().ToLowerInvariant()}" : "Section default")</td>
                             <td>@(placement.IsRequiredForCompletion ? "Yes" : "No")</td>
-                            <td><a class="portal-btn portal-btn-outline portal-btn-sm portal-btn-icon" asp-page="/Portal/Courses/Course" asp-route-courseId="@placement.CourseId" asp-route-edit="true" asp-route-contentType="exam" asp-route-contentId="@placement.PlacementId" title="Edit in course"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i><span class="tw:sr-only">Edit in course</span></a></td>
+                            <td><a class="portal-btn portal-btn-outline portal-btn-sm portal-btn-icon" asp-page="/Portal/Courses/Course" asp-route-courseId="@placement.CourseId" asp-route-edit="true" asp-route-contentType="exam" asp-route-contentId="@placement.PlacementId" title="Edit in course"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i><span class="sr-only">Edit in course</span></a></td>
                         </tr>
                     }
                     </tbody>
@@ -57,12 +57,12 @@
         }
     </section>
 
-    <div class="tw:grid tw:gap-5 tw:lg:grid-cols-2">
-        <form method="post" asp-page-handler="Assign" asp-route-examId="@Model.Data.ExamId" class="tw:rounded-xl tw:border tw:border-slate-200 tw:bg-white tw:p-5 tw:shadow-sm">
-            <h2 class="tw:m-0 tw:text-lg tw:font-semibold tw:text-slate-900">Direct assignment</h2>
-            <p class="tw:mt-1 tw:text-sm tw:text-slate-500">The exam stays private to the selected user. Dates use Europe/Amsterdam.</p>
-            <div class="tw:mt-4 tw:grid tw:gap-4">
-                <label class="tw:grid tw:gap-1 tw:text-sm tw:font-medium tw:text-slate-700">User
+    <div class="grid gap-5 lg:grid-cols-2">
+        <form method="post" asp-page-handler="Assign" asp-route-examId="@Model.Data.ExamId" class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 class="m-0 text-lg font-semibold text-slate-900">Direct assignment</h2>
+            <p class="mt-1 text-sm text-slate-500">The exam stays private to the selected user. Dates use Europe/Amsterdam.</p>
+            <div class="mt-4 grid gap-4">
+                <label class="grid gap-1 text-sm font-medium text-slate-700">User
                     <select asp-for="SelectedUserId" class="portal-field" required>
                         <option value="">Select user</option>
                         @foreach (var user in Model.Data.UserOptions.Where(user => !assignedIds.Contains(user.UserId)))
@@ -71,23 +71,23 @@
                         }
                     </select>
                 </label>
-                <div class="tw:grid tw:gap-4 tw:sm:grid-cols-2">
-                    <label class="tw:grid tw:gap-1 tw:text-sm tw:font-medium tw:text-slate-700">Unlock at
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <label class="grid gap-1 text-sm font-medium text-slate-700">Unlock at
                         <input asp-for="UnlockAtUtc" type="datetime-local" class="portal-field" />
                     </label>
-                    <label class="tw:grid tw:gap-1 tw:text-sm tw:font-medium tw:text-slate-700">Due at
+                    <label class="grid gap-1 text-sm font-medium text-slate-700">Due at
                         <input asp-for="DueAtUtc" type="datetime-local" class="portal-field" />
                     </label>
                 </div>
-                <button class="portal-btn portal-btn-primary tw:justify-self-start" type="submit"><i class="fa-solid fa-user-plus" aria-hidden="true"></i>Assign exam</button>
+                <button class="portal-btn portal-btn-primary justify-self-start" type="submit"><i class="fa-solid fa-user-plus" aria-hidden="true"></i>Assign exam</button>
             </div>
         </form>
 
-        <form method="post" asp-page-handler="GrantAttempts" asp-route-examId="@Model.Data.ExamId" class="tw:rounded-xl tw:border tw:border-slate-200 tw:bg-white tw:p-5 tw:shadow-sm">
-            <h2 class="tw:m-0 tw:text-lg tw:font-semibold tw:text-slate-900">Grant attempts</h2>
-            <p class="tw:mt-1 tw:text-sm tw:text-slate-500">Adds to the exam limit without changing the exam’s default settings.</p>
-            <div class="tw:mt-4 tw:grid tw:gap-4">
-                <label class="tw:grid tw:gap-1 tw:text-sm tw:font-medium tw:text-slate-700">User
+        <form method="post" asp-page-handler="GrantAttempts" asp-route-examId="@Model.Data.ExamId" class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 class="m-0 text-lg font-semibold text-slate-900">Grant attempts</h2>
+            <p class="mt-1 text-sm text-slate-500">Adds to the exam limit without changing the exam’s default settings.</p>
+            <div class="mt-4 grid gap-4">
+                <label class="grid gap-1 text-sm font-medium text-slate-700">User
                     <select asp-for="SelectedUserId" class="portal-field" required>
                         <option value="">Select user</option>
                         @foreach (var user in Model.Data.UserOptions)
@@ -96,34 +96,34 @@
                         }
                     </select>
                 </label>
-                <label class="tw:grid tw:gap-1 tw:text-sm tw:font-medium tw:text-slate-700">Additional attempts
+                <label class="grid gap-1 text-sm font-medium text-slate-700">Additional attempts
                     <input asp-for="AdditionalAttempts" type="number" min="1" max="1000" class="portal-field" />
                 </label>
-                <label class="tw:grid tw:gap-1 tw:text-sm tw:font-medium tw:text-slate-700">Reason (optional)
+                <label class="grid gap-1 text-sm font-medium text-slate-700">Reason (optional)
                     <textarea asp-for="AttemptReason" rows="3" maxlength="500" class="portal-field"></textarea>
                 </label>
-                <button class="portal-btn portal-btn-primary tw:justify-self-start" type="submit"><i class="fa-solid fa-plus" aria-hidden="true"></i>Grant attempts</button>
+                <button class="portal-btn portal-btn-primary justify-self-start" type="submit"><i class="fa-solid fa-plus" aria-hidden="true"></i>Grant attempts</button>
             </div>
         </form>
     </div>
 
-    <div class="tw:mt-6 tw:rounded-xl tw:border tw:border-slate-200 tw:bg-white tw:shadow-sm">
-        <div class="tw:border-b tw:border-slate-100 tw:px-5 tw:py-4"><h2 class="tw:m-0 tw:text-base tw:font-semibold tw:text-slate-900">Directly assigned users</h2></div>
+    <div class="mt-6 rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div class="border-b border-slate-100 px-5 py-4"><h2 class="m-0 text-base font-semibold text-slate-900">Directly assigned users</h2></div>
         <div class="portal-table-wrap">
             <table class="portal-exams-table">
                 <thead><tr><th>User</th><th>Unlock</th><th>Due</th><th>Assigned</th><th>Actions</th></tr></thead>
                 <tbody>
                 @if (Model.Data.Assignments.Count == 0)
                 {
-                    <tr><td colspan="5" class="tw:px-5 tw:py-8 tw:text-center tw:text-sm tw:text-slate-500">No direct assignments yet.</td></tr>
+                    <tr><td colspan="5" class="px-5 py-8 text-center text-sm text-slate-500">No direct assignments yet.</td></tr>
                 }
                 @foreach (var assignment in Model.Data.Assignments)
                 {
                     <tr>
-                        <td><strong class="tw:block">@assignment.Name</strong><small>@assignment.Email</small></td>
+                        <td><strong class="block">@assignment.Name</strong><small>@assignment.Email</small></td>
                         <td>@(AssignmentsModel.ToAmsterdam(assignment.UnlockAtUtc)?.ToString("dd MMM yyyy HH:mm") ?? "Immediately")</td>
                         <td>@(AssignmentsModel.ToAmsterdam(assignment.DueAtUtc)?.ToString("dd MMM yyyy HH:mm") ?? "No due date")</td>
-                        <td>@AssignmentsModel.ToAmsterdam(assignment.AssignedAtUtc)!.Value.ToString("dd MMM yyyy")<small class="tw:block">by @assignment.AssignedBy</small></td>
+                        <td>@AssignmentsModel.ToAmsterdam(assignment.AssignedAtUtc)!.Value.ToString("dd MMM yyyy")<small class="block">by @assignment.AssignedBy</small></td>
                         <td><form method="post" asp-page-handler="Remove" asp-route-examId="@Model.Data.ExamId" onsubmit="return confirm('Remove this direct assignment?');"><input type="hidden" name="userId" value="@assignment.UserId" /><button class="portal-btn portal-btn-danger portal-btn-sm" type="submit">Remove</button></form></td>
                     </tr>
                 }
@@ -134,12 +134,12 @@
 
     @if (Model.Data.AttemptGrants.Count > 0)
     {
-        <div class="tw:mt-6 tw:rounded-xl tw:border tw:border-slate-200 tw:bg-white tw:p-5 tw:shadow-sm">
-            <h2 class="tw:m-0 tw:text-base tw:font-semibold tw:text-slate-900">Attempt grant history</h2>
-            <ul class="tw:mt-4 tw:grid tw:gap-3 tw:p-0">
+        <div class="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 class="m-0 text-base font-semibold text-slate-900">Attempt grant history</h2>
+            <ul class="mt-4 grid gap-3 p-0">
                 @foreach (var grant in Model.Data.AttemptGrants)
                 {
-                    <li class="tw:list-none tw:rounded-lg tw:border tw:border-slate-100 tw:bg-slate-50 tw:px-4 tw:py-3 tw:text-sm"><strong>@grant.UserName</strong> received @grant.AdditionalAttempts attempt@(grant.AdditionalAttempts == 1 ? string.Empty : "s") <span class="tw:text-slate-500">on @grant.GrantedAtUtc.ToString("dd MMM yyyy") by @grant.GrantedBy</span>@if (!string.IsNullOrWhiteSpace(grant.Reason)){<small class="tw:mt-1 tw:block tw:text-slate-600">@grant.Reason</small>}</li>
+                    <li class="list-none rounded-lg border border-slate-100 bg-slate-50 px-4 py-3 text-sm"><strong>@grant.UserName</strong> received @grant.AdditionalAttempts attempt@(grant.AdditionalAttempts == 1 ? string.Empty : "s") <span class="text-slate-500">on @grant.GrantedAtUtc.ToString("dd MMM yyyy") by @grant.GrantedBy</span>@if (!string.IsNullOrWhiteSpace(grant.Reason)){<small class="mt-1 block text-slate-600">@grant.Reason</small>}</li>
                 }
             </ul>
         </div>

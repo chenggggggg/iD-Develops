@@ -234,7 +234,7 @@ namespace iD_Develops.Services
             }
             catch (Exception exception) when (exception is HttpRequestException or CryptographicException)
             {
-                _logger.LogInformation(exception, "Revoking {Provider} token failed; removing the local connection.", provider);
+                _logger.LogDebug(exception, "Revoking {Provider} token failed; removing the local connection.", provider);
             }
 
             _dbContext.SchedulingProviderConnections.Remove(connection);

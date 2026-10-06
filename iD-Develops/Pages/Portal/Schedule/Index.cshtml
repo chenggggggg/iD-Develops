@@ -62,7 +62,7 @@
             {
                 <form method="get" class="schedule-calendar-view-form">
                     <label for="scheduleCalendarView">
-                        <span class="tw:sr-only">Select calendar</span>
+                        <span class="sr-only">Select calendar</span>
                         <span class="schedule-calendar-select">
                             <select id="scheduleCalendarView" name="CalendarView" onchange="this.form.submit()">
                                 <option value="mine" selected="@(Model.CalendarView == "mine" ? "selected" : null)">My calendar</option>
@@ -90,7 +90,7 @@
             <div class="schedule-time-zone">
                 <span class="schedule-time-zone-icon" aria-hidden="true"><i class="fa-solid fa-earth-europe"></i></span>
                 <span><small>Time zone</small><strong>Amsterdam</strong></span>
-                <span class="tw:sr-only">Europe/Amsterdam</span>
+                <span class="sr-only">Europe/Amsterdam</span>
             </div>
         </div>
     </div>

@@ -115,25 +115,25 @@
     }
 
     function addContentOption(sectionId, type, icon, label, description) {
-        return `<button class="tw:group tw:flex tw:min-h-12 tw:w-full tw:items-center tw:gap-3 tw:rounded-md tw:border-0 tw:bg-transparent tw:px-2.5 tw:py-2 tw:text-left tw:text-slate-700 tw:transition-colors tw:hover:bg-slate-50 tw:hover:text-slate-950 tw:focus-visible:bg-slate-50 tw:focus-visible:outline-2 tw:focus-visible:outline-offset-1 tw:focus-visible:outline-[#b23a48]" type="button" data-add-child="${type}" data-section-id="${sectionId}">
-            <span class="tw:grid tw:size-8 tw:shrink-0 tw:place-items-center tw:rounded-md tw:bg-slate-100 tw:text-sm tw:text-slate-600 tw:group-hover:bg-white tw:group-hover:text-[#b23a48]" aria-hidden="true"><i class="fa-solid ${icon}"></i></span>
-            <span class="tw:min-w-0 tw:flex-1">
-                <span class="tw:block tw:text-sm tw:font-semibold tw:leading-5">${label}</span>
-                <span class="tw:block tw:text-xs tw:leading-4 tw:text-slate-500">${description}</span>
+        return `<button class="group flex min-h-12 w-full items-center gap-3 rounded-md border-0 bg-transparent px-2.5 py-2 text-left text-slate-700 transition-colors hover:bg-slate-50 hover:text-slate-950 focus-visible:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#b23a48]" type="button" data-add-child="${type}" data-section-id="${sectionId}">
+            <span class="grid size-8 shrink-0 place-items-center rounded-md bg-slate-100 text-sm text-slate-600 group-hover:bg-white group-hover:text-[#b23a48]" aria-hidden="true"><i class="fa-solid ${icon}"></i></span>
+            <span class="min-w-0 flex-1">
+                <span class="block text-sm font-semibold leading-5">${label}</span>
+                <span class="block text-xs leading-4 text-slate-500">${description}</span>
             </span>
-            <i class="fa-solid fa-chevron-right tw:text-[0.65rem] tw:text-slate-400" aria-hidden="true"></i>
+            <i class="fa-solid fa-chevron-right text-[0.65rem] text-slate-400" aria-hidden="true"></i>
         </button>`;
     }
 
     function addContentMenu(section) {
         const menuId = `course-add-content-${section.Id}`;
-        return `<div class="tw:relative tw:px-1 tw:pb-1 tw:pt-2" data-add-content-root>
-            <button class="tw:group tw:flex tw:min-h-11 tw:w-full tw:items-center tw:gap-2.5 tw:rounded-lg tw:border tw:border-dashed tw:border-slate-300 tw:bg-white tw:px-3 tw:py-2 tw:text-sm tw:font-semibold tw:text-slate-600 tw:shadow-sm tw:transition-all tw:duration-200 tw:hover:border-[#b23a48] tw:hover:bg-[#fff7f8] tw:hover:text-[#b23a48] tw:hover:shadow-md tw:focus-visible:outline-2 tw:focus-visible:outline-offset-2 tw:focus-visible:outline-[#b23a48]" type="button" data-add-content-toggle aria-controls="${menuId}" aria-expanded="false">
-                <span class="tw:grid tw:size-7 tw:place-items-center tw:rounded-full tw:bg-slate-100 tw:text-xs tw:transition-colors tw:group-hover:bg-[#b23a48] tw:group-hover:text-white"><i class="fa-solid fa-plus" aria-hidden="true"></i></span>
-                <span class="tw:flex-1 tw:text-left">Add content</span>
-                <i class="fa-solid fa-chevron-down tw:text-[0.65rem] tw:transition-transform" data-add-content-chevron aria-hidden="true"></i>
+        return `<div class="relative px-1 pb-1 pt-2" data-add-content-root>
+            <button class="group flex min-h-11 w-full items-center gap-2.5 rounded-lg border border-dashed border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-[#b23a48] hover:bg-[#fff7f8] hover:text-[#b23a48] hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b23a48]" type="button" data-add-content-toggle aria-controls="${menuId}" aria-expanded="false">
+                <span class="grid size-7 place-items-center rounded-full bg-slate-100 text-xs transition-colors group-hover:bg-[#b23a48] group-hover:text-white"><i class="fa-solid fa-plus" aria-hidden="true"></i></span>
+                <span class="flex-1 text-left">Add content</span>
+                <i class="fa-solid fa-chevron-down text-[0.65rem] transition-transform" data-add-content-chevron aria-hidden="true"></i>
             </button>
-            <div class="tw:mt-2 tw:grid tw:gap-0.5 tw:rounded-lg tw:border tw:border-slate-200 tw:bg-white tw:p-1.5 tw:shadow-lg" id="${menuId}" data-add-content-menu hidden>
+            <div class="mt-2 grid gap-0.5 rounded-lg border border-slate-200 bg-white p-1.5 shadow-lg" id="${menuId}" data-add-content-menu hidden>
                 ${addContentOption(section.Id, "lecture", "fa-circle-play", "Lecture", "Video, article, or learning material")}
                 ${addContentOption(section.Id, "assignment", "fa-clipboard-check", "Assignment", "A task for students to complete")}
                 ${addContentOption(section.Id, "class", "fa-calendar-days", "Live class", "A scheduled, bookable session")}
@@ -179,7 +179,7 @@
             : 0;
         const meta = type === "class" ? `${Number(item.DurationMinutes) || 0} min` : type === "exam" ? (Number(item.PublishStatus) === 1 ? "Published" : Number(item.PublishStatus) === 2 ? "Archived" : "Draft") : `${duration} min`;
         const titleMarkup = type === "exam"
-            ? `<span class="course-editor-inline-field"><span class="tw:block tw:min-w-0 tw:truncate tw:px-2 tw:text-sm tw:font-medium tw:text-slate-800">${escapeHtml(item.Title)}</span></span>`
+            ? `<span class="course-editor-inline-field"><span class="block min-w-0 truncate px-2 text-sm font-medium text-slate-800">${escapeHtml(item.Title)}</span></span>`
             : treeTitle(item, type, `${type} title`);
         return `<div class="course-editor-tree-item is-child ${selected.type === type && selected.id === Number(item.Id) ? "is-selected" : ""}" data-editor-item data-type="${type}" data-id="${item.Id}" data-parent-id="${section.Id}" draggable="true">
             <div class="course-editor-tree-row">
@@ -278,9 +278,9 @@
 
     function learnerUnlockPanel(type, item) {
         if (Number(item.Id) <= 0) {
-            return `<section class="tw:mt-5 tw:rounded-xl tw:border tw:border-slate-200 tw:bg-slate-50 tw:p-4">
-                <strong class="tw:block tw:text-sm tw:text-slate-900">Learner-specific access</strong>
-                <p class="tw:mb-0 tw:mt-1 tw:text-sm tw:text-slate-500">Save this content before adding learner-specific access.</p>
+            return `<section class="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <strong class="block text-sm text-slate-900">Learner-specific access</strong>
+                <p class="mb-0 mt-1 text-sm text-slate-500">Save this content before adding learner-specific access.</p>
             </section>`;
         }
         if (!state.Learners.length) return "";
@@ -291,21 +291,21 @@
         const options = state.Learners.map(function (learner) {
             return `<option value="${escapeHtml(learner.UserId)}">${escapeHtml(learner.Name)} (${escapeHtml(learner.Email)})</option>`;
         }).join("");
-        return `<section class="tw:mt-5 tw:rounded-xl tw:border tw:border-slate-200 tw:bg-white tw:p-4" data-unlock-panel data-content-kind="${kind}" data-content-id="${item.Id}">
-            <div class="tw:flex tw:flex-wrap tw:items-start tw:justify-between tw:gap-2">
-                <div><strong class="tw:block tw:text-sm tw:text-slate-900">Learner-specific access</strong><p class="tw:mb-0 tw:mt-1 tw:text-xs tw:text-slate-500">These changes save immediately. Times use Europe/Amsterdam.</p></div>
-                <span class="tw:rounded-full tw:bg-slate-100 tw:px-2.5 tw:py-1 tw:text-xs tw:font-semibold tw:text-slate-600" data-unlock-count>${overrides.length} override${overrides.length === 1 ? "" : "s"}</span>
+        return `<section class="mt-5 rounded-xl border border-slate-200 bg-white p-4" data-unlock-panel data-content-kind="${kind}" data-content-id="${item.Id}">
+            <div class="flex flex-wrap items-start justify-between gap-2">
+                <div><strong class="block text-sm text-slate-900">Learner-specific access</strong><p class="mb-0 mt-1 text-xs text-slate-500">These changes save immediately. Times use Europe/Amsterdam.</p></div>
+                <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600" data-unlock-count>${overrides.length} override${overrides.length === 1 ? "" : "s"}</span>
             </div>
-            <div class="tw:mt-4 tw:grid tw:gap-3 tw:md:grid-cols-2">
+            <div class="mt-4 grid gap-3 md:grid-cols-2">
                 <label class="course-editor-field"><span>Learner</span><span class="course-editor-editable"><select data-unlock-user><option value="">Select learner</option>${options}</select></span></label>
                 <label class="course-editor-field"><span>Unlock at (Amsterdam)</span><span class="course-editor-editable"><input type="datetime-local" data-unlock-at /></span></label>
             </div>
-            <p class="tw:mb-0 tw:mt-2 tw:text-xs tw:text-slate-500" data-unlock-current>No learner selected.</p>
-            <p class="tw:mb-0 tw:mt-2 tw:text-sm tw:text-red-700" data-unlock-error hidden></p>
-            <div class="tw:mt-3 tw:flex tw:flex-wrap tw:gap-2">
-                <button class="tw:inline-flex tw:min-h-9 tw:items-center tw:justify-center tw:rounded-lg tw:border tw:border-[#b23a48] tw:bg-[#b23a48] tw:px-3 tw:py-2 tw:text-sm tw:font-semibold tw:text-white tw:transition-colors tw:hover:border-[#902f3b] tw:hover:bg-[#902f3b] tw:disabled:cursor-not-allowed tw:disabled:opacity-50" type="button" data-unlock-save>Set unlock time</button>
-                <button class="tw:inline-flex tw:min-h-9 tw:items-center tw:justify-center tw:rounded-lg tw:border tw:border-slate-300 tw:bg-white tw:px-3 tw:py-2 tw:text-sm tw:font-semibold tw:text-slate-700 tw:transition-colors tw:hover:border-[#b23a48] tw:hover:text-[#b23a48] tw:disabled:cursor-not-allowed tw:disabled:opacity-50" type="button" data-unlock-now>Unlock now</button>
-                <button class="tw:inline-flex tw:min-h-9 tw:items-center tw:justify-center tw:rounded-lg tw:border tw:border-slate-300 tw:bg-white tw:px-3 tw:py-2 tw:text-sm tw:font-semibold tw:text-slate-700 tw:transition-colors tw:hover:border-[#b23a48] tw:hover:text-[#b23a48] tw:disabled:cursor-not-allowed tw:disabled:opacity-50" type="button" data-unlock-reset>Reset to default</button>
+            <p class="mb-0 mt-2 text-xs text-slate-500" data-unlock-current>No learner selected.</p>
+            <p class="mb-0 mt-2 text-sm text-red-700" data-unlock-error hidden></p>
+            <div class="mt-3 flex flex-wrap gap-2">
+                <button class="inline-flex min-h-9 items-center justify-center rounded-lg border border-[#b23a48] bg-[#b23a48] px-3 py-2 text-sm font-semibold text-white transition-colors hover:border-[#902f3b] hover:bg-[#902f3b] disabled:cursor-not-allowed disabled:opacity-50" type="button" data-unlock-save>Set unlock time</button>
+                <button class="inline-flex min-h-9 items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-[#b23a48] hover:text-[#b23a48] disabled:cursor-not-allowed disabled:opacity-50" type="button" data-unlock-now>Unlock now</button>
+                <button class="inline-flex min-h-9 items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-[#b23a48] hover:text-[#b23a48] disabled:cursor-not-allowed disabled:opacity-50" type="button" data-unlock-reset>Reset to default</button>
             </div>
         </section>`;
     }
@@ -369,20 +369,20 @@
         }
         const status = Number(exam.PublishStatus) === 1 ? "Published" : Number(exam.PublishStatus) === 2 ? "Archived" : "Draft";
         return `${heading("Exam", "fa-file-circle-check", exam, "Exam")}
-            <div class="tw:mb-5 tw:rounded-xl tw:border ${Number(exam.PublishStatus) === 1 ? "tw:border-emerald-200 tw:bg-emerald-50 tw:text-emerald-900" : "tw:border-amber-200 tw:bg-amber-50 tw:text-amber-900"} tw:px-4 tw:py-3 tw:text-sm">
+            <div class="mb-5 rounded-xl border ${Number(exam.PublishStatus) === 1 ? "border-emerald-200 bg-emerald-50 text-emerald-900" : "border-amber-200 bg-amber-50 text-amber-900"} px-4 py-3 text-sm">
                 <strong>${status}</strong>${Number(exam.PublishStatus) === 1 ? " · visible when this content unlocks" : " · not visible to students until published"}
             </div>
             <section class="course-editor-fields">
                 ${selectField("Exam", "ExamId", exam.ExamId, examOptions, "No exam selected")}
-                ${!Number(exam.ExamId) ? '<p class="tw:col-span-full tw:-mt-2 tw:text-sm tw:text-red-700" data-exam-selection-error>Select a published exam before saving.</p>' : ""}
+                ${!Number(exam.ExamId) ? '<p class="col-span-full -mt-2 text-sm text-red-700" data-exam-selection-error>Select a published exam before saving.</p>' : ""}
                 ${unlockField(exam)}
                 ${checkboxField("Required for completion", "IsRequiredForCompletion", exam.IsRequiredForCompletion !== false)}
                 ${field("Minimum passing score", "MinimumPassingScore", exam.MinimumPassingScore ?? 0, { type: "number", min: 0, max: 100000 })}
                 ${selectField("When the learner does not pass", "FailureAction", exam.FailureAction || 2, [{ value: 1, label: "Allow course progress" }, { value: 2, label: "Require a passing score" }])}
             </section>
-            <div class="tw:mt-5 tw:flex tw:flex-wrap tw:gap-2">
-                ${Number(exam.ExamId) > 0 ? `<a class="tw:inline-flex tw:min-h-10 tw:items-center tw:justify-center tw:gap-2 tw:rounded-lg tw:border tw:border-slate-300 tw:bg-white tw:px-4 tw:py-2 tw:text-sm tw:font-semibold tw:text-slate-700 tw:no-underline tw:transition-colors tw:hover:border-[#b23a48] tw:hover:text-[#b23a48]" href="/portal/examination/edit?examId=${Number(exam.ExamId)}"><i class="fa-solid fa-pen" aria-hidden="true"></i>Edit exam</a>` : ""}
-                <button class="tw:inline-flex tw:min-h-10 tw:items-center tw:justify-center tw:gap-2 tw:rounded-lg tw:border tw:border-[#b23a48] tw:bg-[#b23a48] tw:px-4 tw:py-2 tw:text-sm tw:font-semibold tw:text-white tw:shadow-sm tw:transition-all tw:hover:-translate-y-0.5 tw:hover:border-[#902f3b] tw:hover:bg-[#902f3b] tw:hover:shadow-md" type="button" data-create-new-exam data-section-id="${findTarget(selected).parent?.Id || ""}"><i class="fa-solid fa-plus" aria-hidden="true"></i>Create and attach new exam</button>
+            <div class="mt-5 flex flex-wrap gap-2">
+                ${Number(exam.ExamId) > 0 ? `<a class="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 no-underline transition-colors hover:border-[#b23a48] hover:text-[#b23a48]" href="/portal/examination/edit?examId=${Number(exam.ExamId)}"><i class="fa-solid fa-pen" aria-hidden="true"></i>Edit exam</a>` : ""}
+                <button class="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[#b23a48] bg-[#b23a48] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-[#902f3b] hover:bg-[#902f3b] hover:shadow-md" type="button" data-create-new-exam data-section-id="${findTarget(selected).parent?.Id || ""}"><i class="fa-solid fa-plus" aria-hidden="true"></i>Create and attach new exam</button>
             </div>${learnerUnlockPanel("exam", exam)}`;
     }
 
@@ -400,41 +400,41 @@
             ? "Add a date and time so learners can book this class."
             : "Review the available dates or add another session.";
         const sessionAction = Number(courseClass.Id) > 0
-            ? `<a href="/portal/calendar/roster?courseClassId=${Number(courseClass.Id)}&mode=single#schedule-session" class="tw:inline-flex tw:items-center tw:justify-center tw:gap-2 tw:rounded-lg tw:bg-sky-700 tw:px-4 tw:py-2.5 tw:text-sm tw:font-semibold tw:text-white tw:transition tw:hover:bg-sky-800"><i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>${upcomingSessionCount === 0 ? "Add session" : "Manage sessions"}</a>`
-            : `<span class="tw:text-xs tw:text-slate-500">Save the course before adding sessions.</span>`;
+            ? `<a href="/portal/calendar/roster?courseClassId=${Number(courseClass.Id)}&mode=single#schedule-session" class="inline-flex items-center justify-center gap-2 rounded-lg bg-sky-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-800"><i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>${upcomingSessionCount === 0 ? "Add session" : "Manage sessions"}</a>`
+            : `<span class="text-xs text-slate-500">Save the course before adding sessions.</span>`;
         return `${heading("Class", "fa-calendar-days", courseClass, "Untitled class")}
             <section class="course-editor-class-preview"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i><strong>${escapeHtml(courseClass.Title || "Untitled class")}</strong><span>${Number(courseClass.DurationMinutes) || 0} min · ${format === 2 ? "One-to-one" : "Group"}</span></section>
-            <div class="tw:grid tw:gap-4 tw:py-4">
-                <details class="tw:group tw:rounded-2xl tw:border tw:border-slate-200 tw:bg-white tw:shadow-sm" open>
-                    <summary class="tw:flex tw:cursor-pointer tw:list-none tw:items-center tw:justify-between tw:gap-4 tw:px-5 tw:py-4"><span><strong class="tw:block tw:text-sm tw:text-slate-900">Class details</strong><small class="tw:mt-1 tw:block tw:text-xs tw:text-slate-500">The format, duration, and capacity of each session.</small></span><i class="fa-solid fa-chevron-down tw:text-slate-400 tw:transition-transform tw:group-open:rotate-180" aria-hidden="true"></i></summary>
-                    <section class="course-editor-fields tw:!border-b-0 tw:border-t tw:border-slate-100 tw:!px-5 tw:!py-5">
+            <div class="grid gap-4 py-4">
+                <details class="group rounded-2xl border border-slate-200 bg-white shadow-sm" open>
+                    <summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4"><span><strong class="block text-sm text-slate-900">Class details</strong><small class="mt-1 block text-xs text-slate-500">The format, duration, and capacity of each session.</small></span><i class="fa-solid fa-chevron-down text-slate-400 transition-transform group-open:rotate-180" aria-hidden="true"></i></summary>
+                    <section class="course-editor-fields !border-b-0 border-t border-slate-100 !px-5 !py-5">
                         ${selectField("Session type", "Format", format, [{ value: 1, label: "Group session" }, { value: 2, label: "One-to-one session" }])}
                         ${field("Duration", "DurationMinutes", courseClass.DurationMinutes || 60, { type: "number", min: 5, max: 1440, placeholder: "Minutes" })}
                         ${format === 1 ? field("Maximum learners per session", "Capacity", courseClass.Capacity || 1, { type: "number", min: 1, max: 10000, placeholder: "Seats" }) : ""}
                     </section>
                 </details>
-                <details class="tw:group tw:rounded-2xl tw:border tw:border-slate-200 tw:bg-white tw:shadow-sm">
-                    <summary class="tw:flex tw:cursor-pointer tw:list-none tw:items-center tw:justify-between tw:gap-4 tw:px-5 tw:py-4"><span><strong class="tw:block tw:text-sm tw:text-slate-900">Course progress</strong><small class="tw:mt-1 tw:block tw:text-xs tw:text-slate-500">Choose when this class unlocks and whether attendance is required.</small></span><i class="fa-solid fa-chevron-down tw:text-slate-400 tw:transition-transform tw:group-open:rotate-180" aria-hidden="true"></i></summary>
-                    <section class="course-editor-fields tw:!border-b-0 tw:border-t tw:border-slate-100 tw:!px-5 tw:!py-5">
+                <details class="group rounded-2xl border border-slate-200 bg-white shadow-sm">
+                    <summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4"><span><strong class="block text-sm text-slate-900">Course progress</strong><small class="mt-1 block text-xs text-slate-500">Choose when this class unlocks and whether attendance is required.</small></span><i class="fa-solid fa-chevron-down text-slate-400 transition-transform group-open:rotate-180" aria-hidden="true"></i></summary>
+                    <section class="course-editor-fields !border-b-0 border-t border-slate-100 !px-5 !py-5">
                         ${unlockField(courseClass)}
                         ${checkboxField("Required for course completion", "IsRequiredForCompletion", Boolean(courseClass.IsRequiredForCompletion))}
-                        <p class="tw:col-span-full tw:m-0 tw:text-xs tw:leading-5 tw:text-slate-500">Required classes are completed automatically after the learner is marked attended. No-shows do not count.</p>
+                        <p class="col-span-full m-0 text-xs leading-5 text-slate-500">Required classes are completed automatically after the learner is marked attended. No-shows do not count.</p>
                     </section>
                 </details>
-                <details class="tw:group tw:rounded-2xl tw:border tw:border-slate-200 tw:bg-white tw:shadow-sm">
-                    <summary class="tw:flex tw:cursor-pointer tw:list-none tw:items-center tw:justify-between tw:gap-4 tw:px-5 tw:py-4"><span><strong class="tw:block tw:text-sm tw:text-slate-900">Booking</strong><small class="tw:mt-1 tw:block tw:text-xs tw:text-slate-500">Control who can book and what entitlement they need.</small></span><i class="fa-solid fa-chevron-down tw:text-slate-400 tw:transition-transform tw:group-open:rotate-180" aria-hidden="true"></i></summary>
-                    <section class="course-editor-fields tw:!border-b-0 tw:border-t tw:border-slate-100 tw:!px-5 tw:!py-5">
+                <details class="group rounded-2xl border border-slate-200 bg-white shadow-sm">
+                    <summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4"><span><strong class="block text-sm text-slate-900">Booking</strong><small class="mt-1 block text-xs text-slate-500">Control who can book and what entitlement they need.</small></span><i class="fa-solid fa-chevron-down text-slate-400 transition-transform group-open:rotate-180" aria-hidden="true"></i></summary>
+                    <section class="course-editor-fields !border-b-0 border-t border-slate-100 !px-5 !py-5">
                         ${selectField("Who can book?", "BookingAccess", bookingAccess, [{ value: 1, label: "Enrolled learners · included with course" }, { value: 2, label: "Anyone with the required Credit Product" }, { value: 3, label: "Enrolled learners · Credit Product required" }])}
                         ${selectField("Booking opens", "BookingEligibility", bookingEligibility, [{ value: 1, label: "When this class unlocks" }, { value: 2, label: "When the previous section unlocks" }])}
                         ${checkboxField("Show in student self-booking", "IsVisibleForStudentBooking", courseClass.IsVisibleForStudentBooking !== false)}
                         ${!usesCredit ? field("Sessions included per learner", "EnrollmentBookingLimit", courseClass.EnrollmentBookingLimit || "", { type: "number", min: 1, max: 100000, placeholder: "Unlimited" }) : ""}
                         ${usesCredit ? selectField("Required Credit Product", "RequiredCreditProductId", courseClass.RequiredCreditProductId, creditProducts, "Select Credit Product") : ""}
                         ${usesCredit ? field("Credits per booking", "CreditCost", courseClass.CreditCost || 1, { type: "number", min: 1, max: 100000 }) : ""}
-                        ${usesCredit ? '<p class="tw:col-span-full tw:m-0 tw:text-xs tw:leading-5 tw:text-slate-500">Attendance, no-show, and cancellation rules come from the selected Credit Product.</p>' : ""}
+                        ${usesCredit ? '<p class="col-span-full m-0 text-xs leading-5 text-slate-500">Attendance, no-show, and cancellation rules come from the selected Credit Product.</p>' : ""}
                     </section>
                 </details>
-                <section class="tw:flex tw:flex-col tw:gap-4 tw:rounded-2xl tw:border tw:border-slate-200 tw:bg-slate-50 tw:p-5 tw:sm:flex-row tw:sm:items-center tw:sm:justify-between">
-                    <span><strong class="tw:block tw:text-sm tw:text-slate-900">${sessionStatus}</strong><small class="tw:mt-1 tw:block tw:text-xs tw:text-slate-500">${sessionHelp}</small></span>
+                <section class="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:flex-row sm:items-center sm:justify-between">
+                    <span><strong class="block text-sm text-slate-900">${sessionStatus}</strong><small class="mt-1 block text-xs text-slate-500">${sessionHelp}</small></span>
                     ${sessionAction}
                 </section>
             </div>${learnerUnlockPanel("class", courseClass)}`;
@@ -480,11 +480,11 @@
                 outline.querySelectorAll("[data-add-content-menu]").forEach(function (candidate) {
                     candidate.hidden = true;
                     candidate.closest("[data-add-content-root]")?.querySelector("[data-add-content-toggle]")?.setAttribute("aria-expanded", "false");
-                    candidate.closest("[data-add-content-root]")?.querySelector("[data-add-content-chevron]")?.classList.remove("tw:rotate-180");
+                    candidate.closest("[data-add-content-root]")?.querySelector("[data-add-content-chevron]")?.classList.remove("rotate-180");
                 });
                 menu.hidden = !shouldOpen;
                 button.setAttribute("aria-expanded", String(shouldOpen));
-                root.querySelector("[data-add-content-chevron]")?.classList.toggle("tw:rotate-180", shouldOpen);
+                root.querySelector("[data-add-content-chevron]")?.classList.toggle("rotate-180", shouldOpen);
                 if (shouldOpen) menu.querySelector("button")?.focus();
             });
         });

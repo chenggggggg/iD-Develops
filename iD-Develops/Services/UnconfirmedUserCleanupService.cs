@@ -45,7 +45,10 @@ public class UnconfirmedUserCleanupService : BackgroundService
             {
                 // NOTE: CleanupUnconfirmedUsers already catches most exceptions,
                 // but we keep this outer guard as a last line of defense.
-                _logger.LogWarning(ex, "UnconfirmedUserCleanupService encountered an unexpected error. Will retry in {Delay}.", currentDelay);
+                _logger.LogWarning(
+                    ex,
+                    "Unconfirmed-user cleanup encountered an unexpected error. Retry delay: {RetryDelay}.",
+                    currentDelay);
 
                 // Failure => backoff (up to max)
                 currentDelay = TimeSpan.FromSeconds(
@@ -82,8 +85,8 @@ public class UnconfirmedUserCleanupService : BackgroundService
             {
                 if (await HasRelatedDataAsync(context, user.Id, cancellationToken))
                 {
-                    _logger.LogWarning(
-                        "Skipped deletion of unconfirmed user {UserId} because related application data exists.",
+                    _logger.LogDebug(
+                        "Skipped deleting an unconfirmed user because related application data exists. User ID: {UserId}.",
                         user.Id);
                     continue;
                 }
@@ -91,12 +94,12 @@ public class UnconfirmedUserCleanupService : BackgroundService
                 var result = await userManager.DeleteAsync(user);
                 if (result.Succeeded)
                 {
-                    _logger.LogInformation("Deleted unconfirmed user {Email}", user.Email);
+                    _logger.LogInformation("Deleted an unconfirmed user. User ID: {UserId}.", user.Id);
                 }
                 else
                 {
-                    _logger.LogError("Failed to delete unconfirmed user {Email}: {Errors}",
-                        user.Email,
+                    _logger.LogError("Could not delete an unconfirmed user. User ID: {UserId}. Identity errors: {IdentityErrors}",
+                        user.Id,
                         string.Join(", ", result.Errors.Select(e => e.Description)));
                 }
             }
@@ -109,7 +112,7 @@ public class UnconfirmedUserCleanupService : BackgroundService
         catch (Exception ex)
         {
             // Keep the service alive if DB is down / transient failures occur.
-            _logger.LogWarning(ex, "An error occurred while cleaning up unconfirmed users. DB likely unavailable.");
+            _logger.LogWarning(ex, "Unconfirmed-user cleanup failed. The database may be unavailable.");
         }
     }
 
