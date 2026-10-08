@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using iD_Develops.Enums;
 using iD_Develops.Models;
 using iD_Develops.Services;
+using iD_Develops.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -13,7 +14,6 @@ namespace iD_Develops.Pages
         private readonly ICatalogProductService _catalogProductService;
         private readonly ICatalogProductTemplateService _catalogProductTemplateService;
         private readonly CatalogProductFileStorageService _catalogProductFileStorageService;
-
         public FreeDownloadsModel(
             ICatalogProductService catalogProductService,
             ICatalogProductTemplateService catalogProductTemplateService,
@@ -35,14 +35,14 @@ namespace iD_Develops.Pages
         [BindProperty]
         public FreeDownloadEditInput EditInput { get; set; } = new();
 
-        public async Task OnGetAsync(bool preview = false, CancellationToken ct = default)
+        public async Task OnGetAsync(CancellationToken ct = default)
         {
-            await LoadDownloadsAsync(preview, ct);
+            await LoadDownloadsAsync(ct);
         }
 
         public async Task<IActionResult> OnPostCreateAsync(CancellationToken ct)
         {
-            if (!(User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
+            if (!CanManageProducts())
             {
                 return Forbid();
             }
@@ -51,12 +51,12 @@ namespace iD_Develops.Pages
             if (product == null)
             {
                 TempData["StatusMessage"] = "Could not create a free download.";
-                return RedirectToPage(new { preview = true });
+                return RedirectToEditor();
             }
 
             await _catalogProductService.CreateProductAsync(product, ct);
             TempData["StatusMessage"] = "Untitled download created.";
-            return RedirectToPage(new { preview = true });
+            return RedirectToEditor();
         }
 
         public async Task<IActionResult> OnGetDownloadAsync(int id, CancellationToken ct)
@@ -67,7 +67,7 @@ namespace iD_Develops.Pages
                 return NotFound();
             }
 
-            if (product.Status != CatalogProductStatus.Published && !(User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
+            if (product.Status != CatalogProductStatus.Published && !CanManageProducts())
             {
                 return NotFound();
             }
@@ -88,7 +88,7 @@ namespace iD_Develops.Pages
 
         public async Task<IActionResult> OnPostSaveAsync(int id, CancellationToken ct)
         {
-            if (!(User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
+            if (!CanManageProducts())
             {
                 return Forbid();
             }
@@ -188,12 +188,12 @@ namespace iD_Develops.Pages
             TempData["StatusMessage"] = product.Status == CatalogProductStatus.Published
                 ? "Download saved."
                 : "Download published.";
-            return RedirectToPage(new { preview = true });
+            return RedirectToEditor();
         }
 
         public async Task<IActionResult> OnPostCreateImageUploadAsync(int id, string fileName, string? contentType, long fileSize, CancellationToken ct)
         {
-            if (!(User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
+            if (!CanManageProducts())
             {
                 return Forbid();
             }
@@ -203,7 +203,7 @@ namespace iD_Develops.Pages
 
         public async Task<IActionResult> OnPostCreateDownloadUploadAsync(int id, string fileName, string? contentType, long fileSize, CancellationToken ct)
         {
-            if (!(User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
+            if (!CanManageProducts())
             {
                 return Forbid();
             }
@@ -213,7 +213,7 @@ namespace iD_Develops.Pages
 
         public IActionResult OnPostVerifyImageUpload(string fileName, string? contentType, long fileSize)
         {
-            if (!(User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
+            if (!CanManageProducts())
             {
                 return Forbid();
             }
@@ -223,7 +223,7 @@ namespace iD_Develops.Pages
 
         public IActionResult OnPostVerifyDownloadUpload(string fileName, string? contentType, long fileSize)
         {
-            if (!(User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
+            if (!CanManageProducts())
             {
                 return Forbid();
             }
@@ -233,7 +233,7 @@ namespace iD_Develops.Pages
 
         public async Task<IActionResult> OnPostDeleteAsync(int id, CancellationToken ct)
         {
-            if (!(User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
+            if (!CanManageProducts())
             {
                 return Forbid();
             }
@@ -248,7 +248,7 @@ namespace iD_Develops.Pages
             await _catalogProductFileStorageService.DeleteAsync(product.IncludedBookingBenefitUrl);
             await _catalogProductService.DeleteProductAsync(id, ct);
             TempData["StatusMessage"] = "Download removed.";
-            return RedirectToPage(new { preview = true });
+            return RedirectToEditor();
         }
 
         public async Task<string?> ResolveReadUrlAsync(string? reference)
@@ -359,9 +359,19 @@ namespace iD_Develops.Pages
                    !string.Equals(submitted, originalReference?.Trim(), StringComparison.OrdinalIgnoreCase);
         }
 
-        private async Task LoadDownloadsAsync(bool preview, CancellationToken ct)
+        protected virtual bool IsEditorPage
+            => false;
+
+        private bool CanManageProducts()
+            => IsEditorPage &&
+               (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"));
+
+        private IActionResult RedirectToEditor()
+            => RedirectToRoute(ApplicationHostPageRouteModelConvention.PortalFreeDownloadsEditRouteName);
+
+        private async Task LoadDownloadsAsync(CancellationToken ct)
         {
-            IsAdminEditMode = preview && (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"));
+            IsAdminEditMode = CanManageProducts();
             Downloads = IsAdminEditMode
                 ? await _catalogProductService.GetAdminFreeDownloadsAsync(ct)
                 : await _catalogProductService.GetPublishedFreeDownloadsAsync(ct);

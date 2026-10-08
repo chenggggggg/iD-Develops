@@ -73,6 +73,9 @@ builder.Services.Configure<RecordLifecycleOptions>(builder.Configuration.GetSect
 builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("Mail"));
 builder.Services.Configure<TurnstileSettings>(builder.Configuration.GetSection("Turnstile"));
 builder.Services.Configure<CloudflareSettings>(builder.Configuration.GetSection("Cloudflare"));
+builder.Services.Configure<ApplicationUrlOptions>(builder.Configuration.GetSection(ApplicationUrlOptions.SectionName));
+builder.Services.AddSingleton<IApplicationUrlService, ApplicationUrlService>();
+builder.Services.AddScoped<IPortalSessionIndicatorService, PortalSessionIndicatorService>();
 // QuestPDF
 // ----------------------------
 QuestPDF.Settings.License = LicenseType.Community;
@@ -168,21 +171,13 @@ var razorPagesBuilder = builder.Services.AddRazorPages()
     .AddMvcOptions(options => options.Filters.AddService<DatabaseUnavailableExceptionFilter>())
     .AddRazorPagesOptions(options =>
     {
-        options.Conventions.Add(new CultureTemplatePageRouteModelConvention());
-        options.Conventions.AddPageRoute("/Portal/Home/Index", "{culture=en-us}/portal");
-        options.Conventions.AddPageRoute("/Portal/Exams/List", "{culture=en-us}/portal/exams");
-        options.Conventions.AddPageRoute("/Portal/Exams/Record", "{culture=en-us}/portal/exams/results/{recordId:guid}");
-        options.Conventions.AddPageRoute("/Examination/Results", "{culture=en-us}/examination/results/{recordId:guid}");
-        options.Conventions.AddPageRoute("/Portal/Examination/Start", "{culture=en-us}/portal/exams/{examId:int}/start");
-        options.Conventions.AddPageRoute("/Portal/Examination/Index", "{culture=en-us}/portal/examination/{recordId:guid}");
-        options.Conventions.AddPageRoute("/Portal/Examination/Edit", "{culture=en-us}/portal/exams/{examId:int}/edit");
-        options.Conventions.AddPageRoute("/Portal/Admin/Products/Index", "{culture=en-us}/portal/products");
-        options.Conventions.AddPageRoute("/Portal/Examination/Completed", "{culture=en-us}/portal/examination/completed/{recordId:guid}");
-        options.Conventions.AddPageRoute("/Portal/Examination/Level-Test-Introduction", "{culture=en-us}/level-test");
-        options.Conventions.AddPageRoute("/Portal/Examination/Level-Test", "{culture=en-us}/examination/level-test/{recordId:guid}");
-        options.Conventions.AddPageRoute("/Portal/Examination/Level-Test", "{culture=en-us}/examination/level-test");
-        options.Conventions.AddPageRoute("/Product", "{culture=en-us}/products/{slug}");
-        options.Conventions.AddPageRoute("/FreeDownloads", "{culture=en-us}/free-downloads");
+        var applicationUrls = builder.Configuration
+            .GetSection(ApplicationUrlOptions.SectionName)
+            .Get<ApplicationUrlOptions>() ?? new ApplicationUrlOptions();
+        var publicHost = new Uri(applicationUrls.PublicBaseUrl).Host;
+        var portalHost = new Uri(applicationUrls.PortalBaseUrl).Host;
+
+        options.Conventions.Add(new ApplicationHostPageRouteModelConvention(publicHost, portalHost));
     });
 
 if (builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Local"))
@@ -193,6 +188,8 @@ if (builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Lo
 // Request localization
 builder.Services.Configure<RequestLocalizationOptions>(options =>
 {
+    var portalHost = new Uri(
+        builder.Configuration[$"{ApplicationUrlOptions.SectionName}:PortalBaseUrl"]!).Host;
     var supportedCultures = new[]
     {
         new CultureInfo("en-US"),
@@ -205,6 +202,11 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 
     options.RequestCultureProviders = new IRequestCultureProvider[]
     {
+        new CustomRequestCultureProvider(context =>
+            Task.FromResult(
+                string.Equals(context.Request.Host.Host, portalHost, StringComparison.OrdinalIgnoreCase)
+                    ? new ProviderCultureResult("en-US")
+                    : null)),
         new RouteDataRequestCultureProvider
         {
             RouteDataStringKey = "culture",
@@ -243,16 +245,31 @@ var secureCookiePolicy = builder.Environment.IsEnvironment("Local") || builder.E
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
-    // IMPORTANT: Cookie auth paths are literal. "{culture}" tokens are NOT substituted.
-    // Keep them culture-neutral here and prepend culture dynamically in redirect events.
-    options.LoginPath = "/identity/account/login";
-    options.LogoutPath = "/identity/account/logout";
-    options.AccessDeniedPath = "/identity/account/accessdenied";
+    options.LoginPath = "/login";
+    options.LogoutPath = "/logout";
+    options.AccessDeniedPath = "/access-denied";
+    options.Cookie.Name = ".iDDevelops.Portal";
     options.Cookie.SameSite = SameSiteMode.Lax;
     options.Cookie.SecurePolicy = secureCookiePolicy;
+    options.ExpireTimeSpan = PortalSessionIndicatorService.Lifetime;
+    options.SlidingExpiration = true;
 
     options.Events = new CookieAuthenticationEvents
     {
+        OnSignedIn = context =>
+        {
+            var sessionIndicator = context.HttpContext.RequestServices
+                .GetRequiredService<IPortalSessionIndicatorService>();
+            sessionIndicator.MarkSignedIn(context.HttpContext, context.Properties.IsPersistent);
+            return Task.CompletedTask;
+        },
+        OnSigningOut = context =>
+        {
+            var sessionIndicator = context.HttpContext.RequestServices
+                .GetRequiredService<IPortalSessionIndicatorService>();
+            sessionIndicator.Clear(context.HttpContext);
+            return Task.CompletedTask;
+        },
         OnValidatePrincipal = async context =>
         {
             try
@@ -261,6 +278,12 @@ builder.Services.ConfigureApplicationCookie(options =>
                 // This is what can hit the DB.
                 var validator = context.HttpContext.RequestServices.GetRequiredService<ISecurityStampValidator>();
                 await validator.ValidateAsync(context);
+                var sessionIndicator = context.HttpContext.RequestServices
+                    .GetRequiredService<IPortalSessionIndicatorService>();
+                if (context.Principal?.Identity?.IsAuthenticated != true)
+                {
+                    sessionIndicator.Clear(context.HttpContext);
+                }
             }
             catch (Exception ex) when (DatabaseAvailability.IsDatabaseUnavailable(ex))
             {
@@ -300,7 +323,10 @@ builder.Services.ConfigureApplicationCookie(options =>
                 return Task.CompletedTask;
             }
 
-            context.Response.Redirect(context.RedirectUri);
+            var applicationUrls = context.HttpContext.RequestServices.GetRequiredService<IApplicationUrlService>();
+            context.Response.Redirect(applicationUrls.IsPortalRequest(context.Request)
+                ? context.RedirectUri
+                : applicationUrls.PortalUrl("/login"));
             return Task.CompletedTask;
         },
         OnRedirectToAccessDenied = context =>
@@ -312,7 +338,10 @@ builder.Services.ConfigureApplicationCookie(options =>
                 return Task.CompletedTask;
             }
 
-            context.Response.Redirect(context.RedirectUri);
+            var applicationUrls = context.HttpContext.RequestServices.GetRequiredService<IApplicationUrlService>();
+            context.Response.Redirect(applicationUrls.IsPortalRequest(context.Request)
+                ? context.RedirectUri
+                : applicationUrls.PortalUrl("/access-denied"));
             return Task.CompletedTask;
         }
     };
@@ -322,6 +351,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 // App services
 // ----------------------------
 builder.Services.AddScoped<IExamService, ExamService>();
+builder.Services.AddScoped<IPortalAuthenticationHandoffService, PortalAuthenticationHandoffService>();
 builder.Services.AddScoped<IExamAccessService, ExamAccessService>();
 builder.Services.AddScoped<IExamAssignmentService, ExamAssignmentService>();
 builder.Services.AddScoped<IExamVersionService, ExamVersionService>();
@@ -631,6 +661,34 @@ catch (Exception ex)
 // Middleware
 // ----------------------------
 app.UseForwardedHeaders();
+
+if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Local"))
+{
+    app.Use(async (context, next) =>
+    {
+        var applicationUrls = context.RequestServices.GetRequiredService<IApplicationUrlService>();
+        var requestHost = context.Request.Host.Host;
+        var requestedPath = (context.Request.PathBase + context.Request.Path + context.Request.QueryString).ToString();
+        var configuredPublicHost = new Uri(applicationUrls.PublicBaseUrl).Host;
+        var configuredPortalHost = new Uri(applicationUrls.PortalBaseUrl).Host;
+        var destination = requestHost.Equals("localhost", StringComparison.OrdinalIgnoreCase) &&
+                          !requestHost.Equals(configuredPublicHost, StringComparison.OrdinalIgnoreCase)
+            ? applicationUrls.PublicUrl(requestedPath)
+            : requestHost.Equals("portal.localhost", StringComparison.OrdinalIgnoreCase) &&
+              !requestHost.Equals(configuredPortalHost, StringComparison.OrdinalIgnoreCase)
+                ? applicationUrls.PortalUrl(requestedPath)
+                : null;
+
+        if (destination != null)
+        {
+            context.Response.Redirect(destination);
+            return;
+        }
+
+        await next();
+    });
+}
+
 app.UseStaticFiles();
 if (!app.Environment.IsEnvironment("Local"))
 {
@@ -686,6 +744,7 @@ else
 app.UseStatusCodePages(statusContext =>
 {
     var context = statusContext.HttpContext;
+    var applicationUrls = context.RequestServices.GetRequiredService<IApplicationUrlService>();
     var path = context.Request.Path.Value ?? string.Empty;
     var statusCode = context.Response.StatusCode;
 
@@ -711,8 +770,10 @@ app.UseStatusCodePages(statusContext =>
         _ => "server-error"
     };
 
-    var culture = DatabaseAvailability.GetCultureFromPath(context.Request.Path);
-    context.Response.Redirect($"/{culture}/error?code={Uri.EscapeDataString(errorCode)}&statusCode={statusCode}&returnUrl={Uri.EscapeDataString(original)}");
+    var errorPath = applicationUrls.IsPortalRequest(context.Request)
+        ? "/error"
+        : $"/{DatabaseAvailability.GetCultureFromPath(context.Request.Path)}/error";
+    context.Response.Redirect($"{errorPath}?code={Uri.EscapeDataString(errorCode)}&statusCode={statusCode}&returnUrl={Uri.EscapeDataString(original)}");
     return Task.CompletedTask;
 });
 
@@ -755,7 +816,10 @@ app.Use(async (context, next) =>
 
         var original = (context.Request.PathBase + context.Request.Path + context.Request.QueryString).ToString();
         var errorCode = DatabaseAvailability.GetDatabaseErrorCode(ex);
-        var redirectUrl = DatabaseAvailability.BuildErrorUrl(context.Request.Path, context.Request.QueryString, errorCode);
+        var applicationUrls = context.RequestServices.GetRequiredService<IApplicationUrlService>();
+        var redirectUrl = applicationUrls.IsPortalRequest(context.Request)
+            ? $"/error?code={Uri.EscapeDataString(errorCode)}&returnUrl={Uri.EscapeDataString(original)}"
+            : DatabaseAvailability.BuildErrorUrl(context.Request.Path, context.Request.QueryString, errorCode);
 
         app.Logger.LogWarning(
             "Database unavailable; redirecting to {RedirectUrl}. Original: {Original}. Error: {ExceptionType}",
@@ -774,6 +838,22 @@ app.UseRouting();
 
 app.UseRequestLocalization();
 app.UseAuthentication();
+app.Use(async (context, next) =>
+{
+    var applicationUrls = context.RequestServices.GetRequiredService<IApplicationUrlService>();
+    if (applicationUrls.IsPortalRequest(context.Request) &&
+        context.User.Identity?.IsAuthenticated == true)
+    {
+        var sessionIndicator = context.RequestServices.GetRequiredService<IPortalSessionIndicatorService>();
+        if (!sessionIndicator.HasActiveSession(context.Request))
+        {
+            var authentication = await context.AuthenticateAsync(IdentityConstants.ApplicationScheme);
+            sessionIndicator.MarkSignedIn(context, authentication.Properties?.IsPersistent == true);
+        }
+    }
+
+    await next();
+});
 app.UseAuthorization();
 app.UseSession();
 
@@ -857,9 +937,10 @@ app.MapGet("/oauth/scheduling/{provider}/callback", async (
     }
 
     tempData.Save();
-    return Results.LocalRedirect("/portal/settings");
+    return Results.LocalRedirect("/settings");
 })
-.RequireAuthorization("ManageSchedulingConnections");
+.RequireAuthorization("ManageSchedulingConnections")
+.RequireHost(new Uri(app.Configuration[$"{ApplicationUrlOptions.SectionName}:PortalBaseUrl"]!).Host);
 
 app.MapGet("/health/db", async (ApplicationDbContext db) =>
 {

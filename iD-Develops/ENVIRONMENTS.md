@@ -105,9 +105,37 @@ Behavior:
 - Keeps secrets out of the repository
 - Assumes the production connection string is supplied through `.env.production`
 
-## Important Secret Keys
+## Application domains
+
+The public website and portal run in the same ASP.NET Core process but use separate hostnames.
+Configure both hostnames in every deployed environment:
+
+- `ApplicationUrls__PublicBaseUrl`: the bilingual public website, for example `https://id-develops.com`
+- `ApplicationUrls__PortalBaseUrl`: the English-only authenticated portal, for example `https://portal.id-develops.com`
+
+For local development, use `http://id.localhost:5000` for the public website and
+`http://portal.id.localhost:5000` for the portal. Both resolve to the existing local application;
+do not start a second application instance. In DigitalOcean App Platform, attach both custom
+domains to the same web component.
+The shared `id.localhost` parent is intentional: browsers reject response cookies scoped to
+`.localhost`, while `.id.localhost` lets the protected portal-session indicator reach both hosts.
+
+The codebase treats these hostnames as separate presentation modules. Public Razor Pages
+own culture-prefixed routes such as `/en-us/products`; portal Razor Pages under
+`Pages/Portal` own cultureless routes such as `/products` and `/courses`. A page endpoint
+belongs to only one module. The modules share application services and database access,
+but public and portal routes, layouts, authentication behavior, and page models remain
+independently addressable.
+
+Portal authentication cookies remain host-only. When a public product requires an account,
+the application uses a short-lived protected handoff through the portal and returns to the
+public checkout without sharing the portal cookie with the public hostname.
+
+## Important environment keys
 
 - `ConnectionStrings__ApplicationDbContextConnection`
+- `ApplicationUrls__PublicBaseUrl`
+- `ApplicationUrls__PortalBaseUrl`
 - `LOCAL_POSTGRES_USER`
 - `LOCAL_POSTGRES_PASSWORD`
 - `POSTGRES_USER`
@@ -159,12 +187,12 @@ Behavior:
 
 Create one user-managed General OAuth app in the Zoom App Marketplace for iD Develops. The app credentials belong in the server environment; teachers never enter a client ID, client secret, or API key.
 
-Configure these exact redirect URLs for the environments where Zoom is enabled:
+Configure these exact portal redirect URLs for the environments where Zoom is enabled:
 
 - Local: offline mode; Zoom is not configured
-- Development: `http://localhost:5003/oauth/scheduling/zoom/callback`
-- Staging: `https://staging.id-develops.com/oauth/scheduling/zoom/callback`
-- Production: `https://id-develops.com/oauth/scheduling/zoom/callback`
+- Development: `http://portal.id.localhost:5003/oauth/scheduling/zoom/callback`
+- Staging: `https://portal.staging.id-develops.com/oauth/scheduling/zoom/callback`
+- Production: `https://portal.id-develops.com/oauth/scheduling/zoom/callback`
 
 Use the Zoom app's Development credentials for both the Development and Staging deployments while the app is being built and tested. Because Zoom requires an HTTPS primary redirect, use the Staging callback as the primary Development-tab redirect. To test OAuth against the laptop Docker deployment, expose port 5003 through an HTTPS tunnel, add that tunnel's exact callback to the Development OAuth allow list, and open the portal through the tunnel URL. Use the separate Production credentials and Production redirect only for the live Production deployment when the app is ready for Marketplace review or publication. Never mix the Zoom app's Development and Production credential pairs.
 
@@ -197,8 +225,8 @@ Request these exact scopes in the consent configuration:
 
 Configure these exact authorized redirect URIs:
 
-- Staging: `https://staging.id-develops.com/oauth/scheduling/google-calendar/callback`
-- Production: `https://id-develops.com/oauth/scheduling/google-calendar/callback`
+- Staging: `https://portal.staging.id-develops.com/oauth/scheduling/google-calendar/callback`
+- Production: `https://portal.id-develops.com/oauth/scheduling/google-calendar/callback`
 
 Local and Development keep Google Calendar disabled. Add test Google accounts while the consent screen is in Testing status. Store the Web client ID and client secret as `SchedulingProviders__GoogleCalendar__ClientId` and `SchedulingProviders__GoogleCalendar__ClientSecret` in the deployment environment, and set `SchedulingProviders__GoogleCalendar__Enabled=true` for Staging or Production.
 

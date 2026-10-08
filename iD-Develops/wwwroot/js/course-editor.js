@@ -381,7 +381,7 @@
                 ${selectField("When the learner does not pass", "FailureAction", exam.FailureAction || 2, [{ value: 1, label: "Allow course progress" }, { value: 2, label: "Require a passing score" }])}
             </section>
             <div class="mt-5 flex flex-wrap gap-2">
-                ${Number(exam.ExamId) > 0 ? `<a class="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 no-underline transition-colors hover:border-[#b23a48] hover:text-[#b23a48]" href="/portal/examination/edit?examId=${Number(exam.ExamId)}"><i class="fa-solid fa-pen" aria-hidden="true"></i>Edit exam</a>` : ""}
+                ${Number(exam.ExamId) > 0 ? `<a class="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 no-underline transition-colors hover:border-[#b23a48] hover:text-[#b23a48]" href="/exams/${Number(exam.ExamId)}/edit"><i class="fa-solid fa-pen" aria-hidden="true"></i>Edit exam</a>` : ""}
                 <button class="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[#b23a48] bg-[#b23a48] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-[#902f3b] hover:bg-[#902f3b] hover:shadow-md" type="button" data-create-new-exam data-section-id="${findTarget(selected).parent?.Id || ""}"><i class="fa-solid fa-plus" aria-hidden="true"></i>Create and attach new exam</button>
             </div>${learnerUnlockPanel("exam", exam)}`;
     }
@@ -400,7 +400,7 @@
             ? "Add a date and time so learners can book this class."
             : "Review the available dates or add another session.";
         const sessionAction = Number(courseClass.Id) > 0
-            ? `<a href="/portal/calendar/roster?courseClassId=${Number(courseClass.Id)}&mode=single#schedule-session" class="inline-flex items-center justify-center gap-2 rounded-lg bg-sky-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-800"><i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>${upcomingSessionCount === 0 ? "Add session" : "Manage sessions"}</a>`
+            ? `<a href="/calendar/roster?courseClassId=${Number(courseClass.Id)}&mode=single#schedule-session" class="inline-flex items-center justify-center gap-2 rounded-lg bg-sky-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-800"><i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>${upcomingSessionCount === 0 ? "Add session" : "Manage sessions"}</a>`
             : `<span class="text-xs text-slate-500">Save the course before adding sessions.</span>`;
         return `${heading("Class", "fa-calendar-days", courseClass, "Untitled class")}
             <section class="course-editor-class-preview"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i><strong>${escapeHtml(courseClass.Title || "Untitled class")}</strong><span>${Number(courseClass.DurationMinutes) || 0} min · ${format === 2 ? "One-to-one" : "Group"}</span></section>

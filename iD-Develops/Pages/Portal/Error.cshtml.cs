@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Diagnostics;
 using iD_Develops.Services;
 
-namespace iD_Develops.Pages
+namespace iD_Develops.Pages.Portal
 {
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     [IgnoreAntiforgeryToken]
@@ -41,7 +41,7 @@ namespace iD_Develops.Pages
         {
             RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
 
-            const bool isPortalRequest = false;
+            const bool isPortalRequest = true;
             var culture = (RouteData.Values.TryGetValue("culture", out var c) ? c?.ToString() : null) ?? "en-us";
             HomeUrl = isPortalRequest ? "/" : $"/{culture}/";
             var localReturnUrl = !string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl)

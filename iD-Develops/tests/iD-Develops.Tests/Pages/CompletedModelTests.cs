@@ -1,7 +1,7 @@
 using iD_Develops.Configuration;
 using iD_Develops.Data;
 using iD_Develops.Models;
-using iD_Develops.Pages.Portal.Examination;
+using iD_Develops.Pages.Examination;
 using iD_Develops.Services;
 using iD_Develops.Tests.Infrastructure;
 using iD_Develops.Utilities;
@@ -131,8 +131,8 @@ public sealed class CompletedModelTests
 
         var result = await model.OnGetClaimLevelTestResultAsync(record.Id, token);
 
-        var redirect = Assert.IsType<RedirectToPageResult>(result);
-        Assert.Equal("/Portal/Exams/Record", redirect.PageName);
+        var redirect = Assert.IsType<RedirectResult>(result);
+        Assert.Equal($"https://portal.localhost:5001/exams/results/{record.Id:D}", redirect.Url);
 
         var updatedRecord = await db.Records.SingleAsync(r => r.Id == record.Id);
         Assert.Equal(user.Id, updatedRecord.UserId);
@@ -279,11 +279,16 @@ public sealed class CompletedModelTests
                 httpContextAccessor,
                 MailService,
                 _mailOptions,
-                NullLogger<CompletedModel>.Instance,
+                NullLogger<iD_Develops.Pages.Portal.Examination.CompletedModel>.Instance,
                 _prospectService,
                 _userManager,
                 _dataProtectionProvider,
-                new NoOpTurnstileService());
+                new NoOpTurnstileService(),
+                new ApplicationUrlService(Options.Create(new ApplicationUrlOptions
+                {
+                    PublicBaseUrl = "https://localhost:5001",
+                    PortalBaseUrl = "https://portal.localhost:5001"
+                })));
 
             var httpContext = new DefaultHttpContext
             {

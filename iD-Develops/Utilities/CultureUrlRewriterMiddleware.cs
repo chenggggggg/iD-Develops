@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using iD_Develops.Services;
 using Microsoft.AspNetCore.Http;
 
 namespace iD_Develops.Utilities
@@ -6,6 +7,7 @@ namespace iD_Develops.Utilities
     public sealed class CultureUrlRewriterMiddleware
     {
         private readonly RequestDelegate _next;
+        private readonly IApplicationUrlService _applicationUrlService;
 
         // Internal canonical culture names (what .NET expects)
         private static readonly string[] SupportedCultures = { "en-US", "nl-NL" };
@@ -15,13 +17,22 @@ namespace iD_Develops.Utilities
         private static readonly string[] SupportedCulturesUrl =
             SupportedCultures.Select(c => c.ToLowerInvariant()).ToArray();
 
-        public CultureUrlRewriterMiddleware(RequestDelegate next)
+        public CultureUrlRewriterMiddleware(RequestDelegate next, IApplicationUrlService applicationUrlService)
         {
             _next = next;
+            _applicationUrlService = applicationUrlService;
         }
 
         public async Task Invoke(HttpContext context)
         {
+            if (_applicationUrlService.IsPortalRequest(context.Request))
+            {
+                CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("en-US");
+                CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("en-US");
+                await _next(context);
+                return;
+            }
+
             var path = context.Request.Path.Value ?? "/";
             var queryString = context.Request.QueryString.Value ?? string.Empty;
 
@@ -56,29 +67,6 @@ namespace iD_Develops.Utilities
             var isSafeMethod =
                 HttpMethods.IsGet(context.Request.Method) ||
                 HttpMethods.IsHead(context.Request.Method);
-
-            // Keep the language prefix while permanently moving the old public
-            // introduction URLs to the shorter, SEO-friendly level-test route.
-            if (isSafeMethod)
-            {
-                var normalizedPath = path.Length > 1 ? path.TrimEnd('/') : path;
-                var legacyLevelTestTarget = normalizedPath.ToLowerInvariant() switch
-                {
-                    "/examination/level-test-introduction" => $"/{defaultCultureUrl}/level-test",
-                    "/portal/examination/level-test-introduction" => $"/{defaultCultureUrl}/level-test",
-                    "/en-us/examination/level-test-introduction" => "/en-us/level-test",
-                    "/en-us/portal/examination/level-test-introduction" => "/en-us/level-test",
-                    "/nl-nl/examination/level-test-introduction" => "/nl-nl/level-test",
-                    "/nl-nl/portal/examination/level-test-introduction" => "/nl-nl/level-test",
-                    _ => null
-                };
-
-                if (legacyLevelTestTarget is not null)
-                {
-                    context.Response.Redirect(legacyLevelTestTarget + queryString, permanent: true);
-                    return;
-                }
-            }
 
             // 1) No valid culture segment in URL -> add it (redirect for GET/HEAD; rewrite otherwise)
             if (!hasValidCultureSegment)

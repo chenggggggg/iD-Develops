@@ -1,22 +1,17 @@
-@inject IViewLocalizer localizer
-@using System.Globalization
+@inject iD_Develops.Services.IApplicationUrlService ApplicationUrls
+@inject iD_Develops.Services.IPortalSessionIndicatorService PortalSessionIndicator
 
 @{
-    var isAuthenticated = User?.Identity?.IsAuthenticated == true;
-    var portalHomeUrl = Url.Page("/Portal/Home/Index") ?? "/portal/home";
-    var portalUrl = isAuthenticated
-        ? portalHomeUrl
-        : Url.Page("/Account/Login", new
-        {
-            area = "Identity",
-            returnUrl = portalHomeUrl
-        }) ?? "/identity/account/login";
-    var portalText = isAuthenticated ? localizer["Nav_Portal"].Value : "Log In";
+    var hasPortalSession = PortalSessionIndicator.HasActiveSession(Context.Request);
+    var portalPath = hasPortalSession
+        ? "/"
+        : $"/login?returnUrl={Uri.EscapeDataString("/")}";
+    var portalUrl = ApplicationUrls.PortalUrl(portalPath);
 }
 
 <li class="public-nav-item">
     <a class="public-nav-link public-nav-login"
        href="@portalUrl">
-        <span>@portalText</span>
+        <span>@(hasPortalSession ? "Portal" : "Log In")</span>
     </a>
 </li>

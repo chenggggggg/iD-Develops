@@ -1,6 +1,7 @@
 @page
 @using iD_Develops.Enums
 @model iD_Develops.Pages.Portal.Admin.Products.IndexModel
+@inject iD_Develops.Services.IApplicationUrlService ApplicationUrls
 @{
     Layout = "_PortalLayout";
     ViewData["Title"] = "Products";
@@ -26,7 +27,7 @@
             <p class="portal-copy">Manage what appears in your catalogue and prepare new offers for publication.</p>
         </div>
         <div class="portal-page-header-actions">
-            <a class="portal-btn portal-btn-outline" asp-page="/Pricing">
+            <a class="portal-btn portal-btn-outline" href="@ApplicationUrls.PublicUrl("/en-us/pricing")">
                 <i class="fa-solid fa-eye" aria-hidden="true"></i>Preview
             </a>
             <button class="portal-btn portal-btn-primary" type="button" data-portal-dialog-open="productTemplateModal">
@@ -80,9 +81,6 @@
                         iD_Develops.Enums.CatalogProductStatus.Archived => "catalog-status-pill catalog-status-archived",
                         _ => "catalog-status-pill catalog-status-draft"
                     };
-                    var editPage = product.ProductType == iD_Develops.Enums.CatalogProductType.FreeDownload
-                        ? "/FreeDownloads"
-                        : "/Product";
                     <tr>
                         <td>
                             <div class="portal-exam-name">@productName</div>
@@ -97,13 +95,13 @@
                             <div class="product-list-actions">
                                 @if (product.ProductType == iD_Develops.Enums.CatalogProductType.FreeDownload)
                                 {
-                                    <a class="portal-btn portal-btn-outline portal-btn-sm" asp-page="@editPage" asp-route-preview="true">
+                                    <a class="portal-btn portal-btn-outline portal-btn-sm" asp-route="PortalFreeDownloadsEdit">
                                         <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>Edit
                                     </a>
                                 }
                                 else
                                 {
-                                    <a class="portal-btn portal-btn-outline portal-btn-sm" asp-page="@editPage" asp-route-slug="@product.Slug" asp-route-preview="true">
+                                    <a class="portal-btn portal-btn-outline portal-btn-sm" asp-route="PortalProductEdit" asp-route-slug="@product.Slug">
                                         <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>Edit
                                     </a>
                                 }

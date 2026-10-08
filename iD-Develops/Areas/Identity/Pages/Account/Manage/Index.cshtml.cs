@@ -9,7 +9,7 @@ namespace iD_Develops.Areas.Identity.Pages.Account.Manage
     {
         public IActionResult OnGet()
         {
-            return Redirect("~/portal/settings");
+            return Redirect("~/settings");
         }
     }
 }

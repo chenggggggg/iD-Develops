@@ -3,6 +3,7 @@ using iD_Develops.Pages.Portal.Examination.Models;
 using iD_Develops.Pages.Shared.Examination;
 using iD_Develops.Pages.Shared.Examination.Questions;
 using iD_Develops.Services;
+using iD_Develops.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -62,7 +63,9 @@ namespace iD_Develops.Pages.Portal.Examination
                 return Forbid();
 
             if (pageData.ExamStatus == ExamStatus.Completed || pageData.ExamStatus == ExamStatus.Overdue)
-                return RedirectToPage("/Portal/Examination/Completed", new { recordId = RecordId });
+                return RedirectToRoute(
+                    ApplicationHostPageRouteModelConvention.PortalExamCompletedRouteName,
+                    new { recordId = RecordId });
 
             ExamId = pageData.ExamId;
             QuestionId = pageData.QuestionId;
@@ -222,7 +225,9 @@ namespace iD_Develops.Pages.Portal.Examination
         {
             var result = await _examTakeFlowService.SubmitExamAsync(
                 formData,
-                recordId => Url.Page("/Portal/Examination/Completed", new { recordId }));
+                recordId => Url.RouteUrl(
+                    ApplicationHostPageRouteModelConvention.PortalExamCompletedRouteName,
+                    new { recordId }));
 
             return new JsonResult(new
             {

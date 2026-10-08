@@ -1,7 +1,7 @@
-@page "{slug}"
+@page
 @using iD_Develops.Enums
 @using iD_Develops.Models
-@model iD_Develops.Pages.ProductModel
+@model iD_Develops.Pages.Portal.Admin.Products.EditModel
 @{
     Layout = Model.IsAdminEditMode ? "_PortalLayout" : "_Layout";
     ViewData["Title"] = Model.Product?.Name ?? "Product";
@@ -486,7 +486,7 @@
                             <label class="grid gap-1.5">
                                 <span class="text-sm font-medium text-slate-800">Credits included</span>
                                 <input class="public-field product-admin-field" asp-for="EditInput.CreditConfiguration.Quantity" type="number" min="1" max="100000" required />
-                                <span class="text-xs text-slate-500">The number added to the customer’s account after payment.</span>
+                                <span class="text-xs text-slate-500">The number added to the customerâ€™s account after payment.</span>
                             </label>
                             <label class="grid gap-1.5">
                                 <span class="text-sm font-medium text-slate-800">Singular label</span>
