@@ -43,16 +43,7 @@ public sealed class CourseEditorInteractionTests : Microsoft.Playwright.Xunit.Pa
             </html>
             """);
 
-        var scriptPath = Path.GetFullPath(Path.Combine(
-            AppContext.BaseDirectory,
-            "..",
-            "..",
-            "..",
-            "..",
-            "..",
-            "wwwroot",
-            "js",
-            "course-editor.js"));
+        var scriptPath = TestAssetPaths.JavaScript("course-editor.js");
         await Page.AddScriptTagAsync(new() { Path = scriptPath });
 
         var toggle = Page.Locator("[data-add-content-toggle]");
@@ -92,8 +83,7 @@ public sealed class CourseEditorInteractionTests : Microsoft.Playwright.Xunit.Pa
                 <dialog id="courseUnlockConfirmDialog"><ul data-course-unlock-change-list></ul></dialog>
             </body></html>
             """);
-        var scriptPath = Path.GetFullPath(Path.Combine(
-            AppContext.BaseDirectory, "..", "..", "..", "..", "..", "wwwroot", "js", "course-editor.js"));
+        var scriptPath = TestAssetPaths.JavaScript("course-editor.js");
         await Page.AddScriptTagAsync(new() { Path = scriptPath });
 
         await Page.Locator("[data-add-content-toggle]").ClickAsync();

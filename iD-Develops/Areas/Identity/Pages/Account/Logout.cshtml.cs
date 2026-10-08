@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using iD_Develops.Services;
 
 namespace iD_Develops.Areas.Identity.Pages.Account
 {
@@ -18,27 +19,28 @@ namespace iD_Develops.Areas.Identity.Pages.Account
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ILogger<LogoutModel> _logger;
+        private readonly IApplicationUrlService _applicationUrls;
 
-        public LogoutModel(SignInManager<ApplicationUser> signInManager, ILogger<LogoutModel> logger)
+        public LogoutModel(
+            SignInManager<ApplicationUser> signInManager,
+            ILogger<LogoutModel> logger,
+            IApplicationUrlService applicationUrls)
         {
             _signInManager = signInManager;
             _logger = logger;
+            _applicationUrls = applicationUrls;
         }
 
         public async Task<IActionResult> OnPost(string returnUrl = null)
         {
             await _signInManager.SignOutAsync();
             _logger.LogInformation("User logged out.");
-            if (returnUrl != null)
+            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
             {
                 return LocalRedirect(returnUrl);
             }
-            else
-            {
-                // This needs to be a redirect so that the browser performs a new
-                // request and the identity for the user gets updated.
-                return RedirectToPage("/Account/Logout", new { Area = "Identity" });
-            }
+
+            return Redirect(_applicationUrls.PublicUrl("/en-us/"));
         }
     }
 }

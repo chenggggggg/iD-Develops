@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using iD_Develops.Utilities;
 
 namespace iD_Develops.Pages.Portal.Admin.Products
 {
@@ -44,10 +45,12 @@ namespace iD_Develops.Pages.Portal.Admin.Products
                 product = await _catalogProductService.CreateProductAsync(product, ct);
                 if (product.ProductType == CatalogProductType.FreeDownload)
                 {
-                    return RedirectToPage("/FreeDownloads", new { preview = true });
+                    return RedirectToRoute(ApplicationHostPageRouteModelConvention.PortalFreeDownloadsEditRouteName);
                 }
 
-                return RedirectToPage("/Product", new { slug = product.Slug, preview = true });
+                return RedirectToRoute(
+                    ApplicationHostPageRouteModelConvention.PortalProductEditRouteName,
+                    new { slug = product.Slug });
             }
             catch (DbUpdateException)
             {

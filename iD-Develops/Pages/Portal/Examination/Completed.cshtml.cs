@@ -61,6 +61,7 @@ namespace iD_Develops.Pages.Portal.Examination
         private readonly IDataProtectionProvider _dataProtectionProvider;
         private readonly IDataProtector _claimProtector;
         private readonly ITurnstileService _turnstileService;
+        private readonly IApplicationUrlService _applicationUrls;
 
         public CompletedModel(
             ApplicationDbContext dbContext,
@@ -74,7 +75,8 @@ namespace iD_Develops.Pages.Portal.Examination
             IProspectService prospectService,
             UserManager<ApplicationUser> userManager,
             IDataProtectionProvider dataProtectionProvider,
-            ITurnstileService turnstileService)
+            ITurnstileService turnstileService,
+            IApplicationUrlService applicationUrls)
         {
             _dbContext = dbContext;
             _participantAnswerService = participantAnswerService;
@@ -89,7 +91,11 @@ namespace iD_Develops.Pages.Portal.Examination
             _dataProtectionProvider = dataProtectionProvider;
             _claimProtector = dataProtectionProvider.CreateProtector(ClaimPurpose);
             _turnstileService = turnstileService;
+            _applicationUrls = applicationUrls;
         }
+
+        protected virtual bool IsPortalSurface
+            => true;
 
         public async Task<IActionResult> OnGetAsync()
         {
@@ -264,7 +270,7 @@ namespace iD_Develops.Pages.Portal.Examination
             record.UserId = user.Id;
             await _dbContext.SaveChangesAsync();
 
-            return RedirectToPage("/Portal/Exams/Record", new { recordId });
+            return Redirect(_applicationUrls.PortalUrl($"/exams/results/{recordId:D}"));
         }
 
         private async Task<(bool Success, LevelTestEmailAction EmailAction, string SuccessMessage, string? ErrorMessage)> ResolveIdentityFlowAsync(Record record)
@@ -330,7 +336,18 @@ namespace iD_Develops.Pages.Portal.Examination
             if (record == null)
                 return (null, NotFound());
 
-            if (IsCompletedLevelTestRecord(record))
+            var isLevelTest = IsCompletedLevelTestRecord(record);
+            var isPortalRequest = IsPortalSurface;
+            if (isLevelTest && isPortalRequest)
+            {
+                return (record, Redirect(_applicationUrls.PublicUrl(
+                    $"/en-us/examination/completed/{record.Id:D}")));
+            }
+
+            if (!isLevelTest && !isPortalRequest)
+                return (record, NotFound());
+
+            if (isLevelTest)
                 return (record, null);
 
             if (User?.Identity?.IsAuthenticated != true)

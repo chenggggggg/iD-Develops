@@ -1,12 +1,11 @@
 @page
 @using iD_Develops.Enums
-@model iD_Develops.Pages.FreeDownloadsModel
+@model iD_Develops.Pages.Portal.Admin.Products.FreeDownloadsModel
 @inject iD_Develops.Services.IApplicationUrlService ApplicationUrls
 @{
     Layout = Model.IsAdminEditMode ? "_PortalLayout" : "_Layout";
     ViewData["Title"] = "Free Downloads";
 }
-
 <section class="public-page product-page-shell @(Model.IsAdminEditMode ? "product-edit-mode-shell" : null)">
     <div class="public-container">
     <div class="mb-8 flex flex-col justify-between gap-3 md:flex-row md:items-center">
@@ -53,7 +52,9 @@
                 var saveButtonLabel = download.Status == CatalogProductStatus.Published ? "Save" : "Publish";
                 var saveButtonIcon = download.Status == CatalogProductStatus.Published ? "fa-solid fa-floppy-disk" : "fa-solid fa-cloud-arrow-up";
                 var imageDisplayUrl = await Model.ResolvePublicAssetUrlAsync(download.ImageUrl);
-                var publicDownloadPath = Url.RouteUrl("PublicFreeDownloads", new { handler = "Download", id = download.Id });
+                var publicDownloadPath = Url.RouteUrl(
+                    "PublicFreeDownloads",
+                    new { culture = "en-us", handler = "Download", id = download.Id });
                 var downloadUrl = string.IsNullOrWhiteSpace(download.IncludedBookingBenefitUrl) || string.IsNullOrWhiteSpace(publicDownloadPath)
                     ? null
                     : ApplicationUrls.PublicUrl(publicDownloadPath);

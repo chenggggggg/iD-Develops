@@ -1,6 +1,7 @@
 @using Microsoft.AspNetCore.Identity
 @using iD_Develops.Models
 @inject UserManager<ApplicationUser> UserManager
+@inject iD_Develops.Services.IApplicationUrlService ApplicationUrls
 @{
     var title = ViewData["Title"]?.ToString() ?? "Portal";
     var portalUser = User.Identity?.IsAuthenticated == true
@@ -17,6 +18,7 @@
     var portalRole = rolePriority.FirstOrDefault(role => portalRoles.Any(userRole => string.Equals(userRole, role, StringComparison.OrdinalIgnoreCase)))
         ?? portalRoles.FirstOrDefault()
         ?? "Portal user";
+    var publicHomeUrl = ApplicationUrls.PublicUrl("/en-us/");
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -64,7 +66,7 @@
                             <i class="fa-solid fa-gear" aria-hidden="true"></i>
                             <span>Settings</span>
                         </a>
-                        <form method="post" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/Index", new { area = "" })">
+                        <form method="post" asp-area="Identity" asp-page="/Account/Logout">
                             <button type="submit" class="portal-profile-menu-item portal-profile-menu-button portal-profile-menu-danger">
                                 <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
                                 <span>Log Out</span>
@@ -106,7 +108,7 @@
                             <i class="fa-solid fa-gear" aria-hidden="true"></i>
                             <span>Settings</span>
                         </a>
-                        <form method="post" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/Index", new { area = "" })">
+                        <form method="post" asp-area="Identity" asp-page="/Account/Logout">
                             <button type="submit" class="portal-profile-menu-item portal-profile-menu-button portal-profile-menu-danger">
                                 <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
                                 <span>Log Out</span>
@@ -118,7 +120,7 @@
                 <nav class="portal-nav">
                     <partial name="_PortalSidebarNav" />
                 </nav>
-                <a class="mt-auto flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-600 no-underline transition hover:border-[#b23a48] hover:text-[#b23a48]" asp-page="/Index">
+                <a class="mt-auto flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-600 no-underline transition hover:border-[#b23a48] hover:text-[#b23a48]" href="@publicHomeUrl">
                     <i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span>Return to home</span>
                 </a>
             </div>
@@ -153,7 +155,7 @@
                             <i class="fa-solid fa-gear" aria-hidden="true"></i>
                             <span>Settings</span>
                         </a>
-                        <form method="post" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/Index", new { area = "" })">
+                        <form method="post" asp-area="Identity" asp-page="/Account/Logout">
                             <button type="submit" class="portal-profile-menu-item portal-profile-menu-button portal-profile-menu-danger">
                                 <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
                                 <span>Log Out</span>
@@ -165,7 +167,7 @@
             </div>
             <div class="portal-offcanvas-body">
                 <partial name="_PortalSidebarNav" />
-                <a class="mt-5 flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-600 no-underline" asp-page="/Index"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span>Return to home</span></a>
+                <a class="mt-5 flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-600 no-underline" href="@publicHomeUrl"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span>Return to home</span></a>
             </div>
         </div>
 

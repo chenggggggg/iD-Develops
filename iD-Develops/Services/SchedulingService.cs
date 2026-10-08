@@ -1787,7 +1787,7 @@ namespace iD_Develops.Services
                 canBook,
                 canCancel,
                 canJoin,
-                canJoin ? $"/portal/calendar?handler=Join&scheduledEventId={scheduleEvent.Id}" : null,
+                canJoin ? $"/calendar?handler=Join&scheduledEventId={scheduleEvent.Id}" : null,
                 canManage,
                 category,
                 unavailableReason);

@@ -142,6 +142,8 @@ jobs:
         env:
           ASPNETCORE_ENVIRONMENT: Local
           ASPNETCORE_URLS: http://127.0.0.1:5000
+          ApplicationUrls__PublicBaseUrl: http://127.0.0.1:5000
+          ApplicationUrls__PortalBaseUrl: http://portal.localhost:5000
           ConnectionStrings__ApplicationDbContextConnection: Host=127.0.0.1;Port=5432;Database=iddevelops_ci;Username=postgres;Password=ci-postgres-password;
           Admin__Email: admin@example.test
           Admin__Password: CI-Admin-Password-123!
@@ -170,7 +172,8 @@ jobs:
       - name: Run Playwright tests
         if: steps.playwright_project.outputs.exists == 'true'
         env:
-          IDDEVELOPS_E2E_BASE_URL: http://127.0.0.1:5000
+          IDDEVELOPS_E2E_PUBLIC_BASE_URL: http://127.0.0.1:5000
+          IDDEVELOPS_E2E_PORTAL_BASE_URL: http://portal.localhost:5000
         run: >-
           dotnet test "$E2E_TEST_PROJECT"
           --configuration Release

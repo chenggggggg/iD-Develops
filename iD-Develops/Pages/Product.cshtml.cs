@@ -4,8 +4,10 @@ using System.Text.Json;
 using iD_Develops.Enums;
 using iD_Develops.Models;
 using iD_Develops.Services;
+using iD_Develops.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace iD_Develops.Pages
 {
@@ -23,6 +25,8 @@ namespace iD_Develops.Pages
         private readonly CatalogProductFileStorageService _catalogProductFileStorageService;
         private readonly IWebHostEnvironment _environment;
         private readonly ITurnstileService _turnstileService;
+        private readonly IApplicationUrlService _applicationUrls;
+        private readonly IPortalAuthenticationHandoffService _authenticationHandoffService;
 
         public ProductModel(
             ICatalogProductService catalogProductService,
@@ -32,7 +36,9 @@ namespace iD_Develops.Pages
             CatalogProductAccessService catalogProductAccessService,
             CatalogProductFileStorageService catalogProductFileStorageService,
             IWebHostEnvironment environment,
-            ITurnstileService turnstileService)
+            ITurnstileService turnstileService,
+            IApplicationUrlService applicationUrls,
+            IPortalAuthenticationHandoffService authenticationHandoffService)
         {
             _catalogProductService = catalogProductService;
             _creditConfigurationService = creditConfigurationService;
@@ -42,6 +48,8 @@ namespace iD_Develops.Pages
             _catalogProductFileStorageService = catalogProductFileStorageService;
             _environment = environment;
             _turnstileService = turnstileService;
+            _applicationUrls = applicationUrls;
+            _authenticationHandoffService = authenticationHandoffService;
         }
 
         public CatalogProduct Product { get; private set; } = null!;
@@ -70,13 +78,19 @@ namespace iD_Develops.Pages
 
         public async Task<IActionResult> OnGetAsync(
             string slug,
-            bool preview = false,
             string? access = null,
             int? inviteUseId = null,
             bool resumeCheckout = false,
+            string? portalAccess = null,
             CancellationToken ct = default)
         {
-            var product = await LoadProductAsync(slug, preview, ct);
+            var isEditorRequest = IsProductEditorRequest();
+            if (isEditorRequest && !CanManageProducts())
+            {
+                return Forbid();
+            }
+
+            var product = await LoadProductAsync(slug, isEditorRequest, ct);
             if (product == null)
             {
                 return NotFound();
@@ -89,8 +103,8 @@ namespace iD_Develops.Pages
             }
 
             Product = product;
-            IsPreviewMode = preview && product.Status != CatalogProductStatus.Published;
-            IsAdminEditMode = preview && (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"));
+            IsPreviewMode = isEditorRequest && product.Status != CatalogProductStatus.Published;
+            IsAdminEditMode = isEditorRequest;
             AccessToken = access;
 
             if (!IsPreviewMode && product.RequireAccessToken)
@@ -114,23 +128,36 @@ namespace iD_Develops.Pages
 
             if (resumeCheckout && !IsPreviewMode)
             {
-                return await ResumePendingCheckoutAsync(product, access, ct);
+                var handoff = _authenticationHandoffService.ValidateToken(portalAccess);
+                var handoffPath = handoff?.ReturnPath.Split('?', 2)[0];
+                if (handoff == null ||
+                    !string.Equals(handoffPath, Request.Path.Value, StringComparison.OrdinalIgnoreCase))
+                {
+                    return RedirectToRegistration(product, access);
+                }
+
+                return await ResumePendingCheckoutAsync(product, access, handoff.UserId, ct);
             }
 
             return Page();
         }
 
-        public async Task<IActionResult> OnPostAsync(string slug, bool preview = false, string? access = null, CancellationToken ct = default)
+        public async Task<IActionResult> OnPostAsync(string slug, string? access = null, CancellationToken ct = default)
         {
-            var product = await LoadProductAsync(slug, preview, ct);
+            if (IsProductEditorRequest())
+            {
+                return BadRequest();
+            }
+
+            var product = await LoadProductAsync(slug, isEditorRequest: false, ct);
             if (product == null)
             {
                 return NotFound();
             }
 
             Product = product;
-            IsPreviewMode = preview && product.Status != CatalogProductStatus.Published;
-            IsAdminEditMode = preview && (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"));
+            IsPreviewMode = false;
+            IsAdminEditMode = false;
             AccessToken = access;
             OrderQuantity = GetOrderQuantity(product);
             ParticipantCount = GetParticipantCount(product);
@@ -294,19 +321,15 @@ namespace iD_Develops.Pages
             }
 
             TempData["StatusMessage"] = "Your submission has been received.";
-            return RedirectToPage(new { slug = product.Slug, preview = IsPreviewMode, access });
+            return RedirectToPage(new { slug = product.Slug, access });
         }
 
         private async Task<IActionResult> ResumePendingCheckoutAsync(
             CatalogProduct product,
             string? access,
+            string authenticatedUserId,
             CancellationToken ct)
         {
-            if (!(User.Identity?.IsAuthenticated ?? false))
-            {
-                return RedirectToRegistration(product, access);
-            }
-
             var pending = ReadPendingCheckout();
             if (pending == null || pending.ProductId != product.Id)
             {
@@ -349,7 +372,7 @@ namespace iD_Develops.Pages
                 pending.CustomerEmail,
                 invite,
                 pending.AccessToken,
-                GetAuthenticatedUserId(),
+                authenticatedUserId,
                 ct);
         }
 
@@ -393,13 +416,15 @@ namespace iD_Develops.Pages
 
         private IActionResult RedirectToRegistration(CatalogProduct product, string? access)
         {
-            var returnUrl = Url.Page(
-                "/Product",
-                pageHandler: null,
-                values: new { slug = product.Slug, access, resumeCheckout = true })
-                ?? $"/product/{Uri.EscapeDataString(product.Slug)}?resumeCheckout=true";
+            var culture = RouteData.Values["culture"]?.ToString() ?? "en-us";
+            var publicReturnPath = Url.RouteUrl(
+                ApplicationHostPageRouteModelConvention.PublicProductRouteName,
+                new { culture, slug = product.Slug, access, resumeCheckout = true })
+                ?? $"/{culture}/products/{Uri.EscapeDataString(product.Slug)}?resumeCheckout=true";
+            var continuePath = QueryHelpers.AddQueryString("/auth/continue", "returnPath", publicReturnPath);
+            var registrationPath = QueryHelpers.AddQueryString("/register", "returnUrl", continuePath);
 
-            return RedirectToPage("/Account/Register", new { area = "Identity", returnUrl });
+            return Redirect(_applicationUrls.PortalUrl(registrationPath));
         }
 
         private string? GetAuthenticatedUserId()
@@ -422,7 +447,7 @@ namespace iD_Develops.Pages
 
         public async Task<IActionResult> OnPostPublishAsync(string slug, CancellationToken ct)
         {
-            if (!(User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
+            if (!CanManageProducts())
             {
                 return Forbid();
             }
@@ -439,7 +464,7 @@ namespace iD_Develops.Pages
                 if (!ModelState.IsValid)
                 {
                     TempData["StatusMessage"] = string.Join(" ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
-                    return RedirectToPage(new { slug = product.Slug, preview = true });
+                    return RedirectToEditor(product.Slug);
                 }
 
                 await SavePrimaryVariantSettingsAsync(product, ct);
@@ -450,12 +475,12 @@ namespace iD_Develops.Pages
             }
 
             TempData["StatusMessage"] = "Product published successfully.";
-            return RedirectToPage(new { slug = product.Slug });
+            return RedirectToEditor(product.Slug);
         }
 
         public async Task<IActionResult> OnPostSetStatusAsync(string slug, CatalogProductStatus status, CancellationToken ct)
         {
-            if (!(User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
+            if (!CanManageProducts())
             {
                 return Forbid();
             }
@@ -476,7 +501,7 @@ namespace iD_Develops.Pages
                 !_catalogProductFileStorageService.Exists(product.IncludedBookingBenefitUrl))
             {
                 TempData["StatusMessage"] = "Attach an existing download file before publishing this free download.";
-                return RedirectToPage(new { slug = product.Slug, preview = true });
+                return RedirectToEditor(product.Slug);
             }
 
             if (status == CatalogProductStatus.Published)
@@ -485,7 +510,7 @@ namespace iD_Develops.Pages
                 if (!ModelState.IsValid)
                 {
                     TempData["StatusMessage"] = string.Join(" ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
-                    return RedirectToPage(new { slug = product.Slug, preview = true });
+                    return RedirectToEditor(product.Slug);
                 }
 
                 await SavePrimaryVariantSettingsAsync(product, ct);
@@ -503,16 +528,15 @@ namespace iD_Develops.Pages
                 _ => "Product status updated."
             };
 
-            return RedirectToPage(new { slug = product.Slug, preview = true });
+            return RedirectToEditor(product.Slug);
         }
 
         public async Task<IActionResult> OnPostSaveContentAsync(
             string slug,
-            bool preview = false,
             CatalogProductStatus? targetStatus = null,
             CancellationToken ct = default)
         {
-            if (!(User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
+            if (!CanManageProducts())
             {
                 return Forbid();
             }
@@ -524,8 +548,8 @@ namespace iD_Develops.Pages
             }
 
             Product = product;
-            IsPreviewMode = preview && product.Status != CatalogProductStatus.Published;
-            IsAdminEditMode = preview && (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"));
+            IsPreviewMode = product.Status != CatalogProductStatus.Published;
+            IsAdminEditMode = true;
             OrderQuantity = GetOrderQuantity(product);
             ParticipantCount = GetParticipantCount(product);
             SelectedVariantId = GetSelectedVariantId();
@@ -650,7 +674,7 @@ namespace iD_Develops.Pages
             TempData["StatusMessage"] = requestedStatus == CatalogProductStatus.Published
                 ? "Product published."
                 : "Product updated.";
-            return RedirectToPage(new { slug = savedProduct.Slug, preview = true });
+            return RedirectToEditor(savedProduct.Slug);
         }
 
         private void ValidateProductSave(CatalogProduct product, CatalogProductStatus requestedStatus)
@@ -759,7 +783,7 @@ namespace iD_Develops.Pages
 
         public async Task<IActionResult> OnPostCreateImageUploadAsync(string slug, string fileName, string? contentType, long fileSize, CancellationToken ct)
         {
-            if (!(User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
+            if (!CanManageProducts())
             {
                 return Forbid();
             }
@@ -769,7 +793,7 @@ namespace iD_Develops.Pages
 
         public async Task<IActionResult> OnPostCreateAttachmentUploadAsync(string slug, string fileName, string? contentType, long fileSize, CancellationToken ct)
         {
-            if (!(User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
+            if (!CanManageProducts())
             {
                 return Forbid();
             }
@@ -779,7 +803,7 @@ namespace iD_Develops.Pages
 
         public IActionResult OnPostVerifyImageUpload(string fileName, string? contentType, long fileSize)
         {
-            if (!(User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
+            if (!CanManageProducts())
             {
                 return Forbid();
             }
@@ -789,7 +813,7 @@ namespace iD_Develops.Pages
 
         public IActionResult OnPostVerifyAttachmentUpload(string fileName, string? contentType, long fileSize)
         {
-            if (!(User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
+            if (!CanManageProducts())
             {
                 return Forbid();
             }
@@ -1037,9 +1061,21 @@ namespace iD_Develops.Pages
             }
         }
 
-        private async Task<CatalogProduct?> LoadProductAsync(string slug, bool preview, CancellationToken ct)
+        protected virtual bool IsProductEditorRequest()
+            => false;
+
+        private bool CanManageProducts()
+            => IsProductEditorRequest() &&
+               (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"));
+
+        private IActionResult RedirectToEditor(string slug)
+            => RedirectToRoute(
+                ApplicationHostPageRouteModelConvention.PortalProductEditRouteName,
+                new { slug });
+
+        private async Task<CatalogProduct?> LoadProductAsync(string slug, bool isEditorRequest, CancellationToken ct)
         {
-            if (preview && (User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
+            if (isEditorRequest && CanManageProducts())
             {
                 return await _catalogProductService.GetProductBySlugAsync(slug, ct);
             }

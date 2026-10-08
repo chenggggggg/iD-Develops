@@ -26,16 +26,7 @@ public sealed class ExamTableInteractionTests : Microsoft.Playwright.Xunit.PageT
             </html>
             """);
 
-        var scriptPath = Path.GetFullPath(Path.Combine(
-            AppContext.BaseDirectory,
-            "..",
-            "..",
-            "..",
-            "..",
-            "..",
-            "wwwroot",
-            "js",
-            "exams-list.js"));
+        var scriptPath = TestAssetPaths.JavaScript("exams-list.js");
         await Page.AddScriptTagAsync(new() { Path = scriptPath });
         await Page.EvaluateAsync("document.dispatchEvent(new Event('DOMContentLoaded'))");
 
