@@ -669,9 +669,13 @@ if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Local"))
         var applicationUrls = context.RequestServices.GetRequiredService<IApplicationUrlService>();
         var requestHost = context.Request.Host.Host;
         var requestedPath = (context.Request.PathBase + context.Request.Path + context.Request.QueryString).ToString();
-        var destination = requestHost.Equals("localhost", StringComparison.OrdinalIgnoreCase)
+        var configuredPublicHost = new Uri(applicationUrls.PublicBaseUrl).Host;
+        var configuredPortalHost = new Uri(applicationUrls.PortalBaseUrl).Host;
+        var destination = requestHost.Equals("localhost", StringComparison.OrdinalIgnoreCase) &&
+                          !requestHost.Equals(configuredPublicHost, StringComparison.OrdinalIgnoreCase)
             ? applicationUrls.PublicUrl(requestedPath)
-            : requestHost.Equals("portal.localhost", StringComparison.OrdinalIgnoreCase)
+            : requestHost.Equals("portal.localhost", StringComparison.OrdinalIgnoreCase) &&
+              !requestHost.Equals(configuredPortalHost, StringComparison.OrdinalIgnoreCase)
                 ? applicationUrls.PortalUrl(requestedPath)
                 : null;
 

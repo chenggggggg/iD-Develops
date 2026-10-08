@@ -156,7 +156,7 @@ public sealed class PortalEntitlementSmokeTests : Microsoft.Playwright.Xunit.Pag
         await Expect(loginLink).ToHaveAttributeAsync(
             "href",
             new System.Text.RegularExpressions.Regex(
-                "^http://portal\\.id\\.localhost:5000/login\\?returnUrl="));
+                $"^{System.Text.RegularExpressions.Regex.Escape(PortalBaseUrl)}/login\\?returnUrl="));
     }
 
     [Fact]
