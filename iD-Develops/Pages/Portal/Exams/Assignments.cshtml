@@ -33,7 +33,7 @@
         </div>
         @if (Model.Data.CoursePlacements.Count == 0)
         {
-            <div class="px-5 py-7 text-sm text-slate-500">This exam is not attached to a course. It is only visible through direct assignments.</div>
+            <div class="px-5 py-7 text-sm italic text-slate-500">This exam is not attached to a course. It is only visible through direct assignments.</div>
         }
         else
         {
@@ -144,4 +144,6 @@
             </ul>
         </div>
     }
+
+    <div class="h-6 shrink-0" aria-hidden="true" data-page-bottom-spacing></div>
 </section>
