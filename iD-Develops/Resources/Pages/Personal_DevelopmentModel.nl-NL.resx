@@ -136,7 +136,7 @@
     <value>Communicatie in relaties</value>
   </data>
   <data name="ContactButton" xml:space="preserve">
-    <value>Contact</value>
+    <value>Contactformulier</value>
   </data>
   <data name="ContentSectionParagraph1" xml:space="preserve">
     <value>Levensuitdagingen—of het nu op het werk, in relaties of binnen onszelf is—zijn signalen voor groei en ontwikkeling. Het is normaal om obstakels tegen te komen, en hoewel sommige vanzelf oplossen, kunnen anderen baat hebben bij extra ondersteuning, of het nu door te luisteren of door training is, om je weg weer te vinden.</value>
@@ -172,7 +172,7 @@
     <value>Je eigen bedrijf beginnen</value>
   </data>
   <data name="Title" xml:space="preserve">
-    <value>Het Navigeren van Levensuitdagingen door Persoonlijke Groei en Ondersteuning</value>
+    <value>Persoonlijke Ontwikkeling</value>
   </data>
   <data name="TopicsSectionHeading" xml:space="preserve">
     <value>Vooruitgang met persoonlijke ontwikkelingscursussen</value>
@@ -185,5 +185,104 @@
   </data>
   <data name="UnlockPotential" xml:space="preserve">
     <value>Je potentieel ontgrendelen</value>
+  </data>
+  <data name="SeoTitle" xml:space="preserve">
+    <value>Persoonlijke ontwikkeling &amp; begeleiding | iD! Training &amp; Development</value>
+  </data>
+  <data name="MetaDescription" xml:space="preserve">
+    <value>Persoonlijke ontwikkeling en begeleiding wanneer je opnieuw contact met jezelf wilt maken, iets wilt veranderen of je eigen weg vooruit wilt vinden.</value>
+  </data>
+  <data name="HeroTitle" xml:space="preserve">
+    <value>Voor als ‘Is dit het nu?’ door je hoofd blijft spoken</value>
+  </data>
+  <data name="HeroDescription" xml:space="preserve">
+    <value>Misschien herken je het: aan de buitenkant klopt alles — baan, huis, een vol weekend. En toch knaagt er iets. Een gevoel dat je anders naar de wereld kijkt dan de mensen om je heen, of dat je onderweg een stukje van jezelf bent kwijtgeraakt.</value>
+  </data>
+  <data name="ScheduleConversation" xml:space="preserve">
+    <value>Plan een gesprek</value>
+  </data>
+  <data name="HeroNoteTitle" xml:space="preserve">
+    <value>Daar komen wij in beeld</value>
+  </data>
+  <data name="HeroNoteDescription" xml:space="preserve">
+    <value>Niet als mensen met alle antwoorden, maar als gidsen die zelf ook weleens de weg kwijt waren.</value>
+  </data>
+  <data name="ApproachEyebrow" xml:space="preserve">
+    <value>Onze aanpak</value>
+  </data>
+  <data name="ApproachParagraph1" xml:space="preserve">
+    <value>We zijn geen coaches die achterover leunen en hummen; die titel hangen we dan ook liever niet aan onszelf. We denken mee, spiegelen, stellen de vraag die je ontwijkt, en lachen onderweg mét jou. Geen helden op een voetstuk, maar ervaringsdeskundigen met een scherpe blik voor blinde vlekken.</value>
+  </data>
+  <data name="ApproachParagraph2" xml:space="preserve">
+    <value>We hebben zelf ons leven meerdere keren omgegooid, soms bewust, soms gedwongen. We weten hoe het is om grote keuzes te maken zonder zicht op de afloop. Die ervaring gebruiken we om jou sneller bij je eigen antwoorden te brengen.</value>
+  </data>
+  <data name="AudienceEyebrow" xml:space="preserve">
+    <value>Voor wie</value>
+  </data>
+  <data name="AudienceTitle" xml:space="preserve">
+    <value>Voor mensen die zich vaak ‘anders’ voelen</value>
+  </data>
+  <data name="AudienceDescription" xml:space="preserve">
+    <value>Nieuwsgierig naar zichzelf en de wereld, met gevoel voor humor (ook over hun eigen worstelingen), en het besef dat groeien soms ongemakkelijk moet zijn voordat het lucht geeft.</value>
+  </data>
+  <data name="HelpEyebrow" xml:space="preserve">
+    <value>Waar we je bij helpen</value>
+  </data>
+  <data name="HelpItem1" xml:space="preserve">
+    <value>Grenzen stellen zonder dat het als ruzie voelt</value>
+  </data>
+  <data name="HelpItem2" xml:space="preserve">
+    <value>Je kwaliteiten zichtbaar maken</value>
+  </data>
+  <data name="HelpItem3" xml:space="preserve">
+    <value>Omgaan met conflict en moeilijke gesprekken</value>
+  </data>
+  <data name="HelpItem4" xml:space="preserve">
+    <value>Communiceren onder druk</value>
+  </data>
+  <data name="HelpItem5" xml:space="preserve">
+    <value>Grote keuzes: emigreren, wisselen van baan, een ander leven beginnen</value>
+  </data>
+  <data name="HelpItem6" xml:space="preserve">
+    <value>Interculturele vraagstukken</value>
+  </data>
+  <data name="HelpItem7" xml:space="preserve">
+    <value>Leiderschap vanuit wie je bent, niet wie je denkt te moeten zijn</value>
+  </data>
+  <data name="HelpItem8" xml:space="preserve">
+    <value>Patronen doorbreken die zich blijven herhalen</value>
+  </data>
+  <data name="MethodsEyebrow" xml:space="preserve">
+    <value>Hoe we werken</value>
+  </data>
+  <data name="Method1Title" xml:space="preserve">
+    <value>1-op-1 begeleiding</value>
+  </data>
+  <data name="Method1Description" xml:space="preserve">
+    <value>Jij, één van ons, een gesprek zonder oordeel.</value>
+  </data>
+  <data name="Method2Title" xml:space="preserve">
+    <value>Relatiebegeleiding</value>
+  </data>
+  <data name="Method2Description" xml:space="preserve">
+    <value>Voor twee (of meer) mensen die samen vastlopen.</value>
+  </data>
+  <data name="Method3Title" xml:space="preserve">
+    <value>Training persoonlijke ontwikkeling</value>
+  </data>
+  <data name="Method3Description" xml:space="preserve">
+    <value>Kleinere groep, thema's als assertiviteit of leiderschap.</value>
+  </data>
+  <data name="Method4Title" xml:space="preserve">
+    <value>Teambegeleiding</value>
+  </data>
+  <data name="Method4Description" xml:space="preserve">
+    <value>Zie Voor Organisaties.</value>
+  </data>
+  <data name="MethodsConclusion" xml:space="preserve">
+    <value>Alles is maatwerk; de prijs bepalen we na het (gratis) eerste gesprek.</value>
+  </data>
+  <data name="MethodsButton" xml:space="preserve">
+    <value>Plan een gesprek</value>
   </data>
 </root>

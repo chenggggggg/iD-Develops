@@ -136,7 +136,7 @@
     <value>Communication in relationships</value>
   </data>
   <data name="ContactButton" xml:space="preserve">
-    <value>Contact</value>
+    <value>Contact form</value>
   </data>
   <data name="ContentSectionParagraph1" xml:space="preserve">
     <value>Life's challenges—be it at work, in relationships, or within ourselves—signal growth and development. It's common to face hurdles, and while some may resolve on their own, others benefit from additional support, whether through listening or training, to find your way again.</value>
@@ -172,7 +172,7 @@
     <value>Starting your own business</value>
   </data>
   <data name="Title" xml:space="preserve">
-    <value>Navigating Life's Challenges Through Personal Growth and Support</value>
+    <value>Personal Development</value>
   </data>
   <data name="TopicsSectionHeading" xml:space="preserve">
     <value>Advance with personal development training</value>
@@ -185,5 +185,104 @@
   </data>
   <data name="UnlockPotential" xml:space="preserve">
     <value>Unlocking your potential</value>
+  </data>
+  <data name="SeoTitle" xml:space="preserve">
+    <value>Personal Development &amp; Coaching | iD! Training &amp; Development</value>
+  </data>
+  <data name="MetaDescription" xml:space="preserve">
+    <value>Personal development and coaching for when you're ready to reconnect with yourself, make a change, or find your own way forward.</value>
+  </data>
+  <data name="HeroTitle" xml:space="preserve">
+    <value>For when “is this really it?” keeps circling in your head</value>
+  </data>
+  <data name="HeroDescription" xml:space="preserve">
+    <value>You might recognize the feeling: from the outside, everything checks out. A job, a home, maybe a family, plans every weekend. And yet something keeps nagging. A sense that you see the world just a little differently from the people around you, or that somewhere along the way, you've lost a piece of yourself.</value>
+  </data>
+  <data name="ScheduleConversation" xml:space="preserve">
+    <value>Book a conversation</value>
+  </data>
+  <data name="HeroNoteTitle" xml:space="preserve">
+    <value>That's where we come in</value>
+  </data>
+  <data name="HeroNoteDescription" xml:space="preserve">
+    <value>Not as people with all the answers, but as guides who've lost our own way once or twice too, and who use that experience to help you find yourself again.</value>
+  </data>
+  <data name="ApproachEyebrow" xml:space="preserve">
+    <value>Our approach</value>
+  </data>
+  <data name="ApproachParagraph1" xml:space="preserve">
+    <value>We're not coaches who lean back and hum along — so we'd rather not give ourselves that title. We think with you, reflect, ask the question you're avoiding, and laugh with you along the way. No heroes on a pedestal, but people with real-life experience and a sharp eye for blind spots.</value>
+  </data>
+  <data name="ApproachParagraph2" xml:space="preserve">
+    <value>We've both turned our lives upside down more than once: sometimes by choice, sometimes because we had no other option. We know what it's like to make big decisions without knowing where they'll lead. We use that experience to help you get to your own answers faster.</value>
+  </data>
+  <data name="AudienceEyebrow" xml:space="preserve">
+    <value>Who this is for</value>
+  </data>
+  <data name="AudienceTitle" xml:space="preserve">
+    <value>For people who often feel “different”</value>
+  </data>
+  <data name="AudienceDescription" xml:space="preserve">
+    <value>For people who are curious about themselves and the world, who have a sense of humour — including about their own struggles — and who understand that growth can feel uncomfortable before it brings relief.</value>
+  </data>
+  <data name="HelpEyebrow" xml:space="preserve">
+    <value>What we can help you with</value>
+  </data>
+  <data name="HelpItem1" xml:space="preserve">
+    <value>Setting boundaries without it feeling like a fight</value>
+  </data>
+  <data name="HelpItem2" xml:space="preserve">
+    <value>Making your qualities visible</value>
+  </data>
+  <data name="HelpItem3" xml:space="preserve">
+    <value>Dealing with conflict and difficult conversations</value>
+  </data>
+  <data name="HelpItem4" xml:space="preserve">
+    <value>Communicating under pressure</value>
+  </data>
+  <data name="HelpItem5" xml:space="preserve">
+    <value>Big choices: emigrating, changing jobs, starting a different life</value>
+  </data>
+  <data name="HelpItem6" xml:space="preserve">
+    <value>Intercultural questions</value>
+  </data>
+  <data name="HelpItem7" xml:space="preserve">
+    <value>Leadership from who you are, not who you think you should be</value>
+  </data>
+  <data name="HelpItem8" xml:space="preserve">
+    <value>Breaking patterns that keep repeating</value>
+  </data>
+  <data name="MethodsEyebrow" xml:space="preserve">
+    <value>How we work</value>
+  </data>
+  <data name="Method1Title" xml:space="preserve">
+    <value>One-on-one guidance</value>
+  </data>
+  <data name="Method1Description" xml:space="preserve">
+    <value>You, one of us, and a conversation without judgment. Sometimes you need a sounding board; sometimes someone needs to hold a mirror up to you. Often, both.</value>
+  </data>
+  <data name="Method2Title" xml:space="preserve">
+    <value>Relationship guidance</value>
+  </data>
+  <data name="Method2Description" xml:space="preserve">
+    <value>For two (or more) people who keep getting stuck together. We help make the conversation possible again — honestly, safely, and with room for everyone's perspective.</value>
+  </data>
+  <data name="Method3Title" xml:space="preserve">
+    <value>Personal development training</value>
+  </data>
+  <data name="Method3Description" xml:space="preserve">
+    <value>For smaller groups, around themes such as assertiveness, self-confidence, communication, or leadership. Always practical, always personal.</value>
+  </data>
+  <data name="Method4Title" xml:space="preserve">
+    <value>Team guidance</value>
+  </data>
+  <data name="Method4Description" xml:space="preserve">
+    <value>For teams that want to work better together. See Organizations for more information.</value>
+  </data>
+  <data name="MethodsConclusion" xml:space="preserve">
+    <value>The first conversation is free. We listen to what is going on, what you need, and whether we are the right people for you. Everything is tailor-made, and we agree on the price after that conversation.</value>
+  </data>
+  <data name="MethodsButton" xml:space="preserve">
+    <value>Book a free conversation</value>
   </data>
 </root>

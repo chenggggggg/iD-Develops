@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?><root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader><resheader name="version"><value>2.0</value></resheader>
+  <data name="BeforeHeading" xml:space="preserve"><value>Voor je begint</value></data>
+  <data name="BeforeStep1Heading" xml:space="preserve"><value>Plan voldoende tijd</value></data>
+  <data name="BeforeStep1Text" xml:space="preserve"><value>Houd ongeveer {0} vrij en kies een moment waarop je niet gestoord wordt.</value></data>
+  <data name="BeforeStep2Heading" xml:space="preserve"><value>Werk zelfstandig</value></data>
+  <data name="BeforeStep2Text" xml:space="preserve"><value>Gebruik geen woordenboek of vertaaltool. Dan geeft de uitslag het eerlijkste beeld.</value></data>
+  <data name="BeforeStep3Heading" xml:space="preserve"><value>Bekijk direct je uitslag</value></data>
+  <data name="BeforeStep3Text" xml:space="preserve"><value>Na de laatste vraag krijg je je score en een advies voor het vervolg.</value></data>
+  <data name="BenefitsEyebrow" xml:space="preserve"><value>Wat je eraan hebt</value></data>
+  <data name="BenefitsHeading" xml:space="preserve"><value>Een helder vertrekpunt, geen definitief taalcertificaat</value></data>
+  <data name="BenefitsParagraph1" xml:space="preserve"><value>De test kijkt naar de basis die je nodig hebt om verder te werken richting niveau A2. Na afloop zie je je score en lees je wat die score betekent voor jouw volgende stap.</value></data>
+  <data name="BenefitsParagraph2" xml:space="preserve"><value>Gebruik de uitslag als praktisch advies. De test is bedoeld om je op weg te helpen en is geen officieel examen of erkend bewijs van je taalniveau.</value></data>
+  <data name="DurationFormat" xml:space="preserve"><value>{0} minuten</value></data>
+  <data name="DurationLabel" xml:space="preserve"><value>Reken op</value></data>
+  <data name="Eyebrow" xml:space="preserve"><value>Gratis Nederlandse niveautest</value></data>
+  <data name="Heading" xml:space="preserve"><value>Hoe goed is jouw Nederlands?</value></data>
+  <data name="HighScoreLabel" xml:space="preserve"><value>A1-basis bereikt</value></data>
+  <data name="HighScoreRange" xml:space="preserve"><value>51 punten of meer</value></data>
+  <data name="HighScoreText" xml:space="preserve"><value>Je beheerst de basis van niveau A1. De cursus Nederlands A1-A2 is een passende volgende stap.</value></data>
+  <data name="InitializeError" xml:space="preserve"><value>De niveautest kon niet worden gestart.</value></data>
+  <data name="Introduction" xml:space="preserve"><value>Deze niveautest geeft je een eerste, praktische indruk van je basiskennis. Zo ontdek je of de online cursus Nederlands A1-A2 een logische volgende stap voor je is.</value></data>
+  <data name="LowScoreLabel" xml:space="preserve"><value>Eerst de basis versterken</value></data>
+  <data name="LowScoreRange" xml:space="preserve"><value>Minder dan 45 punten</value></data>
+  <data name="LowScoreText" xml:space="preserve"><value>Je basis heeft waarschijnlijk nog wat aandacht nodig. Mail ons voor persoonlijk advies via </value></data>
+  <data name="MetaDescription" xml:space="preserve"><value>Doe de gratis Nederlandse niveautest en ontdek of de online cursus Nederlands A1-A2 bij je past.</value></data>
+  <data name="MiddleScoreLabel" xml:space="preserve"><value>Bijna op A1</value></data>
+  <data name="MiddleScoreRange" xml:space="preserve"><value>45 tot 50 punten</value></data>
+  <data name="MiddleScoreText" xml:space="preserve"><value>De cursus kan goed bij je passen. Neem wel de tijd voor herhaling en doorloop alle uitleg en opdrachten zorgvuldig.</value></data>
+  <data name="PracticalInformationLabel" xml:space="preserve"><value>Praktische informatie</value></data>
+  <data name="ReadOnButton" xml:space="preserve"><value>Lees verder en start</value></data>
+  <data name="ScoreGuideEyebrow" xml:space="preserve"><value>Scoregids</value></data>
+  <data name="ScoreGuideHeading" xml:space="preserve"><value>Zo lees je de uitslag</value></data>
+  <data name="ScoreGuideIntroduction" xml:space="preserve"><value>Je score helpt je inschatten hoeveel basis je al hebt en hoeveel ondersteuning of herhaling voor jou prettig is.</value></data>
+  <data name="StartButton" xml:space="preserve"><value>Start de niveautest</value></data>
+  <data name="StartEyebrow" xml:space="preserve"><value>Klaar om te beginnen?</value></data>
+  <data name="StartHeading" xml:space="preserve"><value>Neem de tijd en ontdek waar je staat.</value></data>
+  <data name="StartText" xml:space="preserve"><value>De test duurt ongeveer {0}. Zodra je start, begint de timer.</value></data>
+  <data name="TimerExplanation" xml:space="preserve"><value>De timer start zodra je de test opent. Je hebt geen account nodig.</value></data>
+  <data name="Title" xml:space="preserve"><value>Gratis Nederlandse niveautest</value></data>
+  <data name="UnavailableMessage" xml:space="preserve"><value>De openbare niveautest is op dit moment niet beschikbaar. Probeer het later opnieuw.</value></data>
+</root>

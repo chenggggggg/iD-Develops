@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Diagnostics;
 using iD_Develops.Services;
+using Microsoft.Extensions.Localization;
 
 namespace iD_Develops.Pages
 {
@@ -14,15 +15,15 @@ namespace iD_Develops.Pages
         public string ErrorCode { get; private set; } = "server-error";
         public string ThemeClass { get; private set; } = "error-theme-danger";
         public string IconText { get; private set; } = "!";
-        public string Heading { get; private set; } = "Something went wrong";
-        public string Summary { get; private set; } = "An unexpected error occurred while processing your request.";
-        public string Detail { get; private set; } = "Please try again in a moment. If the problem continues, contact support.";
-        public string PrimaryActionLabel { get; private set; } = "Try again";
+        public string Heading { get; private set; } = string.Empty;
+        public string Summary { get; private set; } = string.Empty;
+        public string Detail { get; private set; } = string.Empty;
+        public string PrimaryActionLabel { get; private set; } = string.Empty;
         public string PrimaryActionUrl { get; private set; } = "/";
-        public string SecondaryActionLabel { get; private set; } = "Go home";
+        public string SecondaryActionLabel { get; private set; } = string.Empty;
         public string SecondaryActionUrl { get; private set; } = "/";
         public string? ImagePath { get; private set; }
-        public string ImageAlt { get; private set; } = "Error illustration";
+        public string ImageAlt { get; private set; } = string.Empty;
         public string HomeUrl { get; private set; } = "/";
         public string? OriginalPath { get; private set; }
 
@@ -30,11 +31,16 @@ namespace iD_Develops.Pages
 
         private readonly ILogger<ErrorModel> _logger;
         private readonly IApplicationUrlService _applicationUrls;
+        private readonly IStringLocalizer<ErrorModel> _localizer;
 
-        public ErrorModel(ILogger<ErrorModel> logger, IApplicationUrlService applicationUrls)
+        public ErrorModel(
+            ILogger<ErrorModel> logger,
+            IApplicationUrlService applicationUrls,
+            IStringLocalizer<ErrorModel> localizer)
         {
             _logger = logger;
             _applicationUrls = applicationUrls;
+            _localizer = localizer;
         }
 
         public void OnGet(int? statusCode = null, string? code = null, string? returnUrl = null)
@@ -50,6 +56,12 @@ namespace iD_Develops.Pages
             PrimaryActionUrl = localReturnUrl;
             SecondaryActionUrl = HomeUrl;
             OriginalPath = localReturnUrl != HomeUrl ? localReturnUrl : null;
+            Heading = _localizer["ServerErrorHeading"];
+            Summary = _localizer["ServerErrorSummary"];
+            Detail = _localizer["ServerErrorDetail"];
+            PrimaryActionLabel = _localizer["TryAgainAction"];
+            SecondaryActionLabel = _localizer["GoHomeAction"];
+            ImageAlt = _localizer["ServerErrorImageAlt"];
 
             ApplyErrorState(statusCode, code, culture, localReturnUrl, isPortalRequest);
             Response.StatusCode = StatusCodeValue;
@@ -66,98 +78,98 @@ namespace iD_Develops.Pages
                 case "db-timeout":
                 case "db-login-failed":
                     StatusCodeValue = StatusCodes.Status503ServiceUnavailable;
-                    Heading = "Database temporarily unavailable";
+                    Heading = _localizer["DatabaseHeading"];
                     Summary = ErrorCode switch
                     {
-                        "db-timeout" => "The application reached the database server, but the request timed out.",
-                        "db-login-failed" => "The application could not authenticate with the database.",
-                        "db-connection-refused" => "The database server refused the connection request.",
-                        _ => "We could not reach the application database just now."
+                        "db-timeout" => _localizer["DatabaseTimeoutSummary"],
+                        "db-login-failed" => _localizer["DatabaseLoginSummary"],
+                        "db-connection-refused" => _localizer["DatabaseRefusedSummary"],
+                        _ => _localizer["DatabaseUnavailableSummary"]
                     };
                     Detail = ErrorCode switch
                     {
-                        "db-timeout" => "This can happen during a restart, heavy load, or a temporary network slowdown. Try again shortly.",
-                        "db-login-failed" => "This usually points to a database configuration or credential problem and needs administrator attention.",
-                        "db-connection-refused" => "This usually means the database service is stopped, restarting, or not accepting connections from the app.",
-                        _ => "This usually means the database server is offline, restarting, or unreachable from the app. Try again shortly."
+                        "db-timeout" => _localizer["DatabaseTimeoutDetail"],
+                        "db-login-failed" => _localizer["DatabaseLoginDetail"],
+                        "db-connection-refused" => _localizer["DatabaseRefusedDetail"],
+                        _ => _localizer["DatabaseUnavailableDetail"]
                     };
                     ThemeClass = "error-theme-info";
                     IconText = "DB";
                     ImagePath = "/images/error-connectivity.png";
-                    ImageAlt = "Database or connectivity issue";
-                    PrimaryActionLabel = "Try again";
+                    ImageAlt = _localizer["DatabaseImageAlt"];
+                    PrimaryActionLabel = _localizer["TryAgainAction"];
                     PrimaryActionUrl = localReturnUrl;
-                    SecondaryActionLabel = "Go home";
+                    SecondaryActionLabel = _localizer["GoHomeAction"];
                     SecondaryActionUrl = HomeUrl;
                     return;
                 case "bad-request":
                     StatusCodeValue = StatusCodes.Status400BadRequest;
-                    Heading = "Invalid request";
-                    Summary = "The request could not be processed in its current form.";
-                    Detail = "Please check the input or try the action again from the previous page.";
+                    Heading = _localizer["BadRequestHeading"];
+                    Summary = _localizer["BadRequestSummary"];
+                    Detail = _localizer["BadRequestDetail"];
                     ThemeClass = "error-theme-warning";
                     IconText = "400";
                     ImagePath = "/images/error-invalid-request.png";
-                    ImageAlt = "Invalid request";
-                    PrimaryActionLabel = "Try again";
+                    ImageAlt = _localizer["BadRequestImageAlt"];
+                    PrimaryActionLabel = _localizer["TryAgainAction"];
                     PrimaryActionUrl = localReturnUrl;
-                    SecondaryActionLabel = "Go home";
+                    SecondaryActionLabel = _localizer["GoHomeAction"];
                     SecondaryActionUrl = HomeUrl;
                     return;
                 case "unauthorized":
                     StatusCodeValue = StatusCodes.Status401Unauthorized;
-                    Heading = "Sign-in required";
-                    Summary = "You need to sign in before accessing this page.";
-                    Detail = "Please sign in and try again.";
+                    Heading = _localizer["UnauthorizedHeading"];
+                    Summary = _localizer["UnauthorizedSummary"];
+                    Detail = _localizer["UnauthorizedDetail"];
                     ThemeClass = "error-theme-primary";
                     IconText = "401";
                     ImagePath = "/images/error-authentication.png";
-                    ImageAlt = "Authentication required";
-                    PrimaryActionLabel = "Sign in";
+                    ImageAlt = _localizer["UnauthorizedImageAlt"];
+                    PrimaryActionLabel = _localizer["SignInAction"];
                     PrimaryActionUrl = BuildLoginUrl(localReturnUrl, isPortalRequest);
-                    SecondaryActionLabel = "Go home";
+                    SecondaryActionLabel = _localizer["GoHomeAction"];
                     SecondaryActionUrl = HomeUrl;
                     return;
                 case "forbidden":
                     StatusCodeValue = StatusCodes.Status403Forbidden;
-                    Heading = "Access denied";
-                    Summary = "You do not have permission to access this resource.";
-                    Detail = "If you believe this is a mistake, contact an administrator.";
+                    Heading = _localizer["ForbiddenHeading"];
+                    Summary = _localizer["ForbiddenSummary"];
+                    Detail = _localizer["ForbiddenDetail"];
                     ThemeClass = "error-theme-violet";
                     IconText = "403";
                     ImagePath = "/images/error-authorization.png";
-                    ImageAlt = "Access denied";
-                    PrimaryActionLabel = "Go home";
+                    ImageAlt = _localizer["ForbiddenImageAlt"];
+                    PrimaryActionLabel = _localizer["GoHomeAction"];
                     PrimaryActionUrl = HomeUrl;
-                    SecondaryActionLabel = "Try previous page";
+                    SecondaryActionLabel = _localizer["PreviousPageAction"];
                     SecondaryActionUrl = localReturnUrl;
                     return;
                 case "not-found":
                     StatusCodeValue = StatusCodes.Status404NotFound;
-                    Heading = "Page not found";
-                    Summary = "The page or resource you requested could not be found.";
-                    Detail = "The link may be outdated, or the item may have been moved or removed.";
+                    Heading = _localizer["NotFoundHeading"];
+                    Summary = _localizer["NotFoundSummary"];
+                    Detail = _localizer["NotFoundDetail"];
                     ThemeClass = "error-theme-slate";
                     IconText = "404";
                     ImagePath = "/images/error-not-found.png";
-                    ImageAlt = "Page not found";
-                    PrimaryActionLabel = "Go home";
+                    ImageAlt = _localizer["NotFoundImageAlt"];
+                    PrimaryActionLabel = _localizer["GoHomeAction"];
                     PrimaryActionUrl = HomeUrl;
-                    SecondaryActionLabel = "Try previous page";
+                    SecondaryActionLabel = _localizer["PreviousPageAction"];
                     SecondaryActionUrl = localReturnUrl;
                     return;
                 case "conflict":
                     StatusCodeValue = StatusCodes.Status409Conflict;
-                    Heading = "Request conflict";
-                    Summary = "The request could not be completed because the current state no longer matches.";
-                    Detail = "Refresh the page and try again.";
+                    Heading = _localizer["ConflictHeading"];
+                    Summary = _localizer["ConflictSummary"];
+                    Detail = _localizer["ConflictDetail"];
                     ThemeClass = "error-theme-warning";
                     IconText = "409";
                     ImagePath = "/images/error-invalid-request.png";
-                    ImageAlt = "Request conflict";
-                    PrimaryActionLabel = "Refresh and try again";
+                    ImageAlt = _localizer["ConflictImageAlt"];
+                    PrimaryActionLabel = _localizer["RefreshAction"];
                     PrimaryActionUrl = localReturnUrl;
-                    SecondaryActionLabel = "Go home";
+                    SecondaryActionLabel = _localizer["GoHomeAction"];
                     SecondaryActionUrl = HomeUrl;
                     return;
             }
@@ -168,86 +180,86 @@ namespace iD_Develops.Pages
             {
                 case StatusCodes.Status400BadRequest:
                     ErrorCode = "bad-request";
-                    Heading = "Invalid request";
-                    Summary = "The request could not be processed in its current form.";
-                    Detail = "Please check the input or try the action again from the previous page.";
+                    Heading = _localizer["BadRequestHeading"];
+                    Summary = _localizer["BadRequestSummary"];
+                    Detail = _localizer["BadRequestDetail"];
                     ThemeClass = "error-theme-warning";
                     IconText = "400";
                     ImagePath = "/images/error-invalid-request.png";
-                    ImageAlt = "Invalid request";
+                    ImageAlt = _localizer["BadRequestImageAlt"];
                     break;
                 case StatusCodes.Status401Unauthorized:
                     ErrorCode = "unauthorized";
-                    Heading = "Sign-in required";
-                    Summary = "You need to sign in before accessing this page.";
-                    Detail = "Please sign in and try again.";
+                    Heading = _localizer["UnauthorizedHeading"];
+                    Summary = _localizer["UnauthorizedSummary"];
+                    Detail = _localizer["UnauthorizedDetail"];
                     ThemeClass = "error-theme-primary";
                     IconText = "401";
                     ImagePath = "/images/error-authentication.png";
-                    ImageAlt = "Authentication required";
-                    PrimaryActionLabel = "Sign in";
+                    ImageAlt = _localizer["UnauthorizedImageAlt"];
+                    PrimaryActionLabel = _localizer["SignInAction"];
                     PrimaryActionUrl = BuildLoginUrl(localReturnUrl, isPortalRequest);
                     break;
                 case StatusCodes.Status403Forbidden:
                     ErrorCode = "forbidden";
-                    Heading = "Access denied";
-                    Summary = "You do not have permission to access this resource.";
-                    Detail = "If you believe this is a mistake, contact an administrator.";
+                    Heading = _localizer["ForbiddenHeading"];
+                    Summary = _localizer["ForbiddenSummary"];
+                    Detail = _localizer["ForbiddenDetail"];
                     ThemeClass = "error-theme-violet";
                     IconText = "403";
                     ImagePath = "/images/error-authorization.png";
-                    ImageAlt = "Access denied";
-                    PrimaryActionLabel = "Go home";
+                    ImageAlt = _localizer["ForbiddenImageAlt"];
+                    PrimaryActionLabel = _localizer["GoHomeAction"];
                     PrimaryActionUrl = HomeUrl;
-                    SecondaryActionLabel = "Try previous page";
+                    SecondaryActionLabel = _localizer["PreviousPageAction"];
                     SecondaryActionUrl = localReturnUrl;
                     break;
                 case StatusCodes.Status404NotFound:
                     ErrorCode = "not-found";
-                    Heading = "Page not found";
-                    Summary = "The page or resource you requested could not be found.";
-                    Detail = "The link may be outdated, or the item may have been moved or removed.";
+                    Heading = _localizer["NotFoundHeading"];
+                    Summary = _localizer["NotFoundSummary"];
+                    Detail = _localizer["NotFoundDetail"];
                     ThemeClass = "error-theme-slate";
                     IconText = "404";
                     ImagePath = "/images/error-not-found.png";
-                    ImageAlt = "Page not found";
-                    PrimaryActionLabel = "Go home";
+                    ImageAlt = _localizer["NotFoundImageAlt"];
+                    PrimaryActionLabel = _localizer["GoHomeAction"];
                     PrimaryActionUrl = HomeUrl;
-                    SecondaryActionLabel = "Try previous page";
+                    SecondaryActionLabel = _localizer["PreviousPageAction"];
                     SecondaryActionUrl = localReturnUrl;
                     break;
                 case StatusCodes.Status409Conflict:
                     ErrorCode = "conflict";
-                    Heading = "Request conflict";
-                    Summary = "The request could not be completed because the current state no longer matches.";
-                    Detail = "Refresh the page and try again.";
+                    Heading = _localizer["ConflictHeading"];
+                    Summary = _localizer["ConflictSummary"];
+                    Detail = _localizer["ConflictDetail"];
                     ThemeClass = "error-theme-warning";
                     IconText = "409";
                     ImagePath = "/images/error-invalid-request.png";
-                    ImageAlt = "Request conflict";
-                    PrimaryActionLabel = "Refresh and try again";
+                    ImageAlt = _localizer["ConflictImageAlt"];
+                    PrimaryActionLabel = _localizer["RefreshAction"];
                     PrimaryActionUrl = localReturnUrl;
                     break;
                 case StatusCodes.Status503ServiceUnavailable:
                     ErrorCode = "service-unavailable";
-                    Heading = "Service temporarily unavailable";
-                    Summary = "The service is currently unavailable.";
-                    Detail = "Try again shortly.";
+                    Heading = _localizer["ServiceUnavailableHeading"];
+                    Summary = _localizer["ServiceUnavailableSummary"];
+                    Detail = _localizer["ServiceUnavailableDetail"];
                     ThemeClass = "error-theme-info";
                     IconText = "503";
                     ImagePath = "/images/error-unavailable.png";
-                    ImageAlt = "Service unavailable";
+                    ImageAlt = _localizer["ServiceUnavailableImageAlt"];
                     break;
                 default:
                     ErrorCode = "server-error";
                     StatusCodeValue = StatusCodes.Status500InternalServerError;
-                    Heading = "Something went wrong";
-                    Summary = "An unexpected server error occurred.";
-                    Detail = "Please try again in a moment. If the problem continues, contact support.";
+                    Heading = _localizer["ServerErrorHeading"];
+                    Summary = _localizer["ServerErrorSummary"];
+                    Detail = _localizer["ServerErrorDetail"];
                     ThemeClass = "error-theme-danger";
                     IconText = "500";
                     ImagePath = "/images/error-unavailable.png";
-                    ImageAlt = "System or service issue";
+                    ImageAlt = _localizer["ServerErrorImageAlt"];
                     break;
             }
         }

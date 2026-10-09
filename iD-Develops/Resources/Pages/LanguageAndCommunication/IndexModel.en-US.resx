@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>Language &amp; Communication</value></data>
+  <data name="SeoTitle" xml:space="preserve"><value>Business English &amp; Communication Skills Training | iD!</value></data>
+  <data name="MetaDescription" xml:space="preserve"><value>Practical business English and communication skills training: present with confidence, write clearly, and communicate across cultures.</value></data>
+  <data name="HeroTitle" xml:space="preserve"><value>What you say matters, but how you say it determines whether you're being heard</value></data>
+  <data name="HeroParagraph1" xml:space="preserve"><value>You can have the best ideas and the best intentions in the world, but if your message doesn't land, that's where it stops. Luckily, communication is not an inborn talent but a skill. And skills can be learned.</value></data>
+  <data name="HeroParagraph2" xml:space="preserve"><value>At iD!, we're happy to help you communicate more clearly, more convincingly, and more comfortably. In Dutch, English, non-verbal communication, or across cultures.</value></data>
+  <data name="ConversationButton" xml:space="preserve"><value>Book a conversation</value></data>
+  <data name="ContactButton" xml:space="preserve"><value>Contact form</value></data>
+  <data name="ServicesEyebrow" xml:space="preserve"><value>What we can help you with</value></data>
+  <data name="ServiceEnglishTitle" xml:space="preserve"><value>(Business) English</value></data>
+  <data name="ServiceEnglishDescription" xml:space="preserve"><value>From writing a more professional email to giving a presentation without searching for words. Practical, relevant, and immediately useful.</value></data>
+  <data name="ServiceInterculturalTitle" xml:space="preserve"><value>Intercultural communication</value></data>
+  <data name="ServiceInterculturalDescription" xml:space="preserve"><value>What is polite in one country can come across as vague or even rude somewhere else. We help you read the codes — and respond in a way that works.</value></data>
+  <data name="ServiceSpeakingTitle" xml:space="preserve"><value>Conversation skills &amp; presenting</value></data>
+  <data name="ServiceSpeakingDescription" xml:space="preserve"><value>Making your point clearly, even under pressure. Giving a presentation that people really listen to.</value></data>
+  <data name="ServiceWritingTitle" xml:space="preserve"><value>Writing skills</value></data>
+  <data name="ServiceWritingDescription" xml:space="preserve"><value>Writing clearly and to the point: text that gets read, not text that is just long.</value></data>
+  <data name="ServiceOutsourceTitle" xml:space="preserve"><value>Outsource your writing</value></data>
+  <data name="ServiceOutsourceDescription" xml:space="preserve"><value>Would you rather not spend time writing — or learning how to write — yourself? We can edit your text or write it for you.</value></data>
+  <data name="AudienceEyebrow" xml:space="preserve"><value>Who this is for</value></data>
+  <data name="AudienceTitle" xml:space="preserve"><value>Communicate with more confidence</value></data>
+  <data name="AudienceParagraph1" xml:space="preserve"><value>For anyone who wants to feel more confident communicating in Dutch or English, and for professionals who want to grow in the way they come across.</value></data>
+  <data name="AudienceParagraph2" xml:space="preserve"><value>Everything is tailor-made, and pricing is agreed after an introductory conversation.</value></data>
+  <data name="AudienceParagraph3" xml:space="preserve"><value>Does your question go deeper than the skill itself? For example: why is it so exciting to give your opinion? Then take a look at Personal Development. Sometimes the “how” is connected to the “who”.</value></data>
+</root>

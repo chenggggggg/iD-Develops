@@ -207,4 +207,31 @@
   <data name="Nav_Products" xml:space="preserve">
     <value>Prijzen</value>
   </data>
+  <data name="Footer_AboutHeading" xml:space="preserve">
+    <value>Over iD!</value>
+  </data>
+  <data name="Footer_RightsReserved" xml:space="preserve">
+    <value>Alle rechten voorbehouden.</value>
+  </data>
+  <data name="Language_Current" xml:space="preserve">
+    <value>Nederland (Nederlands)</value>
+  </data>
+  <data name="Language_Netherlands" xml:space="preserve">
+    <value>Nederland</value>
+  </data>
+  <data name="Language_UnitedStates" xml:space="preserve">
+    <value>Verenigde Staten</value>
+  </data>
+  <data name="Nav_Close" xml:space="preserve">
+    <value>Sluiten</value>
+  </data>
+  <data name="Nav_Organizations" xml:space="preserve">
+    <value>Voor organisaties</value>
+  </data>
+  <data name="Nav_Services" xml:space="preserve">
+    <value>Diensten</value>
+  </data>
+  <data name="Nav_Toggle" xml:space="preserve">
+    <value>Navigatie openen</value>
+  </data>
 </root>

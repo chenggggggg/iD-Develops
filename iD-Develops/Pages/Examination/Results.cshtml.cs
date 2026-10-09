@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 
 namespace iD_Develops.Pages.Examination
 {
@@ -65,24 +66,27 @@ namespace iD_Develops.Pages.Examination
         private readonly IParticipantAnswerService _participantAnswerService;
         private readonly IExamEvaluationService _examEvaluationService;
         private readonly IDataProtector _publicResultProtector;
+        private readonly IStringLocalizer<ResultsModel> _localizer;
 
         public ResultsModel(
             ApplicationDbContext dbContext,
             IExamVersionService examVersionService,
             IParticipantAnswerService participantAnswerService,
             IExamEvaluationService examEvaluationService,
-            IDataProtectionProvider dataProtectionProvider)
+            IDataProtectionProvider dataProtectionProvider,
+            IStringLocalizer<ResultsModel> localizer)
         {
             _dbContext = dbContext;
             _examVersionService = examVersionService;
             _participantAnswerService = participantAnswerService;
             _examEvaluationService = examEvaluationService;
             _publicResultProtector = dataProtectionProvider.CreateProtector(PublicResultPurpose);
+            _localizer = localizer;
         }
 
         public async Task<IActionResult> OnGetAsync(CancellationToken cancellationToken)
         {
-            ViewData["Title"] = "Level Test Results";
+            ViewData["Title"] = _localizer["Title"];
             ViewData["BodyClass"] = "public-result-page";
 
             if (RecordId == Guid.Empty || string.IsNullOrWhiteSpace(Token) || !IsValidPublicResultToken(RecordId, Token))
@@ -147,10 +151,10 @@ namespace iD_Develops.Pages.Examination
                 maxScore,
                 correctCount,
                 totalQuestions,
-                "Level",
+                _localizer["LevelLabel"],
                 grade.Level,
                 ResolveLocalized(exam.CompletionTextPrimary, exam.CompletionTextSecondary),
-                "What this means",
+                _localizer["AdviceTitle"],
                 grade.Advice,
                 scorePercentage);
         }
@@ -163,9 +167,9 @@ namespace iD_Develops.Pages.Examination
             return new QuestionReviewItem(
                 question.QuestionNumber,
                 question.Text,
-                isCorrect ? "Correct" : "Review",
+                isCorrect ? _localizer["CorrectLabel"] : _localizer["ReviewLabel"],
                 isCorrect ? "public-result-badge-correct" : "public-result-badge-review",
-                FormatAnswer(question, participantAnswer?.AnswerText, emptyFallback: "No answer submitted"),
+                FormatAnswer(question, participantAnswer?.AnswerText, emptyFallback: _localizer["NoAnswerSubmitted"]),
                 FormatCorrectAnswers(question),
                 question.Feedback,
                 question.FunFact,
@@ -194,25 +198,25 @@ namespace iD_Develops.Pages.Examination
                 && string.Equals(record.Exam?.PublicSlug, LevelTestPublicSlug, StringComparison.OrdinalIgnoreCase);
         }
 
-        private static (string Level, string Advice) ResolveLevelTestResult(double score)
+        private (string Level, string Advice) ResolveLevelTestResult(double score)
         {
             if (score >= 51 && score <= 60)
             {
                 return (
-                    "A1",
-                    "You are definitely at level A1. You can start with the DIY course A1-A2 without any problems.");
+                    _localizer["GradeA1"],
+                    _localizer["GradeA1Advice"]);
             }
 
             if (score >= 45 && score <= 50)
             {
                 return (
-                    "Ready for A1-A2",
-                    "You are good to go with this course as well, although you will have to do all the exercises.");
+                    _localizer["GradeReadyA1A2"],
+                    _localizer["GradeReadyA1A2Advice"]);
             }
 
             return (
-                "Below A1",
-                "Less than 45 points but still want to give it a shot? That is great, but please contact us at info@id-develops.com. We are happy to give you some advice.");
+                _localizer["GradeBelowA1"],
+                _localizer["GradeBelowA1Advice"]);
         }
 
         private string? ResolveLocalized(string? primary, string? secondary)
@@ -237,12 +241,12 @@ namespace iD_Develops.Pages.Examination
                 .Sum();
         }
 
-        private static string FormatCorrectAnswers(Question question)
+        private string FormatCorrectAnswers(Question question)
         {
             if (question.CorrectAnswers == null || question.CorrectAnswers.Count == 0)
-                return "No model answer provided";
+                return _localizer["NoModelAnswer"];
 
-            return string.Join(" / ", question.CorrectAnswers.Select(answer => FormatAnswer(question, answer.Text, emptyFallback: "No model answer provided")));
+            return string.Join(" / ", question.CorrectAnswers.Select(answer => FormatAnswer(question, answer.Text, emptyFallback: _localizer["NoModelAnswer"])));
         }
 
         private static string FormatAnswer(Question question, string? answerText, string emptyFallback)

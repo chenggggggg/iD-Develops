@@ -1,5 +1,6 @@
 @inject iD_Develops.Services.IApplicationUrlService ApplicationUrls
 @inject iD_Develops.Services.IPortalSessionIndicatorService PortalSessionIndicator
+@inject Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer Localizer
 
 @{
     var hasPortalSession = PortalSessionIndicator.HasActiveSession(Context.Request);
@@ -12,6 +13,6 @@
 <li class="public-nav-item">
     <a class="public-nav-link public-nav-login"
        href="@portalUrl">
-        <span>@(hasPortalSession ? "Portal" : "Log In")</span>
+        <span>@(hasPortalSession ? Localizer["Nav_Portal"] : Localizer["Nav_SignIn"])</span>
     </a>
 </li>

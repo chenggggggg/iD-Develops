@@ -208,12 +208,288 @@
     <value>Test je niveau</value>
   </data>
   <data name="Title" xml:space="preserve">
-    <value>Uw Professionele Groei Bevorderen</value>
+    <value>Home</value>
   </data>
   <data name="TrainingProgramDevelopmentDescription" xml:space="preserve">
     <value>Op maat gemaakte trainingsprogramma's aangepast aan individuele en organisatorische behoeften. Impactvolle leerervaringen die groei stimuleren, prestaties verbeteren en professionele ontwikkeling bevorderen.</value>
   </data>
   <data name="TrainingProgramDevelopmentTitle" xml:space="preserve">
     <value>Opleidingsprogramma Ontwikkeling</value>
+  </data>
+  <data name="SeoTitle" xml:space="preserve">
+    <value>iD! Training &amp; Development | Taal, communicatie &amp; groei</value>
+  </data>
+  <data name="MetaDescription" xml:space="preserve">
+    <value>Leer Nederlands, versterk je communicatie of groei naar wie je wilt zijn. iD! begeleidt mensen en teams met expertise, eerlijkheid en humor.</value>
+  </data>
+  <data name="ShowExpandedLearningOptions" xml:space="preserve">
+    <value>false</value>
+  </data>
+  <data name="HeroTitleLine1" xml:space="preserve">
+    <value>Vind je stem.</value>
+  </data>
+  <data name="HeroTitleLine2" xml:space="preserve">
+    <value>Vind je richting.</value>
+  </data>
+  <data name="HeroSubtitleLine1" xml:space="preserve">
+    <value>Leer de taal. Zeg wat je bedoelt.</value>
+  </data>
+  <data name="HeroSubtitleLine2" xml:space="preserve">
+    <value>Ga met vertrouwen verder.</value>
+  </data>
+  <data name="HeroLevelTestButton" xml:space="preserve">
+    <value>Test je niveau</value>
+  </data>
+  <data name="HeroContactButton" xml:space="preserve">
+    <value>Neem contact op</value>
+  </data>
+  <data name="LearnersSupported" xml:space="preserve">
+    <value>Cursisten begeleid</value>
+  </data>
+  <data name="YearsExperience" xml:space="preserve">
+    <value>Jaar ervaring</value>
+  </data>
+  <data name="AverageRating" xml:space="preserve">
+    <value>Gemiddelde beoordeling</value>
+  </data>
+  <data name="ServicesEyebrow" xml:space="preserve">
+    <value>Diensten</value>
+  </data>
+  <data name="ServicesTitle" xml:space="preserve">
+    <value>Waar kunnen we je mee helpen?</value>
+  </data>
+  <data name="ServiceNt2Title" xml:space="preserve">
+    <value>NT2 / Inburgeren</value>
+  </data>
+  <data name="ServiceNt2Description" xml:space="preserve">
+    <value>Nederlands leren — van eerste woorden tot inburgering en BIG-registratie.</value>
+  </data>
+  <data name="ServiceDevelopmentTitle" xml:space="preserve">
+    <value>Persoonlijke Ontwikkeling</value>
+  </data>
+  <data name="ServiceDevelopmentDescription" xml:space="preserve">
+    <value>Vind richting bij werk, relaties of een grote verandering.</value>
+  </data>
+  <data name="ServiceCommunicationTitle" xml:space="preserve">
+    <value>Taal &amp; Communicatie</value>
+  </data>
+  <data name="ServiceCommunicationDescription" xml:space="preserve">
+    <value>Zeg wat je bedoelt — en zorg dat het aankomt.</value>
+  </data>
+  <data name="ServiceOrganizationsTitle" xml:space="preserve">
+    <value>Voor Organisaties</value>
+  </data>
+  <data name="ServiceOrganizationsDescription" xml:space="preserve">
+    <value>Laat je team groeien met taaltraining en communicatie.</value>
+  </data>
+  <data name="LearnMore" xml:space="preserve">
+    <value>Lees meer</value>
+  </data>
+  <data name="ApproachEyebrow" xml:space="preserve">
+    <value>Onze werkwijze</value>
+  </data>
+  <data name="ApproachTitle" xml:space="preserve">
+    <value>Wat je van ons kunt verwachten</value>
+  </data>
+  <data name="ApproachIntro" xml:space="preserve">
+    <value>En geen coach die boven je staat. Bij iD! werk je op gelijkwaardig niveau, niet met iemand die het beter weet.</value>
+  </data>
+  <data name="ApproachStepsLabel" xml:space="preserve">
+    <value>Stappen in onze werkwijze</value>
+  </data>
+  <data name="ApproachStep1ShortTitle" xml:space="preserve">
+    <value>We gaan meteen naar de kern</value>
+  </data>
+  <data name="ApproachStep1Title" xml:space="preserve">
+    <value>We gaan meteen naar de kern</value>
+  </data>
+  <data name="ApproachStep1Description" xml:space="preserve">
+    <value>Geen lange intake-formulieren of vrijblijvend rondpraten. In het eerste gesprek zoeken we samen uit wat er écht speelt en wat je nodig hebt; niet wat het boekje voorschrijft.</value>
+  </data>
+  <data name="ApproachStep2ShortTitle" xml:space="preserve">
+    <value>We maken het passend, niet standaard</value>
+  </data>
+  <data name="ApproachStep2Title" xml:space="preserve">
+    <value>We maken het passend, niet standaard</value>
+  </data>
+  <data name="ApproachStep2Description" xml:space="preserve">
+    <value>Je werkt met onze beproefde programma's, en waar nodig ontwikkelen we iets speciaal voor jou of je team. Elk doel, of het nu gaat om een taalniveau, een carrièrevraag, een team dat beter wil communiceren, of een bedrijf dat wil groeien, vraagt immers om een andere aanpak.</value>
+  </data>
+  <data name="ApproachStep3ShortTitle" xml:space="preserve">
+    <value>Je gaat direct aan de slag</value>
+  </data>
+  <data name="ApproachStep3Title" xml:space="preserve">
+    <value>Je gaat direct aan de slag</value>
+  </data>
+  <data name="ApproachStep3Description" xml:space="preserve">
+    <value>Vooruitgang, niet perfectie is het doel. Je merkt al snel verbetering, en dat houdt de motivatie erin. Fouten maken mag, sterker nog: dat moet (en is ook eigenlijk best leuk).</value>
+  </data>
+  <data name="ApproachStep4ShortTitle" xml:space="preserve">
+    <value>We kijken mee en sturen bij</value>
+  </data>
+  <data name="ApproachStep4Title" xml:space="preserve">
+    <value>We kijken mee en sturen bij</value>
+  </data>
+  <data name="ApproachStep4Description" xml:space="preserve">
+    <value>Ontwikkeling is geen rechte lijn. We evalueren onderweg en stellen bij waar dat nodig is, net zo lang tot het klopt voor jou.</value>
+  </data>
+  <data name="ApproachAside" xml:space="preserve">
+    <value>(En bij al die stappen maken we graag een beetje plezier onderweg; ook humor en een goede lach doen wonderen voor motivatie én resultaat!)</value>
+  </data>
+  <data name="ApproachWhyEyebrow" xml:space="preserve">
+    <value>Waarom werkt dit?</value>
+  </data>
+  <data name="ApproachWhyParagraph1" xml:space="preserve">
+    <value>We hebben zelf ons leven meerdere keren omgegooid: een ander land, een andere taal, een ander bestaan. Die ervaring gebruiken we als kompas in wat we doen, niet als anekdote. We weten hoe het voelt om ergens nieuw te zijn, te twijfelen, opnieuw te beginnen. En hoe goed het voelt als het lukt.</value>
+  </data>
+  <data name="ApproachWhyParagraph2" xml:space="preserve">
+    <value>Of je nu Nederlands leert, aan je communicatie werkt, jezelf beter wilt leren kennen, of je team verder wilt helpen: onze werkwijze is overal hetzelfde. Persoonlijk, doeltreffend, en met humor waar het kan.</value>
+  </data>
+  <data name="ApproachConversationButton" xml:space="preserve">
+    <value>Plan direct een gratis gesprek</value>
+  </data>
+  <data name="SendMessageButton" xml:space="preserve">
+    <value>Stuur een bericht</value>
+  </data>
+  <data name="LearningOptionsEyebrow" xml:space="preserve">
+    <value>Prijzen</value>
+  </data>
+  <data name="LearningOptionsTitle" xml:space="preserve">
+    <value>Wat we aanbieden</value>
+  </data>
+  <data name="RegularCourseTitle" xml:space="preserve">
+    <value>Reguliere cursus</value>
+  </data>
+  <data name="RegularCourseDescription" xml:space="preserve">
+    <value>Persoonlijk leren, helemaal afgestemd op jou.</value>
+  </data>
+  <data name="RegularCoursePrice" xml:space="preserve">
+    <value>Prijs in overleg</value>
+  </data>
+  <data name="BookConversationButton" xml:space="preserve">
+    <value>Plan een gesprek</value>
+  </data>
+  <data name="RegularCourseFeature1" xml:space="preserve">
+    <value>Privé of in een kleine groep</value>
+  </data>
+  <data name="RegularCourseFeature2" xml:space="preserve">
+    <value>Jouw tempo en leerdoel</value>
+  </data>
+  <data name="RegularCourseFeature3" xml:space="preserve">
+    <value>Van eerste woorden tot inburgering</value>
+  </data>
+  <data name="NewLabel" xml:space="preserve">
+    <value>Nieuw</value>
+  </data>
+  <data name="DiyCourseTitle" xml:space="preserve">
+    <value>DIY-cursus</value>
+  </data>
+  <data name="DiyCourseDescription" xml:space="preserve">
+    <value>Zelfstandig leren, met begeleiding dichtbij.</value>
+  </data>
+  <data name="DiyCoursePrice" xml:space="preserve">
+    <value>€159</value>
+  </data>
+  <data name="TakeLevelTestButton" xml:space="preserve">
+    <value>Doe de gratis niveautest</value>
+  </data>
+  <data name="DiyCourseFeature1" xml:space="preserve">
+    <value>10 lessen in 11 weken</value>
+  </data>
+  <data name="DiyCourseFeature2" xml:space="preserve">
+    <value>Van A1 naar A2 of A2 naar B1</value>
+  </data>
+  <data name="DiyCourseFeature3" xml:space="preserve">
+    <value>Direct contact met docent en groep</value>
+  </data>
+  <data name="SpeakingCourseTitle" xml:space="preserve">
+    <value>Spreekcursus</value>
+  </data>
+  <data name="SpeakingCourseDescription" xml:space="preserve">
+    <value>Bouw vertrouwen op om hardop Nederlands te spreken.</value>
+  </data>
+  <data name="SpeakingCoursePrice" xml:space="preserve">
+    <value>€179</value>
+  </data>
+  <data name="SpeakingCourseFeature1" xml:space="preserve">
+    <value>4 weken, 8 lessen</value>
+  </data>
+  <data name="SpeakingCourseFeature2" xml:space="preserve">
+    <value>Praktijkgerichte kleine groepen</value>
+  </data>
+  <data name="SpeakingCourseFeature3" xml:space="preserve">
+    <value>Start vanaf 4 deelnemers</value>
+  </data>
+  <data name="SpeedClassTitle" xml:space="preserve">
+    <value>Speed Class</value>
+  </data>
+  <data name="SpeedClassDescription" xml:space="preserve">
+    <value>Gerichte examenvoorbereiding voor één vaardigheid in één uur.</value>
+  </data>
+  <data name="SpeedClassPrice" xml:space="preserve">
+    <value>€49</value>
+  </data>
+  <data name="SpeedClassFeature1" xml:space="preserve">
+    <value>Gerichte examenvoorbereiding</value>
+  </data>
+  <data name="SpeedClassFeature2" xml:space="preserve">
+    <value>Praktische feedback</value>
+  </data>
+  <data name="SpeedClassFeature3" xml:space="preserve">
+    <value>Duidelijke vervolgstappen</value>
+  </data>
+  <data name="ExploreLearningOptions" xml:space="preserve">
+    <value>Bekijk alle leeropties</value>
+  </data>
+  <data name="TeamEyebrow" xml:space="preserve">
+    <value>Over ons</value>
+  </data>
+  <data name="TeamTitle" xml:space="preserve">
+    <value>Wie er achter iD! staan</value>
+  </data>
+  <data name="TeamDescription" xml:space="preserve">
+    <value>Twee verschillende achtergronden, dezelfde nieuwsgierigheid naar mensen — en al ruim twaalf jaar elkaars klankbord.</value>
+  </data>
+  <data name="DominiqueFocus" xml:space="preserve">
+    <value>Taal, communicatie &amp; cultuur</value>
+  </data>
+  <data name="DominiqueImageAlt" xml:space="preserve">
+    <value>Dominique van iD!</value>
+  </data>
+  <data name="DominiqueDescription" xml:space="preserve">
+    <value>Dominique studeerde taal, doceert taal en ontwikkelt programma's die mensen helpen zich vrijer uit te drukken. Haar leven onderweg door Europa maakt haar ervaring met een nieuwe taal en cultuur allesbehalve theoretisch.</value>
+  </data>
+  <data name="PatrickFocus" xml:space="preserve">
+    <value>Mensen, groei &amp; het grotere plaatje</value>
+  </data>
+  <data name="PatrickImageAlt" xml:space="preserve">
+    <value>Patrick van iD!</value>
+  </data>
+  <data name="PatrickDescription" xml:space="preserve">
+    <value>Patrick leerde in de horeca en internationale sales hoe mensen samenwerken, groeien en elkaar in beweging krijgen. Hij brengt scherpe observaties, humor en een feilloos oog voor wat er níét wordt gezegd.</value>
+  </data>
+  <data name="ReadAboutTeamLabel" xml:space="preserve">
+    <value>Lees meer over Dominique en Patrick</value>
+  </data>
+  <data name="TeamProfilesLabel" xml:space="preserve">
+    <value>Profielen van Dominique en Patrick</value>
+  </data>
+  <data name="ShowDominiqueLabel" xml:space="preserve">
+    <value>Toon profiel van Dominique</value>
+  </data>
+  <data name="ShowPatrickLabel" xml:space="preserve">
+    <value>Toon profiel van Patrick</value>
+  </data>
+  <data name="NextStepEyebrow" xml:space="preserve">
+    <value>Jouw volgende stap</value>
+  </data>
+  <data name="NextStepTitle" xml:space="preserve">
+    <value>Ontdek waar je kunt beginnen</value>
+  </data>
+  <data name="NextStepDescription" xml:space="preserve">
+    <value>Met de gratis niveautest krijg je snel een helder beeld van waar je staat en wat je volgende stap kan zijn.</value>
+  </data>
+  <data name="NextStepContactButton" xml:space="preserve">
+    <value>Stuur een bericht</value>
   </data>
 </root>

@@ -184,6 +184,93 @@
     <value>Vorm de toekomst van uw &lt;span class="text-gradient"&gt;onderneming&lt;/span&gt;</value>
   </data>
   <data name="Title" xml:space="preserve">
-    <value>Transformeer uw team met aangepaste in-house training</value>
+    <value>Voor Organisaties</value>
+  </data>
+  <data name="SeoTitle" xml:space="preserve">
+    <value>Taal- &amp; communicatietraining voor organisaties | iD!</value>
+  </data>
+  <data name="MetaDescription" xml:space="preserve">
+    <value>Taal, communicatie, persoonlijke ontwikkeling en train-de-trainerprogramma’s op maat voor organisaties en hun medewerkers.</value>
+  </data>
+  <data name="HeroEyebrow" xml:space="preserve">
+    <value>Voor Organisaties</value>
+  </data>
+  <data name="HeroTitle" xml:space="preserve">
+    <value>Omdat mensen die goed met elkaar communiceren, je organisatie laten floreren</value>
+  </data>
+  <data name="HeroDescription" xml:space="preserve">
+    <value>Alles wat we voor individuen doen (taal, communicatie, persoonlijke ontwikkeling) doen we ook voor teams. Alleen dan op de schaal van een afdeling of hele organisatie die steviger, opener of prettiger het volgende hoofdstuk in wil.</value>
+  </data>
+  <data name="ScheduleConversation" xml:space="preserve">
+    <value>Plan een gesprek</value>
+  </data>
+  <data name="ContactButton" xml:space="preserve">
+    <value>Contactformulier</value>
+  </data>
+  <data name="ChallengesEyebrow" xml:space="preserve">
+    <value>Herken je een van deze vraagstukken?</value>
+  </data>
+  <data name="Challenge1" xml:space="preserve">
+    <value>We willen groeien, maar zijn bang onze cultuur kwijt te raken.</value>
+  </data>
+  <data name="Challenge2" xml:space="preserve">
+    <value>De onderlinge communicatie hapert.</value>
+  </data>
+  <data name="Challenge3" xml:space="preserve">
+    <value>Internationale collega's voelen zich niet altijd thuis.</value>
+  </data>
+  <data name="Challenge4" xml:space="preserve">
+    <value>Internationale klanten, maar het loopt stroef.</value>
+  </data>
+  <data name="Challenge5" xml:space="preserve">
+    <value>Ik weet niet altijd wat er leeft binnen mijn team.</value>
+  </data>
+  <data name="ChallengesConclusion" xml:space="preserve">
+    <value>Dan zitten we waarschijnlijk op één lijn.</value>
+  </data>
+  <data name="ServicesEyebrow" xml:space="preserve">
+    <value>Wat we doen</value>
+  </data>
+  <data name="ServiceNt2Title" xml:space="preserve">
+    <value>NT2 voor medewerkers</value>
+  </data>
+  <data name="ServiceNt2Description" xml:space="preserve">
+    <value>Vaste tarieven per 10 uur, aflopend bij meer deelnemers. Niveautest inbegrepen; wel vereist dat het groepsniveau gelijk is.</value>
+  </data>
+  <data name="ServiceCommunicationTitle" xml:space="preserve">
+    <value>Taal &amp; Communicatie voor teams</value>
+  </data>
+  <data name="ServiceCommunicationDescription" xml:space="preserve">
+    <value>Zakelijk Engels, interculturele samenwerking, presenteren — toegespitst op jullie behoefte.</value>
+  </data>
+  <data name="ServiceDevelopmentTitle" xml:space="preserve">
+    <value>Persoonlijke ontwikkeling voor medewerkers en teams</value>
+  </data>
+  <data name="ServiceDevelopmentDescription" xml:space="preserve">
+    <value>Van coaching voor sleutelfiguren tot teambegeleiding bij verandertrajecten.</value>
+  </data>
+  <data name="ServiceProgramsTitle" xml:space="preserve">
+    <value>Ontwikkeling van trainingsprogramma’s</value>
+  </data>
+  <data name="ServiceProgramsDescription" xml:space="preserve">
+    <value>Wij bouwen (of denken mee over) lesmateriaal, gespecialiseerd in complexe materie behapbaar maken.</value>
+  </data>
+  <data name="ServiceTrainerTitle" xml:space="preserve">
+    <value>Train-de-trainer — €995 p.p.</value>
+  </data>
+  <data name="ServiceTrainerDescription" xml:space="preserve">
+    <value>Drie dagdelen om interne trainers klaar te stomen: niet alleen wát, maar vooral hóe.</value>
+  </data>
+  <data name="MatchTitle" xml:space="preserve">
+    <value>Passen we bij elkaar?</value>
+  </data>
+  <data name="MatchDescription1" xml:space="preserve">
+    <value>We werken het liefst met organisaties die geloven dat resultaat en aandacht voor mensen samengaan. Geen bureau met kant-en-klare pakketten; we komen liever eerst kijken en luisteren voordat we iets voorstellen.</value>
+  </data>
+  <data name="MatchDescription2" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="MatchButton" xml:space="preserve">
+    <value>Plan een gesprek</value>
   </data>
 </root>

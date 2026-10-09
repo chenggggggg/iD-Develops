@@ -132,4 +132,55 @@
   <data name="Title" xml:space="preserve">
     <value>Over ons</value>
   </data>
+  <data name="SeoTitle" xml:space="preserve">
+    <value>Over iD! | Maak kennis met Patrick &amp; Dominique</value>
+  </data>
+  <data name="MetaDescription" xml:space="preserve">
+    <value>Maak kennis met Patrick en Dominique: twee ervaren gidsen die mensen en organisaties helpen om met meer vertrouwen te leren, groeien en communiceren.</value>
+  </data>
+  <data name="HeroTitle" xml:space="preserve">
+    <value>Twee mensen, één missie</value>
+  </data>
+  <data name="HeroDescription" xml:space="preserve">
+    <value>Al zo’n twaalf jaar vormen wij, Dominique en Patrick, samen iD! — training &amp; development. Twee mensen met verschillende achtergronden, dezelfde nieuwsgierigheid naar mensen, en een gedeelde overtuiging: iedereen verdient de kans om steviger, vrijer en met meer plezier in het leven te staan. Die scherpte in luisteren en doorvragen hebben we allebei; we zijn elkaars klankbord net zo goed als die van onze klanten.</value>
+  </data>
+  <data name="HeroImageAlt" xml:space="preserve">
+    <value>Dominique en Patrick van iD!</value>
+  </data>
+  <data name="OriginEyebrow" xml:space="preserve">
+    <value>Waar we vandaan komen</value>
+  </data>
+  <data name="OriginParagraph1" xml:space="preserve">
+    <value>Dominique studeerde taal, doceert taal, ontwikkelt taal- en communicatieprogramma’s en trok de wereld in om zelf te ondervinden hoe het voelt om de vreemdeling te zijn. Inmiddels reist ze in een busje door Europa, gedreven door een blijvende honger naar andere landen en culturen. Die manier van leven is geen decor: het is waar ze dagelijks ondervindt wat het is om nieuw te zijn, en het toch voor elkaar te krijgen.</value>
+  </data>
+  <data name="OriginParagraph2" xml:space="preserve">
+    <value>Patrick begon in de horeca, waar hij leerde dat het geheim van een goede keuken niet in de ingrediënten zit, maar in de mensen die ermee werken. Daarna maakte hij de overstap naar sales, waar hij zijn scherpe blik op mensen en talent voor het grotere plaatje verder aanscherpte.</value>
+  </data>
+  <data name="OriginParagraph3" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="TogetherEyebrow" xml:space="preserve">
+    <value>Samen</value>
+  </data>
+  <data name="TogetherTitle" xml:space="preserve">
+    <value>Ingewikkelde materie behapbaar maken</value>
+  </data>
+  <data name="TogetherDescription" xml:space="preserve">
+    <value>Die combinatie van scherpte en overzicht hebben we ook professioneel ingezet: we ontwikkelden wereldwijd trainingsmateriaal voor een fabrikant van complexe machines, zodat technici het in hun eigen taal en tempo konden begrijpen. Een mooi bewijs dat we ingewikkelde materie behapbaar kunnen maken. We werken het liefst met mensen en organisaties die geloven dat aandacht voor elkaar en resultaat prima hand in hand kunnen gaan.</value>
+  </data>
+  <data name="ValuesEyebrow" xml:space="preserve">
+    <value>Waar we voor staan</value>
+  </data>
+  <data name="ValuesParagraph1" xml:space="preserve">
+    <value>iD! staat voor identiteit. Want daar draait het uiteindelijk om: wie ben je, wie wil je zijn, en hoe kom je daar? In een nieuwe taal, een nieuwe baan, een nieuw land, of gewoon een nieuw hoofdstuk van jezelf.</value>
+  </data>
+  <data name="ValuesParagraph2" xml:space="preserve">
+    <value>We geloven in verbinding boven afstand, eerlijkheid boven beleefde vaagheid, en humor als beste gereedschap om iets moeilijks bespreekbaar te maken. We nemen jouw vraagstuk serieus — onszelf soms iets minder. Delen is vermenigvuldigen. En dat geloven we net zo hard over helen.</value>
+  </data>
+  <data name="ScheduleConversation" xml:space="preserve">
+    <value>Plan een gesprek</value>
+  </data>
+  <data name="ContactButton" xml:space="preserve">
+    <value>Neem contact op</value>
+  </data>
 </root>

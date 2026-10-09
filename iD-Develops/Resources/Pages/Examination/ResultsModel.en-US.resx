@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>Level Test Results</value></data>
+  <data name="UnavailableEyebrow" xml:space="preserve"><value>Result unavailable</value></data>
+  <data name="UnavailableTitle" xml:space="preserve"><value>We could not open this result</value></data>
+  <data name="UnavailableDescription" xml:space="preserve"><value>The link may be expired, incomplete, or not connected to a completed level test.</value></data>
+  <data name="TakeLevelTestButton" xml:space="preserve"><value>Take the level test</value></data>
+  <data name="ContactButton" xml:space="preserve"><value>Contact us</value></data>
+  <data name="ResultEyebrow" xml:space="preserve"><value>Your level test result</value></data>
+  <data name="AdviceCallButton" xml:space="preserve"><value>Book advice call</value></data>
+  <data name="PricingButton" xml:space="preserve"><value>View pricing</value></data>
+  <data name="PointsFormat" xml:space="preserve"><value>{0} / {1} points</value></data>
+  <data name="ScoreLabel" xml:space="preserve"><value>Score</value></data>
+  <data name="CorrectAnswersLabel" xml:space="preserve"><value>Correct answers</value></data>
+  <data name="CompletedLabel" xml:space="preserve"><value>Completed</value></data>
+  <data name="PersonalAdviceEyebrow" xml:space="preserve"><value>Personal advice</value></data>
+  <data name="QuestionReviewEyebrow" xml:space="preserve"><value>Question review</value></data>
+  <data name="QuestionReviewTitle" xml:space="preserve"><value>See where you were strong and what to practise next</value></data>
+  <data name="QuestionFormat" xml:space="preserve"><value>Question {0}</value></data>
+  <data name="YourAnswerLabel" xml:space="preserve"><value>Your answer</value></data>
+  <data name="CorrectAnswerLabel" xml:space="preserve"><value>Correct answer</value></data>
+  <data name="FeedbackLabel" xml:space="preserve"><value>Feedback</value></data>
+  <data name="NoFeedback" xml:space="preserve"><value>No feedback was added for this question.</value></data>
+  <data name="ExtraNoteLabel" xml:space="preserve"><value>Extra note</value></data>
+  <data name="NoExtraNote" xml:space="preserve"><value>No additional note was added for this question.</value></data>
+  <data name="LevelLabel" xml:space="preserve"><value>Level</value></data>
+  <data name="AdviceTitle" xml:space="preserve"><value>What this means</value></data>
+  <data name="CorrectLabel" xml:space="preserve"><value>Correct</value></data>
+  <data name="ReviewLabel" xml:space="preserve"><value>Review</value></data>
+  <data name="NoAnswerSubmitted" xml:space="preserve"><value>No answer submitted</value></data>
+  <data name="NoModelAnswer" xml:space="preserve"><value>No model answer provided</value></data>
+  <data name="GradeA1" xml:space="preserve"><value>A1</value></data>
+  <data name="GradeA1Advice" xml:space="preserve"><value>You are definitely at level A1. You can start with the DIY course A1-A2 without any problems.</value></data>
+  <data name="GradeReadyA1A2" xml:space="preserve"><value>Ready for A1-A2</value></data>
+  <data name="GradeReadyA1A2Advice" xml:space="preserve"><value>You are good to go with this course as well, although you will have to do all the exercises.</value></data>
+  <data name="GradeBelowA1" xml:space="preserve"><value>Below A1</value></data>
+  <data name="GradeBelowA1Advice" xml:space="preserve"><value>Less than 45 points but still want to give it a shot? That is great, but please contact us at info@id-develops.com. We are happy to give you some advice.</value></data>
+</root>

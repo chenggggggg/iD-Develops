@@ -12,16 +12,16 @@ namespace iD_Develops.Pages
     public class ContactModel : PageModel
     {
         [BindProperty]
-        [Required(ErrorMessage = "Name is required"), StringLength(60, MinimumLength = 2, ErrorMessage = "Please enter a name with minimal 2 letters and max 60.")]
+        [Required(ErrorMessage = "NameRequiredError"), StringLength(60, MinimumLength = 2, ErrorMessage = "NameLengthError")]
         public string DisplayName { get; set; }
         [BindProperty]
-        [Required(ErrorMessage = "Email is required."), EmailAddress(ErrorMessage = "Email is invalid.")]
+        [Required(ErrorMessage = "EmailRequiredError"), EmailAddress(ErrorMessage = "EmailInvalidError")]
         public string From { get; set; }
         [BindProperty]
-        [Required(ErrorMessage = "Subject is required."), MaxLength(100, ErrorMessage = "Subject cannot exceed 100 characters.")]
+        [Required(ErrorMessage = "SubjectRequiredError"), MaxLength(100, ErrorMessage = "SubjectLengthError")]
         public string Subject { get; set; }
         [BindProperty]
-        [Required(ErrorMessage = "Message is required."), MaxLength(500, ErrorMessage = "Message cannot exceed 500 characters.")]
+        [Required(ErrorMessage = "MessageRequiredError"), MaxLength(500, ErrorMessage = "MessageLengthError")]
         public string Body { get; set; }
         public string EmailIsSent { get; set; }
 

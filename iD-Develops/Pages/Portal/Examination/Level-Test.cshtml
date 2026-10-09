@@ -3,10 +3,11 @@
 @using iD_Develops.Pages.Shared.Examination.Questions
 @model iD_Develops.Pages.Portal.Examination.LevelTestModel
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@inject Microsoft.Extensions.Localization.IStringLocalizer<iD_Develops.Pages.Portal.Examination.LevelTestModel> Localizer
 
 @{
     Layout = "/Pages/Shared/Examination/_ExaminationLayout.cshtml";
-    ViewData["Title"] = "Level test";
+    ViewData["Title"] = Localizer["Title"];
     var requestToken = Antiforgery.GetAndStoreTokens(Model.HttpContext).RequestToken;
 }
 
@@ -24,10 +25,9 @@
         {
             <div class="exam-empty-state">
                 <div class="public-alert public-alert-warning" role="alert">
-                    <h5 class="mb-1">No questions available</h5>
+                    <h5 class="mb-1">@Localizer["NoQuestionsHeading"]</h5>
                     <div class="text-sm text-[#64748b]">
-                        This examination cannot be started because it does not contain any questions, or the first question could not be loaded.
-                        Please contact your teacher/administrator.
+                        @Localizer["NoQuestionsMessage"]
                     </div>
                 </div>
             </div>
@@ -51,8 +51,8 @@ else
 {
     <div class="exam-invalid-state">
         <div>
-            <h2>This examination is no longer valid.</h2>
-            <p>Please restart the examination or contact administrator.</p>
+            <h2>@Localizer["InvalidHeading"]</h2>
+            <p>@Localizer["InvalidMessage"]</p>
         </div>
     </div>
 }

@@ -1,37 +1,78 @@
 @page
 @model Nt2IntegrationModel
 @using System.Globalization
+@inject IStringLocalizer<Nt2IntegrationModel> Localizer
 @{
-    var isDutch = CultureInfo.CurrentCulture.Name.Equals("nl-NL", StringComparison.OrdinalIgnoreCase);
     var levelTestUrl = $"/{CultureInfo.CurrentCulture.Name.ToLowerInvariant()}/level-test";
-    ViewData["Title"] = isDutch ? "NT2 & Integratie" : "NT2 & Integration";
-    ViewData["SeoTitle"] = isDutch ? null : "Dutch as a Second Language & Civic Integration | iD!";
-    ViewData["MetaDescription"] = isDutch ? null : "Learn Dutch with practical, personal NT2 and civic integration support. Courses, exam preparation, conversation practice, and more.";
+    ViewData["Title"] = Localizer["Title"];
+    ViewData["SeoTitle"] = Localizer["SeoTitle"];
+    ViewData["MetaDescription"] = Localizer["MetaDescription"];
+    var showExpandedOffer = bool.TryParse(Localizer["ShowExpandedOffer"], out var showExpanded) && showExpanded;
 }
 
 <section class="public-hero-page">
-    <div class="public-container"><div class="public-hero-grid"><div>
-        <p class="public-eyebrow public-eyebrow-left">@(isDutch ? "NT2 & Integratie" : "NT2 & Integration")</p>
-        <h1 class="public-hero-title mx-0">@(isDutch ? "Nederlands leren zonder je identiteit in te leveren" : "Learning Dutch without giving up your identity")</h1>
-        <p class="public-hero-copy mx-0">@(isDutch ? "Je bent hoogopgeleid, gemotiveerd, en waarschijnlijk best goed in dingen leren — anders was je hier niet terechtgekomen. En toch voelt het soms alsof je bent teruggezet naar de kleuterklas zodra je een Nederlandse zin probeert te vormen. Dat is niet gek: dat is simpelweg wat er gebeurt als je een nieuwe taal leert als volwassene; het is als opnieuw leren fietsen, maar dan met woorden." : "You're highly educated, motivated, and probably pretty good at learning things — otherwise you wouldn't be here. And yet it can feel like you've been sent back to kindergarten the moment you try to form a Dutch sentence. That's not strange. That's simply what happens when you learn a new language as an adult: relearning how to ride a bike (important in the Netherlands!), except with words this time.")</p>
-        <div class="public-actions justify-start"><a href="@levelTestUrl" class="public-btn public-btn-primary">@(isDutch ? "Doe de gratis niveautest" : "Take the free level test") <i class="fas fa-arrow-right"></i></a><a href="https://koalendar.com/e/meet-with-id" target="_blank" rel="noopener noreferrer" class="public-btn public-btn-outline">@(isDutch ? "Plan een gesprek" : "Book a conversation") <i class="fas fa-arrow-right"></i></a></div>
-    </div><div class="public-hero-note"><h2>@(isDutch ? "Wij zijn Dominique en Patrick" : "We’re Dominique and Patrick")</h2><p class="public-copy">@(isDutch ? "Dominique is hoofdzakelijk je taaltrainer, maar we hebben allebei aan den lijve ondervonden hoe het is om in een ander land te overleven zonder de taal goed genoeg te spreken. Die ervaring zit in alles wat we doen." : "Dominique is mainly your language trainer, but we've both experienced first-hand what it's like to survive in another country without speaking the language well (enough). That experience runs through everything we do.")</p></div></div></div>
+    <div class="public-container">
+        <div class="public-hero-grid">
+            <div>
+                <p class="public-eyebrow public-eyebrow-left">@Localizer["Title"]</p>
+                <h1 class="public-hero-title mx-0">@Localizer["HeroTitle"]</h1>
+                <p class="public-hero-copy mx-0">@Localizer["HeroDescription"]</p>
+                <div class="public-actions justify-start">
+                    <a href="@levelTestUrl" class="public-btn public-btn-primary">@Localizer["LevelTestButton"] <i class="fas fa-arrow-right"></i></a>
+                    <a href="https://koalendar.com/e/meet-with-id" target="_blank" rel="noopener noreferrer" class="public-btn public-btn-outline">@Localizer["ConversationButton"] <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+            <div class="public-hero-note"><h2>@Localizer["HeroNoteTitle"]</h2><p class="public-copy">@Localizer["HeroNoteDescription"]</p></div>
+        </div>
+    </div>
 </section>
 
-<section class="public-section"><div class="public-container public-content-narrow mx-auto">
-    <p class="public-copy">@(isDutch ? "We gaan je niet vertellen dat het over drie weken vanzelf gaat. Wél dat het met de juiste begeleiding een stuk leuker, sneller én minder eenzaam kan. En dat je bij ons mag oefenen en fouten maken zoveel je wil. Graag zelfs!" : "We won't tell you it'll all just click in three weeks. What we will tell you: with us, it can be a lot more fun, faster, and a lot less lonely. And that you're welcome — encouraged, even — to practise and make as many mistakes as you like with us.")</p>
-    <p class="public-eyebrow public-eyebrow-left mt-16">@(isDutch ? "Waarom bij ons?" : "More than a language course")</p>
-    @if (isDutch) {
-        <p class="public-copy">We hebben zelf in meerdere landen gewoond zonder de taal te spreken. We weten hoe het voelt om met handen en voeten uit te leggen wat je nodig hebt, om je intelligent te voelen in je eigen taal en volkomen hopeloos in de nieuwe. Die ervaring gebruiken we dagelijks, niet als anekdote maar als kompas. We weten welke fouten je maakt, want we hebben ze zelf ook gemaakt (en maken ze soms nog steeds). Maar we hebben er plezier in en dat gunnen we jou ook!</p>
-        <p class="public-copy">Bij ons leer je niet alleen Nederlands zoals het in het boekje staat, maar het échte Nederlands: wat een Nederlander eigenlijk bedoelt (spoiler: vaak iets anders dan wat er letterlijk gezegd wordt), en ja, ook de nuances en eigenaardigheden waar we ons zelf af en toe een beetje voor schamen. Denk aan het afgemeten avondeten om 18.00 uur, het feliciteren en kussen van iedereen op een verjaardag, of waarom we hier honderd keer “gezellig” en “lekker” zeggen maar het maar de helft van de tijd echt zo bedoelen. Eerlijkheid werkt beter dan beleefde ontwijking, en een beetje zelfspot maakt het leren een stuk luchtiger.</p>
-        <p class="public-copy">Bij ons ben je geen nummer in een klas en geen cursist op afstand. Je bent een uniek en dapper mens dat een nieuw bestaan aan het opbouwen is. En daar hoort een mentor bij die met je meedenkt. Over de taal, maar minstens zo vaak over de rest: waar zijn de leuke plekjes in Nederland, hoe werkt die ene overheidsinstantie nu weer, en waarom heeft iedereen hier een mening over je fiets, je auto, je tuin?</p>
-    } else {
-        <p class="public-copy">We've both lived in other countries without speaking the language. We know what it's like to explain what you need using only hand gestures, to feel intelligent in your own language and completely hopeless in the new one. We use that experience every day — not as an anecdote, but as a compass. We know exactly which mistakes you'll make, because we've made them ourselves, and honestly, sometimes still do (language, by the way, is far from the only thing we've learned through trial and error). But: we enjoy it! And we want that for you too.</p>
-        <p class="public-copy">We don't shy away from any topic. With us, you won't just learn textbook Dutch, or the kind of Dutch you hear from a newsreader — you'll learn real Dutch: how it's actually used, what a Dutch person really means (spoiler: often something quite different from what's literally being said), and yes, the nuances, the culture, and the little quirks we're occasionally a bit embarrassed about ourselves. Think of the wonderful world of “de” and “het,” the very precisely-timed 6 PM Dutch dinner, congratulating and kissing EVERYONE at a birthday party, or why we say “gezellig” and “lekker” a hundred times a day while meaning something else half the time. Honesty works better than polite avoidance, and a bit of self-mockery (from both sides) makes learning a lot lighter — and a lot more fun.</p>
-        <p class="public-copy">With us, you're not a number in a classroom, and not “a student at a distance.” You're a unique, brave person building a new life, and that calls for a mentor who thinks along with you. About the language, yes, but also about everything else: where the nice spots in the Netherlands are, how on earth that one government agency actually works, and why everyone here seems to have an opinion about your bike, your car, your garden...</p>
-    }
-</div></section>
+<section class="public-section">
+    <div class="public-container public-content-narrow mx-auto">
+        <p class="public-copy">@Localizer["PromiseParagraph"]</p>
+        <p class="public-eyebrow public-eyebrow-left mt-16">@Localizer["WhyUsEyebrow"]</p>
+        <p class="public-copy">@Localizer["WhyUsParagraph1"]</p>
+        <p class="public-copy">@Localizer["WhyUsParagraph2"]</p>
+        <p class="public-copy">@Localizer["WhyUsParagraph3"]</p>
+    </div>
+</section>
 
-<section class="public-section public-section-soft"><div class="public-container"><div class="public-two-column"><div><p class="public-eyebrow public-eyebrow-left">@(isDutch ? "Voor iedereen, met elk doel" : "For everyone, with any goal")</p><h2 class="public-section-title">@(isDutch ? "Een aanpak die we op jou afstemmen" : "An approach we tailor to you")</h2></div><div><p class="public-copy">@(isDutch ? "Of je alleen de verplichte inburgeringsexamens wilt halen, de taal echt onder de knie wilt krijgen, of als zorgprofessional de B2+ toets voor je BIG-registratie moet halen; we begeleiden je. Elk doel vraagt om een andere aanpak, en die stemmen we op jou af." : "Whether you just want to pass the mandatory civic integration exams, truly want to master the language to feel fully at home, or need to pass the mandatory B2+ test for your BIG registration as a healthcare professional — we'll guide you there. Every goal calls for a different approach, and we tailor ours to you.")</p><p class="public-copy">@(isDutch ? "Wil je zelfstandig studeren, in je eigen tempo en op momenten die jou uitkomen, maar zonder er helemaal alleen voor te staan? Dan is onze DIY-cursus waarschijnlijk iets voor jou. Veel voordeliger dan een reguliere cursus, maar mét de back-up van een echte docent: direct contact met docent en medecursisten wanneer je vastloopt. Het beste van twee werelden." : "Want to study independently, at your own pace, whenever suits you — but without being completely on your own? Then our DIY course is probably for you. Much more affordable than a regular course, but with the backup of a real teacher: you're in direct contact with both your teacher and fellow students whenever you get stuck. The best of both worlds — independence and a safety net.")</p><p class="public-copy">@(isDutch ? "Benieuwd of dit bij jou past? Doe eerst de gratis niveautest. Die laat meteen zien hoe groot je kans van slagen is met een DIY-traject." : "Curious whether this is right for you? Start with the free level test — it'll immediately show you how good your chances are of succeeding with a DIY track.")</p></div></div></div></section>
+<section class="public-section public-section-soft">
+    <div class="public-container">
+        <div class="public-two-column">
+            <div><p class="public-eyebrow public-eyebrow-left">@Localizer["TailoredEyebrow"]</p><h2 class="public-section-title">@Localizer["TailoredTitle"]</h2></div>
+            <div><p class="public-copy">@Localizer["TailoredParagraph1"]</p><p class="public-copy">@Localizer["TailoredParagraph2"]</p><p class="public-copy">@Localizer["TailoredParagraph3"]</p></div>
+        </div>
+    </div>
+</section>
 
-<section class="public-section"><div class="public-container"><div class="public-section-heading public-section-heading-center"><p class="public-eyebrow">@(isDutch ? "Wat we aanbieden" : "What we offer")</p></div><div class="public-feature-grid mx-auto max-w-6xl md:grid-cols-2 xl:grid-cols-3"><article class="public-feature-card"><h3>@(isDutch ? "Reguliere cursus (privé of groep)" : "Regular course (private or group)")</h3><p class="public-copy">@(isDutch ? "Op maat gemaakt, afgestemd op jouw niveau, tempo en doel. Van eerste woordjes tot het inburgeringsexamen. Prijs in overleg." : "Custom-built around your level, pace, and goal. From your very first words to the civic integration exam. Price on request — let's just have a chat about it.")</p></article><article class="public-feature-card"><h3>@(isDutch ? "DIY-cursus — €159" : "DIY course — €149 (introductory price)")</h3><p class="public-copy">@(isDutch ? "10 lessen over 11 weken, van A1 naar A2 of A2 naar B1. Inclusief begeleiding, directe toegang tot je docent en medecursisten, en volledige vrijheid." : "10 lessons spread over 11 weeks, taking you from A1 to A2 or A2 to B1. Includes guidance, direct access to your teacher and fellow students, and complete freedom to study whenever suits you.")</p></article>@if (!isDutch) { <article class="public-feature-card"><h3>Speaking Course — €179</h3><p class="public-copy">4 weeks, 8 lessons, all about daring to speak up and actually doing it. Grammar matters, but a sentence you dare to say out loud at the office drinks is worth just as much. Shorter feedback loops, more practice, groups start with a minimum of 4 participants.</p></article><article class="public-feature-card"><h3>Speed Class / Exam Prep — €49</h3><p class="public-copy">One hour, laser-focused on that one exam component keeping you up at night. Fast, targeted, no fuss.</p></article><article class="public-feature-card"><h3>Drop-in Support Sessions — €15 / 15 minutes</h3><p class="public-copy">Stuck on something? Book a short session to work through that one hurdle together. Open to everyone — whether you're already taking a course with us or not.</p></article><article class="public-feature-card"><h3>Integration Support</h3><p class="public-copy">Language is often just the tip of the iceberg. We also think along with you about work, housing, regulations, and all those other things that make life in a new country just that little bit more complicated than expected.</p></article><article class="public-feature-card"><h3>Free Downloads</h3><p class="public-copy">A pronunciation guide with audio, the eternal “de/het” dilemma, and an overview of irregular verbs: free to download, because some help should just be easy to access.</p></article> }</div>@if (!isDutch) { <div class="public-content-narrow mx-auto mt-16"><p class="public-eyebrow public-eyebrow-left">What others say</p><p class="public-copy">“Finally a language teacher I dared to stumble and stutter in front of, without feeling stupid.”</p><p class="public-copy">“Patient, funny, and surprisingly honest about how strange the Dutch can be sometimes — and about themselves too. Exactly what I needed.”</p><p class="public-copy">“I came for grammar and left feeling like someone actually believed in my integration.”</p></div> }<div class="public-actions"><a asp-page="/contact" class="public-btn public-btn-primary">@(isDutch ? "Neem contact op via het formulier" : "Get in touch") <i class="fas fa-arrow-right"></i></a><a href="https://koalendar.com/e/meet-with-id" target="_blank" rel="noopener noreferrer" class="public-btn public-btn-outline">@(isDutch ? "Plan direct een gesprek" : "Book a free conversation") <i class="fas fa-arrow-right"></i></a></div></div></section>
+<section class="public-section">
+    <div class="public-container">
+        <div class="public-section-heading public-section-heading-center"><p class="public-eyebrow">@Localizer["OfferEyebrow"]</p></div>
+        <div class="public-feature-grid mx-auto max-w-6xl md:grid-cols-2 xl:grid-cols-3">
+            <article class="public-feature-card"><h3>@Localizer["OfferRegularTitle"]</h3><p class="public-copy">@Localizer["OfferRegularDescription"]</p></article>
+            <article class="public-feature-card"><h3>@Localizer["OfferDiyTitle"]</h3><p class="public-copy">@Localizer["OfferDiyDescription"]</p></article>
+            @if (showExpandedOffer)
+            {
+                @for (var index = 1; index <= 5; index++)
+                {
+                    <article class="public-feature-card"><h3>@Localizer[$"OfferExtra{index}Title"]</h3><p class="public-copy">@Localizer[$"OfferExtra{index}Description"]</p></article>
+                }
+            }
+        </div>
+        @if (showExpandedOffer)
+        {
+            <div class="public-content-narrow mx-auto mt-16">
+                <p class="public-eyebrow public-eyebrow-left">@Localizer["TestimonialsEyebrow"]</p>
+                @for (var index = 1; index <= 3; index++)
+                {
+                    <p class="public-copy">@Localizer[$"Testimonial{index}"]</p>
+                }
+            </div>
+        }
+        <div class="public-actions">
+            <a asp-page="/contact" asp-route-culture="@CultureInfo.CurrentCulture.Name.ToLowerInvariant()" class="public-btn public-btn-primary">@Localizer["ContactButton"] <i class="fas fa-arrow-right"></i></a>
+            <a href="https://koalendar.com/e/meet-with-id" target="_blank" rel="noopener noreferrer" class="public-btn public-btn-outline">@Localizer["FreeConversationButton"] <i class="fas fa-arrow-right"></i></a>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?><root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader><resheader name="version"><value>2.0</value></resheader>
+  <data name="AccountLoadError" xml:space="preserve"><value>Je accountgegevens konden niet worden geladen.</value></data>
+  <data name="CompletedTitle" xml:space="preserve"><value>Voltooid</value></data>
+  <data name="ContactAtText" xml:space="preserve"><value>Neem contact met ons op via</value></data>
+  <data name="EmailActionIntroduction" xml:space="preserve"><value>Klik op de knop hieronder om alle details van je niveautest te bekijken.</value></data>
+  <data name="EmailBodyFormat" xml:space="preserve"><value>Jouw examenresultaat: {0}</value></data>
+  <data name="EmailBuildError" xml:space="preserve"><value>De e-mail met het resultaat kon niet worden opgebouwd.</value></data>
+  <data name="EmailInvalidError" xml:space="preserve"><value>Voer een geldig e-mailadres in.</value></data>
+  <data name="EmailLabel" xml:space="preserve"><value>E-mail:</value></data>
+  <data name="EmailMissingHelp" xml:space="preserve"><value>Geen e-mail ontvangen? Controleer je spammap of</value></data>
+  <data name="EmailPlaceholder" xml:space="preserve"><value>E-mail</value></data>
+  <data name="EmailRequiredError" xml:space="preserve"><value>Voer je e-mailadres in.</value></data>
+  <data name="EmailResendError" xml:space="preserve"><value>De e-mail kon niet opnieuw worden verzonden. Probeer het later nog eens.</value></data>
+  <data name="EmailResentMessage" xml:space="preserve"><value>We hebben je e-mail opnieuw verzonden. Controleer je inbox en spammap.</value></data>
+  <data name="EmailSendError" xml:space="preserve"><value>De e-mail kon niet worden verzonden. Probeer het later nog eens.</value></data>
+  <data name="EmailSentMessage" xml:space="preserve"><value>De e-mail met het examenresultaat is verzonden.</value></data>
+  <data name="EmailSubject" xml:space="preserve"><value>Jouw examenresultaat</value></data>
+  <data name="ExamSubmittedHeading" xml:space="preserve"><value>Je examen is ingeleverd.</value></data>
+  <data name="ExamSubmittedPrefix" xml:space="preserve"><value>Je kunt dit venster nu sluiten of klik</value></data>
+  <data name="ExamSubmittedSuffix" xml:space="preserve"><value>om terug te gaan naar het portaal.</value></data>
+  <data name="FollowUpEmailMessage" xml:space="preserve"><value>De vervolgmail is onderweg. Controleer je inbox.</value></data>
+  <data name="FormAnonymousExplanation" xml:space="preserve"><value>Laat je naam en e-mailadres achter om een uitgebreid resultaat en feedback op je test te ontvangen.</value></data>
+  <data name="FormClosing" xml:space="preserve"><value>Klaar om de Nederlandse taal verder te ontdekken?</value></data>
+  <data name="FormCongratulations" xml:space="preserve"><value>Goed gedaan, je hebt de niveautest voltooid!</value></data>
+  <data name="FormHeading" xml:space="preserve"><value>De Nederlandse taal wacht op je!</value></data>
+  <data name="FormResultsSoon" xml:space="preserve"><value>Je resultaat is bijna klaar.</value></data>
+  <data name="FormSignedInExplanation" xml:space="preserve"><value>Je bent al ingelogd, dus we sturen de vervolgstappen naar het e-mailadres van je account.</value></data>
+  <data name="HereAction" xml:space="preserve"><value>hier</value></data>
+  <data name="HighResultAdvice" xml:space="preserve"><value>Je zit op niveau A1. Je kunt zonder problemen beginnen met de doe-het-zelfcursus A1-A2.</value></data>
+  <data name="HighResultLevel" xml:space="preserve"><value>A1</value></data>
+  <data name="LevelTestLoadError" xml:space="preserve"><value>De voltooide niveautest kon niet worden geladen.</value></data>
+  <data name="LowResultAdvice" xml:space="preserve"><value>Minder dan 45 punten, maar wil je het toch proberen? Neem dan contact met ons op via info@id-develops.com. We adviseren je graag.</value></data>
+  <data name="LowResultLevel" xml:space="preserve"><value>Onder A1</value></data>
+  <data name="MiddleResultAdvice" xml:space="preserve"><value>Deze cursus kan ook bij je passen, maar doorloop dan wel alle oefeningen zorgvuldig.</value></data>
+  <data name="MiddleResultLevel" xml:space="preserve"><value>Klaar voor A1-A2</value></data>
+  <data name="NameLabel" xml:space="preserve"><value>Naam:</value></data>
+  <data name="NamePlaceholder" xml:space="preserve"><value>Naam</value></data>
+  <data name="NameRequiredError" xml:space="preserve"><value>Voer je naam in.</value></data>
+  <data name="NewsletterConsent" xml:space="preserve"><value>Ik wil nieuwsbrieven en updates ontvangen.</value></data>
+  <data name="OrLabel" xml:space="preserve"><value>of</value></data>
+  <data name="RecipientEmailError" xml:space="preserve"><value>Het e-mailadres van de ontvanger kon niet worden bepaald.</value></data>
+  <data name="RequestProcessingError" xml:space="preserve"><value>We konden je verzoek nu niet verwerken.</value></data>
+  <data name="ResendAction" xml:space="preserve"><value>klik hier om opnieuw te verzenden</value></data>
+  <data name="ResendDetailsMissingError" xml:space="preserve"><value>We konden je eerdere e-mailgegevens niet vinden. Vul het formulier opnieuw in.</value></data>
+  <data name="ReturnHomeAction" xml:space="preserve"><value>Terug naar de homepage</value></data>
+  <data name="ReturnProfileAction" xml:space="preserve"><value>Terug naar je profiel</value></data>
+  <data name="SecureLinkEmailMessage" xml:space="preserve"><value>We hebben je een beveiligde link naar je resultaat gemaild.</value></data>
+  <data name="SendResultsButton" xml:space="preserve"><value>Stuur mijn resultaat!</value></data>
+  <data name="ViewFullResultsAction" xml:space="preserve"><value>Bekijk het volledige resultaat</value></data>
+  <data name="ViewMyResultsAction" xml:space="preserve"><value>Bekijk mijn resultaat</value></data>
+  <data name="ViewResultsButton" xml:space="preserve"><value>Bekijk mijn resultaat!</value></data>
+</root>

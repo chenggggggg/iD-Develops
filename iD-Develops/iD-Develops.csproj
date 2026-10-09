@@ -25,22 +25,18 @@
     <None Remove="Data\Migrations.SqlServerArchive\**" />
     <Compile Remove="Resources\Pages\Admin\**" />
     <Compile Remove="Resources\Pages\Dashboard\**" />
-    <Compile Remove="Resources\Pages\Examination\**" />
     <Compile Remove="Resources\Pages\Language-And-Communication\**" />
     <Compile Remove="Resources\Pages\My-Exams\**" />
     <Content Remove="Resources\Pages\Admin\**" />
     <Content Remove="Resources\Pages\Dashboard\**" />
-    <Content Remove="Resources\Pages\Examination\**" />
     <Content Remove="Resources\Pages\Language-And-Communication\**" />
     <Content Remove="Resources\Pages\My-Exams\**" />
     <EmbeddedResource Remove="Resources\Pages\Admin\**" />
     <EmbeddedResource Remove="Resources\Pages\Dashboard\**" />
-    <EmbeddedResource Remove="Resources\Pages\Examination\**" />
     <EmbeddedResource Remove="Resources\Pages\Language-And-Communication\**" />
     <EmbeddedResource Remove="Resources\Pages\My-Exams\**" />
     <None Remove="Resources\Pages\Admin\**" />
     <None Remove="Resources\Pages\Dashboard\**" />
-    <None Remove="Resources\Pages\Examination\**" />
     <None Remove="Resources\Pages\Language-And-Communication\**" />
     <None Remove="Resources\Pages\My-Exams\**" />
   </ItemGroup>

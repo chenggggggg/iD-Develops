@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>Taal &amp; Communicatie</value></data>
+  <data name="SeoTitle" xml:space="preserve"><value>Zakelijk Engels &amp; communicatietraining | iD!</value></data>
+  <data name="MetaDescription" xml:space="preserve"><value>Praktische training in zakelijk Engels en communicatie: presenteer met vertrouwen, schrijf helder en communiceer tussen culturen.</value></data>
+  <data name="HeroTitle" xml:space="preserve"><value>Wát je zegt is belangrijk, maar hóe je het zegt bepaalt of je gehoord wordt</value></data>
+  <data name="HeroParagraph1" xml:space="preserve"><value>Je kunt de beste ideeën hebben en de beste bedoelingen: als je boodschap niet aankomt, blijft het daarbij. Gelukkig is communiceren geen aangeboren talent, maar een vaardigheid. En vaardigheden zijn te leren.</value></data>
+  <data name="HeroParagraph2" xml:space="preserve"><value>Bij iD! helpen we je scherper, overtuigender en prettiger te communiceren. In het Nederlands, Engels, non-verbaal, of intercultureel.</value></data>
+  <data name="ConversationButton" xml:space="preserve"><value>Plan een gesprek</value></data>
+  <data name="ContactButton" xml:space="preserve"><value>Contactformulier</value></data>
+  <data name="ServicesEyebrow" xml:space="preserve"><value>Waar we je mee helpen</value></data>
+  <data name="ServiceEnglishTitle" xml:space="preserve"><value>(Zakelijk) Engels</value></data>
+  <data name="ServiceEnglishDescription" xml:space="preserve"><value>Van een professionelere e-mail tot een presentatie zonder zoeken naar woorden. Praktisch en direct toepasbaar.</value></data>
+  <data name="ServiceInterculturalTitle" xml:space="preserve"><value>Interculturele communicatie</value></data>
+  <data name="ServiceInterculturalDescription" xml:space="preserve"><value>Wat in het ene land beleefd is, is ergens anders vaag of onbeleefd. We helpen je de codes lezen.</value></data>
+  <data name="ServiceSpeakingTitle" xml:space="preserve"><value>Gespreksvaardigheid &amp; presenteren</value></data>
+  <data name="ServiceSpeakingDescription" xml:space="preserve"><value>Helder je punt maken, ook onder spanning. Een presentatie geven waar mensen wél naar luisteren.</value></data>
+  <data name="ServiceWritingTitle" xml:space="preserve"><value>Schrijfvaardigheid</value></data>
+  <data name="ServiceWritingDescription" xml:space="preserve"><value>To-the-point schrijven dat gelezen wordt, niet tekst die vooral lang is.</value></data>
+  <data name="ServiceOutsourceTitle" xml:space="preserve"><value>Tekstwerk uitbesteden</value></data>
+  <data name="ServiceOutsourceDescription" xml:space="preserve"><value>Liever geen tijd besteden aan zelf (leren) schrijven? Wij redigeren of schrijven het voor je.</value></data>
+  <data name="AudienceEyebrow" xml:space="preserve"><value>Voor wie</value></data>
+  <data name="AudienceTitle" xml:space="preserve"><value>Zekerder communiceren</value></data>
+  <data name="AudienceParagraph1" xml:space="preserve"><value>Voor iedereen die zich zekerder wil voelen in het Nederlands of Engels, en professionals die willen groeien in hoe ze overkomen.</value></data>
+  <data name="AudienceParagraph2" xml:space="preserve"><value>Alles is maatwerk; de prijs bepalen we na een oriënterend gesprek.</value></data>
+  <data name="AudienceParagraph3" xml:space="preserve"><value>Gaat je vraag dieper dan de vaardigheid zelf? Zoals waarom is het spannend om je mening te geven? Kijk dan bij Persoonlijke Ontwikkeling. Soms zit het ‘hoe’ vast aan een ‘wie’.</value></data>
+</root>

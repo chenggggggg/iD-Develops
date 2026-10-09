@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?><root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader><resheader name="version"><value>2.0</value></resheader>
+  <data name="AccountLoadError" xml:space="preserve"><value>Your account details could not be loaded.</value></data>
+  <data name="CompletedTitle" xml:space="preserve"><value>Completed</value></data>
+  <data name="ContactAtText" xml:space="preserve"><value>Contact us at</value></data>
+  <data name="EmailActionIntroduction" xml:space="preserve"><value>To view full details of your level test, click the button below.</value></data>
+  <data name="EmailBodyFormat" xml:space="preserve"><value>Your exam results: {0}</value></data>
+  <data name="EmailBuildError" xml:space="preserve"><value>Unable to build the result email.</value></data>
+  <data name="EmailInvalidError" xml:space="preserve"><value>Please enter a valid email address.</value></data>
+  <data name="EmailLabel" xml:space="preserve"><value>Email:</value></data>
+  <data name="EmailMissingHelp" xml:space="preserve"><value>Didn't receive an email? Check your spam folder or</value></data>
+  <data name="EmailPlaceholder" xml:space="preserve"><value>Email</value></data>
+  <data name="EmailRequiredError" xml:space="preserve"><value>Please enter your email address.</value></data>
+  <data name="EmailResendError" xml:space="preserve"><value>Failed to resend email. Please try again later.</value></data>
+  <data name="EmailResentMessage" xml:space="preserve"><value>We sent your email again. Please check your inbox and spam folder.</value></data>
+  <data name="EmailSendError" xml:space="preserve"><value>Failed to send email. Please try again later.</value></data>
+  <data name="EmailSentMessage" xml:space="preserve"><value>Email with exam results has been sent successfully.</value></data>
+  <data name="EmailSubject" xml:space="preserve"><value>Your Exam Results</value></data>
+  <data name="ExamSubmittedHeading" xml:space="preserve"><value>Your exam has been submitted.</value></data>
+  <data name="ExamSubmittedPrefix" xml:space="preserve"><value>You may now close this window, or click</value></data>
+  <data name="ExamSubmittedSuffix" xml:space="preserve"><value>to return to the portal home.</value></data>
+  <data name="FollowUpEmailMessage" xml:space="preserve"><value>Your follow-up email is on the way. Please check your inbox.</value></data>
+  <data name="FormAnonymousExplanation" xml:space="preserve"><value>Simply leave your name and email to receive detailed results and feedback on your test.</value></data>
+  <data name="FormClosing" xml:space="preserve"><value>Ready to explore the Dutch language?</value></data>
+  <data name="FormCongratulations" xml:space="preserve"><value>Well done on completing your level test!</value></data>
+  <data name="FormHeading" xml:space="preserve"><value>Dutch Language Awaits!</value></data>
+  <data name="FormResultsSoon" xml:space="preserve"><value>Your results are just around the corner.</value></data>
+  <data name="FormSignedInExplanation" xml:space="preserve"><value>You're already signed in, so we can send the next steps straight to your account email.</value></data>
+  <data name="HereAction" xml:space="preserve"><value>here</value></data>
+  <data name="HighResultAdvice" xml:space="preserve"><value>You are definitely at level A1. You can start with the DIY course A1-A2 without any problems.</value></data>
+  <data name="HighResultLevel" xml:space="preserve"><value>A1</value></data>
+  <data name="LevelTestLoadError" xml:space="preserve"><value>The completed level test could not be loaded.</value></data>
+  <data name="LowResultAdvice" xml:space="preserve"><value>Less than 45 points but still want to give it a shot? That is great, but please contact us at info@id-develops.com. We are happy to give you some advice.</value></data>
+  <data name="LowResultLevel" xml:space="preserve"><value>Below A1</value></data>
+  <data name="MiddleResultAdvice" xml:space="preserve"><value>You are good to go with this course as well, although you will have to do all the exercises.</value></data>
+  <data name="MiddleResultLevel" xml:space="preserve"><value>Ready for A1-A2</value></data>
+  <data name="NameLabel" xml:space="preserve"><value>Name:</value></data>
+  <data name="NamePlaceholder" xml:space="preserve"><value>Name</value></data>
+  <data name="NameRequiredError" xml:space="preserve"><value>Please enter your name.</value></data>
+  <data name="NewsletterConsent" xml:space="preserve"><value>I would like to receive newsletters and updates.</value></data>
+  <data name="OrLabel" xml:space="preserve"><value>or</value></data>
+  <data name="RecipientEmailError" xml:space="preserve"><value>Unable to determine the recipient email address.</value></data>
+  <data name="RequestProcessingError" xml:space="preserve"><value>We could not process your request right now.</value></data>
+  <data name="ResendAction" xml:space="preserve"><value>click here to resend</value></data>
+  <data name="ResendDetailsMissingError" xml:space="preserve"><value>We couldn't find your previous email details. Please submit the form again.</value></data>
+  <data name="ReturnHomeAction" xml:space="preserve"><value>Return to the home page</value></data>
+  <data name="ReturnProfileAction" xml:space="preserve"><value>Return to your profile</value></data>
+  <data name="SecureLinkEmailMessage" xml:space="preserve"><value>We emailed you a secure link to view your result.</value></data>
+  <data name="SendResultsButton" xml:space="preserve"><value>Send my results!</value></data>
+  <data name="ViewFullResultsAction" xml:space="preserve"><value>View full results</value></data>
+  <data name="ViewMyResultsAction" xml:space="preserve"><value>View my results</value></data>
+  <data name="ViewResultsButton" xml:space="preserve"><value>View my results!</value></data>
+</root>

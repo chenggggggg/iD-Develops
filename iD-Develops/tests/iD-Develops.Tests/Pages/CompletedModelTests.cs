@@ -19,6 +19,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Localization;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.WebUtilities;
@@ -288,7 +289,8 @@ public sealed class CompletedModelTests
                 {
                     PublicBaseUrl = "https://localhost:5001",
                     PortalBaseUrl = "https://portal.localhost:5001"
-                })));
+                })),
+                new CompletedTestLocalizer());
 
             var httpContext = new DefaultHttpContext
             {
@@ -437,6 +439,32 @@ public sealed class CompletedModelTests
 
         public double EvaluateScore(Exam exam, List<ParticipantAnswer> answerList)
             => 48;
+    }
+
+    private sealed class CompletedTestLocalizer : IStringLocalizer<iD_Develops.Pages.Portal.Examination.CompletedModel>
+    {
+        private static readonly IReadOnlyDictionary<string, string> Values =
+            new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["EmailActionIntroduction"] = "To view full details of your level test, click the button below.",
+                ["ViewFullResultsAction"] = "View full results",
+                ["ViewMyResultsAction"] = "View my results"
+            };
+
+        public LocalizedString this[string name]
+            => new(name, Values.TryGetValue(name, out var value) ? value : name, resourceNotFound: !Values.ContainsKey(name));
+
+        public LocalizedString this[string name, params object[] arguments]
+        {
+            get
+            {
+                var localized = this[name];
+                return new LocalizedString(name, string.Format(localized.Value, arguments), localized.ResourceNotFound);
+            }
+        }
+
+        public IEnumerable<LocalizedString> GetAllStrings(bool includeParentCultures)
+            => Values.Select(pair => new LocalizedString(pair.Key, pair.Value));
     }
 
     private sealed class TestUrlHelper : IUrlHelper

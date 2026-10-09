@@ -2,17 +2,19 @@
 @using iD_Develops.Enums
 @model iD_Develops.Pages.FreeDownloadsModel
 @inject iD_Develops.Services.IApplicationUrlService ApplicationUrls
+@inject Microsoft.Extensions.Localization.IStringLocalizer<iD_Develops.Pages.FreeDownloadsModel> Localizer
 @{
     Layout = Model.IsAdminEditMode ? "_PortalLayout" : "_Layout";
-    ViewData["Title"] = "Free Downloads";
+    ViewData["Title"] = Localizer["Title"];
+    ViewData["MetaDescription"] = Localizer["MetaDescription"];
 }
 
 <section class="public-page product-page-shell @(Model.IsAdminEditMode ? "product-edit-mode-shell" : null)">
     <div class="public-container">
     <div class="mb-8 flex flex-col justify-between gap-3 md:flex-row md:items-center">
         <div>
-            <p class="public-catalog-label">Free downloads</p>
-            <h1 class="public-page-title mb-0">Free Downloads</h1>
+            <p class="public-catalog-label">@Localizer["Eyebrow"]</p>
+            <h1 class="public-page-title mb-0">@Localizer["Heading"]</h1>
         </div>
         @if (Model.IsAdminEditMode)
         {
@@ -40,7 +42,7 @@
     @if (Model.Downloads.Count == 0 && !Model.IsAdminEditMode)
     {
         <div class="public-empty-state">
-            No free downloads are available yet.
+            @Localizer["EmptyMessage"]
         </div>
     }
     else
@@ -163,13 +165,13 @@
                                 <img src="@imageDisplayUrl" class="download-card-image" alt="@download.Name" />
                             }
                             <div class="public-catalog-body">
-                                <div class="public-catalog-label">Free download</div>
+                                <div class="public-catalog-label">@Localizer["CardLabel"]</div>
                                 <h2 class="public-catalog-title">@download.Name</h2>
                                 <p class="public-catalog-summary">@download.Summary</p>
                                 @if (!string.IsNullOrWhiteSpace(downloadUrl))
                                 {
                                     <a class="public-btn public-btn-outline mt-6" href="@downloadUrl" target="_blank" rel="noopener">
-                                        <i class="fa-solid fa-download" aria-hidden="true"></i>Download
+                                        <i class="fa-solid fa-download" aria-hidden="true"></i>@Localizer["DownloadButton"]
                                     </a>
                                 }
                             </div>

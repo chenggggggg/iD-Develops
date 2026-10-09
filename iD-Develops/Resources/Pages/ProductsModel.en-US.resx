@@ -123,4 +123,24 @@
   <data name="ViewDetails" xml:space="preserve">
     <value>View Details</value>
   </data>
+  <data name="CustomPrice" xml:space="preserve"><value>Custom</value></data>
+  <data name="PricingEyebrow" xml:space="preserve"><value>Pricing</value></data>
+  <data name="PricingHeading" xml:space="preserve"><value>Pricing &amp; Courses</value></data>
+  <data name="PricingIntroduction" xml:space="preserve"><value>Choose the course, booking, or guided learning option that fits your next step.</value></data>
+  <data name="PricingMetaDescription" xml:space="preserve"><value>Explore courses, bookings, and guided learning options from iD! Training &amp; Development.</value></data>
+  <data name="PricingTitle" xml:space="preserve"><value>Pricing</value></data>
+  <data name="ProductsEyebrow" xml:space="preserve"><value>Products</value></data>
+  <data name="ProductsHeading" xml:space="preserve"><value>Products &amp; Services</value></data>
+  <data name="ProductsIntroduction" xml:space="preserve"><value>Courses, sign-ups, bookings, and guided learning products managed from the portal.</value></data>
+  <data name="ProductsMetaDescription" xml:space="preserve"><value>Browse products and services from iD! Training &amp; Development.</value></data>
+  <data name="ProductsTitle" xml:space="preserve"><value>Products</value></data>
+  <data name="ProductType_Booking" xml:space="preserve"><value>Booking</value></data>
+  <data name="ProductType_BookingAddOn" xml:space="preserve"><value>Booking add-on</value></data>
+  <data name="ProductType_DigitalCourse" xml:space="preserve"><value>Digital course</value></data>
+  <data name="ProductType_Credit" xml:space="preserve"><value>Credit</value></data>
+  <data name="ProductType_Enrollment" xml:space="preserve"><value>Enrollment</value></data>
+  <data name="ProductType_ExternalBooking" xml:space="preserve"><value>External booking</value></data>
+  <data name="ProductType_FreeDownload" xml:space="preserve"><value>Free download</value></data>
+  <data name="ProductType_Standard" xml:space="preserve"><value>Standard product</value></data>
+  <data name="ProductType_Signup" xml:space="preserve"><value>Sign-up</value></data>
 </root>

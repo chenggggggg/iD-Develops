@@ -1,8 +1,9 @@
 @page
 @model iD_Develops.Pages.Examination.CompletedModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<iD_Develops.Pages.Portal.Examination.CompletedModel> Localizer
 @{
     Layout = null;
-    ViewData["Title"] = "Completed";
+    ViewData["Title"] = Localizer["CompletedTitle"];
 }
 <head>
     <meta charset="utf-8" />
@@ -21,10 +22,10 @@
         <div class="flex min-h-screen items-center justify-center px-4 text-center">
             <div>
                 <h2>
-                    Your exam has been submitted.
+                    @Localizer["ExamSubmittedHeading"]
                 </h2>
                 <p>
-                    You may now close this window, or click <a asp-page="/Portal/Home/Index">here</a> to return to the portal home.
+                    @Localizer["ExamSubmittedPrefix"] <a asp-page="/Portal/Home/Index">@Localizer["HereAction"]</a> @Localizer["ExamSubmittedSuffix"]
                 </p>
             </div>
         </div>

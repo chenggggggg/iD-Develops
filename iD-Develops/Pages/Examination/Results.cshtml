@@ -1,9 +1,10 @@
 @page
 @model iD_Develops.Pages.Examination.ResultsModel
 @using System.Globalization
+@inject IStringLocalizer<iD_Develops.Pages.Examination.ResultsModel> Localizer
 @{
     var levelTestUrl = $"/{CultureInfo.CurrentCulture.Name.ToLowerInvariant()}/level-test";
-    ViewData["Title"] = "Level Test Results";
+    ViewData["Title"] = Localizer["Title"];
     ViewData["BodyClass"] = "public-result-page";
 }
 
@@ -16,12 +17,12 @@
     <section class="public-result-shell">
         <div class="container">
             <div class="public-result-invalid">
-                <p class="public-result-eyebrow">Result unavailable</p>
-                <h1>We could not open this result</h1>
-                <p>The link may be expired, incomplete, or not connected to a completed level test.</p>
+                <p class="public-result-eyebrow">@Localizer["UnavailableEyebrow"]</p>
+                <h1>@Localizer["UnavailableTitle"]</h1>
+                <p>@Localizer["UnavailableDescription"]</p>
                 <div class="public-result-actions">
-                    <a class="public-result-button" href="@levelTestUrl">Take the level test</a>
-                    <a class="public-result-button public-result-button-secondary" asp-page="/Contact">Contact us</a>
+                    <a class="public-result-button" href="@levelTestUrl">@Localizer["TakeLevelTestButton"]</a>
+                    <a class="public-result-button public-result-button-secondary" asp-page="/Contact" asp-route-culture="@CultureInfo.CurrentCulture.Name.ToLowerInvariant()">@Localizer["ContactButton"]</a>
                 </div>
             </div>
         </div>
@@ -33,19 +34,19 @@ else
         <div class="container">
             <div class="public-result-hero-grid">
                 <div class="public-result-hero-copy">
-                    <p class="public-result-eyebrow">Your level test result</p>
+                    <p class="public-result-eyebrow">@Localizer["ResultEyebrow"]</p>
                     <h1>@Model.Summary.ExamName</h1>
                     <p class="public-result-lead">@Model.Summary.AdviceText</p>
                     <div class="public-result-actions">
-                        <a class="public-result-button" href="https://koalendar.com/e/test-results-options" target="_blank" rel="noopener noreferrer">Book advice call</a>
-                        <a class="public-result-button public-result-button-secondary" asp-page="/Pricing">View pricing</a>
+                        <a class="public-result-button" href="https://koalendar.com/e/test-results-options" target="_blank" rel="noopener noreferrer">@Localizer["AdviceCallButton"]</a>
+                        <a class="public-result-button public-result-button-secondary" asp-page="/Pricing" asp-route-culture="@CultureInfo.CurrentCulture.Name.ToLowerInvariant()">@Localizer["PricingButton"]</a>
                     </div>
                 </div>
                 <div class="public-result-score-panel">
                     <div class="public-result-score-ring" style="--score-percent: @Model.Summary.ScorePercentage;">
                         <div>
                             <span>@Model.Summary.ScorePercentage%</span>
-                            <small>@Model.Summary.Score.ToString("0.##") / @Model.Summary.MaxScore.ToString("0.##") points</small>
+                            <small>@Localizer["PointsFormat", Model.Summary.Score.ToString("0.##"), Model.Summary.MaxScore.ToString("0.##")]</small>
                         </div>
                     </div>
                     <div class="public-result-score-meta">
@@ -61,21 +62,21 @@ else
         <div class="container">
             <div class="public-result-stats">
                 <article>
-                    <span>Score</span>
+                    <span>@Localizer["ScoreLabel"]</span>
                     <strong>@Model.Summary.Score.ToString("0.##") / @Model.Summary.MaxScore.ToString("0.##")</strong>
                 </article>
                 <article>
-                    <span>Correct answers</span>
+                    <span>@Localizer["CorrectAnswersLabel"]</span>
                     <strong>@Model.Summary.CorrectAnswers / @Model.Summary.TotalQuestions</strong>
                 </article>
                 <article>
-                    <span>Completed</span>
+                    <span>@Localizer["CompletedLabel"]</span>
                     <strong>@((Model.Summary.EndDateTime ?? Model.Summary.StartDateTime).ToLocalTime().ToString("dd MMM yyyy"))</strong>
                 </article>
             </div>
 
             <div class="public-result-section-heading">
-                <p class="public-result-eyebrow">Personal advice</p>
+                <p class="public-result-eyebrow">@Localizer["PersonalAdviceEyebrow"]</p>
                 <h2>@Model.Summary.AdviceTitle</h2>
             </div>
 
@@ -87,8 +88,8 @@ else
             }
 
             <div class="public-result-section-heading">
-                <p class="public-result-eyebrow">Question review</p>
-                <h2>See where you were strong and what to practise next</h2>
+                <p class="public-result-eyebrow">@Localizer["QuestionReviewEyebrow"]</p>
+                <h2>@Localizer["QuestionReviewTitle"]</h2>
             </div>
 
             <div class="public-result-question-list">
@@ -96,7 +97,7 @@ else
                 {
                     <article class="public-result-question">
                         <div class="public-result-question-header">
-                            <span>Question @question.QuestionNumber</span>
+                            <span>@Localizer["QuestionFormat", question.QuestionNumber]</span>
                             <strong class="@question.ResultBadgeClass">@question.ResultLabel</strong>
                         </div>
 
@@ -126,11 +127,11 @@ else
                         {
                             <div class="public-result-answer-grid">
                                 <div>
-                                    <span>Your answer</span>
+                                    <span>@Localizer["YourAnswerLabel"]</span>
                                     <p>@question.SubmittedAnswer</p>
                                 </div>
                                 <div>
-                                    <span>Correct answer</span>
+                                    <span>@Localizer["CorrectAnswerLabel"]</span>
                                     <p>@question.CorrectAnswer</p>
                                 </div>
                             </div>
@@ -138,10 +139,10 @@ else
 
                         <div class="public-result-notes">
                             <div>
-                                <span>Feedback</span>
+                                <span>@Localizer["FeedbackLabel"]</span>
                                 @if (string.IsNullOrWhiteSpace(question.FeedbackHtml))
                                 {
-                                    <p>No feedback was added for this question.</p>
+                                    <p>@Localizer["NoFeedback"]</p>
                                 }
                                 else
                                 {
@@ -149,10 +150,10 @@ else
                                 }
                             </div>
                             <div>
-                                <span>Extra note</span>
+                                <span>@Localizer["ExtraNoteLabel"]</span>
                                 @if (string.IsNullOrWhiteSpace(question.FunFactHtml))
                                 {
-                                    <p>No additional note was added for this question.</p>
+                                    <p>@Localizer["NoExtraNote"]</p>
                                 }
                                 else
                                 {

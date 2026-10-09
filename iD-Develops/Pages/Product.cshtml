@@ -2,17 +2,18 @@
 @using iD_Develops.Enums
 @using iD_Develops.Models
 @model iD_Develops.Pages.ProductModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<iD_Develops.Pages.ProductModel> Localizer
 @{
     Layout = Model.IsAdminEditMode ? "_PortalLayout" : "_Layout";
-    ViewData["Title"] = Model.Product?.Name ?? "Product";
+    ViewData["Title"] = Model.Product?.Name ?? Localizer["ProductFallbackTitle"];
 
     string submitText = Model.Product!.WorkflowType switch
     {
-        _ when Model.Product.ProductType == CatalogProductType.FreeDownload => Model.Product.ExternalBookingButtonText ?? "Download",
-        CatalogWorkflowType.FormThenExternalBooking => Model.Product.ExternalBookingButtonText ?? "Continue to booking",
-        CatalogWorkflowType.FormThenStripeCheckout => "Continue to payment",
-        CatalogWorkflowType.ExternalBookingOnly => Model.Product.ExternalBookingButtonText ?? "Book now",
-        _ => "Send request"
+        _ when Model.Product.ProductType == CatalogProductType.FreeDownload => Model.Product.ExternalBookingButtonText ?? Localizer["DownloadAction"],
+        CatalogWorkflowType.FormThenExternalBooking => Model.Product.ExternalBookingButtonText ?? Localizer["ContinueBookingAction"],
+        CatalogWorkflowType.FormThenStripeCheckout => Localizer["ContinuePaymentAction"],
+        CatalogWorkflowType.ExternalBookingOnly => Model.Product.ExternalBookingButtonText ?? Localizer["BookNowAction"],
+        _ => Localizer["SendRequestAction"]
     };
 
     string submitIconClass = Model.Product.WorkflowType switch
@@ -45,7 +46,7 @@
         ? Model.ResolvedAttachmentUrl
         : Model.Product.ExternalBookingUrl;
     var initialUnitPriceValue = (unitPrice ?? 0m).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
-    var displayProductName = ProductModel.IsDraftPlaceholderName(Model.Product.Name) ? "Product Title" : Model.Product.Name;
+    var displayProductName = ProductModel.IsDraftPlaceholderName(Model.Product.Name) ? Localizer["ProductTitlePlaceholder"] : Model.Product.Name;
     var isDraft = Model.Product.Status == CatalogProductStatus.Draft;
     var isPublished = Model.Product.Status == CatalogProductStatus.Published;
     var isArchived = Model.Product.Status == CatalogProductStatus.Archived;
@@ -668,7 +669,7 @@
                                 data-product-tab-target="product-description-tab-pane"
                                 aria-controls="product-description-tab-pane"
                                 aria-selected="true">
-                            Description
+                            @Localizer["DescriptionTab"]
                         </button>
                     </li>
                     <li role="presentation">
@@ -679,7 +680,7 @@
                                 data-product-tab-target="product-details-tab-pane"
                                 aria-controls="product-details-tab-pane"
                                 aria-selected="false">
-                            Product details
+                            @Localizer["DetailsTab"]
                         </button>
                     </li>
                 </ul>
@@ -696,7 +697,7 @@
                         }
                         else
                         {
-                            <p class="product-help-text">More information will be added here soon.</p>
+                            <p class="product-help-text">@Localizer["DescriptionEmpty"]</p>
                         }
                     </div>
                     <div id="product-details-tab-pane"
@@ -711,7 +712,7 @@
                         }
                         else
                         {
-                            <p class="product-help-text">No additional product details are available.</p>
+                            <p class="product-help-text">@Localizer["DetailsEmpty"]</p>
                         }
                     </div>
                 </div>
@@ -733,7 +734,7 @@
                     }
                     else
                     {
-                        <div class="product-section-label">Your selection</div>
+                        <div class="product-section-label">@Localizer["SelectionHeading"]</div>
                     }
 
                     @if (!showStandaloneBookingAction)
@@ -776,11 +777,11 @@
                         {
                             <div class="product-price-board">
                                 <div class="product-price-row">
-                                    <span>Price</span>
+                                    <span>@Localizer["PriceLabel"]</span>
                                     <strong id="product-unit-price">@unitCurrency @displayUnitPrice.ToString("0.00")</strong>
                                 </div>
                                 <div class="product-price-row total">
-                                    <span>Total</span>
+                                    <span>@Localizer["TotalLabel"]</span>
                                     <strong id="product-total-price">@unitCurrency @totalPrice.ToString("0.00")</strong>
                                 </div>
                             </div>
@@ -796,7 +797,7 @@
                         @if (sharedFields.Count > 0)
                         {
                             <hr class="product-rule" />
-                            <div class="product-section-label">Customer details</div>
+                            <div class="product-section-label">@Localizer["CustomerDetailsHeading"]</div>
                         }
 
                         @foreach (var field in sharedFields)
@@ -831,7 +832,7 @@
                                         break;
                                     case CatalogFormFieldType.Select:
                                         <select class="public-field" id="@ProductModel.GetFieldName(field, null)" name="@ProductModel.GetFieldName(field, null)">
-                                            <option value="">Select an option</option>
+                                            <option value="">@Localizer["SelectOption"]</option>
                                             @foreach (var option in field.Options)
                                             {
                                                 if (Request.Form[ProductModel.GetFieldName(field, null)] == option)
@@ -864,7 +865,7 @@
                                                     </label>
                                                     @if (optionKind == "text")
                                                     {
-                                                        <input class="public-field" type="text" name="@(optionId)_text" value="@Request.Form[$"{optionId}_text"]" maxlength="@optionLimit" placeholder="Please specify" />
+                                                        <input class="public-field" type="text" name="@(optionId)_text" value="@Request.Form[$"{optionId}_text"]" maxlength="@optionLimit" placeholder="@Localizer["SpecifyPlaceholder"]" />
                                                     }
                                                 </div>
                                             }
@@ -874,7 +875,7 @@
                                         <ol class="product-numbered-input-list">
                                             @for (var optionIndex = 0; optionIndex < Math.Max(2, field.ListItemCount ?? 2); optionIndex++)
                                             {
-                                                var optionLabel = $"Item {optionIndex + 1}";
+                                                var optionLabel = Localizer["ItemFormat", optionIndex + 1];
                                                 var optionName = $"{ProductModel.GetFieldName(field, null)}_{optionIndex}";
                                                 <li>
                                                     <label class="product-visually-hidden" for="@optionName">@optionLabel</label>
@@ -924,11 +925,11 @@
                     {
                         <div class="product-price-board">
                             <div class="product-price-row">
-                                <span>Price</span>
+                                <span>@Localizer["PriceLabel"]</span>
                                 <strong>@unitCurrency @displayUnitPrice.ToString("0.00")</strong>
                             </div>
                             <div class="product-price-row total">
-                                <span>Total</span>
+                                <span>@Localizer["TotalLabel"]</span>
                                 <strong>@unitCurrency @displayUnitPrice.ToString("0.00")</strong>
                             </div>
                         </div>

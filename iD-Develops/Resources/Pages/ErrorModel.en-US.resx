@@ -141,4 +141,52 @@ and restarting the app.</value>
   <data name="Title" xml:space="preserve">
     <value>Error</value>
   </data>
+  <data name="BadRequestDetail" xml:space="preserve"><value>Please check the input or try the action again from the previous page.</value></data>
+  <data name="BadRequestHeading" xml:space="preserve"><value>Invalid request</value></data>
+  <data name="BadRequestImageAlt" xml:space="preserve"><value>Invalid request</value></data>
+  <data name="BadRequestSummary" xml:space="preserve"><value>The request could not be processed in its current form.</value></data>
+  <data name="ConflictDetail" xml:space="preserve"><value>Refresh the page and try again.</value></data>
+  <data name="ConflictHeading" xml:space="preserve"><value>Request conflict</value></data>
+  <data name="ConflictImageAlt" xml:space="preserve"><value>Request conflict</value></data>
+  <data name="ConflictSummary" xml:space="preserve"><value>The request could not be completed because the current state no longer matches.</value></data>
+  <data name="DatabaseHeading" xml:space="preserve"><value>Database temporarily unavailable</value></data>
+  <data name="DatabaseImageAlt" xml:space="preserve"><value>Database or connectivity issue</value></data>
+  <data name="DatabaseLoginDetail" xml:space="preserve"><value>This usually points to a database configuration or credential problem and needs administrator attention.</value></data>
+  <data name="DatabaseLoginSummary" xml:space="preserve"><value>The application could not authenticate with the database.</value></data>
+  <data name="DatabaseRefusedDetail" xml:space="preserve"><value>This usually means the database service is stopped, restarting, or not accepting connections from the app.</value></data>
+  <data name="DatabaseRefusedSummary" xml:space="preserve"><value>The database server refused the connection request.</value></data>
+  <data name="DatabaseTimeoutDetail" xml:space="preserve"><value>This can happen during a restart, heavy load, or a temporary network slowdown. Try again shortly.</value></data>
+  <data name="DatabaseTimeoutSummary" xml:space="preserve"><value>The application reached the database server, but the request timed out.</value></data>
+  <data name="DatabaseUnavailableDetail" xml:space="preserve"><value>This usually means the database server is offline, restarting, or unreachable from the app. Try again shortly.</value></data>
+  <data name="DatabaseUnavailableSummary" xml:space="preserve"><value>We could not reach the application database just now.</value></data>
+  <data name="ErrorCodeLabel" xml:space="preserve"><value>Error code</value></data>
+  <data name="ErrorStatusFormat" xml:space="preserve"><value>Error {0}</value></data>
+  <data name="ForbiddenDetail" xml:space="preserve"><value>If you believe this is a mistake, contact an administrator.</value></data>
+  <data name="ForbiddenHeading" xml:space="preserve"><value>Access denied</value></data>
+  <data name="ForbiddenImageAlt" xml:space="preserve"><value>Access denied</value></data>
+  <data name="ForbiddenSummary" xml:space="preserve"><value>You do not have permission to access this resource.</value></data>
+  <data name="GoHomeAction" xml:space="preserve"><value>Go home</value></data>
+  <data name="NotFoundDetail" xml:space="preserve"><value>The link may be outdated, or the item may have been moved or removed.</value></data>
+  <data name="NotFoundHeading" xml:space="preserve"><value>Page not found</value></data>
+  <data name="NotFoundImageAlt" xml:space="preserve"><value>Page not found</value></data>
+  <data name="NotFoundSummary" xml:space="preserve"><value>The page or resource you requested could not be found.</value></data>
+  <data name="PreviousPageAction" xml:space="preserve"><value>Try previous page</value></data>
+  <data name="RefreshAction" xml:space="preserve"><value>Refresh and try again</value></data>
+  <data name="RequestedPageLabel" xml:space="preserve"><value>Requested page</value></data>
+  <data name="ServerErrorDetail" xml:space="preserve"><value>Please try again in a moment. If the problem continues, contact support.</value></data>
+  <data name="ServerErrorHeading" xml:space="preserve"><value>Something went wrong</value></data>
+  <data name="ServerErrorImageAlt" xml:space="preserve"><value>System or service issue</value></data>
+  <data name="ServerErrorSummary" xml:space="preserve"><value>An unexpected server error occurred.</value></data>
+  <data name="ServiceUnavailableDetail" xml:space="preserve"><value>Try again shortly.</value></data>
+  <data name="ServiceUnavailableHeading" xml:space="preserve"><value>Service temporarily unavailable</value></data>
+  <data name="ServiceUnavailableImageAlt" xml:space="preserve"><value>Service unavailable</value></data>
+  <data name="ServiceUnavailableSummary" xml:space="preserve"><value>The service is currently unavailable.</value></data>
+  <data name="SignInAction" xml:space="preserve"><value>Sign in</value></data>
+  <data name="StatusCodeLabel" xml:space="preserve"><value>Status code</value></data>
+  <data name="TryAgainAction" xml:space="preserve"><value>Try again</value></data>
+  <data name="UnauthorizedDetail" xml:space="preserve"><value>Please sign in and try again.</value></data>
+  <data name="UnauthorizedHeading" xml:space="preserve"><value>Sign-in required</value></data>
+  <data name="UnauthorizedImageAlt" xml:space="preserve"><value>Authentication required</value></data>
+  <data name="UnauthorizedSummary" xml:space="preserve"><value>You need to sign in before accessing this page.</value></data>
+  <data name="ViewDiagnostics" xml:space="preserve"><value>View diagnostic details</value></data>
 </root>

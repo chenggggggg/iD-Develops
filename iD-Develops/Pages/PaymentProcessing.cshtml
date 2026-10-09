@@ -1,15 +1,16 @@
 @page "/payment-processing"
 @model iD_Develops.Pages.PaymentProcessingModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<iD_Develops.Pages.PaymentProcessingModel> Localizer
 @{
-    ViewData["Title"] = "Processing Payment";
+    ViewData["Title"] = Localizer["Title"];
 }
 
 <section class="payment-processing-page">
     <div class="payment-processing-panel">
         <div class="payment-processing-spinner" aria-hidden="true"></div>
-        <p class="payment-processing-kicker">Payment</p>
-        <h1>Processing Payment</h1>
-        <p>Please wait while we confirm the payment status.</p>
+        <p class="payment-processing-kicker">@Localizer["PaymentLabel"]</p>
+        <h1>@Localizer["Heading"]</h1>
+        <p>@Localizer["Message"]</p>
     </div>
 </section>
 

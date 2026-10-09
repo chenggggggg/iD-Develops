@@ -1,5 +1,6 @@
 @page
 @model iD_Develops.Pages.ErrorModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<iD_Develops.Pages.ErrorModel> Localizer
 @{
     Layout = null;
     ViewData["Title"] = $"{Model.StatusCodeValue} - {Model.Heading}";
@@ -35,7 +36,7 @@
                     </div>
                     <div>
                         <div class="error-copy">
-                            <div class="error-status-label">Error @Model.StatusCodeValue</div>
+                            <div class="error-status-label">@Localizer["ErrorStatusFormat", Model.StatusCodeValue]</div>
                             <h1 class="error-title">@Model.Heading</h1>
                             <p class="error-subtitle">@Model.Summary</p>
                             <p class="error-description">@Model.Detail</p>
@@ -54,30 +55,30 @@
                        data-diagnostics-toggle
                        aria-expanded="false"
                        aria-controls="errorDiagnostics">
-                        View diagnostic details
+                        @Localizer["ViewDiagnostics"]
                     </a>
 
                     <div id="errorDiagnostics" class="error-diagnostics-panel" hidden>
                         <div class="grid gap-3 text-sm sm:grid-cols-2">
                             <div>
-                                <div class="error-diagnostics-label">Status code</div>
+                                <div class="error-diagnostics-label">@Localizer["StatusCodeLabel"]</div>
                                 <div class="error-diagnostics-value">@Model.StatusCodeValue</div>
                             </div>
                             <div>
-                                <div class="error-diagnostics-label">Error code</div>
+                                <div class="error-diagnostics-label">@Localizer["ErrorCodeLabel"]</div>
                                 <div class="error-diagnostics-value"><code>@Model.ErrorCode</code></div>
                             </div>
                             @if (!string.IsNullOrWhiteSpace(Model.OriginalPath))
                             {
                                 <div>
-                                    <div class="error-diagnostics-label">Requested page</div>
+                                    <div class="error-diagnostics-label">@Localizer["RequestedPageLabel"]</div>
                                     <div class="error-diagnostics-value"><code>@Model.OriginalPath</code></div>
                                 </div>
                             }
                             @if (Model.ShowRequestId)
                             {
                                 <div>
-                                    <div class="error-diagnostics-label">Request ID</div>
+                                    <div class="error-diagnostics-label">@Localizer["RequestIdLabel"]</div>
                                     <div class="error-diagnostics-value"><code>@Model.RequestId</code></div>
                                 </div>
                             }

@@ -140,6 +140,25 @@ public sealed class PortalEntitlementSmokeTests : Microsoft.Playwright.Xunit.Pag
 
         await enterpriseLink.ClickAsync();
         await Expect(Page).ToHaveURLAsync($"{PublicBaseUrl}/nl-nl/enterprise");
+        await Expect(Page.GetByRole(
+                Microsoft.Playwright.AriaRole.Heading,
+                new() { Name = "Omdat mensen die goed met elkaar communiceren, je organisatie laten floreren" }))
+            .ToBeVisibleAsync();
+    }
+
+    [Fact]
+    public async Task PublicErrorPage_UsesDutchResources()
+    {
+        var response = await Page.GotoAsync(
+            $"{PublicBaseUrl}/nl-nl/error?code=not-found&statusCode=404",
+            new Microsoft.Playwright.PageGotoOptions { WaitUntil = Microsoft.Playwright.WaitUntilState.DOMContentLoaded });
+
+        Assert.NotNull(response);
+        Assert.Equal(404, response!.Status);
+        await Expect(Page.GetByRole(Microsoft.Playwright.AriaRole.Heading, new() { Name = "Pagina niet gevonden" }))
+            .ToBeVisibleAsync();
+        await Expect(Page.GetByText("Diagnostische details bekijken", new() { Exact = true }))
+            .ToBeVisibleAsync();
     }
 
     [Fact]

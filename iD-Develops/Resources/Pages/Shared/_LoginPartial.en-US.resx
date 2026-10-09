@@ -142,6 +142,6 @@
     <value>Portal Home</value>
   </data>
   <data name="Nav_SignIn" xml:space="preserve">
-    <value>Sign In</value>
+      <value>Log In</value>
   </data>
 </root>

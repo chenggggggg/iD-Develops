@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?><root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader><resheader name="version"><value>2.0</value></resheader>
+  <data name="BeforeHeading" xml:space="preserve"><value>Before you begin</value></data>
+  <data name="BeforeStep1Heading" xml:space="preserve"><value>Set aside enough time</value></data>
+  <data name="BeforeStep1Text" xml:space="preserve"><value>Set aside around {0} and choose a time when you will not be interrupted.</value></data>
+  <data name="BeforeStep2Heading" xml:space="preserve"><value>Work independently</value></data>
+  <data name="BeforeStep2Text" xml:space="preserve"><value>Do not use a dictionary or translation tool. That gives you the most useful result.</value></data>
+  <data name="BeforeStep3Heading" xml:space="preserve"><value>See your result immediately</value></data>
+  <data name="BeforeStep3Text" xml:space="preserve"><value>After the final question, you will receive your score and guidance on what to do next.</value></data>
+  <data name="BenefitsEyebrow" xml:space="preserve"><value>What you will learn</value></data>
+  <data name="BenefitsHeading" xml:space="preserve"><value>A clear starting point, not a formal language certificate</value></data>
+  <data name="BenefitsParagraph1" xml:space="preserve"><value>The test looks at the foundation you need to continue working towards level A2. At the end, you will see your score and what it means for your next step.</value></data>
+  <data name="BenefitsParagraph2" xml:space="preserve"><value>Use the result as practical guidance. The test is designed to help you move forward; it is not an official exam or recognised proof of your language level.</value></data>
+  <data name="DurationFormat" xml:space="preserve"><value>{0} minutes</value></data>
+  <data name="DurationLabel" xml:space="preserve"><value>Allow</value></data>
+  <data name="Eyebrow" xml:space="preserve"><value>Free Dutch level test</value></data>
+  <data name="Heading" xml:space="preserve"><value>How strong is your Dutch?</value></data>
+  <data name="HighScoreLabel" xml:space="preserve"><value>A1 foundation reached</value></data>
+  <data name="HighScoreRange" xml:space="preserve"><value>51 points or more</value></data>
+  <data name="HighScoreText" xml:space="preserve"><value>You have a solid A1 foundation. The Dutch A1-A2 course is a suitable next step.</value></data>
+  <data name="InitializeError" xml:space="preserve"><value>Failed to initialize the level test.</value></data>
+  <data name="Introduction" xml:space="preserve"><value>This level test gives you a practical first impression of your foundation. It helps you decide whether the online Dutch A1-A2 course is the right next step for you.</value></data>
+  <data name="LowScoreLabel" xml:space="preserve"><value>Strengthen the basics first</value></data>
+  <data name="LowScoreRange" xml:space="preserve"><value>Below 45 points</value></data>
+  <data name="LowScoreText" xml:space="preserve"><value>Your foundation probably needs some attention first. Email us for personal advice at </value></data>
+  <data name="MetaDescription" xml:space="preserve"><value>Take the free Dutch level test and find out whether the online Dutch A1-A2 course is right for you.</value></data>
+  <data name="MiddleScoreLabel" xml:space="preserve"><value>Close to A1</value></data>
+  <data name="MiddleScoreRange" xml:space="preserve"><value>45 to 50 points</value></data>
+  <data name="MiddleScoreText" xml:space="preserve"><value>The course can still be a good fit. Make time for revision and work through every explanation and assignment carefully.</value></data>
+  <data name="PracticalInformationLabel" xml:space="preserve"><value>Practical information</value></data>
+  <data name="ReadOnButton" xml:space="preserve"><value>Read on and begin</value></data>
+  <data name="ScoreGuideEyebrow" xml:space="preserve"><value>Score guide</value></data>
+  <data name="ScoreGuideHeading" xml:space="preserve"><value>How to read your result</value></data>
+  <data name="ScoreGuideIntroduction" xml:space="preserve"><value>Your score helps you estimate how much foundation you already have and how much support or revision may be useful.</value></data>
+  <data name="StartButton" xml:space="preserve"><value>Start the level test</value></data>
+  <data name="StartEyebrow" xml:space="preserve"><value>Ready to begin?</value></data>
+  <data name="StartHeading" xml:space="preserve"><value>Take your time and discover where you stand.</value></data>
+  <data name="StartText" xml:space="preserve"><value>The test takes around {0}. The timer begins as soon as you start.</value></data>
+  <data name="TimerExplanation" xml:space="preserve"><value>The timer starts when you open the test. You do not need an account.</value></data>
+  <data name="Title" xml:space="preserve"><value>Free Dutch level test</value></data>
+  <data name="UnavailableMessage" xml:space="preserve"><value>The public level test is currently unavailable. Please try again later.</value></data>
+</root>

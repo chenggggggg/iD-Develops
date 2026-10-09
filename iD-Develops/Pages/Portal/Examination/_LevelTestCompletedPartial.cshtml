@@ -1,4 +1,5 @@
 @model iD_Develops.Pages.Portal.Examination.CompletedModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<iD_Develops.Pages.Portal.Examination.CompletedModel> Localizer
 
 <div class="flex min-h-screen w-full">
     <div class="content-panel flex flex-col items-center justify-center">
@@ -13,49 +14,49 @@
                     @if (Model.IsSignedInPortalUser)
                     {
                         <p class="m-0">
-                            <a asp-page="/Portal/Profile/Index" class="completion-link">Return to your profile</a>
+                            <a asp-page="/Portal/Profile/Index" class="completion-link">@Localizer["ReturnProfileAction"]</a>
                         </p>
                     }
                     else
                     {
                         <div class="completion-help my-6 text-center">
                             <p class="m-0">
-                                Didn't receive an email? Check your spam folder or
+                                @Localizer["EmailMissingHelp"]
                             </p>
 
                             <form method="post" asp-page-handler="Resend" class="completion-resend-form">
                                 <input type="hidden" name="RecordId" value="@Model.RecordId" />
-                                <button type="submit" class="completion-inline-button">click here to resend</button>.
+                                <button type="submit" class="completion-inline-button">@Localizer["ResendAction"]</button>.
                             </form>
 
-                            <p class="completion-divider my-1">or</p>
+                            <p class="completion-divider my-1">@Localizer["OrLabel"]</p>
 
                             <p class="mb-4">
-                                Contact us at <a class="completion-link" href="mailto:@Model.SupportEmail">@Model.SupportEmail</a>
+                                @Localizer["ContactAtText"] <a class="completion-link" href="mailto:@Model.SupportEmail">@Model.SupportEmail</a>
                             </p>
                         </div>
 
                         <p class="m-0">
-                            <a asp-page="/Index" class="completion-link">Return to the home page</a>
+                            <a asp-page="/Index" class="completion-link">@Localizer["ReturnHomeAction"]</a>
                         </p>
                     }
                 </div>
             }
             else
             {
-                <h2 class="text-center">Dutch Language Awaits!</h2>
+                <h2 class="text-center">@Localizer["FormHeading"]</h2>
                 <p class="subtitle text-center">
-                    Well done on completing your level test!
-                    <br />Your results are just around the corner.
+                    @Localizer["FormCongratulations"]
+                    <br />@Localizer["FormResultsSoon"]
                     @if (!Model.IsSignedInPortalUser)
                     {
-                        <text>Simply leave your name and email to receive detailed results and feedback on your test.</text>
+                        <text>@Localizer["FormAnonymousExplanation"]</text>
                     }
                     else
                     {
-                        <text>You're already signed in, so we can send the next steps straight to your account email.</text>
+                        <text>@Localizer["FormSignedInExplanation"]</text>
                     }
-                    <br />Ready to explore the Dutch language?
+                    <br />@Localizer["FormClosing"]
                 </p>
 
                 @if (!string.IsNullOrWhiteSpace(Model.LevelTestErrorMessage))
@@ -71,11 +72,11 @@
 
                         @if (!Model.IsSignedInPortalUser)
                         {
-                            <label asp-for="Name" class="sr-only">Name:</label>
-                            <input asp-for="Name" placeholder="Name" />
+                            <label asp-for="Name" class="sr-only">@Localizer["NameLabel"]</label>
+                            <input asp-for="Name" placeholder="@Localizer["NamePlaceholder"]" />
 
-                            <label asp-for="Email" class="sr-only">Email:</label>
-                            <input asp-for="Email" placeholder="Email" />
+                            <label asp-for="Email" class="sr-only">@Localizer["EmailLabel"]</label>
+                            <input asp-for="Email" placeholder="@Localizer["EmailPlaceholder"]" />
                         }
 
                         @if (!Model.IsSignedInPortalUser)
@@ -83,7 +84,7 @@
                             <div class="mt-4 flex items-start gap-2">
                                 <input class="mt-1" asp-for="SubscribeNewsletter" type="checkbox" />
                                 <label class="consent-label font-light" asp-for="SubscribeNewsletter">
-                                    I would like to receive newsletters and updates.
+                                    @Localizer["NewsletterConsent"]
                                 </label>
                             </div>
 
@@ -94,7 +95,7 @@
                             <partial name="_Turnstile" />
                         }
 
-                        <input type="submit" value="@(Model.IsSignedInPortalUser ? "View my results!" : "Send my results!")" class="submit-button mt-4" />
+                        <input type="submit" value="@(Model.IsSignedInPortalUser ? Localizer["ViewResultsButton"] : Localizer["SendResultsButton"])" class="submit-button mt-4" />
 
                         <div asp-validation-summary="All" class="public-invalid-feedback mt-4"></div>
                     </form>

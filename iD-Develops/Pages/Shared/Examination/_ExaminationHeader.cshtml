@@ -1,5 +1,6 @@
 @using iD_Develops.Models
 @model iD_Develops.Pages.Shared.Examination.ExaminationHeaderModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<iD_Develops.Pages.Shared.Examination.ExaminationHeaderModel> Localizer
 
 <header>
     <nav class="exam-header">
@@ -15,12 +16,12 @@
                            asp-page="@(returnCourseId.HasValue ? "/Portal/Courses/Course" : "/Portal/Exams/List")"
                            asp-route-courseId="@returnCourseId"
                            asp-route-edit="@(returnCourseId.HasValue ? true : null)"
-                           aria-label="@(returnCourseId.HasValue ? "Back to course editor" : "Back to exams")">
+                           aria-label="@(returnCourseId.HasValue ? Localizer["BackCourseEditorLabel"] : Localizer["BackExamsLabel"])">
                             <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
                         </a>
                     }
                     <div class="exam-header-stack">
-                        <small class="exam-header-label">Timer</small>
+                        <small class="exam-header-label">@Localizer["TimerLabel"]</small>
 
                         @if (Model.ShowTimer)
                         {
@@ -43,7 +44,7 @@
                                            min="1"
                                            value="@(Model.TimeLimit.HasValue ? Model.TimeLimit.Value / 60 : null)"
                                            data-exam-header-input
-                                           aria-label="Time limit in minutes" />
+                                           aria-label="@Localizer["TimeLimitLabel"]" />
                                     <i class="fa-solid fa-pencil exam-header-edit-icon" aria-hidden="true"></i>
                                 </div>
                             }
@@ -59,19 +60,19 @@
                             <div class="exam-header-value exam-header-inline-edit"
                                  data-exam-header-edit="timeLimit"
                                  data-exam-id="@Model.ExamId">
-                                <span class="exam-header-inline-display" data-exam-header-display>No time limit</span>
+                                <span class="exam-header-inline-display" data-exam-header-display>@Localizer["NoTimeLimit"]</span>
                                 <input class="exam-header-inline-input"
                                        type="number"
                                        min="1"
                                        value=""
                                        data-exam-header-input
-                                       aria-label="Time limit in minutes" />
+                                       aria-label="@Localizer["TimeLimitLabel"]" />
                                 <i class="fa-solid fa-pencil exam-header-edit-icon" aria-hidden="true"></i>
                             </div>
                         }
                         else
                         {
-                            <div class="exam-header-value">No time limit</div>
+                            <div class="exam-header-value">@Localizer["NoTimeLimit"]</div>
                         }
                     </div>
                 </div>
@@ -80,15 +81,15 @@
                 @if (Model.Mode == PaginationMode.Editing)
                 {
                     <div class="exam-header-status">
-                        <small class="exam-header-label">Status</small>
+                        <small class="exam-header-label">@Localizer["StatusLabel"]</small>
                         <div class="exam-header-value exam-header-status-value">
-                            <span id="editorSaveStatus">Up-to-date</span>
+                            <span id="editorSaveStatus">@Localizer["UpToDateStatus"]</span>
                             <button type="button"
                                     id="editorSaveRetry"
                                     class="exam-icon-button exam-save-retry"
                                     title=""
                                     disabled
-                                    aria-label="Retry save">
+                                    aria-label="@Localizer["RetrySaveLabel"]">
                                 <i id="editorSaveIcon" class="fa-solid fa-check exam-save-icon"></i>
                             </button>
                         </div>
@@ -108,13 +109,13 @@
                                data-exam-header-edit="name"
                                data-exam-id="@Model.ExamId">
                             <span class="exam-header-inline-display" data-exam-header-display>
-                                @(!string.IsNullOrWhiteSpace(Model.ExamTitle) ? Model.ExamTitle : "untitled-exam")
+                                @(!string.IsNullOrWhiteSpace(Model.ExamTitle) ? Model.ExamTitle : Localizer["UntitledExam"])
                             </span>
                             <input class="exam-header-inline-input"
                                    type="text"
-                                   value="@(!string.IsNullOrWhiteSpace(Model.ExamTitle) ? Model.ExamTitle : "untitled-exam")"
+                                   value="@(!string.IsNullOrWhiteSpace(Model.ExamTitle) ? Model.ExamTitle : Localizer["UntitledExam"])"
                                    data-exam-header-input
-                                   aria-label="Exam name" />
+                                   aria-label="@Localizer["ExamNameLabel"]" />
                             <i class="fa-solid fa-pencil exam-header-edit-icon" aria-hidden="true"></i>
                         </small>
                     }
@@ -136,7 +137,7 @@
                                 class="exam-icon-button"
                                 data-exam-settings-open
                                 aria-controls="examSettingsCanvas"
-                                title="Exam settings">
+                                title="@Localizer["ExamSettingsLabel"]">
                             <i class="fa-solid fa-gear"></i>
                         </button>
                     </div>

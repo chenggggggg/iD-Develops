@@ -5,6 +5,7 @@ using iD_Develops.Services;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Localization;
 
 namespace iD_Develops.Pages.Examination
 {
@@ -23,7 +24,8 @@ namespace iD_Develops.Pages.Examination
             UserManager<ApplicationUser> userManager,
             IDataProtectionProvider dataProtectionProvider,
             ITurnstileService turnstileService,
-            IApplicationUrlService applicationUrls)
+            IApplicationUrlService applicationUrls,
+            IStringLocalizer<iD_Develops.Pages.Portal.Examination.CompletedModel> localizer)
             : base(
                 dbContext,
                 participantAnswerService,
@@ -37,7 +39,8 @@ namespace iD_Develops.Pages.Examination
                 userManager,
                 dataProtectionProvider,
                 turnstileService,
-                applicationUrls)
+                applicationUrls,
+                localizer)
         {
         }
 

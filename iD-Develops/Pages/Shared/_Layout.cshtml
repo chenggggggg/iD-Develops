@@ -21,7 +21,7 @@
 
     var logoThemeClass = usesLightNav ? "public-nav-logo-light" : "public-nav-logo-dark";
     var logoImage = usesLightNav ? "/images/iddevelops-navlogo-light.png" : "/images/iddevelops-navlogo-dark.png";
-    var languageLabel = currentCulture == "nl-NL" ? "Netherlands (Nederlands)" : "United States (English)";
+    var languageLabel = localizer["Language_Current"];
     var seoTitle = ViewData["SeoTitle"]?.ToString();
     var documentTitle = string.IsNullOrWhiteSpace(seoTitle)
         ? $"{ViewData["Title"]} | iD! Training & Development"
@@ -57,23 +57,23 @@
                     <a class="public-nav-brand" asp-page="/index" asp-route-culture="@routeCulture">
                         <img src="@logoImage" class="public-nav-logo @logoThemeClass logo-image" alt="Logo" />
                     </a>
-                    <button class="public-menu-toggle" type="button" data-public-menu-toggle aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+                    <button class="public-menu-toggle" type="button" data-public-menu-toggle aria-controls="sidebarMenu" aria-expanded="false" aria-label="@localizer["Nav_Toggle"]">
                         <span class="public-menu-toggle-bars" aria-hidden="true"></span>
                     </button>
                     <div class="hidden lg:contents" id="navbarSupportedContent">
                         <ul class="public-nav-list">
                             <li class="public-nav-item">
                                 <div class="group relative flex h-16 items-center" data-services-menu data-open="false">
-                                    <button class="public-nav-link border-0 bg-transparent p-0" type="button" aria-expanded="false" aria-controls="services-menu" data-services-toggle>@(currentCulture == "nl-NL" ? "Diensten" : "Services") <i class="fa-solid fa-chevron-down transition-transform duration-200 group-hover:rotate-180 group-focus-within:rotate-180 group-data-[open=true]:rotate-180" aria-hidden="true"></i></button>
+                                    <button class="public-nav-link border-0 bg-transparent p-0" type="button" aria-expanded="false" aria-controls="services-menu" data-services-toggle>@localizer["Nav_Services"] <i class="fa-solid fa-chevron-down transition-transform duration-200 group-hover:rotate-180 group-focus-within:rotate-180 group-data-[open=true]:rotate-180" aria-hidden="true"></i></button>
                                     <ul class="pointer-events-none absolute -left-4 top-full z-50 m-0 grid min-w-64 origin-top scale-y-95 list-none border border-[var(--serif-border)] bg-[#FAFAF8]/[0.98] px-4 py-[0.65rem] opacity-0 transition-[opacity,transform] duration-[180ms] ease-out group-hover:pointer-events-auto group-hover:scale-y-100 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:scale-y-100 group-focus-within:opacity-100 group-data-[open=true]:pointer-events-auto group-data-[open=true]:scale-y-100 group-data-[open=true]:opacity-100" id="services-menu" data-services-panel>
-                                        <li><a class="block px-0 py-[0.55rem] text-left text-xs font-light uppercase tracking-[0.1em] text-[#6B6B6B] no-underline transition-colors hover:text-[#1A1A1A] hover:no-underline focus:text-[#1A1A1A] focus:no-underline [font-family:var(--serif-label)]" asp-page="/nt2-integration" asp-route-culture="@routeCulture">@(currentCulture == "nl-NL" ? "NT2 & Integratie" : "NT2 & Integration")</a></li>
-                                        <li><a class="block px-0 py-[0.55rem] text-left text-xs font-light uppercase tracking-[0.1em] text-[#6B6B6B] no-underline transition-colors hover:text-[#1A1A1A] hover:no-underline focus:text-[#1A1A1A] focus:no-underline [font-family:var(--serif-label)]" asp-page="/personal-development" asp-route-culture="@routeCulture">@(currentCulture == "nl-NL" ? "Persoonlijke Ontwikkeling" : "Personal Development")</a></li>
-                                        <li><a class="block px-0 py-[0.55rem] text-left text-xs font-light uppercase tracking-[0.1em] text-[#6B6B6B] no-underline transition-colors hover:text-[#1A1A1A] hover:no-underline focus:text-[#1A1A1A] focus:no-underline [font-family:var(--serif-label)]" asp-page="/Language-And-Communication/Index" asp-route-culture="@routeCulture">@(currentCulture == "nl-NL" ? "Taal & Communicatie" : "Language & Communication")</a></li>
+                                        <li><a class="block px-0 py-[0.55rem] text-left text-xs font-light uppercase tracking-[0.1em] text-[#6B6B6B] no-underline transition-colors hover:text-[#1A1A1A] hover:no-underline focus:text-[#1A1A1A] focus:no-underline [font-family:var(--serif-label)]" asp-page="/nt2-integration" asp-route-culture="@routeCulture">@localizer["Footer_Nt2Integration"]</a></li>
+                                        <li><a class="block px-0 py-[0.55rem] text-left text-xs font-light uppercase tracking-[0.1em] text-[#6B6B6B] no-underline transition-colors hover:text-[#1A1A1A] hover:no-underline focus:text-[#1A1A1A] focus:no-underline [font-family:var(--serif-label)]" asp-page="/personal-development" asp-route-culture="@routeCulture">@localizer["Footer_PersonalDevelopment"]</a></li>
+                                        <li><a class="block px-0 py-[0.55rem] text-left text-xs font-light uppercase tracking-[0.1em] text-[#6B6B6B] no-underline transition-colors hover:text-[#1A1A1A] hover:no-underline focus:text-[#1A1A1A] focus:no-underline [font-family:var(--serif-label)]" asp-page="/Language-And-Communication/Index" asp-route-culture="@routeCulture">@localizer["Footer_LanguageCommunication"]</a></li>
                                     </ul>
                                 </div>
                             </li>
                             <li class="public-nav-item">
-                                <a class="public-nav-link" asp-page="/enterprise" asp-route-culture="@routeCulture">@(currentCulture == "nl-NL" ? "Voor organisaties" : "For organizations")</a>
+                                <a class="public-nav-link" asp-page="/enterprise" asp-route-culture="@routeCulture">@localizer["Nav_Organizations"]</a>
                             </li>
                             <li class="public-nav-item">
                                 <a class="public-nav-link" asp-page="/Pricing" asp-route-culture="@routeCulture">@localizer["Nav_Products"]</a>
@@ -97,21 +97,21 @@
                     <div class="public-mobile-menu" tabindex="-1" id="sidebarMenu" aria-labelledby="sidebarMenuLabel" data-public-menu hidden>
                         <div class="public-mobile-menu-header">
                             <h2 class="m-0 text-xl font-semibold text-[#071f3d]" id="sidebarMenuLabel">@localizer["Nav_Menu"]</h2>
-                            <button type="button" class="public-menu-close" data-public-menu-close aria-label="Close">&times;</button>
+                            <button type="button" class="public-menu-close" data-public-menu-close aria-label="@localizer["Nav_Close"]">&times;</button>
                         </div>
                         <ul class="public-mobile-menu-list">
-                            <li class="public-mobile-menu-label">@(currentCulture == "nl-NL" ? "Diensten" : "Services")</li>
+                            <li class="public-mobile-menu-label">@localizer["Nav_Services"]</li>
                             <li class="public-nav-item">
-                                <a class="public-nav-link" asp-page="/nt2-integration" asp-route-culture="@routeCulture">@(currentCulture == "nl-NL" ? "NT2 & Integratie" : "NT2 & Integration")</a>
+                                <a class="public-nav-link" asp-page="/nt2-integration" asp-route-culture="@routeCulture">@localizer["Footer_Nt2Integration"]</a>
                             </li>
                             <li class="public-nav-item">
-                                <a class="public-nav-link" asp-page="/personal-development" asp-route-culture="@routeCulture">@(currentCulture == "nl-NL" ? "Persoonlijke Ontwikkeling" : "Personal Development")</a>
+                                <a class="public-nav-link" asp-page="/personal-development" asp-route-culture="@routeCulture">@localizer["Footer_PersonalDevelopment"]</a>
                             </li>
                             <li class="public-nav-item">
-                                <a class="public-nav-link" asp-page="/Language-And-Communication/Index" asp-route-culture="@routeCulture">@(currentCulture == "nl-NL" ? "Taal & Communicatie" : "Language & Communication")</a>
+                                <a class="public-nav-link" asp-page="/Language-And-Communication/Index" asp-route-culture="@routeCulture">@localizer["Footer_LanguageCommunication"]</a>
                             </li>
                             <li class="public-nav-item">
-                                <a class="public-nav-link" asp-page="/enterprise" asp-route-culture="@routeCulture">@(currentCulture == "nl-NL" ? "Voor organisaties" : "For organizations")</a>
+                                <a class="public-nav-link" asp-page="/enterprise" asp-route-culture="@routeCulture">@localizer["Nav_Organizations"]</a>
                             </li>
                             <li class="public-nav-item">
                                 <a class="public-nav-link" asp-page="/Pricing" asp-route-culture="@routeCulture">@localizer["Nav_Products"]</a>
@@ -155,15 +155,15 @@
                             <li><a asp-page="/Pricing" asp-route-culture="@routeCulture">@localizer["Footer_Products"]</a></li>
                             <li><a asp-page="/nt2-integration" asp-route-culture="@routeCulture">@localizer["Footer_Nt2Integration"]</a></li>
                             <li><a asp-page="/personal-development" asp-route-culture="@routeCulture">@localizer["Footer_PersonalDevelopment"]</a></li>
-                            <li><a asp-page="/Language-And-Communication/Index" asp-route-culture="@routeCulture">@(currentCulture == "nl-NL" ? "Taal & Communicatie" : "Language & Communication")</a></li>
+                            <li><a asp-page="/Language-And-Communication/Index" asp-route-culture="@routeCulture">@localizer["Footer_LanguageCommunication"]</a></li>
                             <li><a asp-page="/enterprise" asp-route-culture="@routeCulture">@localizer["Footer_Enterprise"]</a></li>
                         </ul>
                     </div>
 
                     <div class="public-footer-group">
-                        <h2>@(currentCulture == "nl-NL" ? "Over iD!" : "About iD!")</h2>
+                        <h2>@localizer["Footer_AboutHeading"]</h2>
                         <ul>
-                            <li><a asp-page="/about" asp-route-culture="@routeCulture">@(currentCulture == "nl-NL" ? "Over ons" : "About us")</a></li>
+                            <li><a asp-page="/about" asp-route-culture="@routeCulture">@localizer["Footer_AboutUs"]</a></li>
                             <li><a asp-page="/contact" asp-route-culture="@routeCulture">@localizer["Nav_Contact"]</a></li>
                             <li><a href="https://koalendar.com/e/meet-with-id" target="_blank" rel="noopener noreferrer">@localizer["Footer_BookFreeConsultation"]</a></li>
                         </ul>
@@ -183,7 +183,7 @@
             }
 
             <div class="public-footer-bottom">
-                <p>&copy; 2026 iD! Training &amp; Development. All Rights Reserved.</p>
+                <p>&copy; 2026 iD! Training &amp; Development. @localizer["Footer_RightsReserved"]</p>
                 @if (ViewData["HideFooterNavigation"] as bool? != true)
                 {
                     <div class="public-language-wrap">
@@ -196,8 +196,8 @@
                                 <a class="language-option @(currentCulture == "en-US" ? "active disabled" : "")" href="#" data-lang="en-US">
                                     <img src="~/images/usa-flag.png" alt="" aria-hidden="true" />
                                     <span>
-                                        <strong>United States</strong>
-                                        <small>English</small>
+                                        <strong>@localizer["Language_UnitedStates"]</strong>
+                                        <small>@localizer["Footer_English"]</small>
                                     </span>
                                     @if (currentCulture == "en-US")
                                     {
@@ -213,8 +213,8 @@
                                 <a class="language-option @(currentCulture == "nl-NL" ? "active disabled" : "")" href="#" data-lang="nl-NL">
                                     <img src="~/images/nl-flag.png" alt="" aria-hidden="true" />
                                     <span>
-                                        <strong>Netherlands</strong>
-                                        <small>Nederlands</small>
+                                        <strong>@localizer["Language_Netherlands"]</strong>
+                                        <small>@localizer["Footer_Dutch"]</small>
                                     </span>
                                     @if (currentCulture == "nl-NL")
                                     {

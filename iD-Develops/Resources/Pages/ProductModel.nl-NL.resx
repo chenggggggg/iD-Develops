@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?><root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader><resheader name="version"><value>2.0</value></resheader>
+  <data name="BookNowAction" xml:space="preserve"><value>Nu boeken</value></data>
+  <data name="CheckoutExpiredMessage" xml:space="preserve"><value>Je betaalsessie is verlopen. Controleer het product en ga opnieuw verder.</value></data>
+  <data name="CheckoutReleasedMessage" xml:space="preserve"><value>Je beveiligde betaalsessie is vrijgegeven. Je kunt het vanaf deze pagina opnieuw proberen.</value></data>
+  <data name="ContinueBookingAction" xml:space="preserve"><value>Verder naar boeken</value></data>
+  <data name="ContinuePaymentAction" xml:space="preserve"><value>Verder naar betalen</value></data>
+  <data name="CustomerDetailsHeading" xml:space="preserve"><value>Klantgegevens</value></data>
+  <data name="DescriptionEmpty" xml:space="preserve"><value>Binnenkort wordt hier meer informatie toegevoegd.</value></data>
+  <data name="DescriptionTab" xml:space="preserve"><value>Beschrijving</value></data>
+  <data name="DetailsEmpty" xml:space="preserve"><value>Er zijn geen aanvullende productdetails beschikbaar.</value></data>
+  <data name="DetailsTab" xml:space="preserve"><value>Productdetails</value></data>
+  <data name="DownloadAction" xml:space="preserve"><value>Downloaden</value></data>
+  <data name="ItemFormat" xml:space="preserve"><value>Item {0}</value></data>
+  <data name="ParticipantRequiredFieldError" xml:space="preserve"><value>Deelnemer {0}: {1} is verplicht.</value></data>
+  <data name="PriceLabel" xml:space="preserve"><value>Prijs</value></data>
+  <data name="ProductFallbackTitle" xml:space="preserve"><value>Product</value></data>
+  <data name="ProductTitlePlaceholder" xml:space="preserve"><value>Producttitel</value></data>
+  <data name="RequiredFieldError" xml:space="preserve"><value>{0} is verplicht.</value></data>
+  <data name="SalesPausedMessage" xml:space="preserve"><value>Dit aanbod is zichtbaar, maar verkopen zijn momenteel gepauzeerd. Neem contact met ons op als je verder wilt gaan.</value></data>
+  <data name="SalesPausedShortMessage" xml:space="preserve"><value>De verkoop van dit product is momenteel gepauzeerd.</value></data>
+  <data name="SelectionHeading" xml:space="preserve"><value>Jouw keuze</value></data>
+  <data name="SelectOption" xml:space="preserve"><value>Kies een optie</value></data>
+  <data name="SelectProductOptionError" xml:space="preserve"><value>Kies een productoptie voordat je verdergaat.</value></data>
+  <data name="SendRequestAction" xml:space="preserve"><value>Verzoek versturen</value></data>
+  <data name="SpecifyPlaceholder" xml:space="preserve"><value>Licht toe</value></data>
+  <data name="SubmissionReceivedMessage" xml:space="preserve"><value>Je inzending is ontvangen.</value></data>
+  <data name="TotalLabel" xml:space="preserve"><value>Totaal</value></data>
+</root>
