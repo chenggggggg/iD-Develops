@@ -2,23 +2,28 @@ using iD_Develops.Models;
 using iD_Develops.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Localization;
 
 namespace iD_Develops.Pages
 {
     public class PaymentResultModel : PageModel
     {
         private readonly IStripeService _stripeService;
+        private readonly IStringLocalizer<PaymentResultModel> _localizer;
 
-        public PaymentResultModel(IStripeService stripeService)
+        public PaymentResultModel(
+            IStripeService stripeService,
+            IStringLocalizer<PaymentResultModel> localizer)
         {
             _stripeService = stripeService;
+            _localizer = localizer;
         }
 
         public CheckoutSessionDetails SessionDetails { get; private set; } = new();
         public bool IsLocalSuccess { get; private set; }
         public string ResultStatus { get; private set; } = "unknown";
-        public string ResultTitle { get; private set; } = "Payment Status";
-        public string ResultMessage { get; private set; } = "We could not determine the payment status.";
+        public string ResultTitle { get; private set; } = string.Empty;
+        public string ResultMessage { get; private set; } = string.Empty;
         public string ResultIcon { get; private set; } = "fa-circle-question";
         public string ResultTone { get; private set; } = "secondary";
 
@@ -36,10 +41,10 @@ namespace iD_Develops.Pages
                     IsSessionValid = true,
                     SessionStatus = "complete",
                     PaymentStatus = "local",
-                    ProductName = string.IsNullOrWhiteSpace(product) ? "Local checkout" : product,
+                    ProductName = string.IsNullOrWhiteSpace(product) ? _localizer["LocalCheckout"] : product,
                     Quantity = 1,
                     DateOfPurchase = DateTime.Now.ToString("dd-MM-yyyy"),
-                    PaymentMethod = "Local bypass"
+                    PaymentMethod = _localizer["LocalBypass"]
                 };
                 SetResult("success");
                 return;
@@ -92,15 +97,20 @@ namespace iD_Develops.Pages
         {
             ResultStatus = status;
 
-            (ResultTitle, ResultMessage, ResultIcon, ResultTone) = status switch
+            var presentation = status switch
             {
-                "success" => ("Payment Success", "Thank you. Your payment has been completed.", "fa-circle-check", "success"),
-                "processing" or "open" => ("Payment Processing", "Your payment is not complete yet. If this takes too long, please restart checkout.", "fa-clock", "warning"),
-                "failed" => ("Payment Failed", "The payment was not completed. Please try again or use another payment method.", "fa-circle-xmark", "danger"),
-                "cancelled" or "canceled" => ("Payment Cancelled", "Checkout was cancelled before payment was completed.", "fa-ban", "secondary"),
-                "expired" => ("Payment Expired", "The checkout session expired. Please restart checkout if you still want to purchase this product.", "fa-hourglass-end", "warning"),
-                _ => ("Payment Status Unknown", "We could not determine the payment status. Please check your email receipt or contact support.", "fa-circle-question", "secondary")
+                "success" => (TitleKey: "SuccessTitle", MessageKey: "SuccessMessage", Icon: "fa-circle-check", Tone: "success"),
+                "processing" or "open" => (TitleKey: "ProcessingTitle", MessageKey: "ProcessingMessage", Icon: "fa-clock", Tone: "warning"),
+                "failed" => (TitleKey: "FailedTitle", MessageKey: "FailedMessage", Icon: "fa-circle-xmark", Tone: "danger"),
+                "cancelled" or "canceled" => (TitleKey: "CancelledTitle", MessageKey: "CancelledMessage", Icon: "fa-ban", Tone: "secondary"),
+                "expired" => (TitleKey: "ExpiredTitle", MessageKey: "ExpiredMessage", Icon: "fa-hourglass-end", Tone: "warning"),
+                _ => (TitleKey: "UnknownTitle", MessageKey: "UnknownMessage", Icon: "fa-circle-question", Tone: "secondary")
             };
+
+            ResultTitle = _localizer[presentation.TitleKey];
+            ResultMessage = _localizer[presentation.MessageKey];
+            ResultIcon = presentation.Icon;
+            ResultTone = presentation.Tone;
         }
     }
 }

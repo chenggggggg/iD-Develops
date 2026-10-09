@@ -184,6 +184,93 @@
     <value>Shape the future of your &lt;span class="text-gradient"&gt;enterprise&lt;/span&gt;</value>
   </data>
   <data name="Title" xml:space="preserve">
-    <value>Transform your team with custom in-house training</value>
+    <value>For Organizations</value>
+  </data>
+  <data name="SeoTitle" xml:space="preserve">
+    <value>Corporate Language &amp; Communication Training | iD! for Organizations</value>
+  </data>
+  <data name="MetaDescription" xml:space="preserve">
+    <value>Tailor-made language, communication, personal development, and train-the-trainer programmes for organisations and their people.</value>
+  </data>
+  <data name="HeroEyebrow" xml:space="preserve">
+    <value>Organizations</value>
+  </data>
+  <data name="HeroTitle" xml:space="preserve">
+    <value>Because people who communicate well together help your organization thrive</value>
+  </data>
+  <data name="HeroDescription" xml:space="preserve">
+    <value>Everything we do for individuals — language, communication, and personal development — we also do for teams. Only then on the scale of a department or an entire organization that wants to move into its next chapter more confidently, openly, or enjoyably.</value>
+  </data>
+  <data name="ScheduleConversation" xml:space="preserve">
+    <value>Book a conversation</value>
+  </data>
+  <data name="ContactButton" xml:space="preserve">
+    <value>Contact form</value>
+  </data>
+  <data name="ChallengesEyebrow" xml:space="preserve">
+    <value>Does one of these questions sound familiar?</value>
+  </data>
+  <data name="Challenge1" xml:space="preserve">
+    <value>Our people work hard, but they don't always know how to find each other.</value>
+  </data>
+  <data name="Challenge2" xml:space="preserve">
+    <value>We want to grow, but we're afraid of losing our culture.</value>
+  </data>
+  <data name="Challenge3" xml:space="preserve">
+    <value>International colleagues don't always feel at home here.</value>
+  </data>
+  <data name="Challenge4" xml:space="preserve">
+    <value>We have international clients, but communication still feels awkward.</value>
+  </data>
+  <data name="Challenge5" xml:space="preserve">
+    <value>Sometimes I don't really know what's going on in my team.</value>
+  </data>
+  <data name="ChallengesConclusion" xml:space="preserve">
+    <value>Then we are probably on the same page.</value>
+  </data>
+  <data name="ServicesEyebrow" xml:space="preserve">
+    <value>What we do</value>
+  </data>
+  <data name="ServiceNt2Title" xml:space="preserve">
+    <value>Dutch as a Second Language for employees</value>
+  </data>
+  <data name="ServiceNt2Description" xml:space="preserve">
+    <value>Practical language training that helps international employees find their feet — in the workplace and beyond. We provide a level assessment and work with groups at a similar level.</value>
+  </data>
+  <data name="ServiceCommunicationTitle" xml:space="preserve">
+    <value>Language &amp; Communication for teams</value>
+  </data>
+  <data name="ServiceCommunicationDescription" xml:space="preserve">
+    <value>Business English, intercultural collaboration, presentation skills, or difficult conversations — always tailored to what your team needs.</value>
+  </data>
+  <data name="ServiceDevelopmentTitle" xml:space="preserve">
+    <value>Personal development for employees and teams</value>
+  </data>
+  <data name="ServiceDevelopmentDescription" xml:space="preserve">
+    <value>From coaching key people to team guidance during a change process. Honest conversations, practical tools, and attention to what is really happening.</value>
+  </data>
+  <data name="ServiceProgramsTitle" xml:space="preserve">
+    <value>Development of training programmes</value>
+  </data>
+  <data name="ServiceProgramsDescription" xml:space="preserve">
+    <value>We develop training programmes and learning materials, or think along with you. Our strength is making complex content clear, engaging, and usable.</value>
+  </data>
+  <data name="ServiceTrainerTitle" xml:space="preserve">
+    <value>Train-the-trainer — €995 per person</value>
+  </data>
+  <data name="ServiceTrainerDescription" xml:space="preserve">
+    <value>Three half-day sessions for internal trainers. Not just what to teach, but especially how to make it land.</value>
+  </data>
+  <data name="MatchTitle" xml:space="preserve">
+    <value>Are we a good match?</value>
+  </data>
+  <data name="MatchDescription1" xml:space="preserve">
+    <value>We work best with organizations that believe results and attention for people belong together. Organizations that want to keep learning, that are not afraid of honest conversations, and that understand that a good working atmosphere is not a luxury but a condition for doing good work.</value>
+  </data>
+  <data name="MatchDescription2" xml:space="preserve">
+    <value>We are not an agency with off-the-shelf packages. We would rather come and look, listen, and understand what is going on before we suggest anything.</value>
+  </data>
+  <data name="MatchButton" xml:space="preserve">
+    <value>Let's talk about it</value>
   </data>
 </root>

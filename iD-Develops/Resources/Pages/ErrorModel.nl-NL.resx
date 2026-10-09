@@ -141,4 +141,52 @@ en de app opnieuw op te starten.</value>
   <data name="Title" xml:space="preserve">
     <value>Fout</value>
   </data>
+  <data name="BadRequestDetail" xml:space="preserve"><value>Controleer de invoer of probeer de actie opnieuw vanaf de vorige pagina.</value></data>
+  <data name="BadRequestHeading" xml:space="preserve"><value>Ongeldig verzoek</value></data>
+  <data name="BadRequestImageAlt" xml:space="preserve"><value>Ongeldig verzoek</value></data>
+  <data name="BadRequestSummary" xml:space="preserve"><value>Het verzoek kon in deze vorm niet worden verwerkt.</value></data>
+  <data name="ConflictDetail" xml:space="preserve"><value>Vernieuw de pagina en probeer het opnieuw.</value></data>
+  <data name="ConflictHeading" xml:space="preserve"><value>Verzoekconflict</value></data>
+  <data name="ConflictImageAlt" xml:space="preserve"><value>Verzoekconflict</value></data>
+  <data name="ConflictSummary" xml:space="preserve"><value>Het verzoek kon niet worden voltooid omdat de huidige status niet meer overeenkomt.</value></data>
+  <data name="DatabaseHeading" xml:space="preserve"><value>Database tijdelijk niet beschikbaar</value></data>
+  <data name="DatabaseImageAlt" xml:space="preserve"><value>Database- of verbindingsprobleem</value></data>
+  <data name="DatabaseLoginDetail" xml:space="preserve"><value>Dit wijst meestal op een configuratie- of inlogprobleem met de database en vereist aandacht van een beheerder.</value></data>
+  <data name="DatabaseLoginSummary" xml:space="preserve"><value>De applicatie kon niet bij de database inloggen.</value></data>
+  <data name="DatabaseRefusedDetail" xml:space="preserve"><value>Dit betekent meestal dat de databaseservice is gestopt, opnieuw opstart of geen verbindingen van de applicatie accepteert.</value></data>
+  <data name="DatabaseRefusedSummary" xml:space="preserve"><value>De databaseserver heeft de verbinding geweigerd.</value></data>
+  <data name="DatabaseTimeoutDetail" xml:space="preserve"><value>Dit kan gebeuren tijdens een herstart, hoge belasting of een tijdelijke netwerkvertraging. Probeer het zo opnieuw.</value></data>
+  <data name="DatabaseTimeoutSummary" xml:space="preserve"><value>De applicatie bereikte de databaseserver, maar het verzoek duurde te lang.</value></data>
+  <data name="DatabaseUnavailableDetail" xml:space="preserve"><value>De databaseserver is waarschijnlijk offline, start opnieuw op of is onbereikbaar. Probeer het zo opnieuw.</value></data>
+  <data name="DatabaseUnavailableSummary" xml:space="preserve"><value>We konden de applicatiedatabase zojuist niet bereiken.</value></data>
+  <data name="ErrorCodeLabel" xml:space="preserve"><value>Foutcode</value></data>
+  <data name="ErrorStatusFormat" xml:space="preserve"><value>Fout {0}</value></data>
+  <data name="ForbiddenDetail" xml:space="preserve"><value>Neem contact op met een beheerder als je denkt dat dit een vergissing is.</value></data>
+  <data name="ForbiddenHeading" xml:space="preserve"><value>Toegang geweigerd</value></data>
+  <data name="ForbiddenImageAlt" xml:space="preserve"><value>Toegang geweigerd</value></data>
+  <data name="ForbiddenSummary" xml:space="preserve"><value>Je hebt geen toestemming om deze pagina te openen.</value></data>
+  <data name="GoHomeAction" xml:space="preserve"><value>Naar home</value></data>
+  <data name="NotFoundDetail" xml:space="preserve"><value>De link kan verouderd zijn, of het onderdeel is verplaatst of verwijderd.</value></data>
+  <data name="NotFoundHeading" xml:space="preserve"><value>Pagina niet gevonden</value></data>
+  <data name="NotFoundImageAlt" xml:space="preserve"><value>Pagina niet gevonden</value></data>
+  <data name="NotFoundSummary" xml:space="preserve"><value>De gevraagde pagina of bron kon niet worden gevonden.</value></data>
+  <data name="PreviousPageAction" xml:space="preserve"><value>Probeer de vorige pagina</value></data>
+  <data name="RefreshAction" xml:space="preserve"><value>Vernieuw en probeer opnieuw</value></data>
+  <data name="RequestedPageLabel" xml:space="preserve"><value>Gevraagde pagina</value></data>
+  <data name="ServerErrorDetail" xml:space="preserve"><value>Probeer het over een moment opnieuw. Neem contact met ons op als het probleem aanhoudt.</value></data>
+  <data name="ServerErrorHeading" xml:space="preserve"><value>Er ging iets mis</value></data>
+  <data name="ServerErrorImageAlt" xml:space="preserve"><value>Systeem- of serviceprobleem</value></data>
+  <data name="ServerErrorSummary" xml:space="preserve"><value>Er is een onverwachte serverfout opgetreden.</value></data>
+  <data name="ServiceUnavailableDetail" xml:space="preserve"><value>Probeer het zo opnieuw.</value></data>
+  <data name="ServiceUnavailableHeading" xml:space="preserve"><value>Service tijdelijk niet beschikbaar</value></data>
+  <data name="ServiceUnavailableImageAlt" xml:space="preserve"><value>Service niet beschikbaar</value></data>
+  <data name="ServiceUnavailableSummary" xml:space="preserve"><value>De service is momenteel niet beschikbaar.</value></data>
+  <data name="SignInAction" xml:space="preserve"><value>Inloggen</value></data>
+  <data name="StatusCodeLabel" xml:space="preserve"><value>Statuscode</value></data>
+  <data name="TryAgainAction" xml:space="preserve"><value>Probeer opnieuw</value></data>
+  <data name="UnauthorizedDetail" xml:space="preserve"><value>Log in en probeer het opnieuw.</value></data>
+  <data name="UnauthorizedHeading" xml:space="preserve"><value>Inloggen vereist</value></data>
+  <data name="UnauthorizedImageAlt" xml:space="preserve"><value>Authenticatie vereist</value></data>
+  <data name="UnauthorizedSummary" xml:space="preserve"><value>Je moet inloggen voordat je deze pagina kunt openen.</value></data>
+  <data name="ViewDiagnostics" xml:space="preserve"><value>Diagnostische details bekijken</value></data>
 </root>

@@ -123,4 +123,24 @@
   <data name="ViewDetails" xml:space="preserve">
     <value>Bekijk details</value>
   </data>
+  <data name="CustomPrice" xml:space="preserve"><value>Op aanvraag</value></data>
+  <data name="PricingEyebrow" xml:space="preserve"><value>Prijzen</value></data>
+  <data name="PricingHeading" xml:space="preserve"><value>Prijzen &amp; cursussen</value></data>
+  <data name="PricingIntroduction" xml:space="preserve"><value>Kies de cursus, afspraak of begeleide leeroptie die bij jouw volgende stap past.</value></data>
+  <data name="PricingMetaDescription" xml:space="preserve"><value>Ontdek cursussen, afspraken en begeleide leeropties van iD! Training &amp; Development.</value></data>
+  <data name="PricingTitle" xml:space="preserve"><value>Prijzen</value></data>
+  <data name="ProductsEyebrow" xml:space="preserve"><value>Producten</value></data>
+  <data name="ProductsHeading" xml:space="preserve"><value>Producten &amp; diensten</value></data>
+  <data name="ProductsIntroduction" xml:space="preserve"><value>Cursussen, inschrijvingen, afspraken en begeleide leerproducten.</value></data>
+  <data name="ProductsMetaDescription" xml:space="preserve"><value>Bekijk producten en diensten van iD! Training &amp; Development.</value></data>
+  <data name="ProductsTitle" xml:space="preserve"><value>Producten</value></data>
+  <data name="ProductType_Booking" xml:space="preserve"><value>Afspraak</value></data>
+  <data name="ProductType_BookingAddOn" xml:space="preserve"><value>Aanvulling op afspraak</value></data>
+  <data name="ProductType_DigitalCourse" xml:space="preserve"><value>Digitale cursus</value></data>
+  <data name="ProductType_Credit" xml:space="preserve"><value>Tegoed</value></data>
+  <data name="ProductType_Enrollment" xml:space="preserve"><value>Inschrijving</value></data>
+  <data name="ProductType_ExternalBooking" xml:space="preserve"><value>Externe afspraak</value></data>
+  <data name="ProductType_FreeDownload" xml:space="preserve"><value>Gratis download</value></data>
+  <data name="ProductType_Standard" xml:space="preserve"><value>Standaardproduct</value></data>
+  <data name="ProductType_Signup" xml:space="preserve"><value>Inschrijving</value></data>
 </root>

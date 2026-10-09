@@ -10,13 +10,13 @@
 <section class="public-hero-page">
     <div class="public-container">
         <div class="public-content-narrow">
-            <p class="public-eyebrow public-eyebrow-left">Communication training</p>
+            <p class="public-eyebrow public-eyebrow-left">@localizer["Eyebrow"]</p>
             <h1 class="public-hero-title mx-0">@localizer["HeroTitle"]</h1>
             <p class="public-hero-copy mx-0">@localizer["HeroDescription"]</p>
             <p class="public-hero-copy mx-0">@localizer["HeroDescription2"]</p>
             <div class="public-actions justify-start">
                 <a href="https://koalendar.com/e/meet-with-id" target="_blank" rel="noopener noreferrer" class="public-btn public-btn-primary">@localizer["FreeConsultation"] <i class="fas fa-arrow-right"></i></a>
-                <a asp-page="/contact" class="public-btn public-btn-outline">@localizer["Contact"] <i class="fas fa-arrow-right"></i></a>
+                <a asp-page="/contact" asp-route-culture="@CultureInfo.CurrentCulture.Name.ToLowerInvariant()" class="public-btn public-btn-outline">@localizer["Contact"] <i class="fas fa-arrow-right"></i></a>
             </div>
         </div>
     </div>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>Resultaten niveautest</value></data>
+  <data name="UnavailableEyebrow" xml:space="preserve"><value>Resultaat niet beschikbaar</value></data>
+  <data name="UnavailableTitle" xml:space="preserve"><value>We konden dit resultaat niet openen</value></data>
+  <data name="UnavailableDescription" xml:space="preserve"><value>De link is mogelijk verlopen, onvolledig of niet gekoppeld aan een afgeronde niveautest.</value></data>
+  <data name="TakeLevelTestButton" xml:space="preserve"><value>Doe de niveautest</value></data>
+  <data name="ContactButton" xml:space="preserve"><value>Neem contact op</value></data>
+  <data name="ResultEyebrow" xml:space="preserve"><value>Jouw resultaat van de niveautest</value></data>
+  <data name="AdviceCallButton" xml:space="preserve"><value>Plan een adviesgesprek</value></data>
+  <data name="PricingButton" xml:space="preserve"><value>Bekijk prijzen</value></data>
+  <data name="PointsFormat" xml:space="preserve"><value>{0} / {1} punten</value></data>
+  <data name="ScoreLabel" xml:space="preserve"><value>Score</value></data>
+  <data name="CorrectAnswersLabel" xml:space="preserve"><value>Goede antwoorden</value></data>
+  <data name="CompletedLabel" xml:space="preserve"><value>Afgerond</value></data>
+  <data name="PersonalAdviceEyebrow" xml:space="preserve"><value>Persoonlijk advies</value></data>
+  <data name="QuestionReviewEyebrow" xml:space="preserve"><value>Vragen bekijken</value></data>
+  <data name="QuestionReviewTitle" xml:space="preserve"><value>Bekijk waar je sterk in was en wat je verder kunt oefenen</value></data>
+  <data name="QuestionFormat" xml:space="preserve"><value>Vraag {0}</value></data>
+  <data name="YourAnswerLabel" xml:space="preserve"><value>Jouw antwoord</value></data>
+  <data name="CorrectAnswerLabel" xml:space="preserve"><value>Juiste antwoord</value></data>
+  <data name="FeedbackLabel" xml:space="preserve"><value>Feedback</value></data>
+  <data name="NoFeedback" xml:space="preserve"><value>Er is geen feedback toegevoegd aan deze vraag.</value></data>
+  <data name="ExtraNoteLabel" xml:space="preserve"><value>Extra toelichting</value></data>
+  <data name="NoExtraNote" xml:space="preserve"><value>Er is geen extra toelichting toegevoegd aan deze vraag.</value></data>
+  <data name="LevelLabel" xml:space="preserve"><value>Niveau</value></data>
+  <data name="AdviceTitle" xml:space="preserve"><value>Wat dit betekent</value></data>
+  <data name="CorrectLabel" xml:space="preserve"><value>Goed</value></data>
+  <data name="ReviewLabel" xml:space="preserve"><value>Bekijken</value></data>
+  <data name="NoAnswerSubmitted" xml:space="preserve"><value>Geen antwoord gegeven</value></data>
+  <data name="NoModelAnswer" xml:space="preserve"><value>Geen modelantwoord beschikbaar</value></data>
+  <data name="GradeA1" xml:space="preserve"><value>A1</value></data>
+  <data name="GradeA1Advice" xml:space="preserve"><value>Je bent duidelijk op niveau A1. Je kunt zonder problemen beginnen met de DIY-cursus A1-A2.</value></data>
+  <data name="GradeReadyA1A2" xml:space="preserve"><value>Klaar voor A1-A2</value></data>
+  <data name="GradeReadyA1A2Advice" xml:space="preserve"><value>Deze cursus past ook bij jou, maar het is belangrijk dat je alle oefeningen maakt.</value></data>
+  <data name="GradeBelowA1" xml:space="preserve"><value>Onder A1</value></data>
+  <data name="GradeBelowA1Advice" xml:space="preserve"><value>Minder dan 45 punten, maar wil je het toch proberen? Dat kan, maar neem eerst contact op via info@id-develops.com. We geven je graag persoonlijk advies.</value></data>
+</root>

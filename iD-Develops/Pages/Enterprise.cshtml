@@ -1,17 +1,64 @@
 @page
 @model EnterpriseModel
-@using System.Globalization
+@inject IStringLocalizer<EnterpriseModel> Localizer
 @{
-    var isDutch = CultureInfo.CurrentCulture.Name.Equals("nl-NL", StringComparison.OrdinalIgnoreCase);
-    ViewData["Title"] = isDutch ? "Voor Organisaties" : "For Organizations";
-    ViewData["SeoTitle"] = isDutch ? null : "Corporate Language & Communication Training | iD! for Organizations";
-    ViewData["MetaDescription"] = isDutch ? null : "Tailor-made language, communication, personal development, and train-the-trainer programmes for organisations and their people.";
+    ViewData["Title"] = Localizer["Title"];
+    ViewData["SeoTitle"] = Localizer["SeoTitle"];
+    ViewData["MetaDescription"] = Localizer["MetaDescription"];
+    var matchDescription2 = Localizer["MatchDescription2"].Value;
 }
 
-<section class="public-hero-page"><div class="public-container"><div class="public-content-narrow"><p class="public-eyebrow public-eyebrow-left">@(isDutch ? "Voor Organisaties" : "Organizations")</p><h1 class="public-hero-title mx-0">@(isDutch ? "Omdat mensen die goed met elkaar communiceren, je organisatie laten floreren" : "Because people who communicate well together help your organization thrive")</h1><p class="public-hero-copy mx-0">@(isDutch ? "Alles wat we voor individuen doen (taal, communicatie, persoonlijke ontwikkeling) doen we ook voor teams. Alleen dan op de schaal van een afdeling of hele organisatie die steviger, opener of prettiger het volgende hoofdstuk in wil." : "Everything we do for individuals — language, communication, and personal development — we also do for teams. Only then on the scale of a department or an entire organization that wants to move into its next chapter more confidently, openly, or enjoyably.")</p><div class="public-actions justify-start"><a href="https://koalendar.com/e/samenwerken" target="_blank" rel="noopener noreferrer" class="public-btn public-btn-primary">@(isDutch ? "Plan een gesprek" : "Book a conversation") <i class="fas fa-arrow-right"></i></a><a asp-page="/contact" class="public-btn public-btn-outline">@(isDutch ? "Contactformulier" : "Contact form") <i class="fas fa-arrow-right"></i></a></div></div></div></section>
+<section class="public-hero-page">
+    <div class="public-container">
+        <div class="public-content-narrow">
+            <p class="public-eyebrow public-eyebrow-left">@Localizer["HeroEyebrow"]</p>
+            <h1 class="public-hero-title mx-0">@Localizer["HeroTitle"]</h1>
+            <p class="public-hero-copy mx-0">@Localizer["HeroDescription"]</p>
+            <div class="public-actions justify-start">
+                <a href="https://koalendar.com/e/samenwerken" target="_blank" rel="noopener noreferrer" class="public-btn public-btn-primary">@Localizer["ScheduleConversation"] <i class="fas fa-arrow-right"></i></a>
+                <a asp-page="/contact" asp-route-culture="@CultureInfo.CurrentCulture.Name.ToLowerInvariant()" class="public-btn public-btn-outline">@Localizer["ContactButton"] <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+</section>
 
-<section class="public-section public-section-soft"><div class="public-container"><div class="public-section-heading public-section-heading-center"><p class="public-eyebrow">@(isDutch ? "Herken je een van deze vraagstukken?" : "Does one of these questions sound familiar?")</p></div><div class="public-feature-grid xl:grid-cols-5"><article class="public-feature-card"><p class="public-copy">@(isDutch ? "We willen groeien, maar zijn bang onze cultuur kwijt te raken." : "Our people work hard, but they don't always know how to find each other.")</p></article><article class="public-feature-card"><p class="public-copy">@(isDutch ? "De onderlinge communicatie hapert." : "We want to grow, but we're afraid of losing our culture.")</p></article><article class="public-feature-card"><p class="public-copy">@(isDutch ? "Internationale collega's voelen zich niet altijd thuis." : "International colleagues don't always feel at home here.")</p></article><article class="public-feature-card"><p class="public-copy">@(isDutch ? "Internationale klanten, maar het loopt stroef." : "We have international clients, but communication still feels awkward.")</p></article><article class="public-feature-card"><p class="public-copy">@(isDutch ? "Ik weet niet altijd wat er leeft binnen mijn team." : "Sometimes I don't really know what's going on in my team.")</p></article></div><p class="public-copy mx-auto mt-10 max-w-3xl text-center">@(isDutch ? "Dan zitten we waarschijnlijk op één lijn." : "Then we are probably on the same page.")</p></div></section>
+<section class="public-section public-section-soft">
+    <div class="public-container">
+        <div class="public-section-heading public-section-heading-center"><p class="public-eyebrow">@Localizer["ChallengesEyebrow"]</p></div>
+        <div class="public-feature-grid xl:grid-cols-5">
+            @for (var index = 1; index <= 5; index++)
+            {
+                <article class="public-feature-card"><p class="public-copy">@Localizer[$"Challenge{index}"]</p></article>
+            }
+        </div>
+        <p class="public-copy mx-auto mt-10 max-w-3xl text-center">@Localizer["ChallengesConclusion"]</p>
+    </div>
+</section>
 
-<section class="public-section"><div class="public-container"><div class="public-section-heading public-section-heading-center"><p class="public-eyebrow">@(isDutch ? "Wat we doen" : "What we do")</p></div><div class="public-icon-feature-grid"><article class="public-icon-feature-card"><i class="fa-solid fa-language"></i><div><div class="public-icon-feature-title">@(isDutch ? "NT2 voor medewerkers" : "Dutch as a Second Language for employees")</div><div class="public-icon-feature-description">@(isDutch ? "Vaste tarieven per 10 uur, aflopend bij meer deelnemers. Niveautest inbegrepen; wel vereist dat het groepsniveau gelijk is." : "Practical language training that helps international employees find their feet — in the workplace and beyond. We provide a level assessment and work with groups at a similar level.")</div></div></article><article class="public-icon-feature-card"><i class="fa-regular fa-comments"></i><div><div class="public-icon-feature-title">@(isDutch ? "Taal & Communicatie voor teams" : "Language & Communication for teams")</div><div class="public-icon-feature-description">@(isDutch ? "Zakelijk Engels, interculturele samenwerking, presenteren — toegespitst op jullie behoefte." : "Business English, intercultural collaboration, presentation skills, or difficult conversations — always tailored to what your team needs.")</div></div></article><article class="public-icon-feature-card"><i class="fa-solid fa-people-group"></i><div><div class="public-icon-feature-title">@(isDutch ? "Persoonlijke ontwikkeling voor medewerkers en teams" : "Personal development for employees and teams")</div><div class="public-icon-feature-description">@(isDutch ? "Van coaching voor sleutelfiguren tot teambegeleiding bij verandertrajecten." : "From coaching key people to team guidance during a change process. Honest conversations, practical tools, and attention to what is really happening.")</div></div></article><article class="public-icon-feature-card"><i class="fa-solid fa-book-open"></i><div><div class="public-icon-feature-title">@(isDutch ? "Ontwikkeling van trainingsprogramma’s" : "Development of training programmes")</div><div class="public-icon-feature-description">@(isDutch ? "Wij bouwen (of denken mee over) lesmateriaal, gespecialiseerd in complexe materie behapbaar maken." : "We develop training programmes and learning materials, or think along with you. Our strength is making complex content clear, engaging, and usable.")</div></div></article><article class="public-icon-feature-card"><i class="fa-solid fa-chalkboard-user"></i><div><div class="public-icon-feature-title">@(isDutch ? "Train-de-trainer — €995 p.p." : "Train-the-trainer — €995 per person")</div><div class="public-icon-feature-description">@(isDutch ? "Drie dagdelen om interne trainers klaar te stomen: niet alleen wát, maar vooral hóe." : "Three half-day sessions for internal trainers. Not just what to teach, but especially how to make it land.")</div></div></article></div></div></section>
+<section class="public-section">
+    <div class="public-container">
+        <div class="public-section-heading public-section-heading-center"><p class="public-eyebrow">@Localizer["ServicesEyebrow"]</p></div>
+        <div class="public-icon-feature-grid">
+            <article class="public-icon-feature-card"><i class="fa-solid fa-language"></i><div><div class="public-icon-feature-title">@Localizer["ServiceNt2Title"]</div><div class="public-icon-feature-description">@Localizer["ServiceNt2Description"]</div></div></article>
+            <article class="public-icon-feature-card"><i class="fa-regular fa-comments"></i><div><div class="public-icon-feature-title">@Localizer["ServiceCommunicationTitle"]</div><div class="public-icon-feature-description">@Localizer["ServiceCommunicationDescription"]</div></div></article>
+            <article class="public-icon-feature-card"><i class="fa-solid fa-people-group"></i><div><div class="public-icon-feature-title">@Localizer["ServiceDevelopmentTitle"]</div><div class="public-icon-feature-description">@Localizer["ServiceDevelopmentDescription"]</div></div></article>
+            <article class="public-icon-feature-card"><i class="fa-solid fa-book-open"></i><div><div class="public-icon-feature-title">@Localizer["ServiceProgramsTitle"]</div><div class="public-icon-feature-description">@Localizer["ServiceProgramsDescription"]</div></div></article>
+            <article class="public-icon-feature-card"><i class="fa-solid fa-chalkboard-user"></i><div><div class="public-icon-feature-title">@Localizer["ServiceTrainerTitle"]</div><div class="public-icon-feature-description">@Localizer["ServiceTrainerDescription"]</div></div></article>
+        </div>
+    </div>
+</section>
 
-<section class="public-section public-section-soft"><div class="public-container"><div class="public-editorial-cta"><img src="~/images/iddevelops-icon.png" alt="" aria-hidden="true" /><h2>@(isDutch ? "Passen we bij elkaar?" : "Are we a good match?")</h2><p class="public-copy">@(isDutch ? "We werken het liefst met organisaties die geloven dat resultaat en aandacht voor mensen samengaan. Geen bureau met kant-en-klare pakketten; we komen liever eerst kijken en luisteren voordat we iets voorstellen." : "We work best with organizations that believe results and attention for people belong together. Organizations that want to keep learning, that are not afraid of honest conversations, and that understand that a good working atmosphere is not a luxury but a condition for doing good work.")</p>@if (!isDutch) { <p class="public-copy">We are not an agency with off-the-shelf packages. We would rather come and look, listen, and understand what is going on before we suggest anything.</p> }<a class="public-btn public-btn-primary" href="https://koalendar.com/e/samenwerken" target="_blank" rel="noopener noreferrer">@(isDutch ? "Plan een gesprek" : "Let's talk about it") <i class="fas fa-arrow-right"></i></a></div></div></section>
+<section class="public-section public-section-soft">
+    <div class="public-container">
+        <div class="public-editorial-cta">
+            <img src="~/images/iddevelops-icon.png" alt="" aria-hidden="true" />
+            <h2>@Localizer["MatchTitle"]</h2>
+            <p class="public-copy">@Localizer["MatchDescription1"]</p>
+            @if (!string.IsNullOrWhiteSpace(matchDescription2))
+            {
+                <p class="public-copy">@matchDescription2</p>
+            }
+            <a class="public-btn public-btn-primary" href="https://koalendar.com/e/samenwerken" target="_blank" rel="noopener noreferrer">@Localizer["MatchButton"] <i class="fas fa-arrow-right"></i></a>
+        </div>
+    </div>
+</section>

@@ -1,5 +1,6 @@
 @using iD_Develops.Models
 @model PaginationModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<iD_Develops.Pages.Shared.Examination.PaginationModel> Localizer
 
 <div class="exam-pagination-bar">
 
@@ -7,7 +8,7 @@
     <div class="exam-pagination-left">
         @if (Model.Mode != PaginationMode.Start)
         {
-            <div class="question-button-group" role="group" aria-label="Question navigation">
+            <div class="question-button-group" role="group" aria-label="@Localizer["QuestionNavigationLabel"]">
                 @* Existing questions (Exam + Editing) *@
                 @if (Model.QuestionsMetadata?.Count > 0)
                 {
@@ -27,21 +28,21 @@
                 else if (Model.Mode == PaginationMode.Exam)
                 {
                     <div class="exam-pagination-empty">
-                        No questions
+                        @Localizer["NoQuestions"]
                     </div>
                 }
 
                 @if (Model.Mode == PaginationMode.Editing)
                 {
                     <details class="question-add-menu">
-                        <summary class="question-add-btn" aria-label="Add question">
+                        <summary class="question-add-btn" aria-label="@Localizer["AddQuestionLabel"]">
                             +
                         </summary>
 
                         <div class="question-add-menu-list">
-                            <button type="button" class="question-add-menu-item js-add-draft" data-question-type="Open">Open question</button>
-                            <button type="button" class="question-add-menu-item js-add-draft" data-question-type="MultipleChoice">Multiple choice</button>
-                            <button type="button" class="question-add-menu-item js-add-draft" data-question-type="TrueOrFalse">True / False</button>
+                            <button type="button" class="question-add-menu-item js-add-draft" data-question-type="Open">@Localizer["OpenQuestion"]</button>
+                            <button type="button" class="question-add-menu-item js-add-draft" data-question-type="MultipleChoice">@Localizer["MultipleChoice"]</button>
+                            <button type="button" class="question-add-menu-item js-add-draft" data-question-type="TrueOrFalse">@Localizer["TrueFalse"]</button>
                         </div>
                     </details>
                 }
@@ -59,7 +60,7 @@
                     id="submitExam"
                     class="exam-action-btn exam-action-primary"
                     disabled="@(!hasQuestions)">
-                Submit
+                @Localizer["SubmitAction"]
             </button>
         }
         else if (Model.Mode == PaginationMode.Editing)
@@ -68,9 +69,9 @@
                  data-publish-status
                  role="status">
                 <span class="exam-publish-status-dot" aria-hidden="true"></span>
-                <span>Status:</span>
+                <span>@Localizer["StatusLabel"]</span>
                 <span class="exam-publish-status-value" data-publish-status-label>
-                    @(Model.IsPublished ? "Published" : "Not published")
+                    @(Model.IsPublished ? Localizer["PublishedStatus"] : Localizer["NotPublishedStatus"])
                 </span>
             </div>
 
@@ -79,14 +80,14 @@
                     class="exam-action-btn exam-publish-toggle @(Model.IsPublished ? "is-published" : "is-draft")"
                     data-published="@(Model.IsPublished ? "true" : "false")"
                     onclick="toggleExamPublishState()"
-                    aria-label="@(Model.IsPublished ? "Unpublish exam" : "Publish exam")">
+                    aria-label="@(Model.IsPublished ? Localizer["UnpublishExamLabel"] : Localizer["PublishExamLabel"])">
                 <i class="fa-regular fa-share-from-square inline-flex size-4 flex-none items-center justify-center @(Model.IsPublished ? "exam-hidden" : "")" data-publish-icon></i>
                 <i class="fa-solid fa-eye-slash inline-flex size-4 flex-none items-center justify-center @(!Model.IsPublished ? "exam-hidden" : "")" data-unpublish-icon></i>
                 <span class="exam-spinner inline-flex size-4 flex-none items-center justify-center exam-hidden"
                       role="status"
                       aria-hidden="true"
                       data-publish-spinner></span>
-                <span data-publish-label>@(Model.IsPublished ? "Unpublish" : "Publish")</span>
+                <span data-publish-label>@(Model.IsPublished ? Localizer["UnpublishAction"] : Localizer["PublishAction"])</span>
             </button>
         }
         else if (Model.Mode == PaginationMode.Start)
@@ -118,7 +119,7 @@
                         <button type="submit"
                                 class="exam-action-btn exam-action-secondary"
                                 disabled="@(!isPublished)">
-                            Continue
+                            @Localizer["ContinueAction"]
                         </button>
                     </form>
                 }
@@ -136,7 +137,7 @@
                         <button type="submit"
                                 class="exam-action-btn exam-action-primary"
                                 disabled="@disableStart">
-                            Start
+                            @Localizer["StartAction"]
                         </button>
                     </form>
                 }
@@ -152,8 +153,8 @@
                         <button type="submit"
                                 class="exam-action-btn exam-action-primary"
                                 disabled="@(!isPublished || !hasAttemptsLeft)"
-                                onclick="return confirm('Restarting will abandon your current attempt. Your in-progress attempt will be cancelled and you will start a new one. Continue?');">
-                            Restart
+                                onclick="return confirm('@Localizer["RestartConfirmation"]');">
+                            @Localizer["RestartAction"]
                         </button>
                     </form>
                 }
@@ -162,20 +163,20 @@
                 <div class="exam-pagination-status">
                     @if (!isPublished)
                     {
-                        <span>Publish before starting.</span>
+                        <span>@Localizer["PublishBeforeStarting"]</span>
                     }
                     else if (isUnlimited)
                     {
-                        <span>Attempts: Unlimited</span>
+                        <span>@Localizer["UnlimitedAttempts"]</span>
                     }
                     else
                     {
-                        <span>Attempts left: @Model.AttemptsLeft</span>
+                        <span>@Localizer["AttemptsLeft", Model.AttemptsLeft]</span>
                     }
 
                     @if (!hasAttemptsLeft && !hasInProgress && !isUnlimited)
                     {
-                        <span class="ml-2">(No attempts remaining)</span>
+                        <span class="ml-2">@Localizer["NoAttemptsRemaining"]</span>
                     }
                 </div>
 

@@ -13,6 +13,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Localization;
 
 namespace iD_Develops.Pages.Portal.Examination
 {
@@ -62,6 +63,7 @@ namespace iD_Develops.Pages.Portal.Examination
         private readonly IDataProtector _claimProtector;
         private readonly ITurnstileService _turnstileService;
         private readonly IApplicationUrlService _applicationUrls;
+        private readonly IStringLocalizer<CompletedModel> _localizer;
 
         public CompletedModel(
             ApplicationDbContext dbContext,
@@ -76,7 +78,8 @@ namespace iD_Develops.Pages.Portal.Examination
             UserManager<ApplicationUser> userManager,
             IDataProtectionProvider dataProtectionProvider,
             ITurnstileService turnstileService,
-            IApplicationUrlService applicationUrls)
+            IApplicationUrlService applicationUrls,
+            IStringLocalizer<CompletedModel> localizer)
         {
             _dbContext = dbContext;
             _participantAnswerService = participantAnswerService;
@@ -92,6 +95,7 @@ namespace iD_Develops.Pages.Portal.Examination
             _claimProtector = dataProtectionProvider.CreateProtector(ClaimPurpose);
             _turnstileService = turnstileService;
             _applicationUrls = applicationUrls;
+            _localizer = localizer;
         }
 
         protected virtual bool IsPortalSurface
@@ -147,14 +151,14 @@ namespace iD_Develops.Pages.Portal.Examination
             var identityResult = await ResolveIdentityFlowAsync(record!);
             if (!identityResult.Success)
             {
-                ModelState.AddModelError(string.Empty, identityResult.ErrorMessage ?? "We could not process your request right now.");
+                ModelState.AddModelError(string.Empty, identityResult.ErrorMessage ?? _localizer["RequestProcessingError"]);
                 return Page();
             }
 
             var exam = await _examVersionService.GetExamForEvaluationAsync(record!.ExamId, record.ExamVersionId);
             if (exam == null)
             {
-                ModelState.AddModelError(string.Empty, "The completed level test could not be loaded.");
+                ModelState.AddModelError(string.Empty, _localizer["LevelTestLoadError"]);
                 return Page();
             }
 
@@ -173,7 +177,7 @@ namespace iD_Develops.Pages.Portal.Examination
             var emailResult = await SubmitResultEmailAsync(exam, examResults.Score, examResults.MaxScore, identityResult.EmailAction);
             if (!emailResult.Success)
             {
-                LevelTestErrorMessage = emailResult.ErrorMessage ?? "Failed to send email. Please try again later.";
+                LevelTestErrorMessage = emailResult.ErrorMessage ?? _localizer["EmailSendError"];
                 return RedirectToPage(new { recordId = RecordId });
             }
 
@@ -204,19 +208,19 @@ namespace iD_Develops.Pages.Portal.Examination
 
             if (string.IsNullOrWhiteSpace(Name) || string.IsNullOrWhiteSpace(Email))
             {
-                LevelTestErrorMessage = "We couldn't find your previous email details. Please submit the form again.";
+                LevelTestErrorMessage = _localizer["ResendDetailsMissingError"];
                 return RedirectToPage(new { recordId = RecordId });
             }
 
             var emailAction = new LevelTestEmailAction(
-                "To view full details of your level test, click the button below.",
+                _localizer["EmailActionIntroduction"],
                 BuildPublicResultUrl(record!.Id, Email),
-                "View full results");
+                _localizer["ViewFullResultsAction"]);
 
             var exam = await _examVersionService.GetExamForEvaluationAsync(record.ExamId, record.ExamVersionId);
             if (exam == null)
             {
-                LevelTestErrorMessage = "The completed level test could not be loaded.";
+                LevelTestErrorMessage = _localizer["LevelTestLoadError"];
                 return RedirectToPage(new { recordId = RecordId });
             }
 
@@ -226,11 +230,11 @@ namespace iD_Develops.Pages.Portal.Examination
             var emailResult = await SubmitResultEmailAsync(exam, examResults.Score, examResults.MaxScore, emailAction);
             if (!emailResult.Success)
             {
-                LevelTestErrorMessage = emailResult.ErrorMessage ?? "Failed to resend email. Please try again later.";
+                LevelTestErrorMessage = emailResult.ErrorMessage ?? _localizer["EmailResendError"];
                 return RedirectToPage(new { recordId = RecordId });
             }
 
-            LevelTestSuccessMessage = "We sent your email again. Please check your inbox and spam folder.";
+            LevelTestSuccessMessage = _localizer["EmailResentMessage"];
             LevelTestResendName = Name;
             LevelTestResendEmail = Email;
             return RedirectToPage(new { recordId = RecordId });
@@ -279,7 +283,7 @@ namespace iD_Develops.Pages.Portal.Examination
             {
                 var signedInUser = await _userManager.GetUserAsync(User);
                 if (signedInUser == null || string.IsNullOrWhiteSpace(signedInUser.Email))
-                    return (false, LevelTestEmailAction.Empty, string.Empty, "Your account details could not be loaded.");
+                    return (false, LevelTestEmailAction.Empty, string.Empty, _localizer["AccountLoadError"]);
 
                 record.UserId = signedInUser.Id;
                 await _dbContext.SaveChangesAsync();
@@ -290,10 +294,10 @@ namespace iD_Develops.Pages.Portal.Examination
                 return (
                     true,
                     new LevelTestEmailAction(
-                        "To view full details of your level test, click the button below.",
+                        _localizer["EmailActionIntroduction"],
                         BuildPublicResultUrl(record.Id, signedInUser.Email),
-                        "View my results"),
-                    "Your follow-up email is on the way. Please check your inbox.",
+                        _localizer["ViewMyResultsAction"]),
+                    _localizer["FollowUpEmailMessage"],
                     null);
             }
 
@@ -301,10 +305,10 @@ namespace iD_Develops.Pages.Portal.Examination
             return (
                 true,
                 new LevelTestEmailAction(
-                    "To view full details of your level test, click the button below.",
+                    _localizer["EmailActionIntroduction"],
                     BuildPublicResultUrl(record.Id, submittedEmail),
-                    "View full results"),
-                "We emailed you a secure link to view your result.",
+                    _localizer["ViewFullResultsAction"]),
+                _localizer["SecureLinkEmailMessage"],
                 null);
         }
 
@@ -316,15 +320,15 @@ namespace iD_Develops.Pages.Portal.Examination
             }
 
             if (string.IsNullOrWhiteSpace(Name))
-                ModelState.AddModelError(nameof(Name), "Please enter your name.");
+                ModelState.AddModelError(nameof(Name), _localizer["NameRequiredError"]);
 
             if (string.IsNullOrWhiteSpace(Email))
             {
-                ModelState.AddModelError(nameof(Email), "Please enter your email address.");
+                ModelState.AddModelError(nameof(Email), _localizer["EmailRequiredError"]);
             }
             else if (!new EmailAddressAttribute().IsValid(Email))
             {
-                ModelState.AddModelError(nameof(Email), "Please enter a valid email address.");
+                ModelState.AddModelError(nameof(Email), _localizer["EmailInvalidError"]);
             }
 
             return ModelState.IsValid;
@@ -390,11 +394,11 @@ namespace iD_Develops.Pages.Portal.Examination
         {
             var request = _httpContextAccessor.HttpContext?.Request;
             if (request == null)
-                return new OperationResult { Success = false, ErrorMessage = "Unable to build the result email." };
+                return new OperationResult { Success = false, ErrorMessage = _localizer["EmailBuildError"] };
 
             var recipientEmail = Email ?? string.Empty;
             if (string.IsNullOrWhiteSpace(recipientEmail))
-                return new OperationResult { Success = false, ErrorMessage = "Unable to determine the recipient email address." };
+                return new OperationResult { Success = false, ErrorMessage = _localizer["RecipientEmailError"] };
 
             var baseUrl = $"{request.Scheme}://{request.Host}";
             var culture = _httpContextAccessor.HttpContext?.Request.RouteValues["culture"]?.ToString() ?? "en-US";
@@ -404,8 +408,8 @@ namespace iD_Develops.Pages.Portal.Examination
             {
                 DisplayName = Name,
                 From = _mailSettings.From,
-                Body = $"Your exam results: {score}",
-                Subject = "Your Exam Results",
+                Body = _localizer["EmailBodyFormat", score],
+                Subject = _localizer["EmailSubject"],
                 ResultURL = BuildPublicResultUrl(RecordId, recipientEmail),
                 ProductsURL = $"{baseUrl}/{culture}/pricing",
                 ContactURL = $"{baseUrl}/{culture}/contact",
@@ -430,7 +434,7 @@ namespace iD_Develops.Pages.Portal.Examination
                 if (result.Success)
                 {
                     _logger.LogInformation("Email with exam results has been sent successfully.");
-                    return new OperationResult { Success = true, ErrorMessage = "Email with exam results has been sent successfully." };
+                    return new OperationResult { Success = true, ErrorMessage = _localizer["EmailSentMessage"] };
                 }
 
                 _logger.LogError("Error occurred while sending email with exam results: {ErrorMessage}", result.ErrorMessage);
@@ -439,29 +443,29 @@ namespace iD_Develops.Pages.Portal.Examination
             catch (Exception emailEx)
             {
                 _logger.LogError(emailEx, "Error occurred while sending email with exam results.");
-                return new OperationResult { Success = false, ErrorMessage = "Failed to send email. Please try again later." };
+                return new OperationResult { Success = false, ErrorMessage = _localizer["EmailSendError"] };
             }
         }
 
-        private static (string Level, string Advice) ResolveLevelTestResult(double score)
+        private (string Level, string Advice) ResolveLevelTestResult(double score)
         {
             if (score >= 51 && score <= 60)
             {
                 return (
-                    "A1",
-                    "You are definitely at level A1. You can start with the DIY course A1-A2 without any problems.");
+                    _localizer["HighResultLevel"],
+                    _localizer["HighResultAdvice"]);
             }
 
             if (score >= 45 && score <= 50)
             {
                 return (
-                    "Ready for A1-A2",
-                    "You are good to go with this course as well, although you will have to do all the exercises.");
+                    _localizer["MiddleResultLevel"],
+                    _localizer["MiddleResultAdvice"]);
             }
 
             return (
-                "Below A1",
-                "Less than 45 points but still want to give it a shot? That is great, but please contact us at info@id-develops.com. We are happy to give you some advice.");
+                _localizer["LowResultLevel"],
+                _localizer["LowResultAdvice"]);
         }
 
         private void KeepLevelTestResendState()

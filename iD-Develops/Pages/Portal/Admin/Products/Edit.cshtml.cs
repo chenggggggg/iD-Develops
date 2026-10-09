@@ -1,5 +1,6 @@
 using iD_Develops.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Localization;
 
 namespace iD_Develops.Pages.Portal.Admin.Products
 {
@@ -16,7 +17,8 @@ namespace iD_Develops.Pages.Portal.Admin.Products
             IWebHostEnvironment environment,
             ITurnstileService turnstileService,
             IApplicationUrlService applicationUrls,
-            IPortalAuthenticationHandoffService authenticationHandoffService)
+            IPortalAuthenticationHandoffService authenticationHandoffService,
+            IStringLocalizer<iD_Develops.Pages.ProductModel> localizer)
             : base(
                 catalogProductService,
                 creditConfigurationService,
@@ -27,7 +29,8 @@ namespace iD_Develops.Pages.Portal.Admin.Products
                 environment,
                 turnstileService,
                 applicationUrls,
-                authenticationHandoffService)
+                authenticationHandoffService,
+                localizer)
         {
         }
 

@@ -3,6 +3,7 @@ using iD_Develops.Models;
 using iD_Develops.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Localization;
 
 namespace iD_Develops.Pages.Portal.Examination
 {
@@ -15,16 +16,22 @@ namespace iD_Develops.Pages.Portal.Examination
         private readonly IExamService _examService;
         private readonly IExamVersionService _examVersionService;
         private readonly IRecordService _recordService;
+        private readonly IStringLocalizer<LevelTestIntroductionModel> _localizer;
 
         public bool IsLevelTestAvailable { get; private set; }
         public int? LevelTestExamId { get; private set; }
         public int DurationMinutes { get; private set; } = LevelTestDurationMinutes;
 
-        public LevelTestIntroductionModel(IExamService examService, IExamVersionService examVersionService, IRecordService recordService)
+        public LevelTestIntroductionModel(
+            IExamService examService,
+            IExamVersionService examVersionService,
+            IRecordService recordService,
+            IStringLocalizer<LevelTestIntroductionModel> localizer)
         {
             _examService = examService;
             _examVersionService = examVersionService;
             _recordService = recordService;
+            _localizer = localizer;
         }
 
         public async Task OnGetAsync()
@@ -68,7 +75,7 @@ namespace iD_Develops.Pages.Portal.Examination
 
             var recordId = await _recordService.CreateRecordAsync(record);
             if (recordId == Guid.Empty)
-                return BadRequest(new { success = false, errorMessage = "Failed to initialize record." });
+                return BadRequest(new { success = false, errorMessage = _localizer["InitializeError"] });
 
             return RedirectToPage("/Portal/Examination/Level-Test", new { recordId });
         }

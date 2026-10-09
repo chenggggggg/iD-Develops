@@ -205,7 +205,7 @@
     <value>Duik in het leren van Nederlands met een programma dat je unieke reis viert. Of je nu de basis onder de knie hebt of je vloeiendheid verbetert, onze op maat gemaakte aanpak past zich aan je schema en leerstijl aan.</value>
   </data>
   <data name="Title" xml:space="preserve">
-    <value>Bloeien in Nederland: Nederlandse Taal- &amp; Integratiecursussen</value>
+    <value>NT2 &amp; Integratie</value>
   </data>
   <data name="TryLevelTest" xml:space="preserve">
     <value>Probeer gratis de niveautest</value>
@@ -215,5 +215,125 @@
   </data>
   <data name="UnderstandingNT2Paragraph" xml:space="preserve">
     <value>NT2, of 'Nederlands als Tweede Taal', staat voor Nederlands als tweede taal. Het verwijst naar gespecialiseerde programma's die zijn ontworpen voor mensen die geen moedertaalsprekers van het Nederlands zijn, maar die vloeiend Nederlands willen beheersen. Beheersing van de Nederlandse taal is niet alleen een vaardigheid - het is een cruciale stap om volledig te integreren in de Nederlandse samenleving, wat persoonlijke en professionele groei mogelijk maakt.</value>
+  </data>
+  <data name="SeoTitle" xml:space="preserve">
+    <value>Nederlands als tweede taal &amp; inburgering | iD!</value>
+  </data>
+  <data name="MetaDescription" xml:space="preserve">
+    <value>Leer Nederlands met praktische en persoonlijke ondersteuning voor NT2 en inburgering. Cursussen, examenvoorbereiding, spreekvaardigheid en meer.</value>
+  </data>
+  <data name="ShowExpandedOffer" xml:space="preserve">
+    <value>false</value>
+  </data>
+  <data name="HeroTitle" xml:space="preserve">
+    <value>Nederlands leren zonder je identiteit in te leveren</value>
+  </data>
+  <data name="HeroDescription" xml:space="preserve">
+    <value>Je bent hoogopgeleid, gemotiveerd, en waarschijnlijk best goed in dingen leren — anders was je hier niet terechtgekomen. En toch voelt het soms alsof je bent teruggezet naar de kleuterklas zodra je een Nederlandse zin probeert te vormen. Dat is niet gek: dat is simpelweg wat er gebeurt als je een nieuwe taal leert als volwassene; het is als opnieuw leren fietsen, maar dan met woorden.</value>
+  </data>
+  <data name="LevelTestButton" xml:space="preserve">
+    <value>Doe de gratis niveautest</value>
+  </data>
+  <data name="ConversationButton" xml:space="preserve">
+    <value>Plan een gesprek</value>
+  </data>
+  <data name="HeroNoteTitle" xml:space="preserve">
+    <value>Wij zijn Dominique en Patrick</value>
+  </data>
+  <data name="HeroNoteDescription" xml:space="preserve">
+    <value>Dominique is hoofdzakelijk je taaltrainer, maar we hebben allebei aan den lijve ondervonden hoe het is om in een ander land te overleven zonder de taal goed genoeg te spreken. Die ervaring zit in alles wat we doen.</value>
+  </data>
+  <data name="PromiseParagraph" xml:space="preserve">
+    <value>We gaan je niet vertellen dat het over drie weken vanzelf gaat. Wél dat het met de juiste begeleiding een stuk leuker, sneller én minder eenzaam kan. En dat je bij ons mag oefenen en fouten maken zoveel je wil. Graag zelfs!</value>
+  </data>
+  <data name="WhyUsEyebrow" xml:space="preserve">
+    <value>Waarom bij ons?</value>
+  </data>
+  <data name="WhyUsParagraph1" xml:space="preserve">
+    <value>We hebben zelf in meerdere landen gewoond zonder de taal te spreken. We weten hoe het voelt om met handen en voeten uit te leggen wat je nodig hebt, om je intelligent te voelen in je eigen taal en volkomen hopeloos in de nieuwe. Die ervaring gebruiken we dagelijks, niet als anekdote maar als kompas. We weten welke fouten je maakt, want we hebben ze zelf ook gemaakt (en maken ze soms nog steeds). Maar we hebben er plezier in en dat gunnen we jou ook!</value>
+  </data>
+  <data name="WhyUsParagraph2" xml:space="preserve">
+    <value>Bij ons leer je niet alleen Nederlands zoals het in het boekje staat, maar het échte Nederlands: wat een Nederlander eigenlijk bedoelt (spoiler: vaak iets anders dan wat er letterlijk gezegd wordt), en ja, ook de nuances en eigenaardigheden waar we ons zelf af en toe een beetje voor schamen. Denk aan het afgemeten avondeten om 18.00 uur, het feliciteren en kussen van iedereen op een verjaardag, of waarom we hier honderd keer “gezellig” en “lekker” zeggen maar het maar de helft van de tijd echt zo bedoelen. Eerlijkheid werkt beter dan beleefde ontwijking, en een beetje zelfspot maakt het leren een stuk luchtiger.</value>
+  </data>
+  <data name="WhyUsParagraph3" xml:space="preserve">
+    <value>Bij ons ben je geen nummer in een klas en geen cursist op afstand. Je bent een uniek en dapper mens dat een nieuw bestaan aan het opbouwen is. En daar hoort een mentor bij die met je meedenkt. Over de taal, maar minstens zo vaak over de rest: waar zijn de leuke plekjes in Nederland, hoe werkt die ene overheidsinstantie nu weer, en waarom heeft iedereen hier een mening over je fiets, je auto, je tuin?</value>
+  </data>
+  <data name="TailoredEyebrow" xml:space="preserve">
+    <value>Voor iedereen, met elk doel</value>
+  </data>
+  <data name="TailoredTitle" xml:space="preserve">
+    <value>Een aanpak die we op jou afstemmen</value>
+  </data>
+  <data name="TailoredParagraph1" xml:space="preserve">
+    <value>Of je alleen de verplichte inburgeringsexamens wilt halen, de taal echt onder de knie wilt krijgen, of als zorgprofessional de B2+ toets voor je BIG-registratie moet halen; we begeleiden je. Elk doel vraagt om een andere aanpak, en die stemmen we op jou af.</value>
+  </data>
+  <data name="TailoredParagraph2" xml:space="preserve">
+    <value>Wil je zelfstandig studeren, in je eigen tempo en op momenten die jou uitkomen, maar zonder er helemaal alleen voor te staan? Dan is onze DIY-cursus waarschijnlijk iets voor jou. Veel voordeliger dan een reguliere cursus, maar mét de back-up van een echte docent: direct contact met docent en medecursisten wanneer je vastloopt. Het beste van twee werelden.</value>
+  </data>
+  <data name="TailoredParagraph3" xml:space="preserve">
+    <value>Benieuwd of dit bij jou past? Doe eerst de gratis niveautest. Die laat meteen zien hoe groot je kans van slagen is met een DIY-traject.</value>
+  </data>
+  <data name="OfferEyebrow" xml:space="preserve">
+    <value>Wat we aanbieden</value>
+  </data>
+  <data name="OfferRegularTitle" xml:space="preserve">
+    <value>Reguliere cursus (privé of groep)</value>
+  </data>
+  <data name="OfferRegularDescription" xml:space="preserve">
+    <value>Op maat gemaakt, afgestemd op jouw niveau, tempo en doel. Van eerste woordjes tot het inburgeringsexamen. Prijs in overleg.</value>
+  </data>
+  <data name="OfferDiyTitle" xml:space="preserve">
+    <value>DIY-cursus — €159</value>
+  </data>
+  <data name="OfferDiyDescription" xml:space="preserve">
+    <value>10 lessen over 11 weken, van A1 naar A2 of A2 naar B1. Inclusief begeleiding, directe toegang tot je docent en medecursisten, en volledige vrijheid.</value>
+  </data>
+  <data name="OfferExtra1Title" xml:space="preserve">
+    <value>Spreekcursus — €179</value>
+  </data>
+  <data name="OfferExtra1Description" xml:space="preserve">
+    <value>4 weken en 8 lessen waarin spreken en oefenen centraal staan. Kortere feedbackmomenten en meer praktijk, vanaf 4 deelnemers.</value>
+  </data>
+  <data name="OfferExtra2Title" xml:space="preserve">
+    <value>Speed Class / examenvoorbereiding — €49</value>
+  </data>
+  <data name="OfferExtra2Description" xml:space="preserve">
+    <value>Een uur volledig gericht op dat ene examenonderdeel waar je tegenaan loopt. Snel, doelgericht en zonder omwegen.</value>
+  </data>
+  <data name="OfferExtra3Title" xml:space="preserve">
+    <value>Inloopsessie — €15 / 15 minuten</value>
+  </data>
+  <data name="OfferExtra3Description" xml:space="preserve">
+    <value>Loop je ergens op vast? Boek een korte sessie om samen die ene drempel weg te nemen. Open voor iedereen.</value>
+  </data>
+  <data name="OfferExtra4Title" xml:space="preserve">
+    <value>Integratieondersteuning</value>
+  </data>
+  <data name="OfferExtra4Description" xml:space="preserve">
+    <value>Taal is vaak maar het topje van de ijsberg. We denken ook mee over werk, wonen, regels en alles wat leven in een nieuw land ingewikkelder maakt.</value>
+  </data>
+  <data name="OfferExtra5Title" xml:space="preserve">
+    <value>Gratis downloads</value>
+  </data>
+  <data name="OfferExtra5Description" xml:space="preserve">
+    <value>Een uitspraakgids met audio, hulp bij de/het en een overzicht van onregelmatige werkwoorden: gratis te downloaden.</value>
+  </data>
+  <data name="TestimonialsEyebrow" xml:space="preserve">
+    <value>Wat anderen zeggen</value>
+  </data>
+  <data name="Testimonial1" xml:space="preserve">
+    <value>“Eindelijk een taaldocent bij wie ik durfde te struikelen en stotteren zonder me dom te voelen.”</value>
+  </data>
+  <data name="Testimonial2" xml:space="preserve">
+    <value>“Geduldig, grappig en verrassend eerlijk over hoe vreemd Nederlanders soms kunnen zijn.”</value>
+  </data>
+  <data name="Testimonial3" xml:space="preserve">
+    <value>“Ik kwam voor grammatica en vertrok met het gevoel dat iemand echt in mijn integratie geloofde.”</value>
+  </data>
+  <data name="ContactButton" xml:space="preserve">
+    <value>Neem contact op via het formulier</value>
+  </data>
+  <data name="FreeConversationButton" xml:space="preserve">
+    <value>Plan direct een gesprek</value>
   </data>
 </root>

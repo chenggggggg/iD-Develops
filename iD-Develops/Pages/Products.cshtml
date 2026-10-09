@@ -1,21 +1,23 @@
 @page
 @model iD_Develops.Pages.ProductsModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<iD_Develops.Pages.ProductsModel> Localizer
 @{
-    ViewData["Title"] = "Products";
+    ViewData["Title"] = Localizer["ProductsTitle"];
+    ViewData["MetaDescription"] = Localizer["ProductsMetaDescription"];
 }
 
 <section class="public-page">
     <div class="public-container">
         <div class="public-section-header">
-            <p class="public-eyebrow">Products</p>
-            <h1 class="public-page-title">Products & Services</h1>
-            <p class="public-muted">Courses, sign-ups, bookings, and guided learning products managed from the portal.</p>
+            <p class="public-eyebrow">@Localizer["ProductsEyebrow"]</p>
+            <h1 class="public-page-title">@Localizer["ProductsHeading"]</h1>
+            <p class="public-muted">@Localizer["ProductsIntroduction"]</p>
         </div>
 
         @if (Model.Products.Count == 0)
         {
             <div class="public-empty-state">
-                No products are published yet.
+                @Localizer["NoProducts"]
             </div>
         }
         else
@@ -29,14 +31,14 @@
                             <img src="@product.ImageUrl" class="product-card-image" alt="@product.Name" />
                         }
                         <div class="public-catalog-body">
-                            <div class="public-catalog-label">@product.ProductType</div>
+                            <div class="public-catalog-label">@Localizer[$"ProductType_{product.ProductType}"]</div>
                             <h2 class="public-catalog-title">@product.Name</h2>
                             <p class="public-catalog-summary">@product.Summary</p>
 
                             <div class="public-catalog-footer">
-                                <strong>@(product.DisplayPrice.HasValue ? product.DisplayPrice.Value.ToString("C") : "Custom")</strong>
-                                <a class="public-btn public-btn-outline" asp-page="/Product" asp-route-slug="@product.Slug">
-                                    View <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                                <strong>@(product.DisplayPrice.HasValue ? product.DisplayPrice.Value.ToString("C") : Localizer["CustomPrice"])</strong>
+                                <a class="public-btn public-btn-outline" asp-page="/Product" asp-route-culture="@CultureInfo.CurrentCulture.Name.ToLowerInvariant()" asp-route-slug="@product.Slug">
+                                    @Localizer["ViewDetails"] <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                                 </a>
                             </div>
                         </div>

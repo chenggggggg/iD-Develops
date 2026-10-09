@@ -1,120 +1,33 @@
 @page
 @model iD_Develops.Pages.LanguageAndCommunication.Communication.iDeasModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<iD_Develops.Pages.LanguageAndCommunication.Communication.iDeasModel> Localizer
 @{
-    ViewData["Title"] = "iDeas";
+    ViewData["Title"] = Localizer["Title"];
 }
 
 <section class="public-page">
     <div class="public-container public-legal">
-        <p class="public-eyebrow public-eyebrow-left">Communication</p>
-        <h1 class="public-page-title">iDeas</h1>
+        <p class="public-eyebrow public-eyebrow-left">@Localizer["Eyebrow"]</p>
+        <h1 class="public-page-title">@Localizer["Heading"]</h1>
         <article>
-            <p>
-                Blog 1.     <b>Little gifts</b>
-            </p>
-            <p>
-                After a few turbulent years, I started a new job in 2007.  
-                A job which was everything but what I went to university for, 
-                but it offered freedom (regular business trips, a flat structure), 
-                a pretty good salary and I got a permanent contract within no time. 
-                Besides, I also worked as a freelance developer of examination questions and test cases on behalf of languages, 
-                communication and hospitality exams. 
-                That was what I really liked doing, but it was too insecure and it paid way too little to cover 
-                my sky-high rent after returning to the Netherlands from Spain. 
-            </p>
-            <p>
-                And a nice job it was; great colleagues, an incredibly enjoyable atmosphere at the office, 
-                business trips, being allowed and able to work independently, respect, regular drinks (which I considered a huge advantage back then)
-                and lots of international contacts. But as soon as the first trips had been done, the first fairs had been organized and everything began to feel as ‘normal’,
-                it striked me: close to crying I went to work every day. And I felt terribly ashamed. Why did I feel like this? I had everything I ever wanted and above all;
-                it didn’t took me too much effort either. My manager was like a father figure, my colleagues like friends, it felt like a playground. But it got worse and worse.
-                The industrial area, the fixed 8-5 pattern, I got stir-crazy. I even got jealous of friends with (from my point of view) less appealing jobs.
-                And I got angry with myself. Why couldn’t I be glad? Deep down I knew I wanted ‘real’ freedom, to work fulltime as a freelancer. 
-                But on the other hand, that was exactly what I told myself not to do. Growing up with parents who were running their own business, 
-                the stressful times, the never ending work, no way. And yet. 
-            </p>
-            <p>
-                To make a long story short; it’s been a huge struggle. 
-                In the end, I made up my mind and started working independently without having any well-thought plan. 
-                Even Patrick, who I just met at that time, got worried. I just bought a house (because that was possible on a permanent contract), after all.
-                And I knew very little about running a business, of course. 
-                It took years to actually accept this is what suits me best and to stop looking at vacancies every now and then.
-                And with accepting, my business started to grow. Freedom? I have it. I often work more hours than I would in a ‘regular’ job, but that’s a choice.
-                Sometimes I work less, because I can. Numerous times I was angry or rebellious, towards myself, towards the million rules you encounter, the hussle.
-                It was worth it. To me. But it could have been easier with a little help or advice of an expert. Or simply a sympathic ear and someone to trigger me. 
-            </p>
-            <p>
-                Often you see the value of things that seemed to be an obstacle or a sneer of life afterwards. 
-                Many more years later I found out that all inconveniences, even all pains are a gift and everything is always, 
-                always a choice. Your senses lead you the way, your mind makes the decision.
-            </p>
-            <p>
-                With love, 
-            </p>
-            <p>
-                Dominique
-            </p>
-            <p>
-                P.S.  I still whine every year about not getting a Christmas gift from a boss, but that I can accept. 
-            </p>
+            <p>@Localizer["Blog1Label"] <b>@Localizer["Blog1Title"]</b></p>
+            <p>@Localizer["Blog1Paragraph1"]</p>
+            <p>@Localizer["Blog1Paragraph2"]</p>
+            <p>@Localizer["Blog1Paragraph3"]</p>
+            <p>@Localizer["Blog1Paragraph4"]</p>
+            <p>@Localizer["Blog1SignOff"]</p>
+            <p>Dominique</p>
+            <p>@Localizer["Blog1Postscript"]</p>
         </article>
         <article class="mt-12">
-            <p>
-                Blog 2.     <b>What you don’t see</b>
-            </p>
-            <p>
-                During my student life I’ve always worked in the hospitalitly service. 
-                Hard work, but that’s what I liked (and still do). 
-                I could use up my energy and I got in touch with many people in a way that felt safe. 
-                Because people have made me feel very insecure for a long time. My very first job was in a cafeteria in which I’ve worked for many years. 
-                I was able to work full Saturdays and Sundays, which was ideal, 
-                because I could make a lot of hours to effort my studies (and going out, like a student should). 
-                It brought me great satisfaction to work as fast and efficient as possible without making mistakes. 
-                With the passing of time I also got responsible for familiarizing new staff to the job. It was a great time,
-                we had a wonderful team and I felt at home. Until one of the girls who got introduced by the job by me, 
-                and with whom I had a great connection at that time, told me she was afraid of me when she just onboarded. 
-                Afraid. Of me. Me, who was always insecure and did everything I possibly could to be considered nice and ‘good enough’ 
-                by everyone around me. And this was the first, but certainly not the last time I heard this.
-                By striving to do everything right and the insecurity that lies beneath this battle, my (verbal, 
-                but mostly non-verbal) communication had a counter-effect. A blind spot. We all have those. 
-                The most difficult to handle are the blind spots that are being seen by others, but not by yourself. 
-                Like in this situation for me. And I was lucky, it was brought to my attention. Several times, also by loved ones. 
-            </p>
-            <p>
-                The trick is to discover your blind spots and, more important; to be willing to see them. That’s the biggest obstacle. 
-            </p>
-            <p>
-                With regard to this, we recently had a client who asked for our help since the company didn’t manage to provide adequate 
-                training to their customers with regard to handling the highly innovative machines our client develops and produces. 
-                The starting point was beautiful: this organization frankly admitted a weak spot and was open for a learning process. 
-                They just didn’t see what exactly was going wrong. They were suprised when we, after performing an analysis and having 
-                conversations in all layers of the business, brought their sensitive issues to the table. The blind spot became visible at once. 
-                Now we could start coloring it. And again; that isn’t easy, since blind spots that are visible to others, 
-                but not to you is often something you don’t consider a part of you or your business. 
-                Like I didn’t see myself as someone to be afraid of. Like this, our client didn’t see that their huge knowledge 
-                of their machines had a counter effect when transferring this knowledge to the staff of their customers. 
-                Also; everyone’s focused work on their own tasks hampered a good co-operation between departments as well as providing consitant training. 
-            </p>
-            <p>
-                All’s well that ends well? In case of our client; yes. 
-                By finding the issues and their willingness to handle them, partly by outsourcing some activities, 
-                our client is now capable of delivering high-end qualities along with their high-end machines. 
-                This has a positive effect on customer satisfaction, service calls and their market position. 
-                In my case? It sure does, but not only that: making this blind spot visible also caused an understanding 
-                of  the fact not everything I do has to be maximized all the time. Or, like a good friend says: ‘you don’t have to be ‘ON’ all the time’.
-                And accepting this, brings peace. It also has a positive effect on my communication when things do have to be maximized. 
-                I just don’t get rid of that frown when I concentrate. Let it be. 
-            </p>
-            <p>
-                What about you? Do you dare to encounter your blind spots? 
-                You could start by asking the people around you, how do they see you? It can provide beautiful eye-openers! 
-            </p>
-            <p>
-                Love, 
-            </p>
-            <p>
-                Dominique
-            </p>
+            <p>@Localizer["Blog2Label"] <b>@Localizer["Blog2Title"]</b></p>
+            <p>@Localizer["Blog2Paragraph1"]</p>
+            <p>@Localizer["Blog2Paragraph2"]</p>
+            <p>@Localizer["Blog2Paragraph3"]</p>
+            <p>@Localizer["Blog2Paragraph4"]</p>
+            <p>@Localizer["Blog2Paragraph5"]</p>
+            <p>@Localizer["Blog2SignOff"]</p>
+            <p>Dominique</p>
         </article>
     </div>
 </section>

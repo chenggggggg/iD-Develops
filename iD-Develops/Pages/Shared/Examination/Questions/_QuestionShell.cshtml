@@ -1,5 +1,6 @@
 ﻿@using iD_Develops.Pages.Shared.Examination.Questions
 @model QuestionShellModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<iD_Develops.Pages.Shared.Examination.Questions.QuestionShellModel> Localizer
 
 <div class="question-shell" id="question-shell"
      data-question-id="@(Model.Question?.Id ?? 0)"
@@ -11,14 +12,14 @@
         {
             <div class="question-shell-empty-wrap">
                 <div class="question-shell-empty">
-                    <h4>No questions yet</h4>
-                    <p>Select a question type to add your first question.</p>
+                    <h4>@Localizer["NoQuestionsHeading"]</h4>
+                    <p>@Localizer["NoQuestionsMessage"]</p>
 
                     <div class="question-type-actions">
                         <!-- These should do the same as the + button: open modal -->
-                        <button type="button" class="public-btn public-btn-outline public-btn-sm js-add-draft" data-question-type="Open">Open</button>
-                        <button type="button" class="public-btn public-btn-outline public-btn-sm js-add-draft" data-question-type="MultipleChoice">Multiple choice</button>
-                        <button type="button" class="public-btn public-btn-outline public-btn-sm js-add-draft" data-question-type="TrueOrFalse">True / False</button>
+                        <button type="button" class="public-btn public-btn-outline public-btn-sm js-add-draft" data-question-type="Open">@Localizer["OpenQuestion"]</button>
+                        <button type="button" class="public-btn public-btn-outline public-btn-sm js-add-draft" data-question-type="MultipleChoice">@Localizer["MultipleChoice"]</button>
+                        <button type="button" class="public-btn public-btn-outline public-btn-sm js-add-draft" data-question-type="TrueOrFalse">@Localizer["TrueFalse"]</button>
                     </div>
                 </div>
             </div>

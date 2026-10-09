@@ -1,19 +1,16 @@
 ﻿@page
 @model iD_Develops.Pages.LanguageAndCommunication.Communication.IndexModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<iD_Develops.Pages.LanguageAndCommunication.Communication.IndexModel> Localizer
 @{
-    ViewData["Title"] = "Communication";
+    ViewData["Title"] = Localizer["Title"];
 }
 
 <section class="public-page">
     <div class="public-container public-content-narrow">
-        <p class="public-eyebrow public-eyebrow-left">Language &amp; Communication</p>
-        <h1 class="public-page-title">Communication</h1>
+        <p class="public-eyebrow public-eyebrow-left">@Localizer["Eyebrow"]</p>
+        <h1 class="public-page-title">@Localizer["Heading"]</h1>
         <p class="public-copy">
-        No matter what a smooth talker you are, sometimes it’s difficult to choose the right words or to attune adequatly to your audience or communicational partner. 
-        Communication is about a lot more than talking or sending out an e-mail. Cultural differences, negotiations, convincing clients, 
-        employees or relations of much needed changes, getting everyone in the same direction, and so on. 
-        And all this preferably in an enjoyable way and without hurting anyone’s feelings. 
-        Oral or verbal; we’ll help you find the right way or provide you with the right tools. 
+        @Localizer["Paragraph"]
         </p>
     </div>
 </section>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AmountLabel" xml:space="preserve"><value>Amount</value></data>
+  <data name="CancelledMessage" xml:space="preserve"><value>Checkout was cancelled before payment was completed.</value></data>
+  <data name="CancelledTitle" xml:space="preserve"><value>Payment Cancelled</value></data>
+  <data name="ContactSupportButton" xml:space="preserve"><value>Contact support</value></data>
+  <data name="DateLabel" xml:space="preserve"><value>Date</value></data>
+  <data name="ExpiredMessage" xml:space="preserve"><value>The checkout session expired. Please restart checkout if you still want to purchase this product.</value></data>
+  <data name="ExpiredTitle" xml:space="preserve"><value>Payment Expired</value></data>
+  <data name="FailedMessage" xml:space="preserve"><value>The payment was not completed. Please try again or use another payment method.</value></data>
+  <data name="FailedTitle" xml:space="preserve"><value>Payment Failed</value></data>
+  <data name="LocalBypass" xml:space="preserve"><value>Local bypass</value></data>
+  <data name="LocalCheckout" xml:space="preserve"><value>Local checkout</value></data>
+  <data name="LocalEnvironmentNote" xml:space="preserve"><value>Local environment: Stripe Checkout was bypassed.</value></data>
+  <data name="PaymentLabel" xml:space="preserve"><value>Payment</value></data>
+  <data name="PaymentMethodLabel" xml:space="preserve"><value>Payment method</value></data>
+  <data name="PricingButton" xml:space="preserve"><value>Pricing</value></data>
+  <data name="ProcessingMessage" xml:space="preserve"><value>Your payment is not complete yet. If this takes too long, please restart checkout.</value></data>
+  <data name="ProcessingTitle" xml:space="preserve"><value>Payment Processing</value></data>
+  <data name="ProductLabel" xml:space="preserve"><value>Product</value></data>
+  <data name="QuantityLabel" xml:space="preserve"><value>Quantity</value></data>
+  <data name="SuccessMessage" xml:space="preserve"><value>Thank you. Your payment has been completed.</value></data>
+  <data name="SuccessTitle" xml:space="preserve"><value>Payment Success</value></data>
+  <data name="UnknownMessage" xml:space="preserve"><value>We could not determine the payment status. Please check your email receipt or contact support.</value></data>
+  <data name="UnknownTitle" xml:space="preserve"><value>Payment Status Unknown</value></data>
+</root>

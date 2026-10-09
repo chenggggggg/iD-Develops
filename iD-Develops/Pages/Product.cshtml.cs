@@ -8,6 +8,7 @@ using iD_Develops.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Localization;
 
 namespace iD_Develops.Pages
 {
@@ -27,6 +28,7 @@ namespace iD_Develops.Pages
         private readonly ITurnstileService _turnstileService;
         private readonly IApplicationUrlService _applicationUrls;
         private readonly IPortalAuthenticationHandoffService _authenticationHandoffService;
+        private readonly IStringLocalizer<ProductModel> _localizer;
 
         public ProductModel(
             ICatalogProductService catalogProductService,
@@ -38,7 +40,8 @@ namespace iD_Develops.Pages
             IWebHostEnvironment environment,
             ITurnstileService turnstileService,
             IApplicationUrlService applicationUrls,
-            IPortalAuthenticationHandoffService authenticationHandoffService)
+            IPortalAuthenticationHandoffService authenticationHandoffService,
+            IStringLocalizer<ProductModel> localizer)
         {
             _catalogProductService = catalogProductService;
             _creditConfigurationService = creditConfigurationService;
@@ -50,6 +53,7 @@ namespace iD_Develops.Pages
             _turnstileService = turnstileService;
             _applicationUrls = applicationUrls;
             _authenticationHandoffService = authenticationHandoffService;
+            _localizer = localizer;
         }
 
         public CatalogProduct Product { get; private set; } = null!;
@@ -99,7 +103,7 @@ namespace iD_Develops.Pages
             if (inviteUseId.HasValue)
             {
                 await _catalogProductAccessService.CancelInviteUseAsync(inviteUseId.Value, ct);
-                TempData["StatusMessage"] = "Your secure checkout session was released. You can try again from this page.";
+                TempData["StatusMessage"] = _localizer["CheckoutReleasedMessage"].Value;
             }
 
             Product = product;
@@ -180,7 +184,7 @@ namespace iD_Develops.Pages
 
             if (!IsPreviewMode && !product.IsSalesActive)
             {
-                ModelState.AddModelError(string.Empty, "This offer is visible, but sales are currently paused. Please contact us if you would like to continue.");
+                ModelState.AddModelError(string.Empty, _localizer["SalesPausedMessage"]);
                 return Page();
             }
 
@@ -231,7 +235,7 @@ namespace iD_Develops.Pages
                 var selectedVariant = ResolveSelectedVariant(product);
                 if (selectedVariant == null)
                 {
-                    ModelState.AddModelError(string.Empty, "Please select a product option before continuing.");
+                    ModelState.AddModelError(string.Empty, _localizer["SelectProductOptionError"]);
                     return Page();
                 }
 
@@ -320,7 +324,7 @@ namespace iD_Develops.Pages
                 return Redirect(product.ExternalBookingUrl);
             }
 
-            TempData["StatusMessage"] = "Your submission has been received.";
+            TempData["StatusMessage"] = _localizer["SubmissionReceivedMessage"].Value;
             return RedirectToPage(new { slug = product.Slug, access });
         }
 
@@ -333,14 +337,14 @@ namespace iD_Develops.Pages
             var pending = ReadPendingCheckout();
             if (pending == null || pending.ProductId != product.Id)
             {
-                TempData["StatusMessage"] = "Your checkout session expired. Please review the product and continue again.";
+                TempData["StatusMessage"] = _localizer["CheckoutExpiredMessage"].Value;
                 return RedirectToPage(new { slug = product.Slug, access });
             }
 
             if (!product.IsSalesActive)
             {
                 HttpContext.Session.Remove(PendingCheckoutSessionKey);
-                TempData["StatusMessage"] = "Sales for this product are currently paused.";
+                TempData["StatusMessage"] = _localizer["SalesPausedShortMessage"].Value;
                 return RedirectToPage(new { slug = product.Slug, access });
             }
 
@@ -1118,8 +1122,10 @@ namespace iD_Develops.Pages
 
             if (string.IsNullOrWhiteSpace(value))
             {
-                var prefix = participantIndex.HasValue ? $"Participant {participantIndex.Value}: " : string.Empty;
-                ModelState.AddModelError(string.Empty, $"{prefix}{field.Label} is required.");
+                var message = participantIndex.HasValue
+                    ? _localizer["ParticipantRequiredFieldError", participantIndex.Value, field.Label]
+                    : _localizer["RequiredFieldError", field.Label];
+                ModelState.AddModelError(string.Empty, message);
             }
         }
 

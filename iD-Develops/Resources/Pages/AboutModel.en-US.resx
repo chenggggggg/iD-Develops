@@ -130,6 +130,57 @@
     <value>&lt;span class="fw-bold"&gt;Patrick about Dominique:&lt;/span&gt;&lt;br/&gt;I’ve known Dominique for about 12 years now. In those twelve years she’s never missed an appointment, deadline or project and never been unable to finish things. Her drive and passion and the intention to do good in this world makes her an amazingly strong and loved human being among us. If we would like to have an example of how it should be, we could surely take her as an example. Her experiences, both nationally and internationally make her a great sparring partner in almost any field. If not, she’ll make sure to familiarize herself with it thoroughly before having the conversation. With an analytic super brain she is capable of showing up with a tailor made advise or solution in no time which feels good for everyone involved!</value>
   </data>
   <data name="Title" xml:space="preserve">
-    <value>About</value>
+    <value>About us</value>
+  </data>
+  <data name="SeoTitle" xml:space="preserve">
+    <value>About iD! | Meet Patrick &amp; Dominique</value>
+  </data>
+  <data name="MetaDescription" xml:space="preserve">
+    <value>Meet Patrick and Dominique: two experienced guides who help people and organizations learn, grow, and communicate with more confidence.</value>
+  </data>
+  <data name="HeroTitle" xml:space="preserve">
+    <value>Two people, twelve years, one mission</value>
+  </data>
+  <data name="HeroDescription" xml:space="preserve">
+    <value>For over twelve years now, we — Patrick &amp; Dominique — have been iD!, training &amp; development. Two people with different backgrounds, the same curiosity about people, and a shared belief: everyone deserves the chance to stand a little steadier, a little freer, and with a little more joy in life. One of us does that mainly through language and non-verbal communication. The other through sharp questions and an unfailing sense of what's not being said. Actually — that sharpness in listening and probing, we both have it; we're just as much each other's sounding board as we are for the people we work with.</value>
+  </data>
+  <data name="HeroImageAlt" xml:space="preserve">
+    <value>Dominique and Patrick of iD!</value>
+  </data>
+  <data name="OriginEyebrow" xml:space="preserve">
+    <value>Where we come from</value>
+  </data>
+  <data name="OriginParagraph1" xml:space="preserve">
+    <value>Dominique studied language and communication, teaches languages, develops language programs, and set off to see the world to find out what it's like to be the stranger yourself — the one standing at an Eastern European butcher's, gesturing wildly to explain what she needed for her dog. These days she travels through Europe in a van, driven by a lasting hunger for new countries, new cultures, and a life that doesn't feel too rooted. That way of living isn't just backdrop — it's how she experiences, first-hand and on a daily basis, what it means to be new or “different” somewhere, to not quite fit in right away, and still — through trial and error — to make it all work.</value>
+  </data>
+  <data name="OriginParagraph2" xml:space="preserve">
+    <value>Patrick began his career in hospitality across various European countries, where he learned that the secret to a good kitchen isn't the ingredients but the people working with them. And also: working together and eating together brings people together! From there he moved into international sales and the corporate world, where he sharpened his eye for people even further, along with his knack for seeing the bigger picture. The love of travel, of spending time in other countries, and of connecting with people from different cultures — that's something he and Dominique share.</value>
+  </data>
+  <data name="OriginParagraph3" xml:space="preserve">
+    <value>We've worked together in the Netherlands, Bahrain, Dubai and Sri Lanka, always following the same winning formula: where one of us tends to disappear into the details, the other effortlessly holds onto the bigger picture.</value>
+  </data>
+  <data name="TogetherEyebrow" xml:space="preserve">
+    <value>Together</value>
+  </data>
+  <data name="TogetherTitle" xml:space="preserve">
+    <value>Making complicated matters manageable</value>
+  </data>
+  <data name="TogetherDescription" xml:space="preserve">
+    <value>That combination of sharpness and overview, of perfectionism and the ability to not take things too seriously, is exactly what we've brought into our professional work. Among other things, we developed global training materials for complex machinery, so that both machine operators and technicians could understand it in their own language and at their own pace — solid proof that we know how to make complicated things digestible. We love working with people and organisations who, like us, believe that caring about each other and caring about results can go hand in hand perfectly well.</value>
+  </data>
+  <data name="ValuesEyebrow" xml:space="preserve">
+    <value>What we stand for</value>
+  </data>
+  <data name="ValuesParagraph1" xml:space="preserve">
+    <value>iD! stands for identity — and, not entirely by accident, also a little bit for “I”. Because that's really what it all comes down to: who are you, who do you want to be, and how do you get there? Whether that's in a new language, a new job, a new country, or simply a new chapter of yourself.</value>
+  </data>
+  <data name="ValuesParagraph2" xml:space="preserve">
+    <value>We believe in connection over distance, in honesty over polite vagueness, and in humour as the best tool for making something difficult easier to talk about, or for taking the edge off tension. We always take your questions seriously — ourselves, a little less so. Sharing is multiplying, that's what we believe. And honestly, we believe just as strongly in healing.</value>
+  </data>
+  <data name="ScheduleConversation" xml:space="preserve">
+    <value>Ready to meet us?</value>
+  </data>
+  <data name="ContactButton" xml:space="preserve">
+    <value>Get in touch</value>
   </data>
 </root>

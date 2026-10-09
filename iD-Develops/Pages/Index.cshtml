@@ -1,38 +1,32 @@
 @page
 @model IndexModel
 @using System.Globalization
+@inject IStringLocalizer<IndexModel> Localizer
 @{
-    var isDutch = CultureInfo.CurrentCulture.Name.Equals("nl-NL", StringComparison.OrdinalIgnoreCase);
     var levelTestUrl = $"/{CultureInfo.CurrentCulture.Name.ToLowerInvariant()}/level-test";
-    ViewData["Title"] = isDutch ? "Home" : "Home";
-    ViewData["SeoTitle"] = isDutch ? null : "iD! Training & Development | Language, Communication & Growth";
-    ViewData["MetaDescription"] = isDutch ? null : "Learn Dutch, sharpen your communication, or grow into who you want to be. iD! guides individuals and teams with expertise, honesty, and humour.";
+    var routeCulture = CultureInfo.CurrentCulture.Name.ToLowerInvariant();
+    ViewData["Title"] = Localizer["Title"];
+    ViewData["SeoTitle"] = Localizer["SeoTitle"];
+    ViewData["MetaDescription"] = Localizer["MetaDescription"];
     ViewData["BodyClass"] = "home-page";
+    var showExpandedLearningOptions = bool.TryParse(Localizer["ShowExpandedLearningOptions"], out var showExpanded) && showExpanded;
 }
 
 <section class="home-hero">
     <div class="public-container relative z-10 flex w-full items-center py-16 opacity-0 translate-y-6 transition-[opacity,translate] duration-1000 ease-out md:py-20" data-reveal="load">
         <div class="max-w-[46rem]">
             <p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-white/75 [font-family:var(--serif-label)]">iD! Training &amp; Development</p>
-            @if (isDutch)
-            {
-                <h1 class="mb-7 text-[clamp(3.2rem,7vw,6.5rem)] font-medium leading-[0.92] tracking-[-0.045em] text-white [font-family:var(--serif-heading)]"><span class="lg:whitespace-nowrap">Vind je stem.</span><br /><em class="font-normal text-[#F4C8CD] lg:whitespace-nowrap">Vind je richting.</em></h1>
-                <p class="home-hero-subtitle"><span>Leer de taal. Zeg wat je bedoelt.</span><span>Ga met vertrouwen verder.</span></p>
-            }
-            else
-            {
-                <h1 class="mb-7 text-[clamp(3.2rem,7vw,6.5rem)] font-medium leading-[0.92] tracking-[-0.045em] text-white [font-family:var(--serif-heading)]"><span class="lg:whitespace-nowrap">Find your voice.</span><br /><em class="font-normal text-[#F4C8CD] lg:whitespace-nowrap">Find your direction.</em></h1>
-                <p class="home-hero-subtitle"><span>Learn the language. Say what you mean.</span><span>Move forward with confidence.</span></p>
-            }
+            <h1 class="mb-7 text-[clamp(3.2rem,7vw,6.5rem)] font-medium leading-[0.92] tracking-[-0.045em] text-white [font-family:var(--serif-heading)]"><span class="lg:whitespace-nowrap">@Localizer["HeroTitleLine1"]</span><br /><em class="font-normal text-[#F4C8CD] lg:whitespace-nowrap">@Localizer["HeroTitleLine2"]</em></h1>
+            <p class="home-hero-subtitle"><span>@Localizer["HeroSubtitleLine1"]</span><span>@Localizer["HeroSubtitleLine2"]</span></p>
             <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
-                <a href="@levelTestUrl" class="public-btn public-btn-primary min-h-12 border-[#B23A48] bg-[#B23A48] px-6 text-white shadow-[0_10px_28px_rgba(0,0,0,0.22)] hover:border-[#C84E5F] hover:bg-[#C84E5F] hover:text-white focus:border-[#C84E5F] focus:bg-[#C84E5F] focus:text-white">@(isDutch ? "Test je niveau" : "Test your level") <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
-                <a asp-page="/contact" class="public-btn public-btn-outline-light min-h-12 border-white/65 bg-black/10 px-6 text-white backdrop-blur-sm hover:border-white hover:bg-white hover:text-[#071F3D] focus:border-white focus:bg-white focus:text-[#071F3D]">@(isDutch ? "Neem contact op" : "Contact us") <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+                <a href="@levelTestUrl" class="public-btn public-btn-primary min-h-12 border-[#B23A48] bg-[#B23A48] px-6 text-white shadow-[0_10px_28px_rgba(0,0,0,0.22)] hover:border-[#C84E5F] hover:bg-[#C84E5F] hover:text-white focus:border-[#C84E5F] focus:bg-[#C84E5F] focus:text-white">@Localizer["HeroLevelTestButton"] <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+                <a asp-page="/contact" asp-route-culture="@routeCulture" class="public-btn public-btn-outline-light min-h-12 border-white/65 bg-black/10 px-6 text-white backdrop-blur-sm hover:border-white hover:bg-white hover:text-[#071F3D] focus:border-white focus:bg-white focus:text-[#071F3D]">@Localizer["HeroContactButton"] <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
             </div>
             @* Provisional figures — replace with owner-confirmed numbers before launch. *@
             <ul class="mt-10 flex list-none flex-wrap items-start gap-x-7 gap-y-4 p-0 text-white/85 sm:mt-12 gap-x-9">
-                <li class="flex flex-col gap-0.5"><strong class="text-2xl font-medium leading-none text-white [font-family:var(--serif-heading)]">2,000+</strong><span class="text-[0.68rem] uppercase tracking-[0.12em] [font-family:var(--serif-label)]">@(isDutch ? "Cursisten begeleid" : "Learners supported")</span></li>
-                <li class="flex flex-col gap-0.5"><strong class="text-2xl font-medium leading-none text-white [font-family:var(--serif-heading)]">15+</strong><span class="text-[0.68rem] uppercase tracking-[0.12em] [font-family:var(--serif-label)]">@(isDutch ? "Jaar ervaring" : "Years of experience")</span></li>
-                <li class="flex flex-col gap-0.5"><strong class="text-2xl font-medium leading-none text-white [font-family:var(--serif-heading)]">4.9/5</strong><span class="text-[0.68rem] uppercase tracking-[0.12em] [font-family:var(--serif-label)]">@(isDutch ? "Gemiddelde beoordeling" : "Average rating")</span></li>
+                <li class="flex flex-col gap-0.5"><strong class="text-2xl font-medium leading-none text-white [font-family:var(--serif-heading)]">2,000+</strong><span class="text-[0.68rem] uppercase tracking-[0.12em] [font-family:var(--serif-label)]">@Localizer["LearnersSupported"]</span></li>
+                <li class="flex flex-col gap-0.5"><strong class="text-2xl font-medium leading-none text-white [font-family:var(--serif-heading)]">15+</strong><span class="text-[0.68rem] uppercase tracking-[0.12em] [font-family:var(--serif-label)]">@Localizer["YearsExperience"]</span></li>
+                <li class="flex flex-col gap-0.5"><strong class="text-2xl font-medium leading-none text-white [font-family:var(--serif-heading)]">4.9/5</strong><span class="text-[0.68rem] uppercase tracking-[0.12em] [font-family:var(--serif-label)]">@Localizer["AverageRating"]</span></li>
             </ul>
         </div>
     </div>
@@ -41,8 +35,8 @@
 <section class="bg-[#FAFAF8] py-24 text-[#1A1A1A] md:py-36" id="home-services">
     <div class="public-container">
         <div class="mx-auto mb-14 max-w-3xl text-center opacity-0 translate-y-6 transition-[opacity,translate] duration-1000 ease-out" data-reveal>
-            <p class="public-eyebrow my-0">@(isDutch ? "Diensten" : "What we do")</p>
-            <h2 class="mx-0 mt-5 mb-0 text-[clamp(2rem,5vw,3.6rem)] leading-tight text-[#071F3D] [font-family:var(--serif-heading)]">@(isDutch ? "Waar kunnen we je mee helpen?" : "What do you need right now?")</h2>
+            <p class="public-eyebrow my-0">@Localizer["ServicesEyebrow"]</p>
+            <h2 class="mx-0 mt-5 mb-0 text-[clamp(2rem,5vw,3.6rem)] leading-tight text-[#071F3D] [font-family:var(--serif-heading)]">@Localizer["ServicesTitle"]</h2>
         </div>
         <div class="grid grid-cols-1 gap-4 opacity-0 translate-y-6 transition-[opacity,translate] duration-1000 ease-out md:grid-cols-2 lg:grid-cols-[1.08fr_.84fr_1.08fr] lg:grid-rows-[repeat(2,14.5rem)_17.5rem]" data-reveal>
             <article class="group relative isolate flex min-h-[22rem] overflow-hidden rounded-2xl border border-[#E8E4DF] bg-[#EDF7F8] text-[#1A1A1A] shadow-[0_14px_40px_rgba(17,17,17,0.05)] transition-[border-color,box-shadow] duration-200 hover:border-[#B23A48]/45 hover:shadow-[0_24px_52px_rgba(17,17,17,0.10)] lg:col-span-2 lg:row-span-2 lg:min-h-0">
@@ -50,9 +44,9 @@
                 <span aria-hidden="true" class="absolute inset-0 -z-20 bg-[url('/images/nt2-integration.webp')] bg-cover bg-center transition-transform duration-300 group-hover:scale-[1.045]"></span>
                 <span class="flex w-full max-w-[34rem] flex-col items-start justify-end p-[clamp(1.5rem,4vw,2.5rem)] pb-[calc(clamp(1.5rem,4vw,2.5rem)-0.25rem)]">
                     <i class="fa-solid fa-language mb-0 block origin-left text-[2.15rem] leading-[0.9] text-[#535353] transition-transform duration-300 group-hover:scale-[0.86]" aria-hidden="true"></i>
-                    <h3 class="mb-[0.38rem] mt-[0.68rem] text-[clamp(1.15rem,1.35vw,1.3rem)] leading-[1.15] text-[#071F3D] [font-family:var(--serif-heading)]">@(isDutch ? "NT2 / Inburgeren" : "NT2 / Integration")</h3>
-                    <span class="max-w-[31rem] text-base leading-[1.6] text-[#535353]">@(isDutch ? "Nederlands leren — van eerste woorden tot inburgering en BIG-registratie." : "Learn Dutch — from your first words to integration and BIG registration.")</span>
-                    <a class="mt-[0.85rem] inline-flex max-h-11 items-center gap-2 overflow-hidden rounded-full bg-transparent px-[0.8rem] py-2 text-sm font-bold leading-[1.3] text-[#B23A48] no-underline opacity-100 transition-all duration-300 translate-y-0 hover:bg-[#B23A48]/10 hover:no-underline focus-visible:bg-[#B23A48]/10 focus-visible:no-underline lg:mt-0 lg:max-h-0 lg:py-0 lg:opacity-0 lg:translate-y-[0.45rem] lg:group-hover:mt-[0.85rem] lg:group-hover:max-h-11 lg:group-hover:py-2 lg:group-hover:opacity-100 lg:group-hover:translate-y-0" asp-page="/nt2-integration">@(isDutch ? "Lees meer" : "Learn more") <i class="fas fa-arrow-right transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true"></i></a>
+                    <h3 class="mb-[0.38rem] mt-[0.68rem] text-[clamp(1.15rem,1.35vw,1.3rem)] leading-[1.15] text-[#071F3D] [font-family:var(--serif-heading)]">@Localizer["ServiceNt2Title"]</h3>
+                    <span class="max-w-[31rem] text-base leading-[1.6] text-[#535353]">@Localizer["ServiceNt2Description"]</span>
+                    <a class="mt-[0.85rem] inline-flex max-h-11 items-center gap-2 overflow-hidden rounded-full bg-transparent px-[0.8rem] py-2 text-sm font-bold leading-[1.3] text-[#B23A48] no-underline opacity-100 transition-all duration-300 translate-y-0 hover:bg-[#B23A48]/10 hover:no-underline focus-visible:bg-[#B23A48]/10 focus-visible:no-underline lg:mt-0 lg:max-h-0 lg:py-0 lg:opacity-0 lg:translate-y-[0.45rem] lg:group-hover:mt-[0.85rem] lg:group-hover:max-h-11 lg:group-hover:py-2 lg:group-hover:opacity-100 lg:group-hover:translate-y-0" asp-page="/nt2-integration" asp-route-culture="@routeCulture">@Localizer["LearnMore"] <i class="fas fa-arrow-right transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true"></i></a>
                 </span>
             </article>
             <article class="group relative isolate flex min-h-[22rem] overflow-hidden rounded-2xl border border-[#E8E4DF] bg-[#FBF3F1] text-[#1A1A1A] shadow-[0_14px_40px_rgba(17,17,17,0.05)] transition-[border-color,box-shadow] duration-200 hover:border-[#B23A48]/45 hover:shadow-[0_24px_52px_rgba(17,17,17,0.10)] lg:row-span-2 lg:min-h-0">
@@ -60,9 +54,9 @@
                 <span aria-hidden="true" class="absolute inset-0 -z-20 bg-[url('/images/personal-development.webp')] bg-cover bg-center transition-transform duration-300 group-hover:scale-[1.045]"></span>
                 <span class="flex w-full max-w-[34rem] flex-col items-start justify-end p-[clamp(1.5rem,4vw,2.5rem)] pb-[calc(clamp(1.5rem,4vw,2.5rem)-0.25rem)] lg:max-w-none">
                     <i class="fa-solid fa-compass mb-0 block origin-left text-[2.15rem] leading-[0.9] text-[#535353] transition-transform duration-300 group-hover:scale-[0.86]" aria-hidden="true"></i>
-                    <h3 class="mb-[0.38rem] mt-[0.68rem] text-[clamp(1.15rem,1.35vw,1.3rem)] leading-[1.15] text-[#071F3D] [font-family:var(--serif-heading)]">@(isDutch ? "Persoonlijke Ontwikkeling" : "Personal Development")</h3>
-                    <span class="max-w-[31rem] text-base leading-[1.6] text-[#535353]">@(isDutch ? "Vind richting bij werk, relaties of een grote verandering." : "Find direction in work, relationships, or a major change.")</span>
-                    <a class="mt-[0.85rem] inline-flex max-h-11 items-center gap-2 overflow-hidden rounded-full bg-transparent px-[0.8rem] py-2 text-sm font-bold leading-[1.3] text-[#B23A48] no-underline opacity-100 transition-all duration-300 translate-y-0 hover:bg-[#B23A48]/10 hover:no-underline focus-visible:bg-[#B23A48]/10 focus-visible:no-underline lg:mt-0 lg:max-h-0 lg:py-0 lg:opacity-0 lg:translate-y-[0.45rem] lg:group-hover:mt-[0.85rem] lg:group-hover:max-h-11 lg:group-hover:py-2 lg:group-hover:opacity-100 lg:group-hover:translate-y-0" asp-page="/personal-development">@(isDutch ? "Lees meer" : "Learn more") <i class="fas fa-arrow-right transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true"></i></a>
+                    <h3 class="mb-[0.38rem] mt-[0.68rem] text-[clamp(1.15rem,1.35vw,1.3rem)] leading-[1.15] text-[#071F3D] [font-family:var(--serif-heading)]">@Localizer["ServiceDevelopmentTitle"]</h3>
+                    <span class="max-w-[31rem] text-base leading-[1.6] text-[#535353]">@Localizer["ServiceDevelopmentDescription"]</span>
+                    <a class="mt-[0.85rem] inline-flex max-h-11 items-center gap-2 overflow-hidden rounded-full bg-transparent px-[0.8rem] py-2 text-sm font-bold leading-[1.3] text-[#B23A48] no-underline opacity-100 transition-all duration-300 translate-y-0 hover:bg-[#B23A48]/10 hover:no-underline focus-visible:bg-[#B23A48]/10 focus-visible:no-underline lg:mt-0 lg:max-h-0 lg:py-0 lg:opacity-0 lg:translate-y-[0.45rem] lg:group-hover:mt-[0.85rem] lg:group-hover:max-h-11 lg:group-hover:py-2 lg:group-hover:opacity-100 lg:group-hover:translate-y-0" asp-page="/personal-development" asp-route-culture="@routeCulture">@Localizer["LearnMore"] <i class="fas fa-arrow-right transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true"></i></a>
                 </span>
             </article>
             <article class="group relative isolate flex min-h-[22rem] overflow-hidden rounded-2xl border border-[#E8E4DF] bg-[#F5F2EC] text-[#1A1A1A] shadow-[0_14px_40px_rgba(17,17,17,0.05)] transition-[border-color,box-shadow] duration-200 hover:border-[#B23A48]/45 hover:shadow-[0_24px_52px_rgba(17,17,17,0.10)] lg:min-h-0">
@@ -70,9 +64,9 @@
                 <span aria-hidden="true" class="absolute inset-0 -z-20 bg-[url('/images/language-communication.webp')] bg-cover bg-center transition-transform duration-300 group-hover:scale-[1.045]"></span>
                 <span class="flex w-full max-w-[34rem] flex-col items-start justify-end p-[clamp(1.5rem,4vw,2.5rem)] pb-[calc(clamp(1.5rem,4vw,2.5rem)-0.25rem)] lg:max-w-none">
                     <i class="fa-solid fa-comments mb-0 block origin-left text-[2.15rem] leading-[0.9] text-[#535353] transition-transform duration-300 group-hover:scale-[0.86]" aria-hidden="true"></i>
-                    <h3 class="mb-[0.38rem] mt-[0.68rem] text-[clamp(1.15rem,1.35vw,1.3rem)] leading-[1.15] text-[#071F3D] [font-family:var(--serif-heading)]">@(isDutch ? "Taal & Communicatie" : "Language & Communication")</h3>
-                    <span class="max-w-[31rem] text-base leading-[1.6] text-[#535353]">@(isDutch ? "Zeg wat je bedoelt — en zorg dat het aankomt." : "Say what you mean — and make sure it lands.")</span>
-                    <a class="mt-[0.85rem] inline-flex max-h-11 items-center gap-2 overflow-hidden rounded-full bg-transparent px-[0.8rem] py-2 text-sm font-bold leading-[1.3] text-[#B23A48] no-underline opacity-100 transition-all duration-300 translate-y-0 hover:bg-[#B23A48]/10 hover:no-underline focus-visible:bg-[#B23A48]/10 focus-visible:no-underline lg:mt-0 lg:max-h-0 lg:py-0 lg:opacity-0 lg:translate-y-[0.45rem] lg:group-hover:mt-[0.85rem] lg:group-hover:max-h-11 lg:group-hover:py-2 lg:group-hover:opacity-100 lg:group-hover:translate-y-0" asp-page="/Language-And-Communication/Index">@(isDutch ? "Lees meer" : "Learn more") <i class="fas fa-arrow-right transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true"></i></a>
+                    <h3 class="mb-[0.38rem] mt-[0.68rem] text-[clamp(1.15rem,1.35vw,1.3rem)] leading-[1.15] text-[#071F3D] [font-family:var(--serif-heading)]">@Localizer["ServiceCommunicationTitle"]</h3>
+                    <span class="max-w-[31rem] text-base leading-[1.6] text-[#535353]">@Localizer["ServiceCommunicationDescription"]</span>
+                    <a class="mt-[0.85rem] inline-flex max-h-11 items-center gap-2 overflow-hidden rounded-full bg-transparent px-[0.8rem] py-2 text-sm font-bold leading-[1.3] text-[#B23A48] no-underline opacity-100 transition-all duration-300 translate-y-0 hover:bg-[#B23A48]/10 hover:no-underline focus-visible:bg-[#B23A48]/10 focus-visible:no-underline lg:mt-0 lg:max-h-0 lg:py-0 lg:opacity-0 lg:translate-y-[0.45rem] lg:group-hover:mt-[0.85rem] lg:group-hover:max-h-11 lg:group-hover:py-2 lg:group-hover:opacity-100 lg:group-hover:translate-y-0" asp-page="/Language-And-Communication/Index" asp-route-culture="@routeCulture">@Localizer["LearnMore"] <i class="fas fa-arrow-right transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true"></i></a>
                 </span>
             </article>
             <article class="group relative isolate flex min-h-[22rem] overflow-hidden rounded-2xl border border-[#E8E4DF] bg-[#EEF4F8] text-[#1A1A1A] shadow-[0_14px_40px_rgba(17,17,17,0.05)] transition-[border-color,box-shadow] duration-200 hover:border-[#B23A48]/45 hover:shadow-[0_24px_52px_rgba(17,17,17,0.10)] lg:col-span-2 lg:min-h-0">
@@ -80,9 +74,9 @@
                 <span aria-hidden="true" class="absolute inset-0 -z-20 bg-[url('/images/training-development-for-organizations.webp')] bg-cover bg-center transition-transform duration-300 group-hover:scale-[1.045]"></span>
                 <span class="flex w-full max-w-[34rem] flex-col items-start justify-end p-[clamp(1.5rem,4vw,2.5rem)] pb-[calc(clamp(1.5rem,4vw,2.5rem)-0.25rem)]">
                     <i class="fa-solid fa-people-group mb-0 block origin-left text-[2.15rem] leading-[0.9] text-[#535353] transition-transform duration-300 group-hover:scale-[0.86]" aria-hidden="true"></i>
-                    <h3 class="mb-[0.38rem] mt-[0.68rem] text-[clamp(1.15rem,1.35vw,1.3rem)] leading-[1.15] text-[#071F3D] [font-family:var(--serif-heading)]">@(isDutch ? "Voor Organisaties" : "For Organizations")</h3>
-                    <span class="max-w-[31rem] text-base leading-[1.6] text-[#535353]">@(isDutch ? "Laat je team groeien met taaltraining en communicatie." : "Help your team grow through language and communication.")</span>
-                    <a class="mt-[0.85rem] inline-flex max-h-11 items-center gap-2 overflow-hidden rounded-full bg-transparent px-[0.8rem] py-2 text-sm font-bold leading-[1.3] text-[#B23A48] no-underline opacity-100 transition-all duration-300 translate-y-0 hover:bg-[#B23A48]/10 hover:no-underline focus-visible:bg-[#B23A48]/10 focus-visible:no-underline lg:mt-0 lg:max-h-0 lg:py-0 lg:opacity-0 lg:translate-y-[0.45rem] lg:group-hover:mt-[0.85rem] lg:group-hover:max-h-11 lg:group-hover:py-2 lg:group-hover:opacity-100 lg:group-hover:translate-y-0" asp-page="/enterprise">@(isDutch ? "Lees meer" : "Learn more") <i class="fas fa-arrow-right transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true"></i></a>
+                    <h3 class="mb-[0.38rem] mt-[0.68rem] text-[clamp(1.15rem,1.35vw,1.3rem)] leading-[1.15] text-[#071F3D] [font-family:var(--serif-heading)]">@Localizer["ServiceOrganizationsTitle"]</h3>
+                    <span class="max-w-[31rem] text-base leading-[1.6] text-[#535353]">@Localizer["ServiceOrganizationsDescription"]</span>
+                    <a class="mt-[0.85rem] inline-flex max-h-11 items-center gap-2 overflow-hidden rounded-full bg-transparent px-[0.8rem] py-2 text-sm font-bold leading-[1.3] text-[#B23A48] no-underline opacity-100 transition-all duration-300 translate-y-0 hover:bg-[#B23A48]/10 hover:no-underline focus-visible:bg-[#B23A48]/10 focus-visible:no-underline lg:mt-0 lg:max-h-0 lg:py-0 lg:opacity-0 lg:translate-y-[0.45rem] lg:group-hover:mt-[0.85rem] lg:group-hover:max-h-11 lg:group-hover:py-2 lg:group-hover:opacity-100 lg:group-hover:translate-y-0" asp-page="/enterprise" asp-route-culture="@routeCulture">@Localizer["LearnMore"] <i class="fas fa-arrow-right transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true"></i></a>
                 </span>
             </article>
         </div>
@@ -93,17 +87,17 @@
     <div class="public-container">
         <div class="w-full">
             <header class="mb-14 text-center opacity-0 translate-y-6 transition-[opacity,translate] duration-1000 ease-out" data-reveal>
-                <p class="public-eyebrow my-0">@(isDutch ? "Onze werkwijze" : "The iD! approach")</p>
-                <h2 class="mx-auto mt-5 mb-5 w-full text-[clamp(2rem,5vw,3.6rem)] font-medium leading-tight text-[#071F3D] [font-family:var(--serif-heading)]">@(isDutch ? "Wat je van ons kunt verwachten" : "What you can expect from us")</h2>
-                <p class="mx-auto m-0 max-w-[42rem] text-[1.05rem] leading-[1.7] text-[#535353]">@(isDutch ? "En geen coach die boven je staat. Bij iD! werk je op gelijkwaardig niveau, niet met iemand die het beter weet." : "And no coach standing above you. At iD! you work on equal footing, not with someone who claims to know better.")</p>
+                <p class="public-eyebrow my-0">@Localizer["ApproachEyebrow"]</p>
+                <h2 class="mx-auto mt-5 mb-5 w-full text-[clamp(2rem,5vw,3.6rem)] font-medium leading-tight text-[#071F3D] [font-family:var(--serif-heading)]">@Localizer["ApproachTitle"]</h2>
+                <p class="mx-auto m-0 max-w-[42rem] text-[1.05rem] leading-[1.7] text-[#535353]">@Localizer["ApproachIntro"]</p>
             </header>
 
             <div class="mx-auto mt-16 max-w-3xl space-y-16 opacity-0 translate-y-6 transition-[opacity,translate] duration-1000 ease-out md:mt-24 md:space-y-24" data-reveal>
-                <nav class="hidden" data-approach-navigation aria-label="@(isDutch ? "Stappen in onze werkwijze" : "Steps in our approach")">
-                    <button class="group flex min-w-max items-center gap-3 border-0 bg-transparent px-3 py-3 text-left text-sm font-semibold text-[#535353] transition-colors hover:text-[#071F3D] focus-visible:outline-2 focus-visible:outline-[#B23A48] focus-visible:outline-offset-3 lg:min-w-0 lg:px-4" type="button" data-approach-nav data-approach-index="0"><span class="text-xs font-medium tracking-tight text-[#B23A48]">01</span><span>@(isDutch ? "We gaan meteen naar de kern" : "We go straight to the core")</span></button>
-                    <button class="group flex min-w-max items-center gap-3 border-0 bg-transparent px-3 py-3 text-left text-sm font-semibold text-[#535353] transition-colors hover:text-[#071F3D] focus-visible:outline-2 focus-visible:outline-[#B23A48] focus-visible:outline-offset-3 lg:min-w-0 lg:px-4" type="button" data-approach-nav data-approach-index="1"><span class="text-xs font-medium tracking-tight text-[#B23A48]">02</span><span>@(isDutch ? "We maken het passend, niet standaard" : "We make it fit you")</span></button>
-                    <button class="group flex min-w-max items-center gap-3 border-0 bg-transparent px-3 py-3 text-left text-sm font-semibold text-[#535353] transition-colors hover:text-[#071F3D] focus-visible:outline-2 focus-visible:outline-[#B23A48] focus-visible:outline-offset-3 lg:min-w-0 lg:px-4" type="button" data-approach-nav data-approach-index="2"><span class="text-xs font-medium tracking-tight text-[#B23A48]">03</span><span>@(isDutch ? "Je gaat direct aan de slag" : "You get started right away")</span></button>
-                    <button class="group flex min-w-max items-center gap-3 border-0 bg-transparent px-3 py-3 text-left text-sm font-semibold text-[#535353] transition-colors hover:text-[#071F3D] focus-visible:outline-2 focus-visible:outline-[#B23A48] focus-visible:outline-offset-3 lg:min-w-0 lg:px-4" type="button" data-approach-nav data-approach-index="3"><span class="text-xs font-medium tracking-tight text-[#B23A48]">04</span><span>@(isDutch ? "We kijken mee en sturen bij" : "We stay involved and adjust")</span></button>
+                <nav class="hidden" data-approach-navigation aria-label="@Localizer["ApproachStepsLabel"]">
+                    <button class="group flex min-w-max items-center gap-3 border-0 bg-transparent px-3 py-3 text-left text-sm font-semibold text-[#535353] transition-colors hover:text-[#071F3D] focus-visible:outline-2 focus-visible:outline-[#B23A48] focus-visible:outline-offset-3 lg:min-w-0 lg:px-4" type="button" data-approach-nav data-approach-index="0"><span class="text-xs font-medium tracking-tight text-[#B23A48]">01</span><span>@Localizer["ApproachStep1ShortTitle"]</span></button>
+                    <button class="group flex min-w-max items-center gap-3 border-0 bg-transparent px-3 py-3 text-left text-sm font-semibold text-[#535353] transition-colors hover:text-[#071F3D] focus-visible:outline-2 focus-visible:outline-[#B23A48] focus-visible:outline-offset-3 lg:min-w-0 lg:px-4" type="button" data-approach-nav data-approach-index="1"><span class="text-xs font-medium tracking-tight text-[#B23A48]">02</span><span>@Localizer["ApproachStep2ShortTitle"]</span></button>
+                    <button class="group flex min-w-max items-center gap-3 border-0 bg-transparent px-3 py-3 text-left text-sm font-semibold text-[#535353] transition-colors hover:text-[#071F3D] focus-visible:outline-2 focus-visible:outline-[#B23A48] focus-visible:outline-offset-3 lg:min-w-0 lg:px-4" type="button" data-approach-nav data-approach-index="2"><span class="text-xs font-medium tracking-tight text-[#B23A48]">03</span><span>@Localizer["ApproachStep3ShortTitle"]</span></button>
+                    <button class="group flex min-w-max items-center gap-3 border-0 bg-transparent px-3 py-3 text-left text-sm font-semibold text-[#535353] transition-colors hover:text-[#071F3D] focus-visible:outline-2 focus-visible:outline-[#B23A48] focus-visible:outline-offset-3 lg:min-w-0 lg:px-4" type="button" data-approach-nav data-approach-index="3"><span class="text-xs font-medium tracking-tight text-[#B23A48]">04</span><span>@Localizer["ApproachStep4ShortTitle"]</span></button>
                 </nav>
                 <div aria-hidden="true" class="hidden bg-[#D8D3CC]"></div>
                 <div class="relative">
@@ -114,48 +108,48 @@
                     </div>
                     <ol class="m-0 grid list-none gap-16 p-0 md:gap-24" data-approach-features>
                 <li class="relative flex flex-col gap-4 md:flex-row md:gap-16" data-approach-feature data-approach-index="0">
-                    <div class="flex h-min shrink-0 items-center gap-3 md:w-64"><span class="grid size-8 flex-none place-items-center rounded-full bg-[#B23A48]/[0.07] text-xs text-[#B23A48]"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></span><span class="text-[0.7rem] font-medium uppercase tracking-[0.18em] leading-snug text-[#071F3D] [font-family:var(--serif-label)]">@(isDutch ? "We gaan meteen naar de kern" : "We go straight to the core")</span></div>
+                    <div class="flex h-min shrink-0 items-center gap-3 md:w-64"><span class="grid size-8 flex-none place-items-center rounded-full bg-[#B23A48]/[0.07] text-xs text-[#B23A48]"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></span><span class="text-[0.7rem] font-medium uppercase tracking-[0.18em] leading-snug text-[#071F3D] [font-family:var(--serif-label)]">@Localizer["ApproachStep1ShortTitle"]</span></div>
                     <div class="flex flex-col">
-                        <h3 class="m-0 text-[1.05rem] font-bold leading-[1.3] text-[#071F3D]">@(isDutch ? "We gaan meteen naar de kern" : "We go straight to the core")</h3>
-                        <p class="mt-[0.55rem] mb-0 max-w-[42rem] leading-[1.65] text-[#535353]">@(isDutch ? "Geen lange intake-formulieren of vrijblijvend rondpraten. In het eerste gesprek zoeken we samen uit wat er écht speelt en wat je nodig hebt; niet wat het boekje voorschrijft." : "No lengthy intake forms or non-committal small talk. In the very first conversation, we work together to figure out what's really going on and what you actually need; not what the textbook prescribes.")</p>
+                        <h3 class="m-0 text-[1.05rem] font-bold leading-[1.3] text-[#071F3D]">@Localizer["ApproachStep1Title"]</h3>
+                        <p class="mt-[0.55rem] mb-0 max-w-[42rem] leading-[1.65] text-[#535353]">@Localizer["ApproachStep1Description"]</p>
                     </div>
                 </li>
                 <li class="relative flex flex-col gap-4 md:flex-row md:gap-16" data-approach-feature data-approach-index="1">
-                    <div class="flex h-min shrink-0 items-center gap-3 md:w-64"><span class="grid size-8 flex-none place-items-center rounded-full bg-[#B23A48]/[0.07] text-xs text-[#B23A48]"><i class="fa-solid fa-puzzle-piece" aria-hidden="true"></i></span><span class="text-[0.7rem] font-medium uppercase tracking-[0.18em] leading-snug text-[#071F3D] [font-family:var(--serif-label)]">@(isDutch ? "We maken het passend, niet standaard" : "We make it fit you")</span></div>
+                    <div class="flex h-min shrink-0 items-center gap-3 md:w-64"><span class="grid size-8 flex-none place-items-center rounded-full bg-[#B23A48]/[0.07] text-xs text-[#B23A48]"><i class="fa-solid fa-puzzle-piece" aria-hidden="true"></i></span><span class="text-[0.7rem] font-medium uppercase tracking-[0.18em] leading-snug text-[#071F3D] [font-family:var(--serif-label)]">@Localizer["ApproachStep2ShortTitle"]</span></div>
                     <div class="flex flex-col">
-                        <h3 class="m-0 text-[1.05rem] font-bold leading-[1.3] text-[#071F3D]">@(isDutch ? "We maken het passend, niet standaard" : "We make it fit you, not the other way around")</h3>
-                        <p class="mt-[0.55rem] mb-0 max-w-[42rem] leading-[1.65] text-[#535353]">@(isDutch ? "Je werkt met onze beproefde programma's, en waar nodig ontwikkelen we iets speciaal voor jou of je team. Elk doel, of het nu gaat om een taalniveau, een carrièrevraag, een team dat beter wil communiceren, of een bedrijf dat wil groeien, vraagt immers om een andere aanpak." : "You'll work with our tried-and-tested programs, and where needed, we develop something specifically for you or your team. Every goal, whether it's a language level, a career question, a team that wants to communicate better, or a company that wants to grow, calls for its own approach.")</p>
+                        <h3 class="m-0 text-[1.05rem] font-bold leading-[1.3] text-[#071F3D]">@Localizer["ApproachStep2Title"]</h3>
+                        <p class="mt-[0.55rem] mb-0 max-w-[42rem] leading-[1.65] text-[#535353]">@Localizer["ApproachStep2Description"]</p>
                     </div>
                 </li>
                 <li class="relative flex flex-col gap-4 md:flex-row md:gap-16" data-approach-feature data-approach-index="2">
-                    <div class="flex h-min shrink-0 items-center gap-3 md:w-64"><span class="grid size-8 flex-none place-items-center rounded-full bg-[#B23A48]/[0.07] text-xs text-[#B23A48]"><i class="fa-solid fa-arrow-trend-up" aria-hidden="true"></i></span><span class="text-[0.7rem] font-medium uppercase tracking-[0.18em] leading-snug text-[#071F3D] [font-family:var(--serif-label)]">@(isDutch ? "Je gaat direct aan de slag" : "You get started right away")</span></div>
+                    <div class="flex h-min shrink-0 items-center gap-3 md:w-64"><span class="grid size-8 flex-none place-items-center rounded-full bg-[#B23A48]/[0.07] text-xs text-[#B23A48]"><i class="fa-solid fa-arrow-trend-up" aria-hidden="true"></i></span><span class="text-[0.7rem] font-medium uppercase tracking-[0.18em] leading-snug text-[#071F3D] [font-family:var(--serif-label)]">@Localizer["ApproachStep3ShortTitle"]</span></div>
                     <div class="flex flex-col">
-                        <h3 class="m-0 text-[1.05rem] font-bold leading-[1.3] text-[#071F3D]">@(isDutch ? "Je gaat direct aan de slag" : "You get started right away")</h3>
-                        <p class="mt-[0.55rem] mb-0 max-w-[42rem] leading-[1.65] text-[#535353]">@(isDutch ? "Vooruitgang, niet perfectie is het doel. Je merkt al snel verbetering, en dat houdt de motivatie erin. Fouten maken mag, sterker nog: dat moet (en is ook eigenlijk best leuk)." : "Progress, not perfection, is the goal. You'll notice improvement quickly, and that's what keeps the motivation going. Making mistakes is allowed! In fact, it's required (and honestly, it's usually pretty fun too).")</p>
+                        <h3 class="m-0 text-[1.05rem] font-bold leading-[1.3] text-[#071F3D]">@Localizer["ApproachStep3Title"]</h3>
+                        <p class="mt-[0.55rem] mb-0 max-w-[42rem] leading-[1.65] text-[#535353]">@Localizer["ApproachStep3Description"]</p>
                     </div>
                 </li>
                 <li class="relative flex flex-col gap-4 md:flex-row md:gap-16" data-approach-feature data-approach-index="3">
-                    <div class="flex h-min shrink-0 items-center gap-3 md:w-64"><span class="grid size-8 flex-none place-items-center rounded-full bg-[#B23A48]/[0.07] text-xs text-[#B23A48]"><i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i></span><span class="text-[0.7rem] font-medium uppercase tracking-[0.18em] leading-snug text-[#071F3D] [font-family:var(--serif-label)]">@(isDutch ? "We kijken mee en sturen bij" : "We stay involved and adjust")</span></div>
+                    <div class="flex h-min shrink-0 items-center gap-3 md:w-64"><span class="grid size-8 flex-none place-items-center rounded-full bg-[#B23A48]/[0.07] text-xs text-[#B23A48]"><i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i></span><span class="text-[0.7rem] font-medium uppercase tracking-[0.18em] leading-snug text-[#071F3D] [font-family:var(--serif-label)]">@Localizer["ApproachStep4ShortTitle"]</span></div>
                     <div class="flex flex-col">
-                        <h3 class="m-0 text-[1.05rem] font-bold leading-[1.3] text-[#071F3D]">@(isDutch ? "We kijken mee en sturen bij" : "We stay involved and adjust as we go")</h3>
-                        <p class="mt-[0.55rem] mb-0 max-w-[42rem] leading-[1.65] text-[#535353]">@(isDutch ? "Ontwikkeling is geen rechte lijn. We evalueren onderweg en stellen bij waar dat nodig is, net zo lang tot het klopt voor jou." : "Development isn't a straight line. We evaluate along the way and make adjustments where needed, until it truly works for you.")</p>
+                        <h3 class="m-0 text-[1.05rem] font-bold leading-[1.3] text-[#071F3D]">@Localizer["ApproachStep4Title"]</h3>
+                        <p class="mt-[0.55rem] mb-0 max-w-[42rem] leading-[1.65] text-[#535353]">@Localizer["ApproachStep4Description"]</p>
                     </div>
                 </li>
                     </ol>
                 </div>
             </div>
 
-            <p class="hidden mt-12 mb-0 max-w-[42rem] pl-[3.6rem] italic leading-[1.65] text-[#535353] md:pl-[4.25rem]">@(isDutch ? "(En bij al die stappen maken we graag een beetje plezier onderweg; ook humor en een goede lach doen wonderen voor motivatie én resultaat!)" : "And through all of these steps, we like to have a bit of fun along the way too; humor and a good laugh work wonders for motivation and results!")</p>
+            <p class="hidden mt-12 mb-0 max-w-[42rem] pl-[3.6rem] italic leading-[1.65] text-[#535353] md:pl-[4.25rem]">@Localizer["ApproachAside"]</p>
 
             <div class="mx-auto mt-[4.5rem] max-w-3xl border-t border-[#D8D3CC] pt-[4.5rem] opacity-0 translate-y-6 transition-[opacity,translate] duration-1000 ease-out" data-reveal>
-                <p class="public-eyebrow public-eyebrow-left my-0">@(isDutch ? "Waarom werkt dit?" : "Why this works")</p>
-                <p class="mt-5 mb-5 max-w-[42rem] leading-7 text-[#535353]">@(isDutch ? "We hebben zelf ons leven meerdere keren omgegooid: een ander land, een andere taal, een ander bestaan. Die ervaring gebruiken we als kompas in wat we doen, niet als anekdote. We weten hoe het voelt om ergens nieuw te zijn, te twijfelen, opnieuw te beginnen. En hoe goed het voelt als het lukt." : "We've overhauled our own lives more than once: a different country, a different language, a different existence. We use that experience as our compass in everything we do, not as an anecdote. We know what it feels like to be new somewhere, to doubt yourself, to start over. And how good it feels when it finally clicks.")</p>
-                <p class="m-0 max-w-[42rem] leading-7 text-[#535353]">@(isDutch ? "Of je nu Nederlands leert, aan je communicatie werkt, jezelf beter wilt leren kennen, of je team verder wilt helpen: onze werkwijze is overal hetzelfde. Persoonlijk, doeltreffend, en met humor waar het kan." : "Whether you're learning Dutch, working on your communication, want to get to know yourself better, or want to help your team move forward: our approach is the same everywhere. Personal, effective, and with humor wherever we can fit it in.")</p>
+                <p class="public-eyebrow public-eyebrow-left my-0">@Localizer["ApproachWhyEyebrow"]</p>
+                <p class="mt-5 mb-5 max-w-[42rem] leading-7 text-[#535353]">@Localizer["ApproachWhyParagraph1"]</p>
+                <p class="m-0 max-w-[42rem] leading-7 text-[#535353]">@Localizer["ApproachWhyParagraph2"]</p>
             </div>
 
             <div class="hidden mt-9 flex flex-wrap gap-4">
-                <a href="https://koalendar.com/e/meet-with-id" target="_blank" rel="noopener noreferrer" class="public-btn public-btn-primary">@(isDutch ? "Plan direct een gratis gesprek" : "Start with a free conversation") <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
-                <a asp-page="/contact" class="public-btn public-btn-outline">@(isDutch ? "Stuur een bericht" : "Send a message") <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+                <a href="https://koalendar.com/e/meet-with-id" target="_blank" rel="noopener noreferrer" class="public-btn public-btn-primary">@Localizer["ApproachConversationButton"] <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+                <a asp-page="/contact" asp-route-culture="@routeCulture" class="public-btn public-btn-outline">@Localizer["SendMessageButton"] <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
             </div>
         </div>
     </div>
@@ -164,62 +158,62 @@
 <section class="bg-[#FAFAF8] py-24 text-[#1A1A1A] md:py-36">
     <div class="public-container">
         <header class="mx-auto mb-14 max-w-3xl text-center opacity-0 translate-y-6 transition-[opacity,translate] duration-1000 ease-out" data-reveal>
-            <p class="public-eyebrow my-0">@(isDutch ? "Prijzen" : "Ways to learn")</p>
-            <h2 class="mx-auto mt-5 mb-0 max-w-2xl text-[clamp(2rem,5vw,3.6rem)] font-medium leading-tight text-[#071f3d] [font-family:var(--serif-heading)]">@(isDutch ? "Wat we aanbieden" : "Choose the support that fits you")</h2>
+            <p class="public-eyebrow my-0">@Localizer["LearningOptionsEyebrow"]</p>
+            <h2 class="mx-auto mt-5 mb-0 max-w-2xl text-[clamp(2rem,5vw,3.6rem)] font-medium leading-tight text-[#071f3d] [font-family:var(--serif-heading)]">@Localizer["LearningOptionsTitle"]</h2>
         </header>
         <div class="mx-auto grid max-w-6xl items-stretch gap-6 opacity-0 translate-y-6 transition-[opacity,translate] duration-1000 ease-out md:grid-cols-2 xl:grid-cols-4" data-reveal>
             <article class="relative flex h-full flex-col rounded-2xl border border-[#E8E4DF] bg-white px-6 py-8 shadow-[0_14px_40px_rgba(17,17,17,0.05)]">
-                <h3 class="m-0 mb-2 text-xl font-medium leading-[1.3] text-[#071f3d]">@(isDutch ? "Reguliere cursus" : "Regular course")</h3>
-                <p class="m-0 mb-7 text-sm leading-relaxed text-[#6B6B6B]">@(isDutch ? "Persoonlijk leren, helemaal afgestemd op jou." : "Personal learning, shaped around you.")</p>
-                <div class="mb-6 flex items-end justify-end"><span class="text-xl font-medium leading-tight text-[#1A1A1A]" style="font-family: var(--serif-heading);">@(isDutch ? "Prijs in overleg" : "Price on request")</span></div>
-                <a href="https://koalendar.com/e/meet-with-id" target="_blank" rel="noopener noreferrer" class="public-btn public-btn-outline min-h-12 w-full whitespace-nowrap px-3 text-xs">@(isDutch ? "Plan een gesprek" : "Book a conversation")</a>
+                <h3 class="m-0 mb-2 text-xl font-medium leading-[1.3] text-[#071f3d]">@Localizer["RegularCourseTitle"]</h3>
+                <p class="m-0 mb-7 text-sm leading-relaxed text-[#6B6B6B]">@Localizer["RegularCourseDescription"]</p>
+                <div class="mb-6 flex items-end justify-end"><span class="text-xl font-medium leading-tight text-[#1A1A1A]" style="font-family: var(--serif-heading);">@Localizer["RegularCoursePrice"]</span></div>
+                <a href="https://koalendar.com/e/meet-with-id" target="_blank" rel="noopener noreferrer" class="public-btn public-btn-outline min-h-12 w-full whitespace-nowrap px-3 text-xs">@Localizer["BookConversationButton"]</a>
                 <ul class="m-0 mt-8 grid list-none gap-2.5 border-t border-[#E8E4DF] p-0 pt-8 text-sm leading-[1.3] [&>li>i]:mt-[0.15rem] [&>li>i]:self-start [&>li>i]:leading-[1.3] text-[#535353]">
-                    <li class="flex gap-3"><i class="fa-solid fa-check text-xs text-[#B23A48]" aria-hidden="true"></i><span>@(isDutch ? "Privé of in een kleine groep" : "Private or small-group format")</span></li>
-                    <li class="flex gap-3"><i class="fa-solid fa-check text-xs text-[#B23A48]" aria-hidden="true"></i><span>@(isDutch ? "Jouw tempo en leerdoel" : "Your pace and learning goal")</span></li>
-                    <li class="flex gap-3"><i class="fa-solid fa-check text-xs text-[#B23A48]" aria-hidden="true"></i><span>@(isDutch ? "Van eerste woorden tot inburgering" : "From first words to integration")</span></li>
+                    <li class="flex gap-3"><i class="fa-solid fa-check text-xs text-[#B23A48]" aria-hidden="true"></i><span>@Localizer["RegularCourseFeature1"]</span></li>
+                    <li class="flex gap-3"><i class="fa-solid fa-check text-xs text-[#B23A48]" aria-hidden="true"></i><span>@Localizer["RegularCourseFeature2"]</span></li>
+                    <li class="flex gap-3"><i class="fa-solid fa-check text-xs text-[#B23A48]" aria-hidden="true"></i><span>@Localizer["RegularCourseFeature3"]</span></li>
                 </ul>
             </article>
             <article class="relative flex h-full flex-col rounded-2xl border border-[#E8E4DF] border-t-2 border-t-[#B23A48] bg-[#B23A48]/[0.06] px-6 py-8 shadow-[0_14px_40px_rgba(178,58,72,0.10)]">
-                <div class="absolute right-6 top-0 -translate-y-1/2 rounded-full bg-[#B23A48] px-3 py-1 text-xs font-medium uppercase tracking-[0.15em] text-white" style="font-family: var(--serif-label);">@(isDutch ? "Nieuw" : "New")</div>
-                <h3 class="m-0 mb-2 text-xl font-medium leading-[1.3] text-[#071f3d]">@(isDutch ? "DIY-cursus" : "DIY course")</h3>
-                <p class="m-0 mb-7 text-sm leading-relaxed text-[#6B6B6B]">@(isDutch ? "Zelfstandig leren, met begeleiding dichtbij." : "Independent learning, with guidance close by.")</p>
-                <div class="mb-6 flex items-end justify-end"><span class="text-3xl font-medium leading-none text-[#1A1A1A]" style="font-family: var(--serif-heading);">@(isDutch ? "€159" : "€149")</span></div>
-                <a href="@levelTestUrl" class="public-btn public-btn-primary min-h-12 w-full whitespace-nowrap px-3 text-xs">@(isDutch ? "Doe de gratis niveautest" : "Take the free level test")</a>
+                <div class="absolute right-6 top-0 -translate-y-1/2 rounded-full bg-[#B23A48] px-3 py-1 text-xs font-medium uppercase tracking-[0.15em] text-white" style="font-family: var(--serif-label);">@Localizer["NewLabel"]</div>
+                <h3 class="m-0 mb-2 text-xl font-medium leading-[1.3] text-[#071f3d]">@Localizer["DiyCourseTitle"]</h3>
+                <p class="m-0 mb-7 text-sm leading-relaxed text-[#6B6B6B]">@Localizer["DiyCourseDescription"]</p>
+                <div class="mb-6 flex items-end justify-end"><span class="text-3xl font-medium leading-none text-[#1A1A1A]" style="font-family: var(--serif-heading);">@Localizer["DiyCoursePrice"]</span></div>
+                <a href="@levelTestUrl" class="public-btn public-btn-primary min-h-12 w-full whitespace-nowrap px-3 text-xs">@Localizer["TakeLevelTestButton"]</a>
                 <ul class="m-0 mt-8 grid list-none gap-2.5 border-t border-[#E8E4DF] p-0 pt-8 text-sm leading-[1.3] [&>li>i]:mt-[0.15rem] [&>li>i]:self-start [&>li>i]:leading-[1.3] text-[#535353]">
-                    <li class="flex gap-3"><i class="fa-solid fa-check text-xs text-[#B23A48]" aria-hidden="true"></i><span>@(isDutch ? "10 lessen in 11 weken" : "10 lessons across 11 weeks")</span></li>
-                    <li class="flex gap-3"><i class="fa-solid fa-check text-xs text-[#B23A48]" aria-hidden="true"></i><span>@(isDutch ? "Van A1 naar A2 of A2 naar B1" : "A1 to A2 or A2 to B1")</span></li>
-                    <li class="flex gap-3"><i class="fa-solid fa-check text-xs text-[#B23A48]" aria-hidden="true"></i><span>@(isDutch ? "Direct contact met docent en groep" : "Direct access to teacher and peers")</span></li>
+                    <li class="flex gap-3"><i class="fa-solid fa-check text-xs text-[#B23A48]" aria-hidden="true"></i><span>@Localizer["DiyCourseFeature1"]</span></li>
+                    <li class="flex gap-3"><i class="fa-solid fa-check text-xs text-[#B23A48]" aria-hidden="true"></i><span>@Localizer["DiyCourseFeature2"]</span></li>
+                    <li class="flex gap-3"><i class="fa-solid fa-check text-xs text-[#B23A48]" aria-hidden="true"></i><span>@Localizer["DiyCourseFeature3"]</span></li>
                 </ul>
             </article>
-            @if (!isDutch)
+            @if (showExpandedLearningOptions)
             {
                 <article class="relative flex h-full flex-col rounded-2xl border border-[#E8E4DF] bg-white px-6 py-8 shadow-[0_14px_40px_rgba(17,17,17,0.05)]">
-                    <h3 class="m-0 mb-2 text-xl font-medium leading-[1.3] text-[#071f3d]">Speaking Course</h3>
-                    <p class="m-0 mb-7 text-sm leading-relaxed text-[#6B6B6B]">Build confidence to speak Dutch out loud.</p>
-                    <div class="mb-6 flex items-end justify-end"><span class="text-3xl font-medium leading-none text-[#1A1A1A]" style="font-family: var(--serif-heading);">€179</span></div>
-                    <a href="https://koalendar.com/e/meet-with-id" target="_blank" rel="noopener noreferrer" class="public-btn public-btn-outline min-h-12 w-full whitespace-nowrap px-3 text-xs">Book a conversation</a>
+                    <h3 class="m-0 mb-2 text-xl font-medium leading-[1.3] text-[#071f3d]">@Localizer["SpeakingCourseTitle"]</h3>
+                    <p class="m-0 mb-7 text-sm leading-relaxed text-[#6B6B6B]">@Localizer["SpeakingCourseDescription"]</p>
+                    <div class="mb-6 flex items-end justify-end"><span class="text-3xl font-medium leading-none text-[#1A1A1A]" style="font-family: var(--serif-heading);">@Localizer["SpeakingCoursePrice"]</span></div>
+                    <a href="https://koalendar.com/e/meet-with-id" target="_blank" rel="noopener noreferrer" class="public-btn public-btn-outline min-h-12 w-full whitespace-nowrap px-3 text-xs">@Localizer["BookConversationButton"]</a>
                     <ul class="m-0 mt-8 grid list-none gap-2.5 border-t border-[#E8E4DF] p-0 pt-8 text-sm leading-[1.3] [&>li>i]:mt-[0.15rem] [&>li>i]:self-start [&>li>i]:leading-[1.3] text-[#535353]">
-                        <li class="flex gap-3"><i class="fa-solid fa-check text-xs text-[#B23A48]" aria-hidden="true"></i><span>4 weeks, 8 lessons</span></li>
-                        <li class="flex gap-3"><i class="fa-solid fa-check text-xs text-[#B23A48]" aria-hidden="true"></i><span>Practice-led small groups</span></li>
-                        <li class="flex gap-3"><i class="fa-solid fa-check text-xs text-[#B23A48]" aria-hidden="true"></i><span>Starts from 4 participants</span></li>
+                        <li class="flex gap-3"><i class="fa-solid fa-check text-xs text-[#B23A48]" aria-hidden="true"></i><span>@Localizer["SpeakingCourseFeature1"]</span></li>
+                        <li class="flex gap-3"><i class="fa-solid fa-check text-xs text-[#B23A48]" aria-hidden="true"></i><span>@Localizer["SpeakingCourseFeature2"]</span></li>
+                        <li class="flex gap-3"><i class="fa-solid fa-check text-xs text-[#B23A48]" aria-hidden="true"></i><span>@Localizer["SpeakingCourseFeature3"]</span></li>
                     </ul>
                 </article>
                 <article class="relative flex h-full flex-col rounded-2xl border border-[#E8E4DF] bg-white px-6 py-8 shadow-[0_14px_40px_rgba(17,17,17,0.05)]">
-                    <h3 class="m-0 mb-2 text-xl font-medium leading-[1.3] text-[#071f3d]">Speed Class</h3>
-                    <p class="m-0 mb-7 text-sm leading-relaxed text-[#6B6B6B]">Exam prep for one targeted skill in a focused hour.</p>
-                    <div class="mb-6 flex items-end justify-end"><span class="text-3xl font-medium leading-none text-[#1A1A1A]" style="font-family: var(--serif-heading);">€49</span></div>
-                    <a href="https://koalendar.com/e/meet-with-id" target="_blank" rel="noopener noreferrer" class="public-btn public-btn-outline min-h-12 w-full whitespace-nowrap px-3 text-xs">Book a conversation</a>
+                    <h3 class="m-0 mb-2 text-xl font-medium leading-[1.3] text-[#071f3d]">@Localizer["SpeedClassTitle"]</h3>
+                    <p class="m-0 mb-7 text-sm leading-relaxed text-[#6B6B6B]">@Localizer["SpeedClassDescription"]</p>
+                    <div class="mb-6 flex items-end justify-end"><span class="text-3xl font-medium leading-none text-[#1A1A1A]" style="font-family: var(--serif-heading);">@Localizer["SpeedClassPrice"]</span></div>
+                    <a href="https://koalendar.com/e/meet-with-id" target="_blank" rel="noopener noreferrer" class="public-btn public-btn-outline min-h-12 w-full whitespace-nowrap px-3 text-xs">@Localizer["BookConversationButton"]</a>
                     <ul class="m-0 mt-8 grid list-none gap-2.5 border-t border-[#E8E4DF] p-0 pt-8 text-sm leading-[1.3] [&>li>i]:mt-[0.15rem] [&>li>i]:self-start [&>li>i]:leading-[1.3] text-[#535353]">
-                        <li class="flex gap-3"><i class="fa-solid fa-check text-xs text-[#B23A48]" aria-hidden="true"></i><span>Targeted exam preparation</span></li>
-                        <li class="flex gap-3"><i class="fa-solid fa-check text-xs text-[#B23A48]" aria-hidden="true"></i><span>Practical feedback</span></li>
-                        <li class="flex gap-3"><i class="fa-solid fa-check text-xs text-[#B23A48]" aria-hidden="true"></i><span>Clear next steps</span></li>
+                        <li class="flex gap-3"><i class="fa-solid fa-check text-xs text-[#B23A48]" aria-hidden="true"></i><span>@Localizer["SpeedClassFeature1"]</span></li>
+                        <li class="flex gap-3"><i class="fa-solid fa-check text-xs text-[#B23A48]" aria-hidden="true"></i><span>@Localizer["SpeedClassFeature2"]</span></li>
+                        <li class="flex gap-3"><i class="fa-solid fa-check text-xs text-[#B23A48]" aria-hidden="true"></i><span>@Localizer["SpeedClassFeature3"]</span></li>
                     </ul>
                 </article>
             }
         </div>
         <div class="mt-10 flex justify-center md:mt-12">
-            <a asp-page="/Pricing" class="inline-flex items-center gap-2 text-sm font-medium text-[#071F3D] no-underline transition-colors hover:text-[#B23A48] hover:no-underline focus:text-[#B23A48] focus:no-underline [font-family:var(--serif-label)]">
-                @(isDutch ? "Bekijk alle leeropties" : "Explore all learning options")
+            <a asp-page="/Pricing" asp-route-culture="@routeCulture" class="inline-flex items-center gap-2 text-sm font-medium text-[#071F3D] no-underline transition-colors hover:text-[#B23A48] hover:no-underline focus:text-[#B23A48] focus:no-underline [font-family:var(--serif-label)]">
+                @Localizer["ExploreLearningOptions"]
                 <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
             </a>
         </div>
@@ -229,45 +223,45 @@
 <section class="bg-[#FAFAF8] py-24 text-[#1A1A1A] md:py-36">
     <div class="public-container">
         <header class="mx-auto mb-14 max-w-[42rem] text-center opacity-0 translate-y-6 transition-[opacity,translate] duration-1000 ease-out" data-reveal>
-            <p class="public-eyebrow my-0">@(isDutch ? "Over ons" : "About us")</p>
-            <h2 class="mx-0 mt-5 mb-5 text-[clamp(2rem,5vw,3.6rem)] font-medium leading-tight text-[#071F3D] [font-family:var(--serif-heading)]">@(isDutch ? "Wie er achter iD! staan" : "Meet the people behind iD!")</h2>
-            <p class="mx-auto my-0 max-w-[37rem] text-[1.05rem] leading-[1.7] text-[#535353]">@(isDutch ? "Twee verschillende achtergronden, dezelfde nieuwsgierigheid naar mensen — en al ruim twaalf jaar elkaars klankbord." : "Two different backgrounds, the same curiosity about people — and each other's sounding board for more than twelve years.")</p>
+            <p class="public-eyebrow my-0">@Localizer["TeamEyebrow"]</p>
+            <h2 class="mx-0 mt-5 mb-5 text-[clamp(2rem,5vw,3.6rem)] font-medium leading-tight text-[#071F3D] [font-family:var(--serif-heading)]">@Localizer["TeamTitle"]</h2>
+            <p class="mx-auto my-0 max-w-[37rem] text-[1.05rem] leading-[1.7] text-[#535353]">@Localizer["TeamDescription"]</p>
         </header>
 
         <div class="opacity-0 translate-y-6 transition-[opacity,translate] duration-1000 ease-out" data-reveal data-team-carousel>
             <div class="flex gap-0 overflow-x-auto snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" data-team-track aria-live="polite">
                 <article class="relative block min-h-[44rem] min-w-0 flex-[0_0_100%] snap-start isolate after:pointer-events-none after:absolute after:inset-0 after:z-[1] after:bg-[linear-gradient(180deg,transparent_0%,rgba(250,250,248,0.72)_40%,#FAFAF8_58%)] md:min-h-[39rem] md:after:bg-[linear-gradient(90deg,transparent_0%,rgba(250,250,248,0.62)_38%,#FAFAF8_62%)]" id="home-person-dominique" data-team-profile aria-hidden="false">
-                    <p class="relative z-[2] m-0 text-[0.7rem] font-medium uppercase tracking-[0.3em] text-[#B23A48] [font-family:var(--serif-label)]">@(isDutch ? "Taal, communicatie & cultuur" : "Language, communication & culture")</p>
+                    <p class="relative z-[2] m-0 text-[0.7rem] font-medium uppercase tracking-[0.3em] text-[#B23A48] [font-family:var(--serif-label)]">@Localizer["DominiqueFocus"]</p>
                     <figure class="relative top-auto left-auto z-0 m-0 h-[22rem] w-full overflow-hidden bg-[#111821] opacity-[0.58] after:pointer-events-none after:absolute after:inset-0 after:content-[''] after:bg-[linear-gradient(180deg,transparent_40%,rgba(0,0,0,0.24)_100%)] md:absolute md:top-10 md:left-0 md:h-[31rem] md:w-[min(38vw,25rem)]">
-                        <img class="block size-full scale-[1.16] object-cover object-[28%_center]" src="~/images/aboutus.png" alt="@(isDutch ? "Dominique van iD!" : "Dominique from iD!")" loading="lazy" decoding="async" />
+                        <img class="block size-full scale-[1.16] object-cover object-[28%_center]" src="~/images/aboutus.png" alt="@Localizer["DominiqueImageAlt"]" loading="lazy" decoding="async" />
                     </figure>
                     <div class="relative z-[2] mx-6 -translate-y-9 md:absolute md:top-10 md:left-[clamp(8.5rem,34vw,22rem)] md:mx-0 md:flex md:h-[31rem] md:w-[min(calc(100%-13rem),30rem)] md:translate-y-0 md:flex-col md:justify-center">
                         <h3 class="m-0 text-[clamp(2rem,4.5vw,3rem)] font-semibold leading-[1.05] text-[#071F3D] [font-family:var(--serif-heading)]"><span class="block font-normal">Dominique</span> Heemels</h3>
                         <div class="mt-8 flex items-start gap-4 md:mt-[3.25rem] md:items-center md:gap-7">
-                            <a class="grid size-14 flex-none place-items-center rounded-full border border-[#535353] bg-transparent text-base leading-none text-[#535353] no-underline transition-transform duration-200 hover:scale-[1.07] hover:[&>i]:-rotate-45 focus-visible:scale-[1.07] focus-visible:[&>i]:-rotate-45 focus-visible:outline-2 focus-visible:outline-[#B23A48] focus-visible:outline-offset-3 md:size-20 md:text-[1.35rem]" asp-page="/about" aria-label="@(isDutch ? "Lees meer over Dominique en Patrick" : "Read more about Dominique and Patrick")"><i class="fa-solid fa-arrow-right-long block origin-center text-[#626262] transition-transform duration-200" aria-hidden="true"></i></a>
-                            <p class="m-0 max-w-[22rem] leading-[1.8] text-[#535353]">@(isDutch ? "Dominique studeerde taal, doceert taal en ontwikkelt programma's die mensen helpen zich vrijer uit te drukken. Haar leven onderweg door Europa maakt haar ervaring met een nieuwe taal en cultuur allesbehalve theoretisch." : "Dominique studied and teaches language, and creates programmes that help people express themselves more freely. Life on the road through Europe means her experience of new languages and cultures is anything but theoretical.")</p>
+                            <a class="grid size-14 flex-none place-items-center rounded-full border border-[#535353] bg-transparent text-base leading-none text-[#535353] no-underline transition-transform duration-200 hover:scale-[1.07] hover:[&>i]:-rotate-45 focus-visible:scale-[1.07] focus-visible:[&>i]:-rotate-45 focus-visible:outline-2 focus-visible:outline-[#B23A48] focus-visible:outline-offset-3 md:size-20 md:text-[1.35rem]" asp-page="/about" asp-route-culture="@routeCulture" aria-label="@Localizer["ReadAboutTeamLabel"]"><i class="fa-solid fa-arrow-right-long block origin-center text-[#626262] transition-transform duration-200" aria-hidden="true"></i></a>
+                            <p class="m-0 max-w-[22rem] leading-[1.8] text-[#535353]">@Localizer["DominiqueDescription"]</p>
                         </div>
                     </div>
                 </article>
 
                 <article class="relative block min-h-[44rem] min-w-0 flex-[0_0_100%] snap-start isolate after:pointer-events-none after:absolute after:inset-0 after:z-[1] after:bg-[linear-gradient(180deg,transparent_0%,rgba(250,250,248,0.72)_40%,#FAFAF8_58%)] md:min-h-[39rem] md:after:bg-[linear-gradient(90deg,transparent_0%,rgba(250,250,248,0.62)_38%,#FAFAF8_62%)]" id="home-person-patrick" data-team-profile aria-hidden="true">
-                    <p class="relative z-[2] m-0 text-[0.7rem] font-medium uppercase tracking-[0.3em] text-[#B23A48] [font-family:var(--serif-label)]">@(isDutch ? "Mensen, groei & het grotere plaatje" : "People, growth & the bigger picture")</p>
+                    <p class="relative z-[2] m-0 text-[0.7rem] font-medium uppercase tracking-[0.3em] text-[#B23A48] [font-family:var(--serif-label)]">@Localizer["PatrickFocus"]</p>
                     <figure class="relative top-auto left-auto z-0 m-0 h-[22rem] w-full overflow-hidden bg-[#111821] opacity-[0.58] after:pointer-events-none after:absolute after:inset-0 after:content-[''] after:bg-[linear-gradient(180deg,transparent_40%,rgba(0,0,0,0.24)_100%)] md:absolute md:top-10 md:left-0 md:h-[31rem] md:w-[min(38vw,25rem)]">
-                        <img class="block size-full scale-[1.16] object-cover object-[76%_center]" src="~/images/aboutus.png" alt="@(isDutch ? "Patrick van iD!" : "Patrick from iD!")" loading="lazy" decoding="async" />
+                        <img class="block size-full scale-[1.16] object-cover object-[76%_center]" src="~/images/aboutus.png" alt="@Localizer["PatrickImageAlt"]" loading="lazy" decoding="async" />
                     </figure>
                     <div class="relative z-[2] mx-6 -translate-y-9 md:absolute md:top-10 md:left-[clamp(8.5rem,34vw,22rem)] md:mx-0 md:flex md:h-[31rem] md:w-[min(calc(100%-13rem),30rem)] md:translate-y-0 md:flex-col md:justify-center">
                         <h3 class="m-0 text-[clamp(2rem,4.5vw,3rem)] font-semibold leading-[1.05] text-[#071F3D] [font-family:var(--serif-heading)]"><span class="block font-normal">Patrick</span> Stritzko</h3>
                         <div class="mt-8 flex items-start gap-4 md:mt-[3.25rem] md:items-center md:gap-7">
-                            <a class="grid size-14 flex-none place-items-center rounded-full border border-[#535353] bg-transparent text-base leading-none text-[#535353] no-underline transition-transform duration-200 hover:scale-[1.07] hover:[&>i]:-rotate-45 focus-visible:scale-[1.07] focus-visible:[&>i]:-rotate-45 focus-visible:outline-2 focus-visible:outline-[#B23A48] focus-visible:outline-offset-3 md:size-20 md:text-[1.35rem]" asp-page="/about" aria-label="@(isDutch ? "Lees meer over Dominique en Patrick" : "Read more about Dominique and Patrick")"><i class="fa-solid fa-arrow-right-long block origin-center text-[#626262] transition-transform duration-200" aria-hidden="true"></i></a>
-                            <p class="m-0 max-w-[22rem] leading-[1.8] text-[#535353]">@(isDutch ? "Patrick leerde in de horeca en internationale sales hoe mensen samenwerken, groeien en elkaar in beweging krijgen. Hij brengt scherpe observaties, humor en een feilloos oog voor wat er níét wordt gezegd." : "Through hospitality and international sales, Patrick learned how people work together, grow, and get moving. He brings sharp observations, humour, and an unfailing eye for what is not being said.")</p>
+                            <a class="grid size-14 flex-none place-items-center rounded-full border border-[#535353] bg-transparent text-base leading-none text-[#535353] no-underline transition-transform duration-200 hover:scale-[1.07] hover:[&>i]:-rotate-45 focus-visible:scale-[1.07] focus-visible:[&>i]:-rotate-45 focus-visible:outline-2 focus-visible:outline-[#B23A48] focus-visible:outline-offset-3 md:size-20 md:text-[1.35rem]" asp-page="/about" asp-route-culture="@routeCulture" aria-label="@Localizer["ReadAboutTeamLabel"]"><i class="fa-solid fa-arrow-right-long block origin-center text-[#626262] transition-transform duration-200" aria-hidden="true"></i></a>
+                            <p class="m-0 max-w-[22rem] leading-[1.8] text-[#535353]">@Localizer["PatrickDescription"]</p>
                         </div>
                     </div>
                 </article>
             </div>
 
-            <div class="mt-6 grid grid-cols-2 gap-[0.35rem]" role="tablist" aria-label="@(isDutch ? "Profielen van Dominique en Patrick" : "Profiles of Dominique and Patrick")">
-                <button class="group cursor-pointer border-0 bg-transparent px-0 py-2 focus-visible:outline-2 focus-visible:outline-[#B23A48] focus-visible:outline-offset-3" type="button" role="tab" aria-selected="true" aria-controls="home-person-dominique" data-team-indicator data-team-index="0" aria-label="@(isDutch ? "Toon profiel van Dominique" : "Show Dominique's profile")"><span class="block h-px w-full rounded-full bg-[#D8D3CC] transition-[height,background-color] duration-200 group-aria-selected:h-[3px] group-aria-selected:bg-[#B23A48]"></span></button>
-                <button class="group cursor-pointer border-0 bg-transparent px-0 py-2 focus-visible:outline-2 focus-visible:outline-[#B23A48] focus-visible:outline-offset-3" type="button" role="tab" aria-selected="false" aria-controls="home-person-patrick" data-team-indicator data-team-index="1" aria-label="@(isDutch ? "Toon profiel van Patrick" : "Show Patrick's profile")"><span class="block h-px w-full rounded-full bg-[#D8D3CC] transition-[height,background-color] duration-200 group-aria-selected:h-[3px] group-aria-selected:bg-[#B23A48]"></span></button>
+            <div class="mt-6 grid grid-cols-2 gap-[0.35rem]" role="tablist" aria-label="@Localizer["TeamProfilesLabel"]">
+                <button class="group cursor-pointer border-0 bg-transparent px-0 py-2 focus-visible:outline-2 focus-visible:outline-[#B23A48] focus-visible:outline-offset-3" type="button" role="tab" aria-selected="true" aria-controls="home-person-dominique" data-team-indicator data-team-index="0" aria-label="@Localizer["ShowDominiqueLabel"]"><span class="block h-px w-full rounded-full bg-[#D8D3CC] transition-[height,background-color] duration-200 group-aria-selected:h-[3px] group-aria-selected:bg-[#B23A48]"></span></button>
+                <button class="group cursor-pointer border-0 bg-transparent px-0 py-2 focus-visible:outline-2 focus-visible:outline-[#B23A48] focus-visible:outline-offset-3" type="button" role="tab" aria-selected="false" aria-controls="home-person-patrick" data-team-indicator data-team-index="1" aria-label="@Localizer["ShowPatrickLabel"]"><span class="block h-px w-full rounded-full bg-[#D8D3CC] transition-[height,background-color] duration-200 group-aria-selected:h-[3px] group-aria-selected:bg-[#B23A48]"></span></button>
             </div>
         </div>
     </div>
@@ -276,12 +270,12 @@
 <section class="relative overflow-hidden py-24 text-center text-white md:py-32 [background:radial-gradient(circle_at_18%_72%,rgba(237,27,47,0.18),transparent_22rem),linear-gradient(135deg,#071F3D_0%,#005190_52%,#008A98_100%)]">
     <div class="public-container">
         <div class="w-full opacity-0 translate-y-6 transition-[opacity,translate] duration-1000 ease-out" data-reveal>
-            <p class="public-eyebrow my-0 gap-0 text-[#F4C8CD] tracking-[0.2em] before:hidden after:hidden">@(isDutch ? "Jouw volgende stap" : "Your next step")</p>
-            <h2 class="mx-auto mt-5 mb-5 w-full max-w-3xl text-3xl font-medium leading-[1.15] text-white md:text-4xl lg:text-5xl [font-family:var(--serif-heading)]">@(isDutch ? "Ontdek waar je kunt beginnen" : "Find your starting point")</h2>
-            <p class="mx-auto mt-0 mb-12 w-full max-w-lg text-lg leading-relaxed text-[#FAFAF8]/70">@(isDutch ? "Met de gratis niveautest krijg je snel een helder beeld van waar je staat en wat je volgende stap kan zijn." : "The free level test gives you a clear picture of where you are now and what your next step could be.")</p>
+            <p class="public-eyebrow my-0 gap-0 text-[#F4C8CD] tracking-[0.2em] before:hidden after:hidden">@Localizer["NextStepEyebrow"]</p>
+            <h2 class="mx-auto mt-5 mb-5 w-full max-w-3xl text-3xl font-medium leading-[1.15] text-white md:text-4xl lg:text-5xl [font-family:var(--serif-heading)]">@Localizer["NextStepTitle"]</h2>
+            <p class="mx-auto mt-0 mb-12 w-full max-w-lg text-lg leading-relaxed text-[#FAFAF8]/70">@Localizer["NextStepDescription"]</p>
             <div class="flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-5">
-                <a class="public-btn public-btn-light border-[#B23A48] bg-[#B23A48] text-white shadow-[0_10px_24px_rgba(159,47,61,0.18)] hover:border-[#C84E5F] hover:bg-[#C84E5F] hover:text-white hover:shadow-[0_14px_30px_rgba(159,47,61,0.24)] focus:border-[#C84E5F] focus:bg-[#C84E5F] focus:text-white focus:shadow-[0_14px_30px_rgba(159,47,61,0.24)]" href="@levelTestUrl">@(isDutch ? "Doe de gratis niveautest" : "Take the free level test") <i class="fas fa-arrow-right"></i></a>
-                <a asp-page="/contact" class="public-btn public-btn-outline-light border-white/60 bg-white/[0.04] text-white/90 hover:border-white/90 hover:bg-white/[0.12] hover:text-white focus:border-white/90 focus:bg-white/[0.12] focus:text-white">@(isDutch ? "Stuur een bericht" : "Get in touch") <i class="fas fa-arrow-right"></i></a>
+                <a class="public-btn public-btn-light border-[#B23A48] bg-[#B23A48] text-white shadow-[0_10px_24px_rgba(159,47,61,0.18)] hover:border-[#C84E5F] hover:bg-[#C84E5F] hover:text-white hover:shadow-[0_14px_30px_rgba(159,47,61,0.24)] focus:border-[#C84E5F] focus:bg-[#C84E5F] focus:text-white focus:shadow-[0_14px_30px_rgba(159,47,61,0.24)]" href="@levelTestUrl">@Localizer["TakeLevelTestButton"] <i class="fas fa-arrow-right"></i></a>
+                <a asp-page="/contact" asp-route-culture="@routeCulture" class="public-btn public-btn-outline-light border-white/60 bg-white/[0.04] text-white/90 hover:border-white/90 hover:bg-white/[0.12] hover:text-white focus:border-white/90 focus:bg-white/[0.12] focus:text-white">@Localizer["NextStepContactButton"] <i class="fas fa-arrow-right"></i></a>
             </div>
         </div>
     </div>

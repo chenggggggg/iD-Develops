@@ -1,5 +1,6 @@
 @page "/payment-result"
 @model iD_Develops.Pages.PaymentResultModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<iD_Develops.Pages.PaymentResultModel> Localizer
 @{
     ViewData["Title"] = Model.ResultTitle;
     var hasDetails = Model.SessionDetails.IsSessionValid || Model.IsLocalSuccess;
@@ -11,7 +12,7 @@
             <i class="fa-solid @Model.ResultIcon" aria-hidden="true"></i>
         </div>
 
-        <p class="payment-result-kicker">Payment</p>
+        <p class="payment-result-kicker">@Localizer["PaymentLabel"]</p>
         <h1>@Model.ResultTitle</h1>
         <p class="payment-result-message">@Model.ResultMessage</p>
 
@@ -19,31 +20,31 @@
         {
             <dl class="payment-result-details">
                 <div>
-                    <dt>Product</dt>
+                    <dt>@Localizer["ProductLabel"]</dt>
                     <dd>@Model.SessionDetails.ProductName</dd>
                 </div>
                 <div>
-                    <dt>Quantity</dt>
+                    <dt>@Localizer["QuantityLabel"]</dt>
                     <dd>@Model.SessionDetails.Quantity</dd>
                 </div>
                 @if (Model.SessionDetails.AmountTotal > 0)
                 {
                     <div>
-                        <dt>Amount</dt>
+                        <dt>@Localizer["AmountLabel"]</dt>
                         <dd>@Model.SessionDetails.AmountTotal.ToString("C")</dd>
                     </div>
                 }
                 @if (!string.IsNullOrWhiteSpace(Model.SessionDetails.PaymentMethod))
                 {
                     <div>
-                        <dt>Payment method</dt>
+                        <dt>@Localizer["PaymentMethodLabel"]</dt>
                         <dd>@Model.SessionDetails.PaymentMethod</dd>
                     </div>
                 }
                 @if (!string.IsNullOrWhiteSpace(Model.SessionDetails.DateOfPurchase))
                 {
                     <div>
-                        <dt>Date</dt>
+                        <dt>@Localizer["DateLabel"]</dt>
                         <dd>@Model.SessionDetails.DateOfPurchase</dd>
                     </div>
                 }
@@ -53,16 +54,16 @@
         @if (Model.IsLocalSuccess)
         {
             <div class="payment-result-note">
-                Local environment: Stripe Checkout was bypassed.
+                @Localizer["LocalEnvironmentNote"]
             </div>
         }
 
         <div class="payment-result-actions">
-            <a asp-page="/Pricing" class="public-btn public-btn-primary">
-                Pricing <i class="fa-solid fa-arrow-right ps-2" aria-hidden="true"></i>
+            <a asp-page="/Pricing" asp-route-culture="@CultureInfo.CurrentCulture.Name.ToLowerInvariant()" class="public-btn public-btn-primary">
+                @Localizer["PricingButton"] <i class="fa-solid fa-arrow-right ps-2" aria-hidden="true"></i>
             </a>
-            <a asp-page="/Contact" class="public-btn public-btn-outline">
-                Contact support
+            <a asp-page="/Contact" asp-route-culture="@CultureInfo.CurrentCulture.Name.ToLowerInvariant()" class="public-btn public-btn-outline">
+                @Localizer["ContactSupportButton"]
             </a>
         </div>
     </div>

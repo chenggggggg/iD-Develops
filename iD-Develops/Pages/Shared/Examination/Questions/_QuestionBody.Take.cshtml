@@ -2,6 +2,7 @@
 @using iD_Develops.Pages.Shared.Examination.Questions
 @model QuestionShellModel
 @inject iD_Develops.Services.IStoragePublicUrlService StoragePublicUrlService
+@inject Microsoft.Extensions.Localization.IStringLocalizer<iD_Develops.Pages.Shared.Examination.Questions.QuestionShellModel> Localizer
 
 @{
     var question = Model.Question;
@@ -55,7 +56,7 @@
                         @if (hasHelpText)
                         {
                             <details class="take-help-details">
-                                <summary class="take-help-btn" aria-label="Question help">?</summary>
+                                <summary class="take-help-btn" aria-label="@Localizer["QuestionHelpLabel"]">?</summary>
                                 <div class="take-help-panel">
                                     @Html.Raw(question.MessageBeforeQuestion)
                                 </div>
@@ -67,7 +68,7 @@
                 @if (hasImage)
                 {
                     <div>
-                        <img src="@imageUrl" class="question-media-preview" alt="Question image" />
+                        <img src="@imageUrl" class="question-media-preview" alt="@Localizer["QuestionImageAlt"]" />
                     </div>
                 }
             </div>
@@ -133,14 +134,14 @@
                         }
                         else if (question is TrueOrFalseQuestion)
                         {
-                            <div class="question-boolean-group" role="group" aria-label="True or False answer">
+                            <div class="question-boolean-group" role="group" aria-label="@Localizer["TrueFalseAnswerLabel"]">
                                 <input class="question-choice-input" type="radio" name="answer"
                                        id="question@(question.QuestionNumber)_true" value="True" autocomplete="off" checked="@(normalizedSavedAnswer == "True")">
-                                <label class="question-boolean-label" for="question@(question.QuestionNumber)_true">True</label>
+                                <label class="question-boolean-label" for="question@(question.QuestionNumber)_true">@Localizer["TrueAnswer"]</label>
 
                                 <input class="question-choice-input" type="radio" name="answer"
                                        id="question@(question.QuestionNumber)_false" value="False" autocomplete="off" checked="@(normalizedSavedAnswer == "False")">
-                                <label class="question-boolean-label" for="question@(question.QuestionNumber)_false">False</label>
+                                <label class="question-boolean-label" for="question@(question.QuestionNumber)_false">@Localizer["FalseAnswer"]</label>
                             </div>
                         }
                     </div>

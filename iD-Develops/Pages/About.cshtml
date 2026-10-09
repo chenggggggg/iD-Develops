@@ -1,39 +1,34 @@
 @page
 @model AboutModel
-@using System.Globalization
+@inject IStringLocalizer<AboutModel> Localizer
 @{
-    var isDutch = CultureInfo.CurrentCulture.Name.Equals("nl-NL", StringComparison.OrdinalIgnoreCase);
-    ViewData["Title"] = isDutch ? "Over ons" : "About us";
-    ViewData["SeoTitle"] = isDutch ? null : "About iD! | Meet Patrick & Dominique";
-    ViewData["MetaDescription"] = isDutch ? null : "Meet Patrick and Dominique: two experienced guides who help people and organizations learn, grow, and communicate with more confidence.";
+    ViewData["Title"] = Localizer["Title"];
+    ViewData["SeoTitle"] = Localizer["SeoTitle"];
+    ViewData["MetaDescription"] = Localizer["MetaDescription"];
+    var originParagraph3 = Localizer["OriginParagraph3"].Value;
 }
 
 <section class="public-hero-page">
     <div class="public-container">
         <div class="public-hero-grid">
             <div>
-                <p class="public-eyebrow public-eyebrow-left">@(isDutch ? "Over ons" : "About us")</p>
-                <h1 class="public-hero-title mx-0">@(isDutch ? "Twee mensen, één missie" : "Two people, twelve years, one mission")</h1>
-                <p class="public-hero-copy mx-0">@(isDutch ? "Al zo’n twaalf jaar vormen wij, Dominique en Patrick, samen iD! — training & development. Twee mensen met verschillende achtergronden, dezelfde nieuwsgierigheid naar mensen, en een gedeelde overtuiging: iedereen verdient de kans om steviger, vrijer en met meer plezier in het leven te staan. Die scherpte in luisteren en doorvragen hebben we allebei; we zijn elkaars klankbord net zo goed als die van onze klanten." : "For over twelve years now, we — Patrick & Dominique — have been iD!, training & development. Two people with different backgrounds, the same curiosity about people, and a shared belief: everyone deserves the chance to stand a little steadier, a little freer, and with a little more joy in life. One of us does that mainly through language and non-verbal communication. The other through sharp questions and an unfailing sense of what's not being said. Actually — that sharpness in listening and probing, we both have it; we're just as much each other's sounding board as we are for the people we work with.")</p>
+                <p class="public-eyebrow public-eyebrow-left">@Localizer["Title"]</p>
+                <h1 class="public-hero-title mx-0">@Localizer["HeroTitle"]</h1>
+                <p class="public-hero-copy mx-0">@Localizer["HeroDescription"]</p>
             </div>
-            <div><img class="public-about-image" src="~/images/aboutus.png" alt="@(isDutch ? "Dominique en Patrick van iD!" : "Dominique and Patrick of iD!")" /></div>
+            <div><img class="public-about-image" src="~/images/aboutus.png" alt="@Localizer["HeroImageAlt"]" /></div>
         </div>
     </div>
 </section>
 
 <section class="public-section">
     <div class="public-container public-content-narrow mx-auto">
-        <p class="public-eyebrow public-eyebrow-left">@(isDutch ? "Waar we vandaan komen" : "Where we come from")</p>
-        @if (isDutch)
+        <p class="public-eyebrow public-eyebrow-left">@Localizer["OriginEyebrow"]</p>
+        <p class="public-copy">@Localizer["OriginParagraph1"]</p>
+        <p class="public-copy">@Localizer["OriginParagraph2"]</p>
+        @if (!string.IsNullOrWhiteSpace(originParagraph3))
         {
-            <p class="public-copy">Dominique studeerde taal, doceert taal, ontwikkelt taal- en communicatieprogramma’s en trok de wereld in om zelf te ondervinden hoe het voelt om de vreemdeling te zijn. Inmiddels reist ze in een busje door Europa, gedreven door een blijvende honger naar andere landen en culturen. Die manier van leven is geen decor: het is waar ze dagelijks ondervindt wat het is om nieuw te zijn, en het toch voor elkaar te krijgen.</p>
-            <p class="public-copy">Patrick begon in de horeca, waar hij leerde dat het geheim van een goede keuken niet in de ingrediënten zit, maar in de mensen die ermee werken. Daarna maakte hij de overstap naar sales, waar hij zijn scherpe blik op mensen en talent voor het grotere plaatje verder aanscherpte.</p>
-        }
-        else
-        {
-            <p class="public-copy">Dominique studied language and communication, teaches languages, develops language programs, and set off to see the world to find out what it's like to be the stranger yourself — the one standing at an Eastern European butcher's, gesturing wildly to explain what she needed for her dog. These days she travels through Europe in a van, driven by a lasting hunger for new countries, new cultures, and a life that doesn't feel too rooted. That way of living isn't just backdrop — it's how she experiences, first-hand and on a daily basis, what it means to be new or “different” somewhere, to not quite fit in right away, and still — through trial and error — to make it all work.</p>
-            <p class="public-copy">Patrick began his career in hospitality across various European countries, where he learned that the secret to a good kitchen isn't the ingredients but the people working with them. And also: working together and eating together brings people together! From there he moved into international sales and the corporate world, where he sharpened his eye for people even further, along with his knack for seeing the bigger picture. The love of travel, of spending time in other countries, and of connecting with people from different cultures — that's something he and Dominique share.</p>
-            <p class="public-copy">We've worked together in the Netherlands, Bahrain, Dubai and Sri Lanka, always following the same winning formula: where one of us tends to disappear into the details, the other effortlessly holds onto the bigger picture.</p>
+            <p class="public-copy">@originParagraph3</p>
         }
     </div>
 </section>
@@ -42,34 +37,22 @@
     <div class="public-container">
         <div class="public-two-column">
             <div>
-                <p class="public-eyebrow public-eyebrow-left">@(isDutch ? "Samen" : "Together")</p>
-                <h2 class="public-section-title">@(isDutch ? "Ingewikkelde materie behapbaar maken" : "Making complicated matters manageable")</h2>
+                <p class="public-eyebrow public-eyebrow-left">@Localizer["TogetherEyebrow"]</p>
+                <h2 class="public-section-title">@Localizer["TogetherTitle"]</h2>
             </div>
-            @if (isDutch)
-            {
-                <p class="public-copy">Die combinatie van scherpte en overzicht hebben we ook professioneel ingezet: we ontwikkelden wereldwijd trainingsmateriaal voor een fabrikant van complexe machines, zodat technici het in hun eigen taal en tempo konden begrijpen. Een mooi bewijs dat we ingewikkelde materie behapbaar kunnen maken. We werken het liefst met mensen en organisaties die geloven dat aandacht voor elkaar en resultaat prima hand in hand kunnen gaan.</p>
-            }
-            else
-            {
-                <p class="public-copy">That combination of sharpness and overview, of perfectionism and the ability to not take things too seriously, is exactly what we've brought into our professional work. Among other things, we developed global training materials for complex machinery, so that both machine operators and technicians could understand it in their own language and at their own pace — solid proof that we know how to make complicated things digestible. We love working with people and organisations who, like us, believe that caring about each other and caring about results can go hand in hand perfectly well.</p>
-            }
+            <p class="public-copy">@Localizer["TogetherDescription"]</p>
         </div>
     </div>
 </section>
 
 <section class="public-section">
     <div class="public-container public-content-narrow mx-auto">
-        <p class="public-eyebrow public-eyebrow-left">@(isDutch ? "Waar we voor staan" : "What we stand for")</p>
-        @if (isDutch)
-        {
-            <p class="public-copy">iD! staat voor identiteit. Want daar draait het uiteindelijk om: wie ben je, wie wil je zijn, en hoe kom je daar? In een nieuwe taal, een nieuwe baan, een nieuw land, of gewoon een nieuw hoofdstuk van jezelf.</p>
-            <p class="public-copy">We geloven in verbinding boven afstand, eerlijkheid boven beleefde vaagheid, en humor als beste gereedschap om iets moeilijks bespreekbaar te maken. We nemen jouw vraagstuk serieus — onszelf soms iets minder. Delen is vermenigvuldigen. En dat geloven we net zo hard over helen.</p>
-        }
-        else
-        {
-            <p class="public-copy">iD! stands for identity — and, not entirely by accident, also a little bit for “I”. Because that's really what it all comes down to: who are you, who do you want to be, and how do you get there? Whether that's in a new language, a new job, a new country, or simply a new chapter of yourself.</p>
-            <p class="public-copy">We believe in connection over distance, in honesty over polite vagueness, and in humour as the best tool for making something difficult easier to talk about, or for taking the edge off tension. We always take your questions seriously — ourselves, a little less so. Sharing is multiplying, that's what we believe. And honestly, we believe just as strongly in healing.</p>
-        }
-        <div class="public-actions justify-start"><a href="https://koalendar.com/e/meet-with-id" target="_blank" rel="noopener noreferrer" class="public-btn public-btn-primary">@(isDutch ? "Plan een gesprek" : "Ready to meet us?") <i class="fas fa-arrow-right"></i></a><a asp-page="/contact" class="public-btn public-btn-outline">@(isDutch ? "Neem contact op" : "Get in touch") <i class="fas fa-arrow-right"></i></a></div>
+        <p class="public-eyebrow public-eyebrow-left">@Localizer["ValuesEyebrow"]</p>
+        <p class="public-copy">@Localizer["ValuesParagraph1"]</p>
+        <p class="public-copy">@Localizer["ValuesParagraph2"]</p>
+        <div class="public-actions justify-start">
+            <a href="https://koalendar.com/e/meet-with-id" target="_blank" rel="noopener noreferrer" class="public-btn public-btn-primary">@Localizer["ScheduleConversation"] <i class="fas fa-arrow-right"></i></a>
+            <a asp-page="/contact" asp-route-culture="@CultureInfo.CurrentCulture.Name.ToLowerInvariant()" class="public-btn public-btn-outline">@Localizer["ContactButton"] <i class="fas fa-arrow-right"></i></a>
+        </div>
     </div>
 </section>
