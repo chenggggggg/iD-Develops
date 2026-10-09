@@ -124,6 +124,31 @@ public sealed class PortalEntitlementSmokeTests : Microsoft.Playwright.Xunit.Pag
     }
 
     [Fact]
+    public async Task PublicHome_DefersServiceCardImagesWithoutHidingTheGrid()
+    {
+        var response = await Page.GotoAsync(
+            $"{PublicBaseUrl}/en-us/",
+            new Microsoft.Playwright.PageGotoOptions { WaitUntil = Microsoft.Playwright.WaitUntilState.DOMContentLoaded });
+
+        Assert.NotNull(response);
+        Assert.True(response!.Ok, $"Home returned HTTP {response.Status}.");
+
+        var servicesGrid = Page.Locator("[data-services-grid]");
+        await Expect(servicesGrid).ToBeVisibleAsync();
+        await Expect(servicesGrid).Not.ToHaveAttributeAsync("data-reveal", new System.Text.RegularExpressions.Regex(".+"));
+
+        var serviceImages = servicesGrid.Locator("[data-service-image]");
+        await Expect(serviceImages).ToHaveCountAsync(4);
+        for (var index = 0; index < 4; index++)
+        {
+            var image = serviceImages.Nth(index);
+            await Expect(image).ToHaveAttributeAsync("loading", "lazy");
+            await Expect(image).ToHaveAttributeAsync("decoding", "async");
+            await Expect(image).ToHaveAttributeAsync("fetchpriority", "low");
+        }
+    }
+
+    [Fact]
     public async Task PublicNavigation_PreservesDutchCultureAcrossPages()
     {
         var response = await Page.GotoAsync(
