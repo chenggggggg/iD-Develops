@@ -1,0 +1,86 @@
+@using iD_Develops.Enums
+@model iD_Develops.Pages.Portal.Admin.Products.ProductAdminTab
+
+<div class="portal-table-wrap">
+    <table class="portal-exams-table">
+        <caption class="sr-only">@Model.Label products</caption>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Price</th>
+                <th>Slug</th>
+                <th class="portal-table-cell-end">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (Model.Products.Count == 0)
+        {
+            <tr>
+                <td colspan="5" class="portal-empty-table-cell">No products in this category.</td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var product in Model.Products)
+            {
+                var productName = iD_Develops.Pages.ProductModel.IsDraftPlaceholderName(product.Name)
+                    ? "Untitled product"
+                    : product.Name;
+                var statusClass = product.Status switch
+                {
+                    CatalogProductStatus.Published => "catalog-status-pill catalog-status-published",
+                    CatalogProductStatus.Archived => "catalog-status-pill catalog-status-archived",
+                    _ => "catalog-status-pill catalog-status-draft"
+                };
+                <tr data-product-id="@product.Id">
+                    <td>
+                        <div class="portal-exam-name">@productName</div>
+                        <div class="product-list-badges">
+                            <span class="catalog-type-pill">@IndexModel.ProductTypeBadgeLabel(product.ProductType)</span>
+                        </div>
+                    </td>
+                    <td><span class="@statusClass">@product.Status</span></td>
+                    <td>@(product.DisplayPrice.HasValue ? product.DisplayPrice.Value.ToString("C") : "-")</td>
+                    <td><code>@product.Slug</code></td>
+                    <td class="portal-table-cell-end">
+                        <div class="product-list-actions">
+                            @if (product.ProductType == CatalogProductType.FreeDownload)
+                            {
+                                <a class="portal-btn portal-btn-outline portal-btn-sm" asp-route="PortalFreeDownloadsEdit">
+                                    <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>Edit
+                                </a>
+                            }
+                            else
+                            {
+                                <a class="portal-btn portal-btn-outline portal-btn-sm" asp-route="PortalProductEdit" asp-route-slug="@product.Slug">
+                                    <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>Edit
+                                </a>
+                            }
+
+                            @if (product.Status == CatalogProductStatus.Archived)
+                            {
+                                <form method="post" asp-page-handler="Restore" asp-route-id="@product.Id" class="m-0">
+                                    <input type="hidden" name="returnTab" value="@Model.Key" />
+                                    <button type="submit" class="portal-btn portal-btn-outline portal-btn-sm">
+                                        <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>Draft
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form method="post" asp-page-handler="Archive" asp-route-id="@product.Id" class="m-0">
+                                    <input type="hidden" name="returnTab" value="@Model.Key" />
+                                    <button type="submit" class="portal-btn portal-btn-outline portal-btn-sm">
+                                        <i class="fa-solid fa-box-archive" aria-hidden="true"></i>Archive
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            }
+        }
+        </tbody>
+    </table>
+</div>

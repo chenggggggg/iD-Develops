@@ -191,6 +191,36 @@ namespace iD_Develops.Pages
             return RedirectToEditor();
         }
 
+        public async Task<IActionResult> OnPostSetStatusAsync(
+            int id,
+            CatalogProductStatus status,
+            CancellationToken ct)
+        {
+            if (!CanManageProducts())
+            {
+                return Forbid();
+            }
+
+            if (status is not (CatalogProductStatus.Draft or CatalogProductStatus.Archived))
+            {
+                return BadRequest();
+            }
+
+            var product = await _catalogProductService.GetProductByIdAsync(id, ct);
+            if (product == null || product.ProductType != CatalogProductType.FreeDownload)
+            {
+                return NotFound();
+            }
+
+            product.Status = status;
+            await _catalogProductService.UpdateProductAsync(product, ct);
+
+            TempData["StatusMessage"] = status == CatalogProductStatus.Draft
+                ? "Download moved to draft."
+                : "Download archived.";
+            return RedirectToEditor();
+        }
+
         public async Task<IActionResult> OnPostCreateImageUploadAsync(int id, string fileName, string? contentType, long fileSize, CancellationToken ct)
         {
             if (!CanManageProducts())

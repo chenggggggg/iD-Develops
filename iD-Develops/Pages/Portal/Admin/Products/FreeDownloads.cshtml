@@ -143,16 +143,54 @@
                                     </div>
                                 </form>
                             </div>
-                            <div class="flex items-center justify-between gap-2 bg-white px-6 pb-6">
-                                <button type="submit" form="@saveFormId" class="public-btn public-btn-primary" data-save-button data-save-label="@saveButtonLabel" data-save-icon="@saveButtonIcon">
-                                    <i class="@saveButtonIcon" aria-hidden="true"></i>@saveButtonLabel
-                                </button>
-                                <form method="post" asp-page-handler="Delete" asp-route-id="@download.Id" class="m-0">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="public-btn public-btn-outline free-download-delete-button" aria-label="Delete download">
-                                        <i class="fa-solid fa-trash" aria-hidden="true"></i>
-                                    </button>
-                                </form>
+                            <div class="flex flex-wrap items-center justify-between gap-2 bg-white px-6 pb-6">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    @if (download.Status == CatalogProductStatus.Archived)
+                                    {
+                                        <form method="post" asp-page-handler="SetStatus" asp-route-id="@download.Id" class="m-0">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="status" value="@CatalogProductStatus.Draft" />
+                                            <button type="submit" class="public-btn public-btn-outline">
+                                                <i class="fa-solid fa-file-lines" aria-hidden="true"></i>Move to draft
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <button type="submit" form="@saveFormId" class="public-btn public-btn-primary" data-save-button data-save-label="@saveButtonLabel" data-save-icon="@saveButtonIcon">
+                                            <i class="@saveButtonIcon" aria-hidden="true"></i>@saveButtonLabel
+                                        </button>
+
+                                        @if (download.Status == CatalogProductStatus.Published)
+                                        {
+                                            <form method="post" asp-page-handler="SetStatus" asp-route-id="@download.Id" class="m-0">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="status" value="@CatalogProductStatus.Draft" />
+                                                <button type="submit" class="public-btn public-btn-outline">
+                                                    <i class="fa-solid fa-file-lines" aria-hidden="true"></i>Draft
+                                                </button>
+                                            </form>
+                                        }
+                                    }
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    @if (download.Status != CatalogProductStatus.Archived)
+                                    {
+                                        <form method="post" asp-page-handler="SetStatus" asp-route-id="@download.Id" class="m-0">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="status" value="@CatalogProductStatus.Archived" />
+                                            <button type="submit" class="public-btn public-btn-outline" aria-label="Archive download">
+                                                <i class="fa-solid fa-box-archive" aria-hidden="true"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@download.Id" class="m-0">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="public-btn public-btn-outline free-download-delete-button" aria-label="Delete download">
+                                            <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         </article>
                     }

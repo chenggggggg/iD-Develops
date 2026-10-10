@@ -5,18 +5,10 @@
 @{
     Layout = "_PortalLayout";
     ViewData["Title"] = "Products";
+    var currentProductCount = Model.Products.Count(product => product.Status != CatalogProductStatus.Archived);
     var publishedProductCount = Model.Products.Count(product => product.Status == CatalogProductStatus.Published);
     var draftProductCount = Model.Products.Count(product => product.Status == CatalogProductStatus.Draft);
-
-    static string ProductTypeBadgeLabel(CatalogProductType productType)
-        => productType switch
-        {
-            CatalogProductType.FreeDownload => "Free Download",
-            CatalogProductType.Booking or CatalogProductType.ExternalBooking or CatalogProductType.BookingAddOn => "Booking",
-            CatalogProductType.Signup or CatalogProductType.Enrollment => "Signup",
-            CatalogProductType.Credit => "Credit",
-            _ => "Standard"
-        };
+    var archivedProductCount = Model.Products.Count(product => product.Status == CatalogProductStatus.Archived);
 }
 
 <section class="portal-page-shell portal-data-page">
@@ -42,95 +34,45 @@
     }
 
     <div class="mb-4 grid flex-none gap-3 sm:grid-cols-3" aria-label="Product overview">
-        <article class="flex items-center gap-3 rounded-lg border border-[#dfe5ec] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(2,7,47,0.04)]"><span class="grid size-9 flex-none place-items-center rounded-md bg-[#eaf3fa] text-[#005190]" aria-hidden="true"><i class="fa-solid fa-boxes-stacked"></i></span><span><span class="block text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[#64748b]">Products</span><strong class="block text-xl font-semibold leading-tight text-[#071f3d]">@Model.Products.Count</strong></span></article>
+        <article class="flex items-center gap-3 rounded-lg border border-[#dfe5ec] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(2,7,47,0.04)]"><span class="grid size-9 flex-none place-items-center rounded-md bg-[#eaf3fa] text-[#005190]" aria-hidden="true"><i class="fa-solid fa-boxes-stacked"></i></span><span><span class="block text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[#64748b]">Current products</span><strong class="block text-xl font-semibold leading-tight text-[#071f3d]">@currentProductCount</strong></span></article>
         <article class="flex items-center gap-3 rounded-lg border border-[#dfe5ec] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(2,7,47,0.04)]"><span class="grid size-9 flex-none place-items-center rounded-md bg-[#eef6f4] text-[#287a55]" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span><span><span class="block text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[#64748b]">Published</span><strong class="block text-xl font-semibold leading-tight text-[#071f3d]">@publishedProductCount</strong></span></article>
         <article class="flex items-center gap-3 rounded-lg border border-[#dfe5ec] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(2,7,47,0.04)]"><span class="grid size-9 flex-none place-items-center rounded-md bg-[#f7eff1] text-[#B23A48]" aria-hidden="true"><i class="fa-solid fa-pen-ruler"></i></span><span><span class="block text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[#64748b]">Drafts</span><strong class="block text-xl font-semibold leading-tight text-[#071f3d]">@draftProductCount</strong></span></article>
     </div>
 
-    <div class="mb-2 flex flex-none items-end justify-between gap-4"><div><p class="m-0 text-sm font-semibold text-[#071f3d]">Product catalogue</p><p class="m-0 text-xs text-[#64748b]">Edit publication status, pricing, and product content.</p></div><span class="text-xs font-medium text-[#64748b]">@Model.Products.Count total</span></div>
+    <div class="mb-2 flex flex-none items-end justify-between gap-4"><div><p class="m-0 text-sm font-semibold text-[#071f3d]">Product catalogue</p><p class="m-0 text-xs text-[#64748b]">Edit publication status, pricing, and product content.</p></div><span class="text-xs font-medium text-[#64748b]">@currentProductCount current · @archivedProductCount archived</span></div>
 
-    <div class="portal-table-card">
-        <div class="portal-table-wrap">
-        <table class="portal-exams-table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Status</th>
-                    <th>Price</th>
-                    <th>Slug</th>
-                    <th class="portal-table-cell-end">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-            @if (Model.Products.Count == 0)
-            {
-                <tr>
-                    <td colspan="5" class="portal-empty-table-cell">No products created yet.</td>
-                </tr>
-            }
-            else
-            {
-                @foreach (var product in Model.Products)
-                {
-                    var productName = iD_Develops.Pages.ProductModel.IsDraftPlaceholderName(product.Name)
-                        ? "Untitled product"
-                        : product.Name;
-                    var statusClass = product.Status switch
-                    {
-                        iD_Develops.Enums.CatalogProductStatus.Published => "catalog-status-pill catalog-status-published",
-                        iD_Develops.Enums.CatalogProductStatus.Archived => "catalog-status-pill catalog-status-archived",
-                        _ => "catalog-status-pill catalog-status-draft"
-                    };
-                    <tr>
-                        <td>
-                            <div class="portal-exam-name">@productName</div>
-                            <div class="product-list-badges">
-                                <span class="catalog-type-pill">@ProductTypeBadgeLabel(product.ProductType)</span>
-                            </div>
-                        </td>
-                        <td><span class="@statusClass">@product.Status</span></td>
-                        <td>@(product.DisplayPrice.HasValue ? product.DisplayPrice.Value.ToString("C") : "-")</td>
-                        <td><code>@product.Slug</code></td>
-                        <td class="portal-table-cell-end">
-                            <div class="product-list-actions">
-                                @if (product.ProductType == iD_Develops.Enums.CatalogProductType.FreeDownload)
-                                {
-                                    <a class="portal-btn portal-btn-outline portal-btn-sm" asp-route="PortalFreeDownloadsEdit">
-                                        <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>Edit
-                                    </a>
-                                }
-                                else
-                                {
-                                    <a class="portal-btn portal-btn-outline portal-btn-sm" asp-route="PortalProductEdit" asp-route-slug="@product.Slug">
-                                        <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>Edit
-                                    </a>
-                                }
-
-                                @if (product.Status == iD_Develops.Enums.CatalogProductStatus.Archived)
-                                {
-                                    <form method="post" asp-page-handler="Restore" asp-route-id="@product.Id" class="m-0">
-                                        <button type="submit" class="portal-btn portal-btn-outline portal-btn-sm">
-                                            <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>Draft
-                                        </button>
-                                    </form>
-                                }
-                                else
-                                {
-                                    <form method="post" asp-page-handler="Archive" asp-route-id="@product.Id" class="m-0">
-                                        <button type="submit" class="portal-btn portal-btn-outline portal-btn-sm">
-                                            <i class="fa-solid fa-box-archive" aria-hidden="true"></i>Archive
-                                        </button>
-                                    </form>
-                                }
-                            </div>
-                        </td>
-                    </tr>
-                }
-            }
-            </tbody>
-        </table>
-        </div>
+    <div class="mb-3 flex flex-none gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Product categories" data-product-list-tabs>
+        @foreach (var tab in Model.ProductTabs)
+        {
+            var isActive = tab.Key == Model.ActiveTabKey;
+            <button type="button"
+                    id="product-tab-@tab.Key"
+                    role="tab"
+                    aria-selected="@(isActive ? "true" : "false")"
+                    aria-controls="product-panel-@tab.Key"
+                    tabindex="@(isActive ? "0" : "-1")"
+                    class="group inline-flex shrink-0 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 aria-selected:border-[#005190] aria-selected:bg-[#005190] aria-selected:text-white"
+                    data-product-list-tab
+                    data-product-list-target="product-panel-@tab.Key"
+                    data-product-list-key="@tab.Key">
+                <span>@tab.Label</span>
+                <span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-500 group-aria-selected:bg-white/20 group-aria-selected:text-white">@tab.Products.Count</span>
+            </button>
+        }
     </div>
+
+    @foreach (var tab in Model.ProductTabs)
+    {
+        var isActive = tab.Key == Model.ActiveTabKey;
+        <section id="product-panel-@tab.Key"
+                 class="portal-table-card"
+                 role="tabpanel"
+                 aria-labelledby="product-tab-@tab.Key"
+                 data-product-list-panel
+                 hidden="@(!isActive)">
+            <partial name="_ProductTable" model="tab" />
+        </section>
+    }
 </section>
 
 <div class="portal-dialog-backdrop" data-portal-dialog-backdrop="productTemplateModal" hidden></div>
@@ -167,3 +109,7 @@
             </div>
         </div>
 </div>
+
+@section Scripts {
+    <script src="~/js/product-admin-list.js" asp-append-version="true"></script>
+}
