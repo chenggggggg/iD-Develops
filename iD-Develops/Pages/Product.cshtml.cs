@@ -86,6 +86,7 @@ namespace iD_Develops.Pages
             int? inviteUseId = null,
             bool resumeCheckout = false,
             string? portalAccess = null,
+            bool preview = false,
             CancellationToken ct = default)
         {
             var isEditorRequest = IsProductEditorRequest();
@@ -107,8 +108,8 @@ namespace iD_Develops.Pages
             }
 
             Product = product;
-            IsPreviewMode = isEditorRequest && product.Status != CatalogProductStatus.Published;
-            IsAdminEditMode = isEditorRequest;
+            IsPreviewMode = isEditorRequest && (preview || product.Status != CatalogProductStatus.Published);
+            IsAdminEditMode = isEditorRequest && !preview;
             AccessToken = access;
 
             if (!IsPreviewMode && product.RequireAccessToken)

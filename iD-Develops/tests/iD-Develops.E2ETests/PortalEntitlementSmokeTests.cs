@@ -72,6 +72,16 @@ public sealed class PortalEntitlementSmokeTests : Microsoft.Playwright.Xunit.Pag
     }
 
     [Fact]
+    public async Task ProductPreview_IsProtectedByPortalLogin()
+    {
+        await Page.GotoAsync(
+            $"{PortalBaseUrl}/products/example/edit?preview=true",
+            new Microsoft.Playwright.PageGotoOptions { WaitUntil = Microsoft.Playwright.WaitUntilState.DOMContentLoaded });
+
+        Assert.StartsWith($"{PortalBaseUrl}/login", Page.Url, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public async Task PortalHome_UsesPortalModuleAndRequiresAuthentication()
     {
         await Page.GotoAsync(

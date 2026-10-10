@@ -1,4 +1,5 @@
 @inject IViewLocalizer localizer
+@inject iD_Develops.Services.IApplicationUrlService ApplicationUrls
 @using System.Globalization
 
 @{
@@ -10,6 +11,9 @@
 
     var requestPath = Context?.Request?.Path.Value ?? string.Empty;
     var usePublicNavigation = ViewData["UsePublicNavigation"] as bool? == true;
+    var useAbsolutePublicLinks = usePublicNavigation
+        && Context?.Request is { } currentRequest
+        && ApplicationUrls.IsPortalRequest(currentRequest);
     var isPortalPage = !usePublicNavigation
         && currentPage.StartsWith("/Portal", StringComparison.OrdinalIgnoreCase);
     var isHomePage = currentPage.Equals("/Index", StringComparison.OrdinalIgnoreCase)
@@ -27,6 +31,12 @@
         ? $"{ViewData["Title"]} | iD! Training & Development"
         : seoTitle;
     var metaDescription = ViewData["MetaDescription"]?.ToString();
+
+    string PublicPageHref(string page)
+    {
+        var relativeUrl = Url.Page(page, values: new { culture = routeCulture }) ?? $"/{routeCulture}/";
+        return useAbsolutePublicLinks ? ApplicationUrls.PublicUrl(relativeUrl) : relativeUrl;
+    }
 }
 
 <!DOCTYPE html>
@@ -54,7 +64,7 @@
         <header class="public-header @(isHomePage ? "!fixed" : string.Empty) opacity-0 -translate-y-full transition-[opacity,translate] duration-1000 ease-out" data-reveal="load">
             <div class="public-container">
                 <nav class="public-nav" aria-label="@localizer["Nav_Menu"]">
-                    <a class="public-nav-brand" asp-page="/index" asp-route-culture="@routeCulture">
+                    <a class="public-nav-brand" href="@PublicPageHref("/index")">
                         <img src="@logoImage" class="public-nav-logo @logoThemeClass logo-image" alt="Logo" />
                     </a>
                     <button class="public-menu-toggle" type="button" data-public-menu-toggle aria-controls="sidebarMenu" aria-expanded="false" aria-label="@localizer["Nav_Toggle"]">
@@ -66,17 +76,17 @@
                                 <div class="group relative flex h-16 items-center" data-services-menu data-open="false">
                                     <button class="public-nav-link border-0 bg-transparent p-0" type="button" aria-expanded="false" aria-controls="services-menu" data-services-toggle>@localizer["Nav_Services"] <i class="fa-solid fa-chevron-down transition-transform duration-200 group-hover:rotate-180 group-focus-within:rotate-180 group-data-[open=true]:rotate-180" aria-hidden="true"></i></button>
                                     <ul class="pointer-events-none absolute -left-4 top-full z-50 m-0 grid min-w-64 origin-top scale-y-95 list-none border border-[var(--serif-border)] bg-[#FAFAF8]/[0.98] px-4 py-[0.65rem] opacity-0 transition-[opacity,transform] duration-[180ms] ease-out group-hover:pointer-events-auto group-hover:scale-y-100 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:scale-y-100 group-focus-within:opacity-100 group-data-[open=true]:pointer-events-auto group-data-[open=true]:scale-y-100 group-data-[open=true]:opacity-100" id="services-menu" data-services-panel>
-                                        <li><a class="block px-0 py-[0.55rem] text-left text-xs font-light uppercase tracking-[0.1em] text-[#6B6B6B] no-underline transition-colors hover:text-[#1A1A1A] hover:no-underline focus:text-[#1A1A1A] focus:no-underline [font-family:var(--serif-label)]" asp-page="/nt2-integration" asp-route-culture="@routeCulture">@localizer["Footer_Nt2Integration"]</a></li>
-                                        <li><a class="block px-0 py-[0.55rem] text-left text-xs font-light uppercase tracking-[0.1em] text-[#6B6B6B] no-underline transition-colors hover:text-[#1A1A1A] hover:no-underline focus:text-[#1A1A1A] focus:no-underline [font-family:var(--serif-label)]" asp-page="/personal-development" asp-route-culture="@routeCulture">@localizer["Footer_PersonalDevelopment"]</a></li>
-                                        <li><a class="block px-0 py-[0.55rem] text-left text-xs font-light uppercase tracking-[0.1em] text-[#6B6B6B] no-underline transition-colors hover:text-[#1A1A1A] hover:no-underline focus:text-[#1A1A1A] focus:no-underline [font-family:var(--serif-label)]" asp-page="/Language-And-Communication/Index" asp-route-culture="@routeCulture">@localizer["Footer_LanguageCommunication"]</a></li>
+                                        <li><a class="block px-0 py-[0.55rem] text-left text-xs font-light uppercase tracking-[0.1em] text-[#6B6B6B] no-underline transition-colors hover:text-[#1A1A1A] hover:no-underline focus:text-[#1A1A1A] focus:no-underline [font-family:var(--serif-label)]" href="@PublicPageHref("/nt2-integration")">@localizer["Footer_Nt2Integration"]</a></li>
+                                        <li><a class="block px-0 py-[0.55rem] text-left text-xs font-light uppercase tracking-[0.1em] text-[#6B6B6B] no-underline transition-colors hover:text-[#1A1A1A] hover:no-underline focus:text-[#1A1A1A] focus:no-underline [font-family:var(--serif-label)]" href="@PublicPageHref("/personal-development")">@localizer["Footer_PersonalDevelopment"]</a></li>
+                                        <li><a class="block px-0 py-[0.55rem] text-left text-xs font-light uppercase tracking-[0.1em] text-[#6B6B6B] no-underline transition-colors hover:text-[#1A1A1A] hover:no-underline focus:text-[#1A1A1A] focus:no-underline [font-family:var(--serif-label)]" href="@PublicPageHref("/Language-And-Communication/Index")">@localizer["Footer_LanguageCommunication"]</a></li>
                                     </ul>
                                 </div>
                             </li>
                             <li class="public-nav-item">
-                                <a class="public-nav-link" asp-page="/enterprise" asp-route-culture="@routeCulture">@localizer["Nav_Organizations"]</a>
+                                <a class="public-nav-link" href="@PublicPageHref("/enterprise")">@localizer["Nav_Organizations"]</a>
                             </li>
                             <li class="public-nav-item">
-                                <a class="public-nav-link" asp-page="/Pricing" asp-route-culture="@routeCulture">@localizer["Nav_Products"]</a>
+                                <a class="public-nav-link" href="@PublicPageHref("/Pricing")">@localizer["Nav_Products"]</a>
                             </li>
                             @if (isPortalPage)
                             {
@@ -88,7 +98,7 @@
                         <ul class="public-nav-actions">
                             <partial name="_LoginPartial" />
                             <li class="public-nav-item">
-                                <a class="public-nav-link public-nav-contact" asp-area="" asp-page="/contact" asp-route-culture="@routeCulture">@localizer["Nav_Contact"] <i class="fas fa-arrow-right"></i></a>
+                                <a class="public-nav-link public-nav-contact" href="@PublicPageHref("/contact")">@localizer["Nav_Contact"] <i class="fas fa-arrow-right"></i></a>
                             </li>
                         </ul>
                     </div>
@@ -102,22 +112,22 @@
                         <ul class="public-mobile-menu-list">
                             <li class="public-mobile-menu-label">@localizer["Nav_Services"]</li>
                             <li class="public-nav-item">
-                                <a class="public-nav-link" asp-page="/nt2-integration" asp-route-culture="@routeCulture">@localizer["Footer_Nt2Integration"]</a>
+                                <a class="public-nav-link" href="@PublicPageHref("/nt2-integration")">@localizer["Footer_Nt2Integration"]</a>
                             </li>
                             <li class="public-nav-item">
-                                <a class="public-nav-link" asp-page="/personal-development" asp-route-culture="@routeCulture">@localizer["Footer_PersonalDevelopment"]</a>
+                                <a class="public-nav-link" href="@PublicPageHref("/personal-development")">@localizer["Footer_PersonalDevelopment"]</a>
                             </li>
                             <li class="public-nav-item">
-                                <a class="public-nav-link" asp-page="/Language-And-Communication/Index" asp-route-culture="@routeCulture">@localizer["Footer_LanguageCommunication"]</a>
+                                <a class="public-nav-link" href="@PublicPageHref("/Language-And-Communication/Index")">@localizer["Footer_LanguageCommunication"]</a>
                             </li>
                             <li class="public-nav-item">
-                                <a class="public-nav-link" asp-page="/enterprise" asp-route-culture="@routeCulture">@localizer["Nav_Organizations"]</a>
+                                <a class="public-nav-link" href="@PublicPageHref("/enterprise")">@localizer["Nav_Organizations"]</a>
                             </li>
                             <li class="public-nav-item">
-                                <a class="public-nav-link" asp-page="/Pricing" asp-route-culture="@routeCulture">@localizer["Nav_Products"]</a>
+                                <a class="public-nav-link" href="@PublicPageHref("/Pricing")">@localizer["Nav_Products"]</a>
                             </li>
                             <li class="public-nav-item">
-                                <a class="public-nav-link public-nav-contact" asp-area="" asp-page="/contact" asp-route-culture="@routeCulture">@localizer["Nav_Contact"]</a>
+                                <a class="public-nav-link public-nav-contact" href="@PublicPageHref("/contact")">@localizer["Nav_Contact"]</a>
                             </li>
                             <partial name="_LoginPartial" />
                         </ul>
@@ -152,19 +162,19 @@
                     <div class="public-footer-group">
                         <h2>@localizer["Footer_Services"]</h2>
                         <ul>
-                            <li><a asp-page="/Pricing" asp-route-culture="@routeCulture">@localizer["Footer_Products"]</a></li>
-                            <li><a asp-page="/nt2-integration" asp-route-culture="@routeCulture">@localizer["Footer_Nt2Integration"]</a></li>
-                            <li><a asp-page="/personal-development" asp-route-culture="@routeCulture">@localizer["Footer_PersonalDevelopment"]</a></li>
-                            <li><a asp-page="/Language-And-Communication/Index" asp-route-culture="@routeCulture">@localizer["Footer_LanguageCommunication"]</a></li>
-                            <li><a asp-page="/enterprise" asp-route-culture="@routeCulture">@localizer["Footer_Enterprise"]</a></li>
+                            <li><a href="@PublicPageHref("/Pricing")">@localizer["Footer_Products"]</a></li>
+                            <li><a href="@PublicPageHref("/nt2-integration")">@localizer["Footer_Nt2Integration"]</a></li>
+                            <li><a href="@PublicPageHref("/personal-development")">@localizer["Footer_PersonalDevelopment"]</a></li>
+                            <li><a href="@PublicPageHref("/Language-And-Communication/Index")">@localizer["Footer_LanguageCommunication"]</a></li>
+                            <li><a href="@PublicPageHref("/enterprise")">@localizer["Footer_Enterprise"]</a></li>
                         </ul>
                     </div>
 
                     <div class="public-footer-group">
                         <h2>@localizer["Footer_AboutHeading"]</h2>
                         <ul>
-                            <li><a asp-page="/about" asp-route-culture="@routeCulture">@localizer["Footer_AboutUs"]</a></li>
-                            <li><a asp-page="/contact" asp-route-culture="@routeCulture">@localizer["Nav_Contact"]</a></li>
+                            <li><a href="@PublicPageHref("/about")">@localizer["Footer_AboutUs"]</a></li>
+                            <li><a href="@PublicPageHref("/contact")">@localizer["Nav_Contact"]</a></li>
                             <li><a href="https://koalendar.com/e/meet-with-id" target="_blank" rel="noopener noreferrer">@localizer["Footer_BookFreeConsultation"]</a></li>
                         </ul>
                     </div>
@@ -172,10 +182,10 @@
                     <div class="public-footer-group">
                         <h2>@localizer["Footer_Legal"]</h2>
                         <ul>
-                            <li><a asp-page="/terms-conditions" asp-route-culture="@routeCulture">@localizer["Footer_Terms"]</a></li>
-                            <li><a asp-page="/privacy" asp-route-culture="@routeCulture">@localizer["Footer_Privacy"]</a></li>
-                            <li><a asp-page="/cookie-policy" asp-route-culture="@routeCulture">@localizer["Footer_Cookie"]</a></li>
-                            <li><a asp-page="/disclaimer" asp-route-culture="@routeCulture">@localizer["Footer_Disclaimer"]</a></li>
+                            <li><a href="@PublicPageHref("/terms-conditions")">@localizer["Footer_Terms"]</a></li>
+                            <li><a href="@PublicPageHref("/privacy")">@localizer["Footer_Privacy"]</a></li>
+                            <li><a href="@PublicPageHref("/cookie-policy")">@localizer["Footer_Cookie"]</a></li>
+                            <li><a href="@PublicPageHref("/disclaimer")">@localizer["Footer_Disclaimer"]</a></li>
                             <li><a href="#" data-cookiebot-preferences>@localizer["Footer_Preferences"]</a></li>
                         </ul>
                     </div>

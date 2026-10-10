@@ -5,6 +5,10 @@
 @{
     Layout = Model.IsAdminEditMode ? "_PortalLayout" : "_Layout";
     ViewData["Title"] = Model.Product?.Name ?? "Product";
+    if (!Model.IsAdminEditMode && Model.IsPreviewMode)
+    {
+        ViewData["UsePublicNavigation"] = true;
+    }
 
     string submitText = Model.Product!.WorkflowType switch
     {
@@ -47,7 +51,6 @@
     var initialUnitPriceValue = (unitPrice ?? 0m).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
     var displayProductName = ProductModel.IsDraftPlaceholderName(Model.Product.Name) ? "Product Title" : Model.Product.Name;
     var isDraft = Model.Product.Status == CatalogProductStatus.Draft;
-    var isPublished = Model.Product.Status == CatalogProductStatus.Published;
     var isArchived = Model.Product.Status == CatalogProductStatus.Archived;
 }
 
@@ -55,10 +58,11 @@
     <div class="public-container">
     @if (!Model.IsAdminEditMode && Model.IsPreviewMode)
     {
-        <div class="public-alert public-alert-warning product-page-alert">
-            <div>
-                Draft preview: this product is not published and is only available in the portal editor.
-            </div>
+        <div class="public-alert public-alert-warning product-page-alert flex flex-wrap items-center justify-between gap-3">
+            <div>Preview mode shows the currently saved product. Purchase and signup actions are disabled.</div>
+            <a class="public-btn public-btn-outline public-btn-sm" asp-route="PortalProductEdit" asp-route-slug="@Model.Product.Slug">
+                <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>Return to editor
+            </a>
         </div>
     }
 
@@ -93,11 +97,20 @@
 
             <div class="product-edit-command-actions">
                 <span class="product-edit-status-pill">@Model.Product.Status</span>
+                <a class="public-btn public-btn-outline public-btn-sm"
+                   asp-route="PortalProductEdit"
+                   asp-route-slug="@Model.Product.Slug"
+                   asp-route-preview="true"
+                   target="_blank"
+                   rel="noopener"
+                   title="Preview the saved product">
+                    <i class="fa-solid fa-eye" aria-hidden="true"></i>Preview
+                </a>
                 <button type="submit" class="public-btn public-btn-primary public-btn-sm" form="product-edit-form">
                     <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>Save
                 </button>
 
-                @if (!isPublished)
+                @if (isDraft)
                 {
                     <button type="submit"
                             class="public-btn public-btn-outline public-btn-sm"
