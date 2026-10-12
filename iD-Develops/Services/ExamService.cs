@@ -202,7 +202,7 @@ namespace iD_Develops.Services
                 {
                     ExamTitle = e.Name,
                     CourseName = e.Course != null ? e.Course.Name : string.Empty,
-                    DurationSeconds = e.TimeLimit.HasValue ? e.TimeLimit.Value * 60 : 0
+                    DurationSeconds = e.TimeLimitSeconds ?? 0
                 })
                 .FirstOrDefaultAsync();
 
@@ -212,12 +212,12 @@ namespace iD_Develops.Services
             return (data.ExamTitle, data.CourseName, data.DurationSeconds);
         }
 
-        public async Task<(bool Exists, int MaxAttempts, int? TimeLimit)> GetExamStartSettingsAsync(int examId)
+        public async Task<(bool Exists, int MaxAttempts, int? TimeLimitSeconds)> GetExamStartSettingsAsync(int examId)
         {
             var data = await _dbContext.Exams
                 .AsNoTracking()
                 .Where(e => e.Id == examId && !e.IsDeleted)
-                .Select(e => new { e.MaxAttempts, e.TimeLimit })
+                .Select(e => new { e.MaxAttempts, e.TimeLimitSeconds })
                 .FirstOrDefaultAsync();
 
             if (data == null)
@@ -226,7 +226,7 @@ namespace iD_Develops.Services
             var maxAttempts =
                 data.MaxAttempts < 1 ? -1 : data.MaxAttempts;
 
-            return (true, maxAttempts, data.TimeLimit);
+            return (true, maxAttempts, data.TimeLimitSeconds);
         }
 
         public async Task SaveChangesAsync()
@@ -264,8 +264,8 @@ namespace iD_Develops.Services
             if (exam.MaxAttempts < -1)
                 throw new ValidationException("Exam.MaxAttempts contains an invalid value.");
 
-            if (exam.TimeLimit.HasValue && exam.TimeLimit.Value < 1)
-                throw new ValidationException("Exam.TimeLimit must be >= 1 when provided.");
+            if (exam.TimeLimitSeconds.HasValue && exam.TimeLimitSeconds.Value < 1)
+                throw new ValidationException("Exam.TimeLimitSeconds must be >= 1 when provided.");
         }
 
         public async Task<OperationResult> ArchiveExamAsync(int examId)

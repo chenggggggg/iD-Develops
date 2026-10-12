@@ -2,6 +2,7 @@ using iD_Develops.Models;
 using iD_Develops.Pages.Portal.Examination.Models;
 using iD_Develops.Pages.Shared.Examination;
 using iD_Develops.Pages.Shared.Examination.Questions;
+using iD_Develops.Utilities;
 
 namespace iD_Develops.Services
 {
@@ -51,7 +52,7 @@ namespace iD_Develops.Services
                     ExamId = examId,
                     ExamTitle = headerData.Value.ExamTitle,
                     CourseName = headerData.Value.CourseName,
-                    TimeLimit = headerData.Value.DurationSeconds,
+                    DurationSeconds = headerData.Value.DurationSeconds,
                     Mode = PaginationMode.Editing
                 },
                 Pagination = new PaginationModel
@@ -67,7 +68,8 @@ namespace iD_Develops.Services
                     : new CreateExamInputModel
                     {
                         Name = exam.Name,
-                        TimeLimit = exam.TimeLimit,
+                        TimeLimitSeconds = exam.TimeLimitSeconds,
+                        TimeLimitInput = ExamDuration.Format(exam.TimeLimitSeconds),
                         DifficultyValue = exam.DifficultyValue,
                         MaxAttempts = exam.MaxAttempts == -1 ? 0 : exam.MaxAttempts,
                         PublicSlug = exam.PublicSlug,

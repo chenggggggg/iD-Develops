@@ -123,7 +123,7 @@ namespace iD_Develops.Services
                 return new SettingsMutationResult { Success = false, StatusCode = StatusCodes.Status404NotFound };
 
             exam.Name = settings.Name?.Trim();
-            exam.TimeLimit = settings.TimeLimit;
+            exam.TimeLimitSeconds = settings.TimeLimitSeconds;
             exam.DifficultyValue = settings.DifficultyValue ?? 0;
             exam.MaxAttempts = NormalizeMaxAttempts(settings.MaxAttempts);
             exam.IntroductionPrimaryLanguage = settings.IntroductionPrimaryLanguage ?? string.Empty;

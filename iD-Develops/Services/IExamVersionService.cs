@@ -12,7 +12,6 @@ namespace iD_Develops.Services
         string IntroductionPrimary,
         string? IntroductionSecondary,
         int MaxAttempts,
-        int? TimeLimit,
         string? PublicSlug);
 
     public interface IExamVersionService

@@ -62,7 +62,7 @@
         if (textarea.value !== valueBeforeClose) {
             textarea.dispatchEvent(new Event("input", { bubbles: true }));
         }
-        if (typeof options.onClose === "function") {
+        if (textarea.value !== valueBeforeClose && typeof options.onClose === "function") {
             options.onClose(textarea, field);
         }
     }
@@ -86,9 +86,18 @@
 
         global.TinyMceHelpers.initEditors([`#${CSS.escape(textarea.id)}`], Object.assign({}, defaultOptions, options || {}, {
             setup: function (editor) {
+                let ready = false;
+                let lastNotifiedValue = textarea.value || "";
+
                 const notifyChange = function () {
                     editor.save();
                     syncPreview(field);
+                    const currentValue = textarea.value || "";
+                    if (!ready || currentValue === lastNotifiedValue) {
+                        return;
+                    }
+
+                    lastNotifiedValue = currentValue;
                     textarea.dispatchEvent(new Event("input", { bubbles: true }));
                     if (typeof options?.onChange === "function") {
                         options.onChange(textarea, field, editor);
@@ -96,6 +105,10 @@
                 };
 
                 editor.on("init", function () {
+                    editor.save();
+                    lastNotifiedValue = textarea.value || "";
+                    try { editor.setDirty(false); } catch { /* ignore */ }
+                    ready = true;
                     editor.focus();
                 });
 

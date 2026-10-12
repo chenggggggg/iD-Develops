@@ -8,11 +8,11 @@ namespace iD_Develops.Pages.Shared.Examination
         public string ExamTitle { get; init; } = string.Empty;
         public string CourseName { get; init; } = string.Empty;
 
-        public int? TimeLimit { get; set; }
+        public int? DurationSeconds { get; set; }
         /// <summary>
         /// Whether the countdown timer should be shown.
         /// </summary>
-        public bool ShowTimer => TimeLimit.HasValue && TimeLimit.Value > 0;
+        public bool ShowTimer => DurationSeconds.HasValue && DurationSeconds.Value > 0;
 
         /// <summary>
         /// Absolute end time of the exam (UTC). Null = no time limit.

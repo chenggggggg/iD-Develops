@@ -1,6 +1,18 @@
 @using iD_Develops.Models
+@using iD_Develops.Utilities
 @model iD_Develops.Pages.Shared.Examination.ExaminationHeaderModel
 @inject Microsoft.Extensions.Localization.IStringLocalizer<iD_Develops.Pages.Shared.Examination.ExaminationHeaderModel> Localizer
+
+@{
+    var returnCourseId = ViewData["ReturnCourseId"] as int?;
+    var durationSeconds = Model.DurationSeconds.GetValueOrDefault();
+    var durationHours = durationSeconds / 3600;
+    var durationMinutes = (durationSeconds % 3600) / 60;
+    var durationRemainingSeconds = durationSeconds % 60;
+    var durationDisplay = Model.ShowTimer ? ExamDuration.Format(durationSeconds) : string.Empty;
+    var examTitle = !string.IsNullOrWhiteSpace(Model.ExamTitle) ? Model.ExamTitle : Localizer["UntitledExam"].Value;
+    var examTitleInputSize = Math.Clamp(examTitle.Length, 1, 60);
+}
 
 <header>
     <nav class="exam-header">
@@ -11,7 +23,6 @@
                 <div class="exam-header-group">
                     @if (Model.Mode == PaginationMode.Editing)
                     {
-                        var returnCourseId = ViewData["ReturnCourseId"] as int?;
                         <a class="exam-header-back"
                            asp-page="@(returnCourseId.HasValue ? "/Portal/Courses/Course" : "/Portal/Exams/List")"
                            asp-route-courseId="@returnCourseId"
@@ -23,52 +34,64 @@
                     <div class="exam-header-stack">
                         <small class="exam-header-label">@Localizer["TimerLabel"]</small>
 
-                        @if (Model.ShowTimer)
+                        @if (Model.Mode == PaginationMode.Exam && Model.ShowTimer)
                         {
-                            @if (Model.Mode == PaginationMode.Exam)
-                            {
-                                <div class="exam-header-value" id="countdown" data-duration="@Model.EndDateTime">
-                                    --:--:--
-                                </div>
-                            }
-                            else if (Model.Mode == PaginationMode.Editing)
-                            {
-                                <div class="exam-header-value exam-header-inline-edit"
-                                     data-exam-header-edit="timeLimit"
-                                     data-exam-id="@Model.ExamId">
-                                    <span class="exam-header-inline-display" data-exam-header-display>
-                                        @TimeSpan.FromSeconds(Model.TimeLimit!.Value).ToString(@"hh\:mm\:ss")
-                                    </span>
-                                    <input class="exam-header-inline-input"
-                                           type="number"
-                                           min="1"
-                                           value="@(Model.TimeLimit.HasValue ? Model.TimeLimit.Value / 60 : null)"
-                                           data-exam-header-input
-                                           aria-label="@Localizer["TimeLimitLabel"]" />
-                                    <i class="fa-solid fa-pencil exam-header-edit-icon" aria-hidden="true"></i>
-                                </div>
-                            }
-                            else if (Model.Mode == PaginationMode.Start)
-                            {
-                                <div class="exam-header-value">
-                                    @TimeSpan.FromSeconds(Model.TimeLimit!.Value).ToString(@"hh\:mm\:ss")
-                                </div>
-                            }
+                            <div class="exam-header-value" id="countdown" data-duration="@Model.EndDateTime">
+                                --:--:--
+                            </div>
                         }
                         else if (Model.Mode == PaginationMode.Editing)
                         {
                             <div class="exam-header-value exam-header-inline-edit"
                                  data-exam-header-edit="timeLimit"
-                                 data-exam-id="@Model.ExamId">
-                                <span class="exam-header-inline-display" data-exam-header-display>@Localizer["NoTimeLimit"]</span>
-                                <input class="exam-header-inline-input"
-                                       type="number"
-                                       min="1"
-                                       value=""
-                                       data-exam-header-input
-                                       aria-label="@Localizer["TimeLimitLabel"]" />
+                                 data-exam-id="@Model.ExamId"
+                                 data-exam-header-saved-value="@durationDisplay">
+                                <span class="exam-header-inline-display" data-exam-header-display>
+                                    @(Model.ShowTimer ? durationDisplay : Localizer["NoTimeLimit"])
+                                </span>
+                                <span class="exam-header-time-editor"
+                                      data-exam-time-editor
+                                      role="group"
+                                      aria-label="@Localizer["TimeLimitLabel"]">
+                                    <input class="exam-header-time-part"
+                                           type="number"
+                                           min="0"
+                                           max="99999"
+                                           step="1"
+                                           inputmode="numeric"
+                                           placeholder="hh"
+                                           value="@(Model.ShowTimer ? durationHours.ToString("00") : null)"
+                                           data-exam-time-part="hours"
+                                           aria-label="@Localizer["TimeLimitHoursLabel"]" />
+                                    <span class="exam-header-time-separator" aria-hidden="true">:</span>
+                                    <input class="exam-header-time-part"
+                                           type="number"
+                                           min="0"
+                                           max="59"
+                                           step="1"
+                                           inputmode="numeric"
+                                           placeholder="mm"
+                                           value="@(Model.ShowTimer ? durationMinutes.ToString("00") : null)"
+                                           data-exam-time-part="minutes"
+                                           aria-label="@Localizer["TimeLimitMinutesLabel"]" />
+                                    <span class="exam-header-time-separator" aria-hidden="true">:</span>
+                                    <input class="exam-header-time-part"
+                                           type="number"
+                                           min="0"
+                                           max="59"
+                                           step="1"
+                                           inputmode="numeric"
+                                           placeholder="ss"
+                                           value="@(Model.ShowTimer ? durationRemainingSeconds.ToString("00") : null)"
+                                           data-exam-time-part="seconds"
+                                           aria-label="@Localizer["TimeLimitSecondsLabel"]" />
+                                </span>
                                 <i class="fa-solid fa-pencil exam-header-edit-icon" aria-hidden="true"></i>
                             </div>
+                        }
+                        else if (Model.Mode == PaginationMode.Start && Model.ShowTimer)
+                        {
+                            <div class="exam-header-value">@durationDisplay</div>
                         }
                         else
                         {
@@ -105,15 +128,15 @@
                 <div class="exam-header-title-block">
                     @if (Model.Mode == PaginationMode.Editing)
                     {
-                        <small class="exam-header-label exam-header-inline-edit"
+                        <small class="exam-header-label exam-header-name-edit"
                                data-exam-header-edit="name"
-                               data-exam-id="@Model.ExamId">
-                            <span class="exam-header-inline-display" data-exam-header-display>
-                                @(!string.IsNullOrWhiteSpace(Model.ExamTitle) ? Model.ExamTitle : Localizer["UntitledExam"])
-                            </span>
-                            <input class="exam-header-inline-input"
+                               data-exam-id="@Model.ExamId"
+                               data-exam-header-saved-value="@examTitle">
+                            <input class="exam-header-name-input"
                                    type="text"
-                                   value="@(!string.IsNullOrWhiteSpace(Model.ExamTitle) ? Model.ExamTitle : Localizer["UntitledExam"])"
+                                   value="@examTitle"
+                                   size="@examTitleInputSize"
+                                   readonly
                                    data-exam-header-input
                                    aria-label="@Localizer["ExamNameLabel"]" />
                             <i class="fa-solid fa-pencil exam-header-edit-icon" aria-hidden="true"></i>
@@ -133,13 +156,14 @@
                 @if (Model.Mode == PaginationMode.Editing)
                 {
                     <div class="exam-header-settings">
-                        <button type="button"
-                                class="exam-icon-button"
-                                data-exam-settings-open
-                                aria-controls="examSettingsCanvas"
-                                title="@Localizer["ExamSettingsLabel"]">
+                        <a class="exam-icon-button"
+                           asp-page="/Portal/Examination/Settings"
+                           asp-route-examId="@Model.ExamId"
+                           asp-route-returnCourseId="@returnCourseId"
+                           aria-label="@Localizer["ExamSettingsLabel"]"
+                           title="@Localizer["ExamSettingsLabel"]">
                             <i class="fa-solid fa-gear"></i>
-                        </button>
+                        </a>
                     </div>
                 }
 

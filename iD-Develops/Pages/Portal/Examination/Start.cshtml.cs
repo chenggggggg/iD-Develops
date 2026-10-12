@@ -51,7 +51,7 @@ namespace iD_Develops.Pages.Portal.Examination
             string introductionPrimary;
             string? introductionSecondary;
             int maxAttempts;
-            int? timeLimit;
+            int? timeLimitSeconds;
             ExamPublishStatus publishStatus;
 
             if (descriptor != null)
@@ -62,7 +62,7 @@ namespace iD_Develops.Pages.Portal.Examination
                 introductionPrimary = descriptor.IntroductionPrimary;
                 introductionSecondary = descriptor.IntroductionSecondary;
                 maxAttempts = descriptor.MaxAttempts;
-                timeLimit = descriptor.TimeLimit;
+                timeLimitSeconds = descriptor.DurationSeconds > 0 ? descriptor.DurationSeconds : null;
                 publishStatus = ExamPublishStatus.Published;
             }
             else
@@ -82,7 +82,7 @@ namespace iD_Develops.Pages.Portal.Examination
                 introductionPrimary = exam.IntroductionPrimaryLanguage;
                 introductionSecondary = exam.IntroductionSecondaryLanguage;
                 maxAttempts = startSettings.MaxAttempts;
-                timeLimit = startSettings.TimeLimit;
+                timeLimitSeconds = startSettings.TimeLimitSeconds;
                 publishStatus = exam.PublishStatus;
             }
 
@@ -90,7 +90,7 @@ namespace iD_Develops.Pages.Portal.Examination
             {
                 ExamTitle = examTitle,
                 CourseName = courseName,
-                TimeLimit = durationSeconds,
+                DurationSeconds = durationSeconds,
                 Mode = PaginationMode.Start
             };
 
@@ -100,7 +100,7 @@ namespace iD_Develops.Pages.Portal.Examination
                 Header = header,
                 IntroductionPrimary = introductionPrimary ?? string.Empty,
                 IntroductionSecondary = introductionSecondary ?? string.Empty,
-                TimeLimit = timeLimit
+                TimeLimitSeconds = timeLimitSeconds
             };
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);

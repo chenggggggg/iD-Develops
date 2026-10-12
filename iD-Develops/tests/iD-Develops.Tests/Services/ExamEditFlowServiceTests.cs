@@ -98,7 +98,7 @@ public sealed class ExamEditFlowServiceTests
         public Task<Exam?> GetExamForSettingsUpdateAsync(int examId)
             => Task.FromResult<Exam?>(examId == _exam.Id ? _exam : null);
 
-        public Task<(bool Exists, int MaxAttempts, int? TimeLimit)> GetExamStartSettingsAsync(int examId)
+        public Task<(bool Exists, int MaxAttempts, int? TimeLimitSeconds)> GetExamStartSettingsAsync(int examId)
             => throw new NotSupportedException();
 
         public Task<List<Exam>> GetExamsByTeacherAsync(string teacherUserId)

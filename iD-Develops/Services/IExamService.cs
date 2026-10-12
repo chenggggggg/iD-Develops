@@ -17,7 +17,7 @@ namespace iD_Develops.Services
         Task<OperationResult> ArchiveExamAsync(int examId);
         Task<OperationResult> DeleteExamByIdAsync(int examId);
         Task<(string ExamTitle, string CourseName, int DurationSeconds)?> GetExamHeaderAsync(int examId);
-        Task<(bool Exists, int MaxAttempts, int? TimeLimit)> GetExamStartSettingsAsync(int examId);
+        Task<(bool Exists, int MaxAttempts, int? TimeLimitSeconds)> GetExamStartSettingsAsync(int examId);
         Task SaveChangesAsync();
         Task<bool> CanTeacherManageExamAsync(int examId, string teacherUserId);
     }

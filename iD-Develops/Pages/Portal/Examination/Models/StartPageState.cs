@@ -7,7 +7,7 @@ namespace iD_Develops.Pages.Portal.Examination.Models
         public int ExamId { get; set; }
         public string IntroductionPrimary { get; set; }
         public string IntroductionSecondary { get; set; }
-        public int? TimeLimit { get; set; }
+        public int? TimeLimitSeconds { get; set; }
         public ExaminationHeaderModel Header { get; set; }
     }
 }

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Security.Claims;
 using System.Globalization;
+using iD_Develops.Utilities;
 
 namespace iD_Develops.Pages.Portal.Examination
 {
@@ -16,6 +17,9 @@ namespace iD_Develops.Pages.Portal.Examination
     {
         [BindProperty(SupportsGet = true)]
         public int ExamId { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public int? ReturnCourseId { get; set; }
 
         [BindProperty]
         public CreateExamInputModel Settings { get; set; } = new();
@@ -74,6 +78,7 @@ namespace iD_Develops.Pages.Portal.Examination
 
             Settings.EnsureMinimumGradeBandRows();
             MaximumScore = await LoadMaximumScoreAsync(ExamId);
+            ValidateTimeLimit();
             ValidateGradeBands();
 
             if (!ModelState.IsValid)
@@ -92,7 +97,7 @@ namespace iD_Develops.Pages.Portal.Examination
                 return StatusCode(result.StatusCode);
 
             StatusMessage = "Settings saved.";
-            return RedirectToPage(new { ExamId });
+            return RedirectToPage(new { ExamId, ReturnCourseId });
         }
 
         private string? CurrentUserId => User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -235,6 +240,20 @@ namespace iD_Develops.Pages.Portal.Examination
 
         private static string FormatScore(double value)
             => value.ToString("0.#", CultureInfo.InvariantCulture);
+
+        private void ValidateTimeLimit()
+        {
+            if (!ExamDuration.TryParse(Settings.TimeLimitInput, out var seconds))
+            {
+                ModelState.AddModelError(
+                    "Settings.TimeLimitInput",
+                    "Use hh:mm:ss and enter a duration of at least one second, or leave this empty for no time limit.");
+                return;
+            }
+
+            Settings.TimeLimitSeconds = seconds;
+            Settings.TimeLimitInput = ExamDuration.Format(seconds);
+        }
 
         private async Task<bool> CanManageExamAsync(int examId)
         {

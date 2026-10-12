@@ -6,10 +6,6 @@
     padding-top: 3rem;
 }
 
-body.exam-settings-open {
-    overflow: hidden;
-}
-
 .exam-container {
     width: min(100% - 2rem, 1180px);
     margin: 0 auto;
@@ -172,51 +168,6 @@ body.exam-settings-open {
     text-align: center;
     font-weight: 700;
     box-shadow: 0 0.75rem 1.75rem rgba(16, 34, 77, 0.12);
-}
-
-.exam-settings-canvas {
-    position: fixed;
-    inset: 0 0 0 auto;
-    z-index: 1040;
-    width: min(92vw, 380px);
-    overflow-y: auto;
-    background: #ffffff;
-    box-shadow: -18px 0 52px rgba(2, 7, 47, 0.18);
-}
-
-.exam-settings-canvas[hidden] {
-    display: none;
-}
-
-.exam-settings-canvas-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    border-bottom: 1px solid #d8e0ea;
-    padding: 1rem 1.25rem;
-}
-
-.exam-settings-canvas-title {
-    color: #10224d;
-    font-size: 1.1rem;
-    font-weight: 800;
-    margin: 0;
-}
-
-.exam-settings-canvas-body {
-    padding: 1.25rem;
-}
-
-.exam-settings-form {
-    display: grid;
-    gap: 1rem;
-}
-
-.exam-settings-actions {
-    display: grid;
-    gap: 0.6rem;
-    margin-top: 1.5rem;
 }
 
 .question-shell {
@@ -514,12 +465,18 @@ body.exam-settings-open {
 .exam-header-inline-edit {
     display: inline-flex;
     align-items: center;
+    box-sizing: border-box;
     min-height: 1.45rem;
     position: relative;
     border: 1px solid transparent;
     border-radius: 6px;
     padding: 1px 24px 1px 6px;
     cursor: text;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.exam-header-inline-edit[data-exam-header-edit="timeLimit"] {
+    width: 11.5rem;
 }
 
 .exam-header-label:not(.exam-header-inline-edit),
@@ -544,8 +501,10 @@ body.exam-settings-open {
 }
 
 .exam-header-inline-edit:hover,
-.exam-header-inline-edit:focus-within {
+.exam-header-inline-edit:focus-within,
+.exam-header-inline-edit.is-editing {
     border-color: rgba(0, 160, 176, 0.45);
+    background: rgba(0, 160, 176, 0.04);
 }
 
 .exam-header-inline-edit .exam-header-edit-icon {
@@ -563,27 +522,121 @@ body.exam-settings-open {
     opacity: 1;
 }
 
-.exam-header-inline-edit .exam-header-inline-input {
-    display: none;
-    width: 130px;
-    min-width: 90px;
-    max-width: 180px;
+.exam-header-label.exam-header-name-edit {
+    position: relative;
+    display: inline-block;
+    height: 1.45rem;
+    min-height: 1.45rem;
     border: 0;
-    border-bottom: 1px solid rgba(2, 7, 47, 0.25);
     padding: 0;
+    background: transparent;
+    cursor: text;
+}
+
+.exam-header-name-input {
+    display: block;
+    box-sizing: border-box;
+    width: auto;
+    min-width: 1ch;
+    max-width: min(60ch, 40vw);
+    height: 1.45rem;
+    field-sizing: content;
+    appearance: none;
+    border: 0;
+    border-radius: 6px;
+    padding: 0 calc(24px + 0.7rem) 0 6px;
     font: inherit;
-    font-weight: 700;
+    font-size: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
+    line-height: inherit;
     text-align: inherit;
     outline: none;
     background: transparent;
+    box-shadow: none;
+}
+
+.exam-header-name-edit:not(.is-editing):hover .exam-header-name-input {
+    background: rgba(0, 160, 176, 0.04);
+    box-shadow: inset 0 0 0 1px rgba(0, 160, 176, 0.45);
+}
+
+.exam-header-name-input[readonly] {
+    cursor: text;
+}
+
+.exam-header-name-input[aria-invalid="true"],
+.exam-header-time-part[aria-invalid="true"] {
+    color: #b4232f;
+}
+
+.exam-header-name-edit .exam-header-edit-icon {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: #00a0b0;
+    font-size: 0.7rem;
+    opacity: 0;
+}
+
+.exam-header-name-edit:hover .exam-header-edit-icon,
+.exam-header-name-edit:focus-within .exam-header-edit-icon {
+    opacity: 1;
+}
+
+.exam-header-name-edit.is-editing .exam-header-edit-icon {
+    opacity: 0;
+}
+
+.exam-header-time-editor {
+    display: none;
+    align-items: center;
+    width: 100%;
+    gap: 0.15rem;
+}
+
+.exam-header-time-part {
+    width: 3.25rem;
+    min-width: 0;
+    height: 1.25rem;
+    border: 0;
+    padding: 0 0.1rem;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    text-align: center;
+    outline: 0;
+    box-shadow: none;
+}
+
+.exam-header-time-part[data-exam-time-part="hours"] {
+    width: 3.7rem;
+}
+
+.exam-header-time-part::selection,
+.exam-header-name-input::selection {
+    background: rgba(0, 160, 176, 0.28);
+}
+
+.exam-header-time-separator {
+    flex: none;
+    color: #64748b;
 }
 
 .exam-header-inline-edit.is-editing .exam-header-inline-display {
     display: none;
 }
 
-.exam-header-inline-edit.is-editing .exam-header-inline-input {
-    display: inline-block;
+.exam-header-inline-edit.is-editing .exam-header-time-editor {
+    display: inline-flex;
+}
+
+.exam-header-inline-edit.is-editing .exam-header-edit-icon {
+    opacity: 0;
 }
 
 .take-help-btn {

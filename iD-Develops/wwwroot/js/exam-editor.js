@@ -334,8 +334,7 @@
             window.ExamRichEditFields.init(document, {
                 height: 260,
                 min_height: 160,
-                onChange: queueAfterRichTextSync,
-                onClose: queueAfterRichTextSync
+                onChange: queueAfterRichTextSync
             });
             return;
         }
@@ -407,11 +406,14 @@
                         }
                     });
 
-                    // On blur, always sync content back to textarea and autosave if dirty.
+                    // Closing an untouched editor only synchronizes the textarea; it must not save.
                     editor.on("blur", () => {
-
-                        // Sync TinyMCE -> textarea (for validation / DOM consistency)
                         try { window.tinymce?.triggerSave?.(); } catch { }
+                        try {
+                            if (!editor.isDirty()) return;
+                        } catch {
+                            return;
+                        }
                         queueOnce();
                     });
 
@@ -1067,9 +1069,14 @@
 
 
 
-            // If payload is unchanged from the last successful save, do nothing.
-            // Do NOT override the "Saved" dwell from the previous save.
+            // Input/editor events can fire even when the serialized payload did not change.
+            // Clear the optimistic "Unsaved changes..." state in that case so the header
+            // always reflects the fingerprint that is actually persisted.
             if (fp && lastFp && fp === lastFp) {
+                const currentStatus = document.getElementById("editorSaveStatus")?.textContent || "";
+                if (currentStatus.toLowerCase().includes("unsaved")) {
+                    showStatus(host, "Up-to-date", t);
+                }
                 return;
             }
 

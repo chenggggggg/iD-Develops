@@ -136,18 +136,14 @@
                 </div>
 
                 <div>
-                    <label asp-for="Input.TimeLimit" class="portal-info-label">Time limit</label>
-                    <div class="exam-number-field">
-                        <input asp-for="Input.TimeLimit"
-                               type="number"
-                               class="portal-field"
-                               placeholder="No time limit"
-                               min="1"
-                               data-special-number-input />
-                        <span class="exam-number-unit">min</span>
-                    </div>
-                    <div class="exam-field-help">Leave empty for no time limit.</div>
-                    <span asp-validation-for="Input.TimeLimit" class="portal-validation-message"></span>
+                    <label asp-for="Input.TimeLimitInput" class="portal-info-label">Time limit</label>
+                    <input asp-for="Input.TimeLimitInput"
+                           type="text"
+                           inputmode="numeric"
+                           class="portal-field"
+                           placeholder="00:30:00" />
+                    <div class="exam-field-help">Use hh:mm:ss, or leave empty for no time limit.</div>
+                    <span asp-validation-for="Input.TimeLimitInput" class="portal-validation-message"></span>
                 </div>
 
                 <div>

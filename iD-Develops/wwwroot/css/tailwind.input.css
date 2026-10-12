@@ -2722,6 +2722,19 @@
     @apply bg-[#00477e];
   }
 
+  .question-nav-number {
+    @apply grid size-7 place-items-center rounded-full border border-[#cbd5e1] bg-white text-xs font-bold text-[#334155] shadow-[0_1px_2px_rgba(2,7,47,0.08)] transition-[background-color,border-color,color,transform] duration-150;
+  }
+
+  .question-nav-btn:hover:not(.is-active) .question-nav-number,
+  .question-nav-btn:focus-visible .question-nav-number {
+    @apply -translate-y-px border-[#005190] text-[#005190];
+  }
+
+  .question-nav-btn.is-active .question-nav-number {
+    @apply border-white/40 bg-white text-[#005190] shadow-none;
+  }
+
   .question-add-menu[open] .question-add-btn {
     @apply bg-[#dce9f5] text-[#005190] outline-none shadow-[inset_0_3px_0_#005190];
   }

@@ -3,7 +3,7 @@
 @inject Microsoft.Extensions.Localization.IStringLocalizer<iD_Develops.Pages.Portal.Examination.LevelTestIntroductionModel> Localizer
 @{
     Layout = "/Pages/Shared/_Layout.cshtml";
-    var duration = Localizer["DurationFormat", Model.DurationMinutes];
+    var duration = Model.DurationDisplay;
 
     ViewData["Title"] = Localizer["Title"];
     ViewData["MetaDescription"] = Localizer["MetaDescription"];

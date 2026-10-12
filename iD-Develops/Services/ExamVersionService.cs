@@ -42,11 +42,10 @@ namespace iD_Develops.Services
                     version.Id,
                     version.Name,
                     version.CourseName ?? string.Empty,
-                    version.TimeLimit.HasValue ? version.TimeLimit.Value * 60 : 0,
+                    version.TimeLimitSeconds ?? 0,
                     version.IntroductionPrimaryLanguage,
                     version.IntroductionSecondaryLanguage,
                     NormalizeMaxAttempts(version.MaxAttempts),
-                    version.TimeLimit,
                     version.PublicSlug);
             }
 
@@ -61,7 +60,7 @@ namespace iD_Develops.Services
                     e.Id,
                     e.Name,
                     CourseName = e.Course != null ? e.Course.Name : string.Empty,
-                    e.TimeLimit,
+                    e.TimeLimitSeconds,
                     e.IntroductionPrimaryLanguage,
                     e.IntroductionSecondaryLanguage,
                     e.MaxAttempts,
@@ -77,11 +76,10 @@ namespace iD_Develops.Services
                 null,
                 exam.Name,
                 exam.CourseName,
-                exam.TimeLimit.HasValue ? exam.TimeLimit.Value * 60 : 0,
+                exam.TimeLimitSeconds ?? 0,
                 exam.IntroductionPrimaryLanguage,
                 exam.IntroductionSecondaryLanguage,
                 NormalizeMaxAttempts(exam.MaxAttempts),
-                exam.TimeLimit,
                 exam.PublicSlug);
         }
 
@@ -147,7 +145,7 @@ namespace iD_Develops.Services
                     Id = version.ExamId,
                     Name = version.Name,
                     DifficultyValue = version.DifficultyValue,
-                    TimeLimit = version.TimeLimit,
+                    TimeLimitSeconds = version.TimeLimitSeconds,
                     IntroductionPrimaryLanguage = version.IntroductionPrimaryLanguage,
                     IntroductionSecondaryLanguage = version.IntroductionSecondaryLanguage,
                     CompletionTextPrimary = version.CompletionTextPrimary,
@@ -211,7 +209,7 @@ namespace iD_Develops.Services
                     VersionNumber = nextVersionNumber + 1,
                     Name = exam.Name,
                     DifficultyValue = exam.DifficultyValue,
-                    TimeLimit = exam.TimeLimit,
+                    TimeLimitSeconds = exam.TimeLimitSeconds,
                     IntroductionPrimaryLanguage = exam.IntroductionPrimaryLanguage,
                     IntroductionSecondaryLanguage = exam.IntroductionSecondaryLanguage,
                     CompletionTextPrimary = exam.CompletionTextPrimary,

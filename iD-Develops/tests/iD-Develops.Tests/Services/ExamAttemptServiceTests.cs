@@ -31,7 +31,7 @@ public sealed class ExamAttemptServiceTests
         await db.SaveChangesAsync();
 
         var versionService = new StubExamVersionService(new PublishedExamDescriptor(
-            exam.Id, 4, exam.Name, string.Empty, 0, string.Empty, null, 2, null, null));
+            exam.Id, 4, exam.Name, string.Empty, 0, string.Empty, null, 2, null));
         var records = new StubRecordService { AttemptsUsed = 2, InProgressRecords = [] };
         var service = new ExamAttemptService(versionService, records, new StubExamAccessService(), db);
 
@@ -55,7 +55,6 @@ public sealed class ExamAttemptServiceTests
                 IntroductionPrimary: "Intro",
                 IntroductionSecondary: null,
                 MaxAttempts: 3,
-                TimeLimit: 30,
                 PublicSlug: null));
 
         var recordService = new StubRecordService
@@ -85,11 +84,10 @@ public sealed class ExamAttemptServiceTests
                 ExamVersionId: 9,
                 ExamTitle: "Placement test",
                 CourseName: "Dutch",
-                DurationSeconds: 1800,
+                DurationSeconds: 1805,
                 IntroductionPrimary: "Intro",
                 IntroductionSecondary: null,
                 MaxAttempts: 3,
-                TimeLimit: 30,
                 PublicSlug: null));
 
         var createdRecordId = Guid.NewGuid();
@@ -107,6 +105,7 @@ public sealed class ExamAttemptServiceTests
         Assert.True(result.Success);
         Assert.Equal(createdRecordId, result.RecordId);
         Assert.Equal(9, recordService.LastStartedExamVersionId);
+        Assert.Equal(TimeSpan.FromSeconds(1805), recordService.LastEndTimeUtc - recordService.LastStartTimeUtc);
     }
 
     [Fact]
@@ -125,7 +124,6 @@ public sealed class ExamAttemptServiceTests
                 IntroductionPrimary: "Intro",
                 IntroductionSecondary: null,
                 MaxAttempts: 3,
-                TimeLimit: 30,
                 PublicSlug: null));
 
         var recordService = new StubRecordService
@@ -163,7 +161,6 @@ public sealed class ExamAttemptServiceTests
                 IntroductionPrimary: "Intro",
                 IntroductionSecondary: null,
                 MaxAttempts: 3,
-                TimeLimit: 30,
                 PublicSlug: null));
         var recordService = new StubRecordService();
         var service = new ExamAttemptService(
@@ -199,7 +196,7 @@ public sealed class ExamAttemptServiceTests
         public Task<Models.Exam?> GetExamForEvaluationAsync(int examId, int? examVersionId = null)
             => throw new NotSupportedException();
 
-        public Task<Utilities.OperationResult> PublishVersionAsync(Models.Exam exam, IReadOnlyCollection<Models.Question> questions)
+        public Task<iD_Develops.Utilities.OperationResult> PublishVersionAsync(Models.Exam exam, IReadOnlyCollection<Models.Question> questions)
             => throw new NotSupportedException();
     }
 
@@ -221,6 +218,8 @@ public sealed class ExamAttemptServiceTests
         public int? LastStartedExamVersionId { get; private set; }
         public int? LastCancelledExamVersionId { get; private set; }
         public Guid? LastCancelledRecordId { get; private set; }
+        public DateTime? LastStartTimeUtc { get; private set; }
+        public DateTime? LastEndTimeUtc { get; private set; }
 
         public Task<AttemptAccessState> GetAttemptAccessStateAsync(Guid recordId, int? examId = null, string? userId = null, CancellationToken cancellationToken = default)
             => throw new NotSupportedException();
@@ -265,6 +264,8 @@ public sealed class ExamAttemptServiceTests
         public Task<Guid> StartAttemptAtomicAsync(string userId, int examId, int? examVersionId, DateTime startTimeUtc, DateTime? endTimeUtc)
         {
             LastStartedExamVersionId = examVersionId;
+            LastStartTimeUtc = startTimeUtc;
+            LastEndTimeUtc = endTimeUtc;
             return Task.FromResult(StartAttemptResult);
         }
 

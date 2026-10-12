@@ -4,6 +4,7 @@ using iD_Develops.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Localization;
+using iD_Develops.Utilities;
 
 namespace iD_Develops.Pages.Portal.Examination
 {
@@ -11,7 +12,7 @@ namespace iD_Develops.Pages.Portal.Examination
     public class LevelTestIntroductionModel : PageModel
     {
         private const string LevelTestSlug = "level-test";
-        private const int LevelTestDurationMinutes = 35;
+        private const int LevelTestDurationSeconds = 35 * 60;
 
         private readonly IExamService _examService;
         private readonly IExamVersionService _examVersionService;
@@ -20,7 +21,7 @@ namespace iD_Develops.Pages.Portal.Examination
 
         public bool IsLevelTestAvailable { get; private set; }
         public int? LevelTestExamId { get; private set; }
-        public int DurationMinutes { get; private set; } = LevelTestDurationMinutes;
+        public string DurationDisplay { get; private set; } = ExamDuration.Format(LevelTestDurationSeconds);
 
         public LevelTestIntroductionModel(
             IExamService examService,
@@ -40,9 +41,10 @@ namespace iD_Develops.Pages.Portal.Examination
             var descriptor = exam == null ? null : await _examVersionService.GetPublishedDescriptorAsync(exam.Id);
             IsLevelTestAvailable = descriptor != null;
             LevelTestExamId = exam?.Id;
-            DurationMinutes = descriptor?.TimeLimit is > 0
-                ? descriptor.TimeLimit.Value
-                : LevelTestDurationMinutes;
+            DurationDisplay = ExamDuration.Format(
+                descriptor?.DurationSeconds is > 0
+                    ? descriptor.DurationSeconds
+                    : LevelTestDurationSeconds);
         }
 
         public async Task<IActionResult> OnPostCreateRecordAsync()
@@ -56,8 +58,8 @@ namespace iD_Develops.Pages.Portal.Examination
                 return NotFound();
 
             var startTime = DateTime.UtcNow;
-            DateTime? endTime = descriptor.TimeLimit.HasValue && descriptor.TimeLimit.Value > 0
-                ? startTime.AddMinutes(descriptor.TimeLimit.Value)
+            DateTime? endTime = descriptor.DurationSeconds > 0
+                ? startTime.AddSeconds(descriptor.DurationSeconds)
                 : (DateTime?)null;
 
             var record = new Record
