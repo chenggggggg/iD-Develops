@@ -37,6 +37,8 @@
         var relativeUrl = Url.Page(page, values: new { culture = routeCulture }) ?? $"/{routeCulture}/";
         return useAbsolutePublicLinks ? ApplicationUrls.PublicUrl(relativeUrl) : relativeUrl;
     }
+
+    var cookiePreferencesHref = $"{PublicPageHref("/cookie-policy")}?preferences=true";
 }
 
 <!DOCTYPE html>
@@ -186,7 +188,7 @@
                             <li><a href="@PublicPageHref("/privacy")">@localizer["Footer_Privacy"]</a></li>
                             <li><a href="@PublicPageHref("/cookie-policy")">@localizer["Footer_Cookie"]</a></li>
                             <li><a href="@PublicPageHref("/disclaimer")">@localizer["Footer_Disclaimer"]</a></li>
-                            <li><a href="#" data-cookiebot-preferences>@localizer["Footer_Preferences"]</a></li>
+                            <li><a href="@cookiePreferencesHref" data-cookiebot-preferences>@localizer["Footer_Preferences"]</a></li>
                         </ul>
                     </div>
                 </div>
@@ -194,7 +196,7 @@
 
             <div class="public-footer-bottom">
                 <p>&copy; 2026 iD! Training &amp; Development. @localizer["Footer_RightsReserved"]</p>
-                @if (ViewData["HideFooterNavigation"] as bool? != true)
+                @if (ViewData["HideFooterNavigation"] as bool? != true && !useAbsolutePublicLinks)
                 {
                     <div class="public-language-wrap">
                         <a class="public-footer-language" id="footerLanguageSelector" role="button" data-public-language-toggle aria-expanded="false" href="#">

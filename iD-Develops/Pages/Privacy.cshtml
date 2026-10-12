@@ -1,8 +1,8 @@
 @page
 @model PrivacyModel
-@inject IHtmlLocalizer Localizer
+@inject IHtmlLocalizer<PrivacyModel> Localizer
 @{
-    ViewData["Title"] = Localizer["Title"];
+    ViewData["Title"] = Localizer["Title"].Value;
 }
 
 <section class="public-page">
