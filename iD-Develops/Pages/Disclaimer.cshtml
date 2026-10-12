@@ -1,8 +1,8 @@
 @page
 @model DisclaimerModel
-@inject IViewLocalizer Localizer
+@inject IHtmlLocalizer<DisclaimerModel> Localizer
 @{
-    ViewData["Title"] = Localizer["Title"];
+    ViewData["Title"] = Localizer["Title"].Value;
 }
 
 <section class="public-page">

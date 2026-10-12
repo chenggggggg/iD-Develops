@@ -1,8 +1,8 @@
 @page
 @model Cookie_PolicyModel
-@inject IHtmlLocalizer Localizer
+@inject IHtmlLocalizer<Cookie_PolicyModel> Localizer
 @{
-    ViewData["Title"] = Localizer["Title"];
+    ViewData["Title"] = Localizer["Title"].Value;
 }
 
 <section class="public-page">

@@ -13,6 +13,8 @@
     <script type="text/javascript">
         (function () {
             var maxAttempts = 40;
+            var automaticDialogOpened = false;
+            var preferencesRequested = new URLSearchParams(window.location.search).get("preferences") === "true";
 
             var hasCookiebotConsent = function () {
                 return document.cookie.split(";").some(function (cookie) {
@@ -21,26 +23,27 @@
             };
 
             var openCookiebotDialog = function () {
-            var attempts = 0;
-            var openPreferences = function () {
-                if (window.Cookiebot && typeof window.Cookiebot.renew === "function") {
-                    window.Cookiebot.renew();
-                    return;
-                }
+                var attempts = 0;
+                var openPreferences = function () {
+                    if (window.Cookiebot && typeof window.Cookiebot.renew === "function") {
+                        window.Cookiebot.renew();
+                        return;
+                    }
 
                     if (attempts < maxAttempts) {
-                    attempts += 1;
-                    window.setTimeout(openPreferences, 150);
-                }
-            };
+                        attempts += 1;
+                        window.setTimeout(openPreferences, 150);
+                    }
+                };
 
-            openPreferences();
+                openPreferences();
             };
 
             window.openCookiebotPreferences = openCookiebotDialog;
 
             var openOnFirstVisit = function () {
-                if (!hasCookiebotConsent()) {
+                if (!automaticDialogOpened && (preferencesRequested || !hasCookiebotConsent())) {
+                    automaticDialogOpened = true;
                     openCookiebotDialog();
                 }
             };
@@ -48,15 +51,20 @@
             window.addEventListener("CookiebotOnLoad", openOnFirstVisit);
             window.setTimeout(openOnFirstVisit, 1200);
 
-        document.addEventListener("click", function (event) {
-            var trigger = event.target.closest("[data-cookiebot-preferences]");
-            if (!trigger) {
-                return;
-            }
+            document.addEventListener("click", function (event) {
+                var trigger = event.target.closest("[data-cookiebot-preferences]");
+                if (!trigger) {
+                    return;
+                }
 
-            event.preventDefault();
+                var targetUrl = new URL(trigger.href, window.location.href);
+                if (targetUrl.origin !== window.location.origin) {
+                    return;
+                }
+
+                event.preventDefault();
                 openCookiebotDialog();
-        });
+            });
         })();
     </script>
 }
