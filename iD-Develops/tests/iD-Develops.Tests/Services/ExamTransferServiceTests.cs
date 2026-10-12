@@ -21,7 +21,7 @@ public sealed class ExamTransferServiceTests
             Name = "Dutch level test",
             CreatedByUserId = "source-owner",
             Difficulty = DifficultyLevel.B1,
-            TimeLimit = 45,
+            TimeLimitSeconds = (45 * 60) + 15,
             IntroductionPrimaryLanguage = "<p>Welcome</p>",
             IntroductionSecondaryLanguage = "<p>Welkom</p>",
             CompletionTextPrimary = "Completed",
@@ -98,6 +98,7 @@ public sealed class ExamTransferServiceTests
             .ToListAsync();
 
         Assert.Equal("Dutch level test", imported.Name);
+        Assert.Equal((45 * 60) + 15, imported.TimeLimitSeconds);
         Assert.Equal("import-owner", imported.CreatedByUserId);
         Assert.Equal(ExamPublishStatus.Draft, imported.PublishStatus);
         Assert.Null(imported.PublicSlug);

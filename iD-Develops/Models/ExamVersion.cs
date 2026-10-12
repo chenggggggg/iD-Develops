@@ -14,7 +14,7 @@ namespace iD_Develops.Models
         [Required]
         public string Name { get; set; } = string.Empty;
         public int DifficultyValue { get; set; }
-        public int? TimeLimit { get; set; }
+        public int? TimeLimitSeconds { get; set; }
         [Required]
         public string IntroductionPrimaryLanguage { get; set; } = string.Empty;
         public string? IntroductionSecondaryLanguage { get; set; }

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Security.Claims;
+using iD_Develops.Utilities;
 
 namespace iD_Develops.Pages.Portal.Exams
 {
@@ -36,6 +37,8 @@ namespace iD_Develops.Pages.Portal.Exams
 
         public async Task<IActionResult> OnPostContinueAsync()
         {
+            ValidateTimeLimit();
+
             if (!ModelState.IsValid)
                 return Page();
 
@@ -46,7 +49,7 @@ namespace iD_Develops.Pages.Portal.Exams
             var exam = new Exam
             {
                 Name = Input.Name,
-                TimeLimit = Input.TimeLimit,
+                TimeLimitSeconds = Input.TimeLimitSeconds,
                 IntroductionPrimaryLanguage = Input.IntroductionPrimaryLanguage ?? string.Empty,
                 IntroductionSecondaryLanguage = Input.IntroductionSecondaryLanguage,
                 CompletionTextPrimary = Input.CompletionTextPrimary,
@@ -78,5 +81,19 @@ namespace iD_Develops.Pages.Portal.Exams
         }
         private static int NormalizeMaxAttempts(int? maxAttempts)
             => maxAttempts is >= 1 ? maxAttempts.Value : -1;
+
+        private void ValidateTimeLimit()
+        {
+            if (!ExamDuration.TryParse(Input.TimeLimitInput, out var seconds))
+            {
+                ModelState.AddModelError(
+                    "Input.TimeLimitInput",
+                    "Use hh:mm:ss and enter a duration of at least one second, or leave this empty for no time limit.");
+                return;
+            }
+
+            Input.TimeLimitSeconds = seconds;
+            Input.TimeLimitInput = ExamDuration.Format(seconds);
+        }
     }
 }

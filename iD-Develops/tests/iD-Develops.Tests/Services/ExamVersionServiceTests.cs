@@ -83,7 +83,7 @@ public sealed class ExamVersionServiceTests
             CreatedByUserId = "teacher-1",
             PublishStatus = ExamPublishStatus.Draft,
             DifficultyValue = (int)DifficultyLevel.A1,
-            TimeLimit = 20,
+            TimeLimitSeconds = 20 * 60,
             IntroductionPrimaryLanguage = "Intro v1",
             IntroductionSecondaryLanguage = "Secondary v1",
             CompletionTextPrimary = "Done",
@@ -115,7 +115,7 @@ public sealed class ExamVersionServiceTests
         await service.PublishVersionAsync(exam, new List<Question> { question });
 
         exam.Name = "Updated level test";
-        exam.TimeLimit = 45;
+        exam.TimeLimitSeconds = 45 * 60;
         exam.IntroductionPrimaryLanguage = "Intro v2";
         exam.IntroductionSecondaryLanguage = "Secondary v2";
         exam.MaxAttempts = -1;
@@ -133,7 +133,7 @@ public sealed class ExamVersionServiceTests
         Assert.NotNull(descriptor);
         Assert.Equal("Updated level test", descriptor!.ExamTitle);
         Assert.Equal("Business English", descriptor.CourseName);
-        Assert.Equal(45, descriptor.TimeLimit);
+        Assert.Equal(45 * 60, descriptor.DurationSeconds);
         Assert.Equal("Intro v2", descriptor!.IntroductionPrimary);
         Assert.Equal("Secondary v2", descriptor.IntroductionSecondary);
         Assert.Equal(2, descriptor.ExamVersionId);
@@ -171,7 +171,7 @@ public sealed class ExamVersionServiceTests
 
         exam.PublishStatus = ExamPublishStatus.Draft;
         exam.IntroductionPrimaryLanguage = "Updated draft introduction";
-        exam.TimeLimit = 30;
+        exam.TimeLimitSeconds = 30 * 60;
         exam.MaxAttempts = -1;
         await dbContext.SaveChangesAsync();
 

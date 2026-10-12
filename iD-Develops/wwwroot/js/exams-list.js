@@ -1,13 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
     initializeExamActionPopovers();
 
-    document.querySelectorAll("[data-delete-exam]").forEach(function (button) {
-        button.addEventListener("click", function (event) {
-            event.preventDefault();
-            deleteExam(button);
-        });
-    });
-
+    initializeExamActionConfirmation();
     initializeExamLaunchDialog();
 
     const successMessage = sessionStorage.getItem("successMessage");
@@ -18,6 +12,77 @@ document.addEventListener("DOMContentLoaded", function () {
     displayDivMessage(successMessage, true);
     sessionStorage.removeItem("successMessage");
 });
+
+function initializeExamActionConfirmation() {
+    const dialog = document.getElementById("examActionConfirmDialog");
+    if (!dialog) return;
+
+    const title = dialog.querySelector("[data-exam-confirm-title]");
+    const message = dialog.querySelector("[data-exam-confirm-message]");
+    const confirmButton = dialog.querySelector("[data-exam-confirm-submit]");
+    const confirmLabel = dialog.querySelector("[data-exam-confirm-submit-label]");
+    const confirmIcon = confirmButton?.querySelector("i");
+    const closeButton = dialog.querySelector('[data-portal-dialog-close="examActionConfirmDialog"]');
+    let pendingButton = null;
+
+    document.querySelectorAll("[data-exam-confirm-action]").forEach(function (button) {
+        button.addEventListener("click", function () {
+            pendingButton = button;
+            const action = button.dataset.examConfirmAction;
+            const examName = button.dataset.examName || "this exam";
+
+            button.closest("[data-exam-actions-popover]")?.hidePopover?.();
+
+            if (action === "archive") {
+                title.textContent = "Archive exam";
+                message.textContent = `Archive “${examName}”? Students will no longer be able to start it, while existing attempts and results remain available.`;
+                confirmLabel.textContent = "Archive exam";
+                confirmButton.classList.remove("portal-btn-danger");
+                confirmButton.classList.add("portal-btn-primary");
+                confirmIcon?.classList.remove("fa-trash", "fa-triangle-exclamation");
+                confirmIcon?.classList.add("fa-box-archive");
+            } else {
+                title.textContent = "Delete exam";
+                message.textContent = `Permanently delete “${examName}”? This action cannot be undone.`;
+                confirmLabel.textContent = "Delete exam";
+                confirmButton.classList.remove("portal-btn-primary");
+                confirmButton.classList.add("portal-btn-danger");
+                confirmIcon?.classList.remove("fa-box-archive", "fa-triangle-exclamation");
+                confirmIcon?.classList.add("fa-trash");
+            }
+        });
+    });
+
+    confirmButton?.addEventListener("click", async function () {
+        if (!pendingButton || confirmButton.disabled) return;
+
+        const action = pendingButton.dataset.examConfirmAction;
+        confirmButton.disabled = true;
+
+        if (action === "archive") {
+            const form = pendingButton.closest("form[data-exam-archive-form]");
+            if (form) {
+                form.requestSubmit();
+                return;
+            }
+        } else if (action === "delete") {
+            const wasDeleted = await deleteExam(pendingButton);
+            if (wasDeleted) {
+                closeButton?.click();
+                pendingButton = null;
+            }
+        }
+
+        confirmButton.disabled = false;
+    });
+
+    dialog.querySelectorAll('[data-portal-dialog-close="examActionConfirmDialog"]').forEach(function (button) {
+        button.addEventListener("click", function () {
+            pendingButton = null;
+            if (confirmButton) confirmButton.disabled = false;
+        });
+    });
+}
 
 function initializeExamActionPopovers() {
     const popovers = Array.from(document.querySelectorAll("[data-exam-actions-popover]"));
@@ -102,8 +167,8 @@ function initializeExamLaunchDialog() {
     function renderLaunchInfo(info) {
         title.textContent = info.title || "Exam details";
         course.textContent = info.courseName || "Not specified";
-        time.textContent = Number(info.timeLimit) > 0
-            ? `${info.timeLimit} minutes`
+        time.textContent = Number(info.timeLimitSeconds) > 0
+            ? formatDuration(info.timeLimitSeconds)
             : "No time limit";
 
         if (!info.isPublished) {
@@ -204,4 +269,12 @@ function initializeExamLaunchDialog() {
                 });
             });
         });
+}
+
+function formatDuration(rawSeconds) {
+    const totalSeconds = Math.max(0, Number.parseInt(rawSeconds, 10) || 0);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }

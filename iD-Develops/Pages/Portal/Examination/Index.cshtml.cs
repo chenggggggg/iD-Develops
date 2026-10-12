@@ -80,7 +80,7 @@ namespace iD_Develops.Pages.Portal.Examination
             {
                 ExamTitle = descriptor.ExamTitle,
                 CourseName = descriptor.CourseName,
-                TimeLimit = descriptor.DurationSeconds,
+                DurationSeconds = descriptor.DurationSeconds,
                 EndDateTime = pageData.EndDateTime,
                 Mode = PaginationMode.Exam
             };

@@ -61,7 +61,7 @@ namespace iD_Develops.Services
                 {
                     Name = exam.Name,
                     DifficultyValue = exam.DifficultyValue,
-                    TimeLimit = exam.TimeLimit,
+                    TimeLimitSeconds = exam.TimeLimitSeconds,
                     IntroductionPrimaryLanguage = exam.IntroductionPrimaryLanguage,
                     IntroductionSecondaryLanguage = exam.IntroductionSecondaryLanguage,
                     CompletionTextPrimary = exam.CompletionTextPrimary,
@@ -197,7 +197,7 @@ namespace iD_Develops.Services
                     Name = definition.Name.Trim(),
                     CreatedByUserId = createdByUserId,
                     DifficultyValue = definition.DifficultyValue,
-                    TimeLimit = definition.TimeLimit,
+                    TimeLimitSeconds = definition.TimeLimitSeconds,
                     IntroductionPrimaryLanguage = definition.IntroductionPrimaryLanguage,
                     IntroductionSecondaryLanguage = definition.IntroductionSecondaryLanguage,
                     CompletionTextPrimary = definition.CompletionTextPrimary,
@@ -348,8 +348,8 @@ namespace iD_Develops.Services
             if (!Enum.IsDefined(exam.ResultGradeDisplayMode))
                 throw new ValidationException("The result display mode is invalid.");
 
-            if (exam.TimeLimit.HasValue && exam.TimeLimit.Value < 1)
-                throw new ValidationException("The time limit must be at least one minute.");
+            if (exam.TimeLimitSeconds.HasValue && exam.TimeLimitSeconds.Value < 1)
+                throw new ValidationException("The time limit must be at least one second.");
 
             if (exam.MaxAttempts < -1)
                 throw new ValidationException("The maximum-attempts setting is invalid.");

@@ -20,7 +20,7 @@
                 <p class="portal-copy">Configure the exam and then return to the editor when you're ready.</p>
             </div>
             <div class="portal-page-header-actions">
-                <a class="portal-btn portal-btn-outline" asp-page="/Portal/Examination/Edit" asp-route-examId="@Model.ExamId">
+                <a class="portal-btn portal-btn-outline" asp-page="/Portal/Examination/Edit" asp-route-examId="@Model.ExamId" asp-route-returnCourseId="@Model.ReturnCourseId">
                     <i class="fa-solid fa-arrow-left-long"></i>Back to Editor
                 </a>
             </div>
@@ -37,28 +37,26 @@
             <form method="post" id="exam-settings-page-form">
                 @Html.AntiForgeryToken()
                 <input type="hidden" asp-for="ExamId" />
+                <input type="hidden" asp-for="ReturnCourseId" />
                 <div class="public-alert public-alert-danger exam-hidden" role="alert" data-settings-client-summary></div>
 
-                <div class="portal-form-grid mb-6">
-                    <div class="portal-field-group portal-field-group-half">
+                <div class="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <div class="grid gap-1.5">
                         <label asp-for="Settings.Name" class="portal-info-label">Exam name</label>
                         <input asp-for="Settings.Name" class="portal-field" placeholder="Exam name" />
                         <span asp-validation-for="Settings.Name" class="portal-validation-message"></span>
                     </div>
-                    <div class="portal-field-group portal-field-group-third">
-                        <label asp-for="Settings.TimeLimit" class="portal-info-label">Time limit</label>
-                        <div class="exam-number-field">
-                            <input asp-for="Settings.TimeLimit"
-                                   type="number"
-                                   class="portal-field"
-                                   min="1"
-                                   placeholder="No limit"
-                                   data-special-number-input />
-                            <span class="exam-number-unit">min</span>
-                        </div>
-                        <span asp-validation-for="Settings.TimeLimit" class="portal-validation-message"></span>
+                    <div class="grid gap-1.5">
+                        <label asp-for="Settings.TimeLimitInput" class="portal-info-label">Time limit</label>
+                        <input asp-for="Settings.TimeLimitInput"
+                               type="text"
+                               inputmode="numeric"
+                               class="portal-field"
+                               placeholder="00:30:00" />
+                        <div class="exam-field-help">Use hh:mm:ss, or leave empty for no time limit.</div>
+                        <span asp-validation-for="Settings.TimeLimitInput" class="portal-validation-message"></span>
                     </div>
-                    <div class="portal-field-group portal-field-group-third">
+                    <div class="grid gap-1.5">
                         <label asp-for="Settings.DifficultyValue" class="portal-info-label">Difficulty</label>
                         <select asp-for="Settings.DifficultyValue" class="portal-field">
                             <option value="" disabled>Choose level</option>
@@ -69,7 +67,7 @@
                         </select>
                         <span asp-validation-for="Settings.DifficultyValue" class="portal-validation-message"></span>
                     </div>
-                    <div class="portal-field-group portal-field-group-third">
+                    <div class="grid gap-1.5">
                         <label asp-for="Settings.MaxAttempts" class="portal-info-label">Attempts</label>
                         <input asp-for="Settings.MaxAttempts"
                                type="number"
@@ -93,7 +91,7 @@
                 <div class="exam-rich-field mb-6" data-exam-rich-field>
                     <div class="exam-rich-header">
                         <div>
-                            <label asp-for="Settings.IntroductionPrimaryLanguage" class="portal-info-label">Introduction text</label>
+                            <label asp-for="Settings.IntroductionPrimaryLanguage" class="portal-info-label !text-base !text-[#10224d]">Introduction text</label>
                             <div class="exam-field-help">Shown before the student starts the exam.</div>
                         </div>
                         <i class="fa-solid fa-pencil exam-rich-pencil" aria-hidden="true"></i>
@@ -109,7 +107,7 @@
                 <div class="exam-rich-field mb-6" data-exam-rich-field>
                     <div class="exam-rich-header">
                         <div>
-                            <label asp-for="Settings.CompletionTextPrimary" class="portal-info-label">Completion text</label>
+                            <label asp-for="Settings.CompletionTextPrimary" class="portal-info-label !text-base !text-[#10224d]">Completion text</label>
                             <div class="exam-field-help">Shown after the exam is submitted.</div>
                         </div>
                         <i class="fa-solid fa-pencil exam-rich-pencil" aria-hidden="true"></i>
@@ -123,7 +121,7 @@
                 </div>
 
                 <div class="mb-6">
-                    <label class="portal-info-label">Result grading</label>
+                    <label class="portal-info-label !text-base !text-[#10224d]">Result grading</label>
                     <div class="exam-field-help mb-3">Create student-facing grade labels by choosing the highest score each grade covers. The maximum score is calculated automatically from your question points.</div>
                     <div class="public-alert public-alert-danger exam-hidden" role="alert" data-grade-client-summary></div>
                     <div class="my-4 flex items-center gap-2">
@@ -201,7 +199,7 @@
                     <div class="mt-5">
                                 <div class="exam-rich-field mb-5" data-exam-rich-field>
                                     <div class="exam-rich-header">
-                                        <label asp-for="Settings.IntroductionSecondaryLanguage" class="portal-info-label">Introduction text (secondary)</label>
+                                        <label asp-for="Settings.IntroductionSecondaryLanguage" class="portal-info-label !text-base !text-[#10224d]">Introduction text (secondary)</label>
                                         <i class="fa-solid fa-pencil exam-rich-pencil" aria-hidden="true"></i>
                                     </div>
                                     <div class="exam-rich-preview" data-exam-rich-preview data-placeholder="Enter introduction here..."></div>
@@ -214,7 +212,7 @@
 
                                 <div class="exam-rich-field" data-exam-rich-field>
                                     <div class="exam-rich-header">
-                                        <label asp-for="Settings.CompletionTextSecondary" class="portal-info-label">Completion text (secondary)</label>
+                                        <label asp-for="Settings.CompletionTextSecondary" class="portal-info-label !text-base !text-[#10224d]">Completion text (secondary)</label>
                                         <i class="fa-solid fa-pencil exam-rich-pencil" aria-hidden="true"></i>
                                     </div>
                                     <div class="exam-rich-preview" data-exam-rich-preview data-placeholder="Enter completion text here..."></div>
@@ -231,7 +229,7 @@
                     <button type="submit" class="portal-btn portal-btn-primary">
                         <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>Save settings
                     </button>
-                    <a class="portal-btn portal-btn-outline" asp-page="/Portal/Examination/Edit" asp-route-examId="@Model.ExamId">
+                    <a class="portal-btn portal-btn-outline" asp-page="/Portal/Examination/Edit" asp-route-examId="@Model.ExamId" asp-route-returnCourseId="@Model.ReturnCourseId">
                         <i class="fa-solid fa-arrow-left-long"></i>Back to Editor
                     </a>
                 </div>

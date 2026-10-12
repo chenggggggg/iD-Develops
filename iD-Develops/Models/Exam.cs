@@ -40,7 +40,7 @@ namespace iD_Develops.Models
         public ICollection<CourseSectionExam> CoursePlacements { get; set; } = new List<CourseSectionExam>();
         public ICollection<ExamAttemptGrant> AttemptGrants { get; set; } = new List<ExamAttemptGrant>();
 
-        public int? TimeLimit { get; set; }
+        public int? TimeLimitSeconds { get; set; }
 
         [Required]
         public string IntroductionPrimaryLanguage { get; set; }

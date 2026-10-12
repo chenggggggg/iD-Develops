@@ -125,7 +125,7 @@ namespace iD_Develops.Services
             if (!state.CanStart)
                 return new AttemptActionResult(false, null, state.BlockReason ?? "Cannot start.");
 
-            // Compute start/end based on exam timelimit using your GetExamStartSettingsAsync
+            // Compute the exact deadline from the versioned exam duration.
             var descriptor = await _examVersionService.GetPublishedDescriptorAsync(examId);
             if (descriptor == null)
                 return new AttemptActionResult(false, null, "Exam not found.");
@@ -133,8 +133,8 @@ namespace iD_Develops.Services
             var startTime = DateTime.UtcNow;
 
             DateTime? endTime =
-                (descriptor.TimeLimit.HasValue && descriptor.TimeLimit.Value > 0)
-                    ? startTime.AddMinutes(descriptor.TimeLimit.Value)
+                descriptor.DurationSeconds > 0
+                    ? startTime.AddSeconds(descriptor.DurationSeconds)
                     : (DateTime?)null;
 
             // Call your existing atomic method (correct signature)
@@ -179,8 +179,8 @@ namespace iD_Develops.Services
             var startTime = DateTime.UtcNow;
 
             DateTime? endTime =
-                (descriptor.TimeLimit.HasValue && descriptor.TimeLimit.Value > 0)
-                    ? startTime.AddMinutes(descriptor.TimeLimit.Value)
+                descriptor.DurationSeconds > 0
+                    ? startTime.AddSeconds(descriptor.DurationSeconds)
                     : (DateTime?)null;
 
             var recordId = await _recordService.StartAttemptAtomicAsync(userId, examId, descriptor.ExamVersionId, startTime, endTime);

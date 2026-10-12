@@ -98,7 +98,7 @@ namespace iD_Develops.Pages.Portal.Exams
                     examId,
                     title = header.Value.ExamTitle,
                     courseName = header.Value.CourseName,
-                    timeLimit = exam.TimeLimit,
+                    timeLimitSeconds = exam.TimeLimitSeconds,
                     introductionHtml = ResolveIntroduction(
                         exam.IntroductionPrimaryLanguage,
                         exam.IntroductionSecondaryLanguage),
@@ -127,7 +127,7 @@ namespace iD_Develops.Pages.Portal.Exams
                 examId,
                 title = descriptor.ExamTitle,
                 courseName = descriptor.CourseName,
-                timeLimit = descriptor.TimeLimit,
+                timeLimitSeconds = descriptor.DurationSeconds > 0 ? descriptor.DurationSeconds : (int?)null,
                 introductionHtml = ResolveIntroduction(
                     descriptor.IntroductionPrimary,
                     descriptor.IntroductionSecondary),

@@ -316,7 +316,7 @@ public sealed class ExamEditMutationServiceTests
         public Task<Exam?> GetExamForSettingsUpdateAsync(int examId)
             => Task.FromResult(_exam?.Id == examId ? _exam : null);
 
-        public Task<(bool Exists, int MaxAttempts, int? TimeLimit)> GetExamStartSettingsAsync(int examId)
+        public Task<(bool Exists, int MaxAttempts, int? TimeLimitSeconds)> GetExamStartSettingsAsync(int examId)
             => throw new NotSupportedException();
 
         public Task<List<Exam>> GetExamsByTeacherAsync(string teacherUserId)

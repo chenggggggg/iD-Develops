@@ -1,4 +1,5 @@
 @page
+@using iD_Develops.Utilities
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @model iD_Develops.Pages.Portal.Exams.ListModel
 @{
@@ -15,7 +16,7 @@
     var canManageExams = User.IsInRole("Teacher") || User.IsInRole("Admin") || User.IsInRole("SuperAdmin");
     var publishedExamCount = Model.Exams.Count(exam => exam.PublishStatus == iD_Develops.Models.ExamPublishStatus.Published);
     var draftExamCount = Model.Exams.Count(exam => exam.PublishStatus == iD_Develops.Models.ExamPublishStatus.Draft);
-    var timedExamCount = Model.Exams.Count(exam => exam.TimeLimit.HasValue);
+    var timedExamCount = Model.Exams.Count(exam => exam.TimeLimitSeconds.HasValue);
     var difficultyCount = Model.Exams.Select(exam => exam.Difficulty).Distinct().Count();
 }
 
@@ -134,10 +135,10 @@
                         <td>
                             <span class="portal-table-pill">@exam.Difficulty</span>
                         </td>
-                        @if (exam.TimeLimit.HasValue)
+                        @if (exam.TimeLimitSeconds.HasValue)
                         {
                             <td>
-                                <span class="portal-table-meta">@exam.TimeLimit</span>
+                                <span class="portal-table-meta">@ExamDuration.Format(exam.TimeLimitSeconds.Value)</span>
                             </td>
                         }
                         else
@@ -201,11 +202,22 @@
                                         <a class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold text-slate-700 no-underline hover:bg-slate-50" asp-page="/Portal/Exams/Transfer" asp-page-handler="Export" asp-route-examId="@exam.Id"><i class="fa-solid fa-file-export w-4" aria-hidden="true"></i>Export</a>
                                         @if (exam.PublishStatus != iD_Develops.Models.ExamPublishStatus.Archived)
                                         {
-                                            <form method="post" asp-page-handler="ArchiveExam" asp-route-examId="@exam.Id" class="m-0" onsubmit="return confirm('Archive this exam? Existing attempts and results will remain available.');">
-                                                <button type="submit" class="flex w-full items-center gap-2 rounded-md border-0 bg-transparent px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50"><i class="fa-solid fa-box-archive w-4" aria-hidden="true"></i>Archive</button>
+                                            <form method="post" asp-page-handler="ArchiveExam" asp-route-examId="@exam.Id" class="m-0" data-exam-archive-form>
+                                                <button type="button"
+                                                        class="flex w-full items-center gap-2 rounded-md border-0 bg-transparent px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                                                        data-portal-dialog-open="examActionConfirmDialog"
+                                                        data-exam-confirm-action="archive"
+                                                        data-exam-name="@exam.Name"><i class="fa-solid fa-box-archive w-4" aria-hidden="true"></i>Archive</button>
                                             </form>
                                         }
-                                        <button type="button" class="flex w-full items-center gap-2 rounded-md border-0 bg-transparent px-3 py-2 text-left text-sm font-semibold text-red-700 hover:bg-red-50" data-delete-url="@Url.Page("/Portal/Exams/List", "DeleteExam", new { examId = exam.Id })" data-exam-id="@exam.Id" data-delete-exam><i class="fa-solid fa-trash w-4" aria-hidden="true"></i>Delete</button>
+                                        <button type="button"
+                                                class="flex w-full items-center gap-2 rounded-md border-0 bg-transparent px-3 py-2 text-left text-sm font-semibold text-red-700 hover:bg-red-50"
+                                                data-portal-dialog-open="examActionConfirmDialog"
+                                                data-exam-confirm-action="delete"
+                                                data-exam-name="@exam.Name"
+                                                data-delete-url="@Url.Page("/Portal/Exams/List", "DeleteExam", new { examId = exam.Id })"
+                                                data-exam-id="@exam.Id"
+                                                data-delete-exam><i class="fa-solid fa-trash w-4" aria-hidden="true"></i>Delete</button>
                                     </div>
                                 }
                             </div>
@@ -216,6 +228,40 @@
         </table>
         </div>
     </div>
+</div>
+
+<div class="portal-dialog-backdrop" data-portal-dialog-backdrop="examActionConfirmDialog" hidden></div>
+<div class="portal-dialog !w-[min(92vw,30rem)]"
+     id="examActionConfirmDialog"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="examActionConfirmDialogTitle"
+     tabindex="-1"
+     hidden>
+    <section class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl">
+        <div class="portal-dialog-header">
+            <div>
+                <p class="portal-eyebrow">Confirm action</p>
+                <h2 class="portal-title-sm" id="examActionConfirmDialogTitle" data-exam-confirm-title>Update exam</h2>
+            </div>
+            <button type="button"
+                    class="portal-dialog-close"
+                    data-portal-dialog-close="examActionConfirmDialog"
+                    aria-label="Close">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="portal-dialog-body">
+            <p class="m-0 text-sm leading-6 text-slate-600" data-exam-confirm-message></p>
+        </div>
+        <div class="flex justify-end gap-2 border-t border-slate-200 bg-slate-50 px-6 py-4">
+            <button type="button" class="portal-btn portal-btn-outline" data-portal-dialog-close="examActionConfirmDialog">Cancel</button>
+            <button type="button" class="portal-btn portal-btn-danger" data-exam-confirm-submit>
+                <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                <span data-exam-confirm-submit-label>Confirm</span>
+            </button>
+        </div>
+    </section>
 </div>
 
 <div class="portal-dialog-backdrop" data-portal-dialog-backdrop="examLaunchDialog" hidden></div>

@@ -1422,7 +1422,7 @@ namespace iD_Develops.Data.Migrations
                     b.Property<int>("ResultGradeDisplayMode")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("TimeLimit")
+                    b.Property<int?>("TimeLimitSeconds")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -1601,7 +1601,7 @@ namespace iD_Develops.Data.Migrations
                     b.Property<int>("ResultGradeDisplayMode")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("TimeLimit")
+                    b.Property<int?>("TimeLimitSeconds")
                         .HasColumnType("integer");
 
                     b.Property<int>("VersionNumber")

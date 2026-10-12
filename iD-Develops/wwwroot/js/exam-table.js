@@ -18,8 +18,8 @@
     window.location.href = url.toString();
 }
 
-function deleteExam(element) {
-    if (!element) return;
+async function deleteExam(element) {
+    if (!element) return false;
 
     // New approach:
     // The server renders the correct delete endpoint on the button.
@@ -30,7 +30,7 @@ function deleteExam(element) {
     // This makes the function safe to exist on student pages.
     if (!deleteUrl) {
         notify("Delete failed. Please refresh and try again.", { type: "error", title: "Delete failed" });
-        return;
+        return false;
     }
 
     // Anti-forgery token:
@@ -42,34 +42,28 @@ function deleteExam(element) {
 
     if (!tokenInput || !tokenInput.value) {
         notify("Anti-forgery token not found.", { type: "error", title: "Token error" });
-        return;
+        return false;
     }
 
-    if (!confirm("Are you sure you want to delete this exam?")) {
-        return;
-    }
-
-    $.ajax({
-        type: "POST",
-        url: deleteUrl,
-        headers: {
-            RequestVerificationToken: tokenInput.value
-        },
-        success: function (response) {
-            if (window.notify) {
-                window.notify(
-                    (response && response.message) ? response.message : "Exam deleted successfully",
-                    { type: "success", title: "Deleted" }
-                );
-            }
-
-            // Remove the row
-            $(element).closest("tr").remove();
-        },
-        error: function (error) {
-            if (window.notify) {
-                window.notify("Error removing exam", { type: "error", title: "Delete failed" });
-            }
+    try {
+        const response = await fetch(deleteUrl, {
+            method: "POST",
+            headers: {
+                RequestVerificationToken: tokenInput.value,
+                "X-Requested-With": "XMLHttpRequest"
+            },
+            credentials: "same-origin"
+        });
+        const result = await response.json().catch(() => null);
+        if (!response.ok || result?.success === false) {
+            throw new Error(result?.message || "The exam could not be deleted.");
         }
-    });
+
+        notify(result?.message || "Exam deleted successfully.", { type: "success", title: "Deleted" });
+        element.closest("tr")?.remove();
+        return true;
+    } catch (error) {
+        notify(error?.message || "Error removing exam.", { type: "error", title: "Delete failed" });
+        return false;
+    }
 }

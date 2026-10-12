@@ -4,7 +4,7 @@ namespace iD_Develops.Services
 {
     public sealed class ExamTransferPackage
     {
-        public const int CurrentFormatVersion = 1;
+        public const int CurrentFormatVersion = 2;
 
         public int FormatVersion { get; set; } = CurrentFormatVersion;
         public DateTime ExportedAtUtc { get; set; }
@@ -15,7 +15,7 @@ namespace iD_Develops.Services
     {
         public string Name { get; set; } = string.Empty;
         public int DifficultyValue { get; set; }
-        public int? TimeLimit { get; set; }
+        public int? TimeLimitSeconds { get; set; }
         public string IntroductionPrimaryLanguage { get; set; } = string.Empty;
         public string? IntroductionSecondaryLanguage { get; set; }
         public string? CompletionTextPrimary { get; set; }

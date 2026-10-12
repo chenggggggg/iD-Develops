@@ -1,6 +1,5 @@
 using iD_Develops.Data;
 using iD_Develops.Models;
-using iD_Develops.Pages.Portal.Examination.Models;
 using iD_Develops.Pages.Shared.Examination;
 using iD_Develops.Pages.Shared.Examination.Questions;
 using iD_Develops.Services;
@@ -9,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using iD_Develops.Utilities;
 
 namespace iD_Develops.Pages.Portal.Examination
 {
@@ -26,8 +26,6 @@ namespace iD_Develops.Pages.Portal.Examination
         [BindProperty(SupportsGet = true)]
         public int? ReturnCourseId { get; set; }
 
-        [BindProperty]
-        public CreateExamInputModel Settings { get; set; } = new();
         public Question? Question { get; set; }
 
         private readonly IExamEditFlowService _examEditFlowService;
@@ -80,7 +78,6 @@ namespace iD_Develops.Pages.Portal.Examination
             QuestionId = pageData.ResolvedQuestionId;
             Header = pageData.Header;
             Pagination = pageData.Pagination;
-            Settings = pageData.Settings;
             Question = pageData.Question;
             UploadsEnabled = pageData.UploadsEnabled;
             ViewData["StoragePrefix"] = pageData.StoragePrefix;
@@ -180,58 +177,7 @@ namespace iD_Develops.Pages.Portal.Examination
             return new JsonResult(new { success = true, questionId = result.QuestionId, questionNumber = result.QuestionNumber });
         }
 
-        public async Task<IActionResult> OnPostSaveSettingsAsync()
-        {
-            if (ExamId <= 0)
-                return NotFound();
-            if (!await CanManageExamAsync(ExamId))
-                return Forbid();
-
-            if (!ModelState.IsValid)
-            {
-                // Re-load tag list + header/pagination needed to render the page again
-                // (same as in OnGetAsync) then:
-                await OnGetAsync();
-                return Page();
-            }
-
-            var result = await _examEditMutationService.SaveSettingsAsync(ExamId, Settings, CurrentUserId, (User.IsInRole("Admin") || User.IsInRole("SuperAdmin")));
-            if (!result.Success)
-                return StatusCode(result.StatusCode);
-
-            return RedirectToPage(new { ExamId, QuestionId, ReturnCourseId });
-        }
-
-        public async Task<IActionResult> OnPostSaveQuickSettingsAsync()
-        {
-            if (ExamId <= 0)
-                return NotFound();
-            if (!await CanManageExamAsync(ExamId))
-                return Forbid();
-
-            var exam = await _examService.GetExamForSettingsUpdateAsync(ExamId);
-            if (exam == null)
-                return NotFound();
-
-            exam.DifficultyValue = Settings.DifficultyValue ?? exam.DifficultyValue;
-            exam.MaxAttempts = Settings.MaxAttempts is >= 1 ? Settings.MaxAttempts.Value : -1;
-
-            await _examService.SaveChangesAsync();
-
-            if (string.Equals(Request.Headers["X-Requested-With"], "XMLHttpRequest", StringComparison.OrdinalIgnoreCase))
-            {
-                return new JsonResult(new
-                {
-                    success = true,
-                    difficultyValue = exam.DifficultyValue,
-                    maxAttempts = exam.MaxAttempts
-                });
-            }
-
-            return RedirectToPage(new { ExamId, QuestionId, ReturnCourseId });
-        }
-
-        public async Task<IActionResult> OnPostSaveHeaderSettingsAsync(int examId, string field, string? name, int? timeLimit)
+        public async Task<IActionResult> OnPostSaveHeaderSettingsAsync(int examId, string field, string? name, int? timeLimitSeconds)
         {
             if (examId <= 0)
                 return BadRequest(new { success = false, errorMessage = "Invalid exam." });
@@ -248,7 +194,7 @@ namespace iD_Develops.Pages.Portal.Examination
             }
             else if (string.Equals(field, "timeLimit", StringComparison.OrdinalIgnoreCase))
             {
-                exam.TimeLimit = timeLimit is >= 1 ? timeLimit.Value : null;
+                exam.TimeLimitSeconds = timeLimitSeconds is >= 1 ? timeLimitSeconds.Value : null;
             }
             else
             {
@@ -261,8 +207,8 @@ namespace iD_Develops.Pages.Portal.Examination
             {
                 success = true,
                 name = exam.Name,
-                timeLimit = exam.TimeLimit,
-                timeLimitDisplay = exam.TimeLimit.HasValue ? TimeSpan.FromMinutes(exam.TimeLimit.Value).ToString(@"hh\:mm\:ss") : "No time limit"
+                timeLimitSeconds = exam.TimeLimitSeconds,
+                timeLimitDisplay = ExamDuration.Format(exam.TimeLimitSeconds) ?? "No time limit"
             });
         }
 

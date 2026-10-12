@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using iD_Develops.Enums;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace iD_Develops.Pages.Portal.Examination.Models
 {
@@ -10,8 +11,10 @@ namespace iD_Develops.Pages.Portal.Examination.Models
         [Required(ErrorMessage = "Give this exam a name before continuing.")]
         public string Name { get; set; } = "";
 
-        [Range(1, int.MaxValue, ErrorMessage = "Leave this empty for no time limit, or enter at least 1 minute.")]
-        public int? TimeLimit { get; set; }
+        public string? TimeLimitInput { get; set; }
+
+        [BindNever]
+        public int? TimeLimitSeconds { get; set; }
 
         public string? IntroductionPrimaryLanguage { get; set; }
 
