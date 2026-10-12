@@ -91,13 +91,6 @@ namespace iD_Develops.Utilities
             };
         }
 
-        public static string BuildErrorUrl(PathString path, QueryString queryString, string code)
-        {
-            var culture = GetCultureFromPath(path);
-            var original = path + queryString;
-            return $"/{culture}/error?code={Uri.EscapeDataString(code)}&returnUrl={Uri.EscapeDataString(original)}";
-        }
-
         private static bool IsConnectivityDbException(DbException ex)
         {
             var message = ex.Message ?? string.Empty;

@@ -174,7 +174,9 @@ namespace iD_Develops.Pages
                     return;
             }
 
-            StatusCodeValue = statusCode ?? StatusCodes.Status500InternalServerError;
+            StatusCodeValue = statusCode is >= 400 and <= 599
+                ? statusCode.Value
+                : StatusCodes.Status500InternalServerError;
 
             switch (StatusCodeValue)
             {
@@ -251,15 +253,28 @@ namespace iD_Develops.Pages
                     ImageAlt = _localizer["ServiceUnavailableImageAlt"];
                     break;
                 default:
-                    ErrorCode = "server-error";
-                    StatusCodeValue = StatusCodes.Status500InternalServerError;
-                    Heading = _localizer["ServerErrorHeading"];
-                    Summary = _localizer["ServerErrorSummary"];
-                    Detail = _localizer["ServerErrorDetail"];
-                    ThemeClass = "error-theme-danger";
-                    IconText = "500";
-                    ImagePath = "/images/error-unavailable.png";
-                    ImageAlt = _localizer["ServerErrorImageAlt"];
+                    if (StatusCodeValue < StatusCodes.Status500InternalServerError)
+                    {
+                        ErrorCode = "client-error";
+                        Heading = _localizer["BadRequestHeading"];
+                        Summary = _localizer["BadRequestSummary"];
+                        Detail = _localizer["BadRequestDetail"];
+                        ThemeClass = "error-theme-warning";
+                        ImagePath = "/images/error-invalid-request.png";
+                        ImageAlt = _localizer["BadRequestImageAlt"];
+                    }
+                    else
+                    {
+                        ErrorCode = "server-error";
+                        Heading = _localizer["ServerErrorHeading"];
+                        Summary = _localizer["ServerErrorSummary"];
+                        Detail = _localizer["ServerErrorDetail"];
+                        ThemeClass = "error-theme-danger";
+                        ImagePath = "/images/error-unavailable.png";
+                        ImageAlt = _localizer["ServerErrorImageAlt"];
+                    }
+
+                    IconText = StatusCodeValue.ToString(System.Globalization.CultureInfo.InvariantCulture);
                     break;
             }
         }

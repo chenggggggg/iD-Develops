@@ -48,8 +48,9 @@ public sealed class PortalEntitlementSmokeTests : Microsoft.Playwright.Xunit.Pag
     {
         using var response = await SendWithoutRedirectAsync($"{PublicBaseUrl}/en-us/courses");
 
-        Assert.Equal(System.Net.HttpStatusCode.Found, response.StatusCode);
-        Assert.StartsWith("/en-us/error?code=not-found", response.Headers.Location?.OriginalString, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(System.Net.HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Null(response.Headers.Location);
+        Assert.Contains("Page not found", await response.Content.ReadAsStringAsync(), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -57,8 +58,9 @@ public sealed class PortalEntitlementSmokeTests : Microsoft.Playwright.Xunit.Pag
     {
         using var response = await SendWithoutRedirectAsync($"{PortalBaseUrl}/en-us/products");
 
-        Assert.Equal(System.Net.HttpStatusCode.Found, response.StatusCode);
-        Assert.StartsWith("/error?code=not-found", response.Headers.Location?.OriginalString, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(System.Net.HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Null(response.Headers.Location);
+        Assert.Contains("Page not found", await response.Content.ReadAsStringAsync(), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -286,6 +288,19 @@ public sealed class PortalEntitlementSmokeTests : Microsoft.Playwright.Xunit.Pag
         Assert.NotNull(response);
         Assert.Equal(404, response!.Status);
         await Expect(Page.GetByRole(Microsoft.Playwright.AriaRole.Heading, new() { Name = "Page not found" }))
+            .ToBeVisibleAsync();
+    }
+
+    [Fact]
+    public async Task PortalErrorPage_PreservesUncommonHttpStatusCode()
+    {
+        var response = await Page.GotoAsync(
+            $"{PortalBaseUrl}/error?statusCode=422",
+            new Microsoft.Playwright.PageGotoOptions { WaitUntil = Microsoft.Playwright.WaitUntilState.DOMContentLoaded });
+
+        Assert.NotNull(response);
+        Assert.Equal(422, response!.Status);
+        await Expect(Page.GetByRole(Microsoft.Playwright.AriaRole.Heading, new() { Name = "Invalid request" }))
             .ToBeVisibleAsync();
     }
 

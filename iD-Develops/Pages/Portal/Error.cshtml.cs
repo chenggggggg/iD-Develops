@@ -162,7 +162,9 @@ namespace iD_Develops.Pages.Portal
                     return;
             }
 
-            StatusCodeValue = statusCode ?? StatusCodes.Status500InternalServerError;
+            StatusCodeValue = statusCode is >= 400 and <= 599
+                ? statusCode.Value
+                : StatusCodes.Status500InternalServerError;
 
             switch (StatusCodeValue)
             {
@@ -239,15 +241,28 @@ namespace iD_Develops.Pages.Portal
                     ImageAlt = "Service unavailable";
                     break;
                 default:
-                    ErrorCode = "server-error";
-                    StatusCodeValue = StatusCodes.Status500InternalServerError;
-                    Heading = "Something went wrong";
-                    Summary = "An unexpected server error occurred.";
-                    Detail = "Please try again in a moment. If the problem continues, contact support.";
-                    ThemeClass = "error-theme-danger";
-                    IconText = "500";
-                    ImagePath = "/images/error-unavailable.png";
-                    ImageAlt = "System or service issue";
+                    if (StatusCodeValue < StatusCodes.Status500InternalServerError)
+                    {
+                        ErrorCode = "client-error";
+                        Heading = "Invalid request";
+                        Summary = "The request could not be processed in its current form.";
+                        Detail = "Please check the input or try the action again from the previous page.";
+                        ThemeClass = "error-theme-warning";
+                        ImagePath = "/images/error-invalid-request.png";
+                        ImageAlt = "Invalid request";
+                    }
+                    else
+                    {
+                        ErrorCode = "server-error";
+                        Heading = "Something went wrong";
+                        Summary = "An unexpected server error occurred.";
+                        Detail = "Please try again in a moment. If the problem continues, contact support.";
+                        ThemeClass = "error-theme-danger";
+                        ImagePath = "/images/error-unavailable.png";
+                        ImageAlt = "System or service issue";
+                    }
+
+                    IconText = StatusCodeValue.ToString(System.Globalization.CultureInfo.InvariantCulture);
                     break;
             }
         }

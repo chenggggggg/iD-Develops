@@ -4,7 +4,6 @@ using iD_Develops.Enums;
 using iD_Develops.Models;
 using iD_Develops.Services;
 using iD_Develops.Utilities;
-using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
@@ -168,7 +167,6 @@ builder.Services.AddLocalization(options => options.ResourcesPath = "Resources")
 var razorPagesBuilder = builder.Services.AddRazorPages()
     .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
     .AddDataAnnotationsLocalization()
-    .AddMvcOptions(options => options.Filters.AddService<DatabaseUnavailableExceptionFilter>())
     .AddRazorPagesOptions(options =>
     {
         var applicationUrls = builder.Configuration
@@ -219,8 +217,6 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 // ----------------------------
 // Identity
 // ----------------------------
-builder.Services.AddScoped<DatabaseUnavailableExceptionFilter>();
-
 builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
     options.SignIn.RequireConfirmedAccount = true)
     .AddRoles<IdentityRole>()
@@ -689,148 +685,18 @@ if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Local"))
     });
 }
 
+app.UseMiddleware<ApplicationErrorMiddleware>();
+
 app.UseStaticFiles();
 if (!app.Environment.IsEnvironment("Local"))
 {
     app.UseHttpsRedirection();
 }
 
-// IMPORTANT: environment exception handling must be registered here (NOT inside other middleware)
-if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Local"))
+if (!app.Environment.IsDevelopment() && !app.Environment.IsEnvironment("Local"))
 {
-    // Keep this OFF unless you explicitly want the dev exception page.
-    // app.UseDeveloperExceptionPage();
-}
-else
-{
-    app.UseExceptionHandler(errorApp =>
-    {
-        errorApp.Run(async context =>
-        {
-            var exceptionFeature = context.Features.Get<IExceptionHandlerPathFeature>();
-            var exception = exceptionFeature?.Error;
-
-            if (exception != null && DatabaseAvailability.IsDatabaseUnavailable(exception))
-            {
-                var errorCode = DatabaseAvailability.GetDatabaseErrorCode(exception);
-
-                if (DatabaseAvailability.IsAjaxOrApiRequest(context))
-                {
-                    context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
-                    context.Response.ContentType = "application/json; charset=utf-8";
-                    context.Response.Headers["Retry-After"] = "60";
-                    await context.Response.WriteAsync($"{{\"error\":\"{errorCode}\"}}");
-                    return;
-                }
-
-                context.Response.Redirect(DatabaseAvailability.BuildErrorUrl(context.Request.Path, context.Request.QueryString, errorCode));
-                return;
-            }
-
-            if (DatabaseAvailability.IsAjaxOrApiRequest(context))
-            {
-                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-                context.Response.ContentType = "application/json; charset=utf-8";
-                await context.Response.WriteAsync("{\"error\":\"server-error\"}");
-                return;
-            }
-
-            context.Response.Redirect(DatabaseAvailability.BuildErrorUrl(context.Request.Path, context.Request.QueryString, "server-error"));
-        });
-    });
     app.UseHsts();
 }
-
-app.UseStatusCodePages(statusContext =>
-{
-    var context = statusContext.HttpContext;
-    var applicationUrls = context.RequestServices.GetRequiredService<IApplicationUrlService>();
-    var path = context.Request.Path.Value ?? string.Empty;
-    var statusCode = context.Response.StatusCode;
-
-    if (context.Response.HasStarted
-        || statusCode < 400
-        || DatabaseAvailability.IsAjaxOrApiRequest(context)
-        || path.Contains("/error", StringComparison.OrdinalIgnoreCase)
-        || path.StartsWith("/health/db", StringComparison.OrdinalIgnoreCase)
-        || path.StartsWith("/api/stripe-webhook", StringComparison.OrdinalIgnoreCase))
-    {
-        return Task.CompletedTask;
-    }
-
-    var original = (context.Request.PathBase + context.Request.Path + context.Request.QueryString).ToString();
-    var errorCode = statusCode switch
-    {
-        StatusCodes.Status400BadRequest => "bad-request",
-        StatusCodes.Status401Unauthorized => "unauthorized",
-        StatusCodes.Status403Forbidden => "forbidden",
-        StatusCodes.Status404NotFound => "not-found",
-        StatusCodes.Status409Conflict => "conflict",
-        StatusCodes.Status503ServiceUnavailable => "service-unavailable",
-        _ => "server-error"
-    };
-
-    var errorPath = applicationUrls.IsPortalRequest(context.Request)
-        ? "/error"
-        : $"/{DatabaseAvailability.GetCultureFromPath(context.Request.Path)}/error";
-    context.Response.Redirect($"{errorPath}?code={Uri.EscapeDataString(errorCode)}&statusCode={statusCode}&returnUrl={Uri.EscapeDataString(original)}");
-    return Task.CompletedTask;
-});
-
-// ----------------------------
-// Database-unavailable shield
-// - Browser navigation requests => redirect to the shared error page with a DB-specific error code
-// - AJAX/API/webhook/health/upload requests => return 503 (no HTML redirect)
-// ----------------------------
-app.Use(async (context, next) =>
-{
-    try
-    {
-        await next();
-    }
-    catch (Exception ex) when (DatabaseAvailability.IsDatabaseUnavailable(ex))
-    {
-        var path = context.Request.Path.Value ?? string.Empty;
-
-        // Explicit exclusions: never redirect these to HTML
-        if (path.StartsWith("/health/db", StringComparison.OrdinalIgnoreCase)
-            || path.StartsWith("/api/stripe-webhook", StringComparison.OrdinalIgnoreCase))
-        {
-            context.Response.Clear();
-            context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
-            context.Response.Headers["Retry-After"] = "60";
-            return;
-        }
-
-        // If caller likely expects JSON: return 503 JSON (no redirect)
-        if (DatabaseAvailability.IsAjaxOrApiRequest(context))
-        {
-            var dbErrorCode = DatabaseAvailability.GetDatabaseErrorCode(ex);
-            context.Response.Clear();
-            context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
-            context.Response.Headers["Retry-After"] = "60";
-            context.Response.ContentType = "application/json; charset=utf-8";
-            await context.Response.WriteAsync($"{{\"error\":\"{dbErrorCode}\"}}");
-            return;
-        }
-
-        var original = (context.Request.PathBase + context.Request.Path + context.Request.QueryString).ToString();
-        var errorCode = DatabaseAvailability.GetDatabaseErrorCode(ex);
-        var applicationUrls = context.RequestServices.GetRequiredService<IApplicationUrlService>();
-        var redirectUrl = applicationUrls.IsPortalRequest(context.Request)
-            ? $"/error?code={Uri.EscapeDataString(errorCode)}&returnUrl={Uri.EscapeDataString(original)}"
-            : DatabaseAvailability.BuildErrorUrl(context.Request.Path, context.Request.QueryString, errorCode);
-
-        app.Logger.LogWarning(
-            "Database unavailable; redirecting to {RedirectUrl}. Original: {Original}. Error: {ExceptionType}",
-            redirectUrl,
-            original,
-            ex.GetType().Name);
-
-        context.Response.Clear();
-        context.Response.Redirect(redirectUrl);
-    }
-});
 
 app.UseMiddleware<CultureUrlRewriterMiddleware>();
 
