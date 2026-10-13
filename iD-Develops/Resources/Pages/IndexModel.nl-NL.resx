@@ -223,7 +223,7 @@
     <value>Leer Nederlands, versterk je communicatie of groei naar wie je wilt zijn. iD! begeleidt mensen en teams met expertise, eerlijkheid en humor.</value>
   </data>
   <data name="ShowExpandedLearningOptions" xml:space="preserve">
-    <value>false</value>
+    <value>true</value>
   </data>
   <data name="HeroTitleLine1" xml:space="preserve">
     <value>Vind je stem.</value>
