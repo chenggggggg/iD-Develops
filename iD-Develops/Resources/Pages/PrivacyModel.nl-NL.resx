@@ -1,694 +1,118 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-  <resheader name="resmimetype">
-    <value>text/microsoft-resx</value>
-  </resheader>
-  <resheader name="version">
-    <value>2.0</value>
-  </resheader>
-  <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </resheader>
-  <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </resheader>
-  <data name="Title" xml:space="preserve">
-    <value>Privacy Policy</value>
-  </data>
-  <data name="ContentHtml" xml:space="preserve">
-    <value>&lt;h1&gt;Privacy Policy&lt;/h1&gt;
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader><resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader><resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>Privacybeleid</value></data>
+  <data name="ContentHtml" xml:space="preserve"><value>&lt;h1&gt;Privacybeleid&lt;/h1&gt;
+&lt;p&gt;&lt;strong&gt;Laatst bijgewerkt:&lt;/strong&gt; 7 juli 2026&lt;/p&gt;
+&lt;p&gt;Dit Privacybeleid legt uit hoe iD! Training &amp;amp; Development persoonsgegevens verzamelt, gebruikt, bewaart, beschermt en deelt wanneer u onze website bezoekt of gebruikmaakt van ons portaal, accounts, formulieren, digitale producten, downloads, trainingen, cursussen, examens, toetsen en aanverwante diensten (gezamenlijk de 'Diensten').&lt;/p&gt;
+
+&lt;h2&gt;1. Wie verantwoordelijk is voor uw persoonsgegevens&lt;/h2&gt;
+&lt;p&gt;De verwerkingsverantwoordelijke voor de in dit Privacybeleid beschreven verwerkingen is:&lt;/p&gt;
+&lt;address&gt;&lt;strong&gt;iD! Training &amp;amp; Development&lt;/strong&gt;&lt;br /&gt;Vennootschap onder firma (VOF)&lt;br /&gt;KvK-nummer: 61841277&lt;br /&gt;Btw-identificatienummer: NL854512044B01&lt;br /&gt;Rusthoven 26&lt;br /&gt;5655 CN Eindhoven&lt;br /&gt;Noord-Brabant&lt;br /&gt;Nederland&lt;br /&gt;E-mail: &lt;a href="mailto:compliance@id-develops.com"&gt;compliance@id-develops.com&lt;/a&gt;&lt;/address&gt;
+&lt;p&gt;U kunt dit e-mailadres gebruiken voor vragen over dit Privacybeleid of om uw privacyrechten uit te oefenen.&lt;/p&gt;
+
+&lt;h2&gt;2. Wanneer een organisatie toegang verstrekt&lt;/h2&gt;
+&lt;p&gt;Een werkgever, school, opleider, klant of andere organisatie kan toegang tot de Diensten regelen voor werknemers, opdrachtnemers, studenten, cursisten of andere bevoegde gebruikers.&lt;/p&gt;
+&lt;p&gt;In die gevallen kan de organisatie bepalen waarom bepaalde persoonsgegevens worden verwerkt, zoals inschrijvingsgegevens, deelname, voortgang, examenpogingen en resultaten. De organisatie kan voor sommige verwerkingen daarom zelfstandig verwerkingsverantwoordelijke zijn.&lt;/p&gt;
+&lt;p&gt;Wij kunnen zulke gegevens in opdracht van de organisatie of voor onze eigen gerechtvaardigde doelen verwerken, zoals het exploiteren en beveiligen van het platform, het bijhouden van vereiste administratie en het naleven van wettelijke verplichtingen. Vragen over het eigen gebruik van uw gegevens door een organisatie kunt u ook aan die organisatie richten.&lt;/p&gt;
+
+&lt;h2&gt;3. Persoonsgegevens die wij verzamelen&lt;/h2&gt;
+&lt;p&gt;Welke persoonsgegevens wij verzamelen hangt af van uw gebruik van de Diensten.&lt;/p&gt;
+&lt;h3&gt;3.1 Account- en identiteitsgegevens&lt;/h3&gt;
+&lt;ul&gt;&lt;li&gt;naam en e-mailadres;&lt;/li&gt;&lt;li&gt;gebruikersnaam of accountidentificatie;&lt;/li&gt;&lt;li&gt;wachtwoordhash en authenticatiegegevens;&lt;/li&gt;&lt;li&gt;accountrol, rechten, status en organisatie;&lt;/li&gt;&lt;li&gt;taal- en communicatievoorkeuren; en&lt;/li&gt;&lt;li&gt;tijdstippen van accountaanmaak, bevestiging, aanmelding en beveiligingsgebeurtenissen.&lt;/li&gt;&lt;/ul&gt;
+&lt;p&gt;Wij bewaren uw wachtwoord niet in leesbare vorm. Wachtwoorden worden verwerkt met technieken voor het hashen van wachtwoorden.&lt;/p&gt;
+&lt;h3&gt;3.2 Contact-, registratie- en formuliergegevens&lt;/h3&gt;
+&lt;ul&gt;&lt;li&gt;naam, e-mailadres, telefoonnummer en organisatiegegevens;&lt;/li&gt;&lt;li&gt;vragen, berichten, voorkeuren en via formulieren ingediende informatie;&lt;/li&gt;&lt;li&gt;keuzes voor cursussen, producten of diensten; en&lt;/li&gt;&lt;li&gt;informatie die nodig is om een vraag te beantwoorden of een gevraagde dienst te leveren.&lt;/li&gt;&lt;/ul&gt;
+&lt;h3&gt;3.3 Trainings- en toetsgegevens&lt;/h3&gt;
+&lt;ul&gt;&lt;li&gt;cursusinschrijvingen, deelname en voortgang;&lt;/li&gt;&lt;li&gt;examen- en toetspogingen;&lt;/li&gt;&lt;li&gt;antwoorden, uploads, scores, feedback en resultaten;&lt;/li&gt;&lt;li&gt;start- en voltooiingstijden, deadlines en pogingstatus;&lt;/li&gt;&lt;li&gt;registraties van vermoedelijke technische problemen of onregelmatigheden; en&lt;/li&gt;&lt;li&gt;certificaten of voltooiingsregistraties waar van toepassing.&lt;/li&gt;&lt;/ul&gt;
+&lt;h3&gt;3.4 Bestel-, factuur- en betaalgegevens&lt;/h3&gt;
+&lt;ul&gt;&lt;li&gt;bestelde producten en diensten;&lt;/li&gt;&lt;li&gt;factuurnaam, factuuradres en toepasselijke belastinggegevens;&lt;/li&gt;&lt;li&gt;bestel- en betaalstatus, valuta, bedrag en transactiereferentie;&lt;/li&gt;&lt;li&gt;facturen en boekhoudgegevens; en&lt;/li&gt;&lt;li&gt;beperkte betaalmethodegegevens van de betaalprovider, zoals het betaaltype of de laatste cijfers van een kaart indien beschikbaar.&lt;/li&gt;&lt;/ul&gt;
+&lt;p&gt;Betalingen kunnen door Stripe of een andere betaalprovider worden verwerkt. Volledige kaartgegevens worden doorgaans rechtstreeks aan de betaalprovider verstrekt en niet door ons opgeslagen.&lt;/p&gt;
+&lt;h3&gt;3.5 Geüploade inhoud en communicatie&lt;/h3&gt;
+&lt;ul&gt;&lt;li&gt;bestanden, afbeeldingen, audio, documenten en andere uploads;&lt;/li&gt;&lt;li&gt;ondersteuningsverzoeken en correspondentie;&lt;/li&gt;&lt;li&gt;feedback, klachten en andere communicatie; en&lt;/li&gt;&lt;li&gt;administratieve notities die redelijkerwijs nodig zijn om de Diensten te leveren of ondersteunen.&lt;/li&gt;&lt;/ul&gt;
+&lt;p&gt;Verstrek geen gevoelige of vertrouwelijke persoonsgegevens tenzij dit voor de gevraagde Dienst nodig is en u bevoegd bent ze te verstrekken.&lt;/p&gt;
+&lt;h3&gt;3.6 Technische en gebruiksgegevens&lt;/h3&gt;
+&lt;ul&gt;&lt;li&gt;IP-adres, browsertype, besturingssysteem en apparaatgegevens;&lt;/li&gt;&lt;li&gt;opgevraagde pagina's, tijdstippen, antwoordstatus en verwijzende pagina;&lt;/li&gt;&lt;li&gt;aanmeld-, authenticatie-, fraudepreventie- en beveiligingslogboeken;&lt;/li&gt;&lt;li&gt;cookie-identificaties en toestemmingsvoorkeuren;&lt;/li&gt;&lt;li&gt;taal-, sessie- en portalvoorkeuren; en&lt;/li&gt;&lt;li&gt;foutrapporten en informatie voor technische diagnose.&lt;/li&gt;&lt;/ul&gt;
+&lt;p&gt;Wij proberen uw exacte apparaatlocatie niet te verzamelen, tenzij een specifieke functie dit uitdrukkelijk vereist en daarvoor een passende rechtsgrond bestaat.&lt;/p&gt;
+&lt;h3&gt;3.7 Gegevens van organisaties&lt;/h3&gt;
+&lt;p&gt;Wanneer een organisatie u voor een Dienst aanmeldt, kunnen wij onder meer uw naam, e-mailadres, organisatie, afdeling, toegewezen cursus, toegangsrechten, werknemers- of studentnummer en andere voor de regeling benodigde gegevens ontvangen.&lt;/p&gt;
+
+&lt;h2&gt;4. Hoe en waarom wij persoonsgegevens gebruiken&lt;/h2&gt;
+&lt;h3&gt;4.1 De Diensten leveren&lt;/h3&gt;
+&lt;p&gt;Wij verwerken account-, registratie-, bestel-, trainings-, toets- en communicatiegegevens om accounts en toegang te beheren; cursussen, downloads, trainingen en andere gevraagde Diensten te leveren; examens af te nemen; resultaten te berekenen, registreren en tonen; feedback, ondersteuning en serviceberichten te geven; en annuleringen, terugbetalingen en toegangsperioden te beheren.&lt;/p&gt;
+&lt;p&gt;De rechtsgrond is doorgaans uitvoering van een overeenkomst of stappen op uw verzoek vóór het sluiten daarvan. Bij toegang via een organisatie kan de rechtsgrond mede bestaan uit ons gerechtvaardigd belang en dat van de organisatie bij het beheren van de afgesproken training of toets.&lt;/p&gt;
+&lt;h3&gt;4.2 Bestellingen en betalingen verwerken&lt;/h3&gt;
+&lt;p&gt;Wij verwerken bestel-, factuur-, transactie- en accountgegevens om betalingen te ontvangen, facturen uit te reiken, aankopen te bevestigen, dubbele of frauduleuze transacties te voorkomen en een financiële administratie te voeren. De rechtsgronden zijn uitvoering van de overeenkomst, wettelijke en fiscale verplichtingen en ons gerechtvaardigd belang bij fraudepreventie en een juiste administratie.&lt;/p&gt;
+&lt;h3&gt;4.3 Communicatie en klantenservice&lt;/h3&gt;
+&lt;p&gt;Wij gebruiken contact-, account-, bestel- en technische gegevens om vragen te beantwoorden, problemen op te lossen, verzoeken te verwerken, bevestigingen te sturen en belangrijke berichten over accounts, aankopen, toetsen, beveiliging of wijzigingen te geven. Dit berust op uitvoering van de overeenkomst en ons gerechtvaardigd belang bij goede ondersteuning en bedrijfsvoering.&lt;/p&gt;
+&lt;h3&gt;4.4 Platformbeveiliging en voorkoming van misbruik&lt;/h3&gt;
+&lt;p&gt;Wij verwerken technische, account-, beveiligings- en gebruiksgegevens om gebruikers te authenticeren, accounts te beschermen, onbevoegde toegang, aanvallen, malware, spam, fraude en misbruik te herkennen, toegangs- en examenregels te handhaven, incidenten te onderzoeken en logboeken, back-ups, beschikbaarheid en systeemintegriteit te onderhouden. Dit berust op ons gerechtvaardigd belang bij veiligheid en betrouwbaarheid en, waar van toepassing, wettelijke verplichtingen.&lt;/p&gt;
+&lt;h3&gt;4.5 Beheer en integriteit van toetsen&lt;/h3&gt;
+&lt;p&gt;Wij verwerken antwoorden, pogingen, tijdgegevens, technische registraties en resultaten om toetsen af te nemen, scores te berekenen, onregelmatigheden te onderzoeken, fouten te corrigeren en de integriteit te beschermen. De rechtsgronden zijn uitvoering van de overeenkomst en onze gerechtvaardigde belangen en die van de organiserende organisatie bij betrouwbare toetsen.&lt;/p&gt;
+&lt;h3&gt;4.6 Verbetering van de Diensten&lt;/h3&gt;
+&lt;p&gt;Wij kunnen gebruiksgegevens, foutrapporten, feedback en geaggregeerde of geanonimiseerde informatie gebruiken om gebruik te begrijpen, problemen op te lossen, workflows te verbeteren en trainings- en toetsinhoud te ontwikkelen. Waar redelijk mogelijk gebruiken wij hiervoor geaggregeerde of geanonimiseerde gegevens.&lt;/p&gt;
+&lt;p&gt;Wij gebruiken herkenbare privé-examenantwoorden of geüploade klantbestanden niet om algemene AI-modellen te trainen, tenzij wij u afzonderlijk informeren en een passende rechtsgrond hebben vastgesteld.&lt;/p&gt;
+&lt;h3&gt;4.7 Juridische, boekhoudkundige en geschildoeleinden&lt;/h3&gt;
+&lt;p&gt;Wij verwerken gegevens om aan fiscale, boekhoudkundige, consumentenrechtelijke, privacyrechtelijke, toezichts- en andere verplichtingen te voldoen en om rechtsvorderingen in te stellen, uit te oefenen of te verdedigen.&lt;/p&gt;
+&lt;h3&gt;4.8 Marketing&lt;/h3&gt;
+&lt;p&gt;Wij kunnen marketingberichten sturen wanneer u toestemming hebt gegeven of een andere rechtsgrond dit toestaat. U kunt zich altijd afmelden via het bericht of door contact op te nemen. Afmelding verhindert noodzakelijke berichten over accounts, aankopen, toetsen, beveiliging of dienstverlening niet.&lt;/p&gt;
+
+&lt;h2&gt;5. Geautomatiseerde scoring en besluiten&lt;/h2&gt;
+&lt;p&gt;Sommige examens, quizzen en toetsen worden automatisch beoordeeld volgens vooraf ingestelde antwoordregels. Dit kan een resultaat, voortgangsstatus of aanbeveling opleveren.&lt;/p&gt;
+&lt;p&gt;Tenzij duidelijk anders vermeld, zijn de resultaten bedoeld voor onderwijs, plaatsing, coaching of interne training en gebruiken wij ze niet voor besluiten met rechtsgevolgen of vergelijkbare aanzienlijke gevolgen voor u.&lt;/p&gt;
+&lt;p&gt;Resultaten kunnen worden beoordeeld, gecorrigeerd of ongeldig verklaard bij een technisch probleem, configuratiefout, onjuiste antwoordsleutel of onregelmatigheid. Neem contact op als u denkt dat een automatisch resultaat onjuist is. Een organisatie die een resultaat voor een eigen arbeids-, onderwijs- of ander besluit gebruikt, is verantwoordelijk voor dat besluit en de vereiste privacy-informatie.&lt;/p&gt;
+
+&lt;h2&gt;6. Wanneer wij persoonsgegevens delen&lt;/h2&gt;
+&lt;p&gt;Wij verkopen geen persoonsgegevens. Wij delen ze alleen voor zover redelijkerwijs nodig met de volgende ontvangers.&lt;/p&gt;
+&lt;h3&gt;6.1 Dienstverleners&lt;/h3&gt;
+&lt;p&gt;Dit kunnen aanbieders zijn van cloud- en applicatiehosting, databases en back-ups, contentlevering, beveiliging en netwerken, objectopslag (waaronder Cloudflare R2), betalingen (waaronder Stripe), e-mail en communicatie, foutmonitoring, logging, technische ondersteuning en—alleen indien ingeschakeld—analyses, evenals accountants, juridisch adviseurs en auditors.&lt;/p&gt;
+&lt;p&gt;Verwerkers moeten gegevens alleen voor de betreffende diensten verwerken en passende contractuele, vertrouwelijkheids- en beveiligingswaarborgen toepassen.&lt;/p&gt;
+&lt;h3&gt;6.2 Organisaties die toegang regelen&lt;/h3&gt;
+&lt;p&gt;Als een organisatie uw toegang heeft geregeld of betaald, kunnen wij binnen de afgesproken en aan u bekendgemaakte dienst gegevens delen met bevoegde vertegenwoordigers. Dit kan uw accountstatus, deelname, voortgang, examenpogingen, voltooiing, scores, resultaten en relevante ondersteunings- of integriteitsinformatie omvatten.&lt;/p&gt;
+&lt;h3&gt;6.3 Wettelijke en veiligheidsgerelateerde verstrekkingen&lt;/h3&gt;
+&lt;p&gt;Wij kunnen informatie verstrekken om aan een wettelijke verplichting, rechterlijk bevel of rechtmatig verzoek van een autoriteit te voldoen, rechtsvorderingen te behandelen of de beveiliging, rechten of veiligheid van gebruikers, anderen of de Diensten te beschermen.&lt;/p&gt;
+&lt;h3&gt;6.4 Bedrijfswijzigingen&lt;/h3&gt;
+&lt;p&gt;Bij reorganisatie, overdracht, fusie of verkoop kunnen relevante persoonsgegevens onder toepasselijke privacywaarborgen aan adviseurs en de opvolgende organisatie worden verstrekt of overgedragen.&lt;/p&gt;
+
+&lt;h2&gt;7. Internationale doorgiften&lt;/h2&gt;
+&lt;p&gt;Wij zijn in Nederland gevestigd, maar sommige dienstverleners kunnen buiten de Europese Economische Ruimte persoonsgegevens verwerken of toegang hebben. Waar vereist gebruiken wij een passend mechanisme, zoals een adequaatheidsbesluit van de Europese Commissie, de standaardcontractbepalingen, het EU-US Data Privacy Framework waar toepasselijk en aanvullende technische, organisatorische en contractuele waarborgen.&lt;/p&gt;
+&lt;p&gt;U kunt informatie over waarborgen voor een specifieke doorgifte opvragen. Details kunnen worden weggelaten wanneer dat nodig is voor beveiliging of vertrouwelijke commerciële informatie.&lt;/p&gt;
+
+&lt;h2&gt;8. Hoe lang wij persoonsgegevens bewaren&lt;/h2&gt;
+&lt;p&gt;Wij bewaren persoonsgegevens niet langer dan redelijkerwijs nodig voor de betreffende doelen, waaronder dienstverlening, beveiliging, contracten, wettelijke verplichtingen en geschillen. Onze algemene termijnen zijn:&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;strong&gt;Accountgegevens:&lt;/strong&gt; zolang het account actief is en normaal tot twee jaar na sluiting of inactiviteit, tenzij langer nodig voor een overeenkomst, geschil, organisatieregister of wettelijke plicht;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Training, voortgang en toetsen:&lt;/strong&gt; gedurende de toegang en normaal tot vijf jaar na voltooiing of de laatste relevante activiteit, tenzij anders afgesproken of langer nodig;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Onvoltooide of afgebroken examenpogingen:&lt;/strong&gt; normaal tot twee jaar, tenzij onderdeel van een actief dossier, integriteitsonderzoek of organisatieafspraak;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Bestellingen, facturen, transacties en boekhouding:&lt;/strong&gt; doorgaans ten minste zeven jaar waar Nederlandse fiscale of boekhoudregels dat vereisen;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Contact en ondersteuning:&lt;/strong&gt; normaal tot twee jaar na afhandeling, tenzij onderdeel van een overeenkomst, klacht, geschil of verplicht dossier;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Beveiligings- en technische logs:&lt;/strong&gt; normaal tot twaalf maanden, tenzij langer nodig voor onderzoek, misbruikpreventie of een rechtsvordering;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Uploads:&lt;/strong&gt; zolang het bijbehorende account, product, examen, proces of de overeenkomst dit vereist, gevolgd door verwijdering binnen een redelijke operationele termijn;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Marketing:&lt;/strong&gt; totdat toestemming wordt ingetrokken of u bezwaar maakt; minimale blokkadegegevens kunnen daarna worden bewaard om uw voorkeur te respecteren; en&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Cookies en toestemmingsregistraties:&lt;/strong&gt; volgens ons Cookiebeleid of zolang redelijkerwijs nodig om uw keuzes aan te tonen en te respecteren.&lt;/li&gt;&lt;/ul&gt;
+&lt;p&gt;Wij kunnen gegevens langer bewaren indien de wet dit vereist, een vordering of onderzoek loopt of verwijdering rechten van anderen zou schaden. Daarna worden gegevens verwijderd, geanonimiseerd of veilig geïsoleerd totdat technische verwijdering is voltooid.&lt;/p&gt;
+
+&lt;h2&gt;9. Cookies en vergelijkbare technologieën&lt;/h2&gt;
+&lt;p&gt;Wij gebruiken noodzakelijke cookies en vergelijkbare technologieën voor authenticatie, sessiebeveiliging, antiforgerybescherming, taal- en cookievoorkeuren, afrekenen en portalwerking. Analyse-, marketing- of externe technologie wordt alleen gebruikt waar ingeschakeld en na wettelijk vereiste toestemming. Zie ons &lt;a href="Cookie-Policy"&gt;Cookiebeleid&lt;/a&gt; voor meer informatie.&lt;/p&gt;
+
+&lt;h2&gt;10. Beveiliging&lt;/h2&gt;
+&lt;p&gt;Wij treffen passende technische en organisatorische maatregelen tegen onopzettelijke of onrechtmatige vernietiging, verlies, wijziging, verstrekking en toegang. Afhankelijk van het systeem omvatten die HTTPS-versleuteling, wachtwoordhashing, geauthenticeerde en rolgebaseerde toegang, beperkte beheerrechten, privéopslag en tijdelijke ondertekende URL's, logging, monitoring, back-ups, updates, infrastructuurbeperkingen en eisen aan dienstverleners.&lt;/p&gt;
+&lt;p&gt;Geen enkel systeem is volledig veilig. Houd uw inloggegevens vertrouwelijk en meld vermoedelijke onbevoegde toegang direct.&lt;/p&gt;
+
+&lt;h2&gt;11. Uw privacyrechten&lt;/h2&gt;
+&lt;p&gt;Onder de voorwaarden en uitzonderingen van de wet kunt u recht hebben op inzage, rectificatie, wissing, beperking, gegevensoverdraagbaarheid, bezwaar tegen verwerking op basis van gerechtvaardigde belangen, bezwaar tegen direct marketing, intrekking van toestemming en informatie over of betwisting van bepaalde uitsluitend geautomatiseerde besluiten met rechtsgevolgen of vergelijkbare aanzienlijke gevolgen.&lt;/p&gt;
+&lt;p&gt;Intrekking tast eerdere rechtmatige verwerking niet aan. Ondanks een verzoek kunnen gegevens moeten worden bewaard vanwege de wet, uitvoering van een overeenkomst, rechten van anderen, toetsintegriteit of rechtsvorderingen.&lt;/p&gt;
+
+&lt;h2&gt;12. Uw rechten uitoefenen&lt;/h2&gt;
+&lt;p&gt;Stuur een e-mail naar &lt;a href="mailto:compliance@id-develops.com"&gt;compliance@id-develops.com&lt;/a&gt; en omschrijf uw verzoek en het betreffende account, de bestelling, organisatie of Dienst duidelijk. Wij kunnen gegevens vragen om uw identiteit te controleren en onbevoegde verstrekking te voorkomen.&lt;/p&gt;
+&lt;p&gt;Wij reageren binnen de wettelijke termijn. Onder de AVG is dit normaal één maand; bij wettelijk toegestane verlenging wegens complexiteit of aantallen informeren wij u. Verzoeken zijn normaal kosteloos. Waar wettelijk toegestaan kan bij kennelijk ongegronde of buitensporige verzoeken een redelijke vergoeding worden gevraagd of het verzoek worden geweigerd.&lt;/p&gt;
+
+&lt;h2&gt;13. Klachten&lt;/h2&gt;
+&lt;p&gt;Neem bij voorkeur eerst contact met ons op zodat wij uw klacht kunnen onderzoeken. U kunt ook een klacht indienen bij de toezichthouder van het land waar u woont of werkt of waar de vermeende inbreuk plaatsvond. In Nederland is dit de &lt;strong&gt;Autoriteit Persoonsgegevens&lt;/strong&gt;. Informatie over klachten staat op haar website.&lt;/p&gt;
 
-    &lt;p&gt;
-        &lt;strong&gt;Last updated:&lt;/strong&gt; July 7, 2026
-    &lt;/p&gt;
+&lt;h2&gt;14. Kinderen en jonge gebruikers&lt;/h2&gt;
+&lt;p&gt;Sommige Diensten kunnen door kinderen of jongeren worden gebruikt als een ouder, voogd, school, werkgever, opleider of andere bevoegde organisatie toegang regelt. Wij vragen een kind niet bewust zelfstandig toestemming te geven wanneer wettelijk ouderlijke of voogdentoestemming nodig is. Bij een rechtstreeks aan een kind aangeboden online dienst nemen wij redelijke stappen om de vereiste toestemming te verkrijgen of controleren.&lt;/p&gt;
+&lt;p&gt;Ouders, voogden en organisaties mogen alleen redelijkerwijs benodigde gegevens verstrekken en moeten daartoe bevoegd zijn. Denkt u dat gegevens van een kind zonder passende toestemming zijn verstrekt of verwerkt, neem dan contact op via &lt;a href="mailto:compliance@id-develops.com"&gt;compliance@id-develops.com&lt;/a&gt;.&lt;/p&gt;
 
-    &lt;p&gt;
-        This Privacy Policy explains how iD! Training &amp;amp; Development collects, uses, stores, protects,
-        and shares personal data when you visit our website or use our portal, accounts, forms, digital
-        products, downloads, training services, courses, examinations, assessments, and related services
-        (together, the "Services").
-    &lt;/p&gt;
+&lt;h2&gt;15. Externe websites en ingesloten inhoud&lt;/h2&gt;
+&lt;p&gt;De Diensten kunnen links naar onafhankelijke websites of ingesloten externe inhoud bevatten. Die derden kunnen gegevens volgens hun eigen privacybeleid verwerken. Bekijk hun informatie voordat u met een externe dienst communiceert. Dit beleid geldt niet voor zelfstandig door niet door ons beheerste derden bepaalde verwerking.&lt;/p&gt;
 
-    &lt;h2&gt;1. Who is responsible for your personal data&lt;/h2&gt;
+&lt;h2&gt;16. Wijzigingen in dit Privacybeleid&lt;/h2&gt;
+&lt;p&gt;Wij kunnen dit beleid bijwerken bij wijzigingen in Diensten, aanbieders, beveiliging, wettelijke verplichtingen of verwerkingen. De actuele versie staat op deze pagina met de datum 'Laatst bijgewerkt'. Bij wezenlijke gevolgen nemen wij waar vereist redelijke stappen om aanvullend te informeren.&lt;/p&gt;
 
-    &lt;p&gt;
-        The controller responsible for the processing described in this Privacy Policy is:
-    &lt;/p&gt;
-
-    &lt;address&gt;
-        &lt;strong&gt;iD! Training &amp;amp; Development&lt;/strong&gt;&lt;br /&gt;
-        Vennootschap onder firma (VOF)&lt;br /&gt;
-        Chamber of Commerce number: 61841277&lt;br /&gt;
-        VAT identification number: NL854512044B01&lt;br /&gt;
-        Rusthoven 26&lt;br /&gt;
-        5655 CN Eindhoven&lt;br /&gt;
-        North Brabant&lt;br /&gt;
-        The Netherlands&lt;br /&gt;
-        Email: &lt;a href="mailto:compliance@id-develops.com"&gt;compliance@id-develops.com&lt;/a&gt;
-    &lt;/address&gt;
-
-    &lt;p&gt;
-        You can use the email address above for questions about this Privacy Policy or to exercise your
-        privacy rights.
-    &lt;/p&gt;
-
-    &lt;h2&gt;2. When an organisation provides access&lt;/h2&gt;
-
-    &lt;p&gt;
-        An employer, school, training provider, customer, or other organisation may arrange access to the
-        Services for its employees, contractors, students, trainees, or other authorised users.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        In those situations, the organisation may determine why certain personal data is processed, such as
-        enrolment information, participation records, progress, examination attempts, and results. The
-        organisation may therefore be an independent controller for some processing activities.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        We may process such information on the organisation's instructions or for our own legitimate
-        purposes, such as operating and securing the platform, maintaining required records, and complying
-        with legal obligations. Questions about an organisation's own use of your information should also
-        be directed to that organisation.
-    &lt;/p&gt;
-
-    &lt;h2&gt;3. Personal data we collect&lt;/h2&gt;
-
-    &lt;p&gt;
-        The personal data we collect depends on how you interact with the Services.
-    &lt;/p&gt;
-
-    &lt;h3&gt;3.1 Account and identity information&lt;/h3&gt;
-
-    &lt;ul&gt;
-        &lt;li&gt;Name and email address.&lt;/li&gt;
-        &lt;li&gt;Username or account identifier.&lt;/li&gt;
-        &lt;li&gt;Password hash and authentication information.&lt;/li&gt;
-        &lt;li&gt;Account role, permissions, status, and organisation.&lt;/li&gt;
-        &lt;li&gt;Language and communication preferences.&lt;/li&gt;
-        &lt;li&gt;Account creation, confirmation, login, and security timestamps.&lt;/li&gt;
-    &lt;/ul&gt;
-
-    &lt;p&gt;
-        We do not store your password in readable form. Passwords are processed using password-hashing
-        mechanisms.
-    &lt;/p&gt;
-
-    &lt;h3&gt;3.2 Contact, registration, and form information&lt;/h3&gt;
-
-    &lt;ul&gt;
-        &lt;li&gt;Name, email address, telephone number, and organisation details.&lt;/li&gt;
-        &lt;li&gt;Questions, messages, preferences, and information submitted through forms.&lt;/li&gt;
-        &lt;li&gt;Course, product, or service selections.&lt;/li&gt;
-        &lt;li&gt;Information needed to respond to an enquiry or provide a requested service.&lt;/li&gt;
-    &lt;/ul&gt;
-
-    &lt;h3&gt;3.3 Training and assessment information&lt;/h3&gt;
-
-    &lt;ul&gt;
-        &lt;li&gt;Course registrations, participation, and progress.&lt;/li&gt;
-        &lt;li&gt;Examination and assessment attempts.&lt;/li&gt;
-        &lt;li&gt;Answers, uploaded files, scores, feedback, and results.&lt;/li&gt;
-        &lt;li&gt;Start times, completion times, deadlines, and attempt status.&lt;/li&gt;
-        &lt;li&gt;Records relating to suspected technical problems or assessment irregularities.&lt;/li&gt;
-        &lt;li&gt;Certificates or completion records where applicable.&lt;/li&gt;
-    &lt;/ul&gt;
-
-    &lt;h3&gt;3.4 Order, billing, and payment information&lt;/h3&gt;
-
-    &lt;ul&gt;
-        &lt;li&gt;Products and services ordered.&lt;/li&gt;
-        &lt;li&gt;Billing name, billing address, and applicable tax information.&lt;/li&gt;
-        &lt;li&gt;Order status, payment status, currency, amount, and transaction reference.&lt;/li&gt;
-        &lt;li&gt;Invoice and accounting records.&lt;/li&gt;
-        &lt;li&gt;Limited payment-method information supplied by the payment provider, such as the payment type or last digits of a card where available.&lt;/li&gt;
-    &lt;/ul&gt;
-
-    &lt;p&gt;
-        Payments may be processed by Stripe or another payment provider. Complete payment-card details are
-        generally submitted directly to the payment provider and are not stored by us.
-    &lt;/p&gt;
-
-    &lt;h3&gt;3.5 Uploaded content and communications&lt;/h3&gt;
-
-    &lt;ul&gt;
-        &lt;li&gt;Files, images, audio, documents, and other materials you upload.&lt;/li&gt;
-        &lt;li&gt;Support requests and correspondence with us.&lt;/li&gt;
-        &lt;li&gt;Feedback, complaints, and other communications.&lt;/li&gt;
-        &lt;li&gt;Administrative notes reasonably required to provide or support the Services.&lt;/li&gt;
-    &lt;/ul&gt;
-
-    &lt;p&gt;
-        Please do not submit sensitive or confidential personal data unless it is necessary for the
-        requested Service and you are authorised to provide it.
-    &lt;/p&gt;
-
-    &lt;h3&gt;3.6 Technical and usage information&lt;/h3&gt;
-
-    &lt;ul&gt;
-        &lt;li&gt;IP address.&lt;/li&gt;
-        &lt;li&gt;Browser type, operating system, and device information.&lt;/li&gt;
-        &lt;li&gt;Requested pages, request times, response status, and referring page.&lt;/li&gt;
-        &lt;li&gt;Login, authentication, fraud-prevention, and security logs.&lt;/li&gt;
-        &lt;li&gt;Cookie identifiers and consent preferences.&lt;/li&gt;
-        &lt;li&gt;Language, session, and portal preferences.&lt;/li&gt;
-        &lt;li&gt;Error reports and information needed to diagnose technical problems.&lt;/li&gt;
-    &lt;/ul&gt;
-
-    &lt;p&gt;
-        We do not attempt to collect your precise device location unless a specific feature expressly
-        requires it and an appropriate legal basis exists.
-    &lt;/p&gt;
-
-    &lt;h3&gt;3.7 Information received from organisations&lt;/h3&gt;
-
-    &lt;p&gt;
-        If an organisation registers you for a Service, we may receive information such as your name, email
-        address, organisation, department, assigned course, access permissions, employee or student
-        identifier, and other information required to administer the arrangement.
-    &lt;/p&gt;
-
-    &lt;h2&gt;4. How and why we use personal data&lt;/h2&gt;
-
-    &lt;p&gt;
-        We use personal data for the purposes and legal bases described below.
-    &lt;/p&gt;
-
-    &lt;h3&gt;4.1 Providing the Services&lt;/h3&gt;
-
-    &lt;p&gt;
-        We process account, registration, order, training, assessment, and communication information to:
-    &lt;/p&gt;
-
-    &lt;ul&gt;
-        &lt;li&gt;Create and administer accounts.&lt;/li&gt;
-        &lt;li&gt;Provide portal and product access.&lt;/li&gt;
-        &lt;li&gt;Deliver courses, downloads, training, and other purchased or requested Services.&lt;/li&gt;
-        &lt;li&gt;Administer examinations and assessments.&lt;/li&gt;
-        &lt;li&gt;Calculate, record, and display results.&lt;/li&gt;
-        &lt;li&gt;Provide feedback, support, and service communications.&lt;/li&gt;
-        &lt;li&gt;Manage cancellations, refunds, and access periods.&lt;/li&gt;
-    &lt;/ul&gt;
-
-    &lt;p&gt;
-        The legal basis is normally performance of a contract or taking steps at your request before entering
-        into a contract. Where access is arranged by an organisation, the legal basis may also be our
-        legitimate interest and the organisation's legitimate interest in administering the agreed training
-        or assessment service.
-    &lt;/p&gt;
-
-    &lt;h3&gt;4.2 Processing orders and payments&lt;/h3&gt;
-
-    &lt;p&gt;
-        We process order, billing, transaction, and account information to accept payments, issue invoices,
-        confirm purchases, prevent duplicate or fraudulent transactions, and maintain financial records.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        The legal bases are performance of a contract, compliance with legal and tax obligations, and our
-        legitimate interest in preventing fraud and maintaining accurate business records.
-    &lt;/p&gt;
-
-    &lt;h3&gt;4.3 Communications and customer support&lt;/h3&gt;
-
-    &lt;p&gt;
-        We use contact, account, order, and technical information to answer questions, resolve technical
-        problems, process requests, send confirmations, and provide important notices about accounts,
-        purchases, assessments, security, or changes to the Services.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        The legal bases are performance of a contract and our legitimate interest in supporting users and
-        operating the Services effectively.
-    &lt;/p&gt;
-
-    &lt;h3&gt;4.4 Platform security and abuse prevention&lt;/h3&gt;
-
-    &lt;p&gt;
-        We process technical, account, security, and usage information to:
-    &lt;/p&gt;
-
-    &lt;ul&gt;
-        &lt;li&gt;Authenticate users and protect accounts.&lt;/li&gt;
-        &lt;li&gt;Detect unauthorised access, attacks, malware, spam, fraud, and other misuse.&lt;/li&gt;
-        &lt;li&gt;Enforce access restrictions and examination rules.&lt;/li&gt;
-        &lt;li&gt;Investigate security incidents and technical failures.&lt;/li&gt;
-        &lt;li&gt;Maintain logs, backups, availability, and system integrity.&lt;/li&gt;
-    &lt;/ul&gt;
-
-    &lt;p&gt;
-        The legal basis is our legitimate interest in protecting users, personal data, our business, and the
-        security and reliability of the Services. Processing may also be necessary to comply with legal
-        obligations.
-    &lt;/p&gt;
-
-    &lt;h3&gt;4.5 Assessment administration and integrity&lt;/h3&gt;
-
-    &lt;p&gt;
-        We process assessment responses, attempts, timing information, technical records, and results to
-        administer assessments, calculate scores, investigate irregularities, correct errors, and protect the
-        integrity of the assessment process.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        The legal bases are performance of a contract and our legitimate interests, and those of the
-        organisation arranging the assessment, in providing accurate and reliable assessments.
-    &lt;/p&gt;
-
-    &lt;h3&gt;4.6 Improving the Services&lt;/h3&gt;
-
-    &lt;p&gt;
-        We may use usage information, error reports, feedback, and aggregated or anonymised information to
-        understand how the Services are used, fix problems, improve workflows, and develop training and
-        assessment content.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        The legal basis is our legitimate interest in improving the quality, security, and usability of the
-        Services. Where reasonably possible, we use aggregated or anonymised information for this purpose.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        We do not use identifiable private examination answers or uploaded customer files to train general
-        artificial-intelligence models unless we have separately informed you and established an appropriate
-        legal basis.
-    &lt;/p&gt;
-
-    &lt;h3&gt;4.7 Legal, accounting, and dispute purposes&lt;/h3&gt;
-
-    &lt;p&gt;
-        We process information where necessary to comply with tax, accounting, consumer, data-protection,
-        regulatory, and other legal obligations. We may also retain and use information to establish,
-        exercise, or defend legal claims.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        The legal bases are compliance with legal obligations and our legitimate interest in protecting our
-        legal position.
-    &lt;/p&gt;
-
-    &lt;h3&gt;4.8 Marketing&lt;/h3&gt;
-
-    &lt;p&gt;
-        We may send marketing communications where you have consented or where another lawful basis permits
-        us to do so. You can unsubscribe at any time by using the unsubscribe option in the message or by
-        contacting us.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        Withdrawing from marketing does not prevent us from sending necessary account, purchase, assessment,
-        security, or service communications.
-    &lt;/p&gt;
-
-    &lt;h2&gt;5. Automated scoring and decisions&lt;/h2&gt;
-
-    &lt;p&gt;
-        Some examinations, quizzes, and assessments may be scored automatically based on predefined answer
-        rules. Automated scoring may produce a result, progress status, or recommendation.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        Unless we clearly state otherwise, these results are intended for educational, placement, coaching,
-        or internal training purposes and are not used by us to make decisions that produce legal effects or
-        similarly significant effects concerning you.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        Results may be reviewed, corrected, or invalidated where there is evidence of a technical problem,
-        configuration error, incorrect answer key, or assessment irregularity. You may contact us if you
-        believe an automatically calculated result is incorrect.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        Where an organisation uses a result to make its own employment, education, or other decision, that
-        organisation is responsible for its decision-making and for providing any additional privacy
-        information required by law.
-    &lt;/p&gt;
-
-    &lt;h2&gt;6. When we share personal data&lt;/h2&gt;
-
-    &lt;p&gt;
-        We do not sell personal data.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        We may share personal data only where reasonably necessary with the following recipients:
-    &lt;/p&gt;
-
-    &lt;h3&gt;6.1 Service providers&lt;/h3&gt;
-
-    &lt;p&gt;
-        We use service providers that support the operation of the Services, which may include:
-    &lt;/p&gt;
-
-    &lt;ul&gt;
-        &lt;li&gt;Cloud and application-hosting providers.&lt;/li&gt;
-        &lt;li&gt;Database and backup providers.&lt;/li&gt;
-        &lt;li&gt;Content-delivery, security, and network providers.&lt;/li&gt;
-        &lt;li&gt;Object-storage providers, including Cloudflare R2.&lt;/li&gt;
-        &lt;li&gt;Payment providers, including Stripe.&lt;/li&gt;
-        &lt;li&gt;Email-delivery and communication providers.&lt;/li&gt;
-        &lt;li&gt;Error-monitoring, logging, and technical-support providers.&lt;/li&gt;
-        &lt;li&gt;Analytics providers, but only where such analytics are enabled.&lt;/li&gt;
-        &lt;li&gt;Professional advisers such as accountants, legal advisers, and auditors.&lt;/li&gt;
-    &lt;/ul&gt;
-
-    &lt;p&gt;
-        Providers that process personal data on our behalf are required to process it only for the relevant
-        services and to apply appropriate contractual, confidentiality, and security protections.
-    &lt;/p&gt;
-
-    &lt;h3&gt;6.2 Organisations arranging access&lt;/h3&gt;
-
-    &lt;p&gt;
-        If an organisation arranged or paid for your access, we may share information with authorised
-        representatives of that organisation where this is part of the agreed service and has been disclosed
-        to you.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        Depending on the arrangement, this may include your account status, participation, progress,
-        examination attempts, completion information, scores, results, and relevant support or integrity
-        information.
-    &lt;/p&gt;
-
-    &lt;h3&gt;6.3 Legal and safety disclosures&lt;/h3&gt;
-
-    &lt;p&gt;
-        We may disclose information where reasonably necessary to comply with a legal obligation, court
-        order, lawful authority request, or to establish, exercise, or defend legal claims. We may also share
-        information where necessary to protect the security, rights, or safety of users, another person, or
-        the Services.
-    &lt;/p&gt;
-
-    &lt;h3&gt;6.4 Business changes&lt;/h3&gt;
-
-    &lt;p&gt;
-        If our business is reorganised, transferred, merged, or sold, relevant personal data may be disclosed
-        to professional advisers and transferred to the successor organisation, subject to applicable
-        data-protection requirements.
-    &lt;/p&gt;
-
-    &lt;h2&gt;7. International transfers&lt;/h2&gt;
-
-    &lt;p&gt;
-        We are established in the Netherlands, but some service providers may process personal data in or
-        provide access from countries outside the European Economic Area.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        Where personal data is transferred outside the European Economic Area, we use an appropriate legal
-        mechanism where required. Depending on the provider and destination, this may include:
-    &lt;/p&gt;
-
-    &lt;ul&gt;
-        &lt;li&gt;An adequacy decision adopted by the European Commission.&lt;/li&gt;
-        &lt;li&gt;The European Commission's Standard Contractual Clauses.&lt;/li&gt;
-        &lt;li&gt;The EU-US Data Privacy Framework where applicable.&lt;/li&gt;
-        &lt;li&gt;Additional technical, organisational, and contractual safeguards.&lt;/li&gt;
-    &lt;/ul&gt;
-
-    &lt;p&gt;
-        Information about the safeguards used for a particular transfer can be requested by contacting us.
-        Certain details may be redacted where required to protect security or confidential commercial
-        information.
-    &lt;/p&gt;
-
-    &lt;h2&gt;8. How long we retain personal data&lt;/h2&gt;
-
-    &lt;p&gt;
-        We retain personal data only for as long as reasonably necessary for the relevant purpose, including
-        providing the Services, maintaining security, meeting contractual commitments, complying with legal
-        obligations, and resolving disputes.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        Our general retention periods are:
-    &lt;/p&gt;
-
-    &lt;ul&gt;
-        &lt;li&gt;
-            &lt;strong&gt;Account information:&lt;/strong&gt; while the account remains active and normally for up to
-            two years after the account is closed or becomes inactive, unless a longer period is needed for
-            an active agreement, dispute, organisational record, or legal obligation.
-        &lt;/li&gt;
-        &lt;li&gt;
-            &lt;strong&gt;Training, progress, and assessment records:&lt;/strong&gt; for the applicable access period
-            and normally for up to five years after completion or the last relevant activity, unless a
-            different period is agreed with the customer or required for certification, disputes, or legal
-            obligations.
-        &lt;/li&gt;
-        &lt;li&gt;
-            &lt;strong&gt;Incomplete or abandoned examination attempts:&lt;/strong&gt; normally for up to two years
-            after the attempt, unless required as part of an active training record, integrity investigation,
-            or organisational agreement.
-        &lt;/li&gt;
-        &lt;li&gt;
-            &lt;strong&gt;Orders, invoices, transactions, and accounting records:&lt;/strong&gt; generally for at least
-            seven years where required under Dutch tax or accounting rules.
-        &lt;/li&gt;
-        &lt;li&gt;
-            &lt;strong&gt;Contact enquiries and support correspondence:&lt;/strong&gt; normally for up to two years
-            after the enquiry is resolved, unless the communication forms part of a contract, complaint,
-            dispute, or legally required record.
-        &lt;/li&gt;
-        &lt;li&gt;
-            &lt;strong&gt;Security and technical logs:&lt;/strong&gt; normally for up to 12 months, unless a longer
-            period is reasonably necessary to investigate an incident, prevent abuse, or establish or defend
-            a legal claim.
-        &lt;/li&gt;
-        &lt;li&gt;
-            &lt;strong&gt;Uploaded files:&lt;/strong&gt; for as long as the associated account, product, examination,
-            administrative workflow, or agreement requires them, followed by deletion within a reasonable
-            operational period.
-        &lt;/li&gt;
-        &lt;li&gt;
-            &lt;strong&gt;Marketing records:&lt;/strong&gt; until consent is withdrawn or you object, after which we may
-            retain minimal suppression information to ensure that we respect your preference.
-        &lt;/li&gt;
-        &lt;li&gt;
-            &lt;strong&gt;Cookie and consent records:&lt;/strong&gt; for the periods described in our Cookie Policy or
-            for as long as reasonably necessary to demonstrate and respect your choices.
-        &lt;/li&gt;
-    &lt;/ul&gt;
-
-    &lt;p&gt;
-        We may retain information for longer where required by law, where a claim or investigation is
-        ongoing, or where deletion would interfere with the rights of another person. When data is no longer
-        required, it is deleted, anonymised, or securely isolated until deletion is technically completed.
-    &lt;/p&gt;
-
-    &lt;h2&gt;9. Cookies and similar technologies&lt;/h2&gt;
-
-    &lt;p&gt;
-        We use necessary cookies and similar technologies for functions such as authentication, session
-        security, anti-forgery protection, language preferences, cookie choices, checkout, and portal
-        operation.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        We may also use analytics, marketing, or embedded third-party technologies where they are enabled and
-        where any legally required consent has been obtained.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        More information about the technologies used, their purposes, providers, and duration is available
-        in our &lt;a href="/Cookie-Policy"&gt;Cookie Policy&lt;/a&gt;.
-    &lt;/p&gt;
-
-    &lt;h2&gt;10. Security&lt;/h2&gt;
-
-    &lt;p&gt;
-        We use appropriate technical and organisational measures designed to protect personal data against
-        accidental or unlawful destruction, loss, alteration, unauthorised disclosure, and unauthorised
-        access.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        Depending on the relevant system, these measures may include:
-    &lt;/p&gt;
-
-    &lt;ul&gt;
-        &lt;li&gt;HTTPS encryption for data transmitted through the website.&lt;/li&gt;
-        &lt;li&gt;Password hashing and authenticated account access.&lt;/li&gt;
-        &lt;li&gt;Role-based access controls.&lt;/li&gt;
-        &lt;li&gt;Restricted administrative access.&lt;/li&gt;
-        &lt;li&gt;Private storage and time-limited signed upload or access URLs where applicable.&lt;/li&gt;
-        &lt;li&gt;Security logging, monitoring, backups, and software updates.&lt;/li&gt;
-        &lt;li&gt;Access restrictions for infrastructure, databases, and production systems.&lt;/li&gt;
-        &lt;li&gt;Contractual and security requirements for relevant service providers.&lt;/li&gt;
-    &lt;/ul&gt;
-
-    &lt;p&gt;
-        No system can be guaranteed to be completely secure. You are responsible for keeping your login
-        details confidential and for contacting us promptly if you suspect unauthorised access to your
-        account.
-    &lt;/p&gt;
-
-    &lt;h2&gt;11. Your privacy rights&lt;/h2&gt;
-
-    &lt;p&gt;
-        Subject to the conditions and exceptions under applicable law, you may have the right to:
-    &lt;/p&gt;
-
-    &lt;ul&gt;
-        &lt;li&gt;
-            &lt;strong&gt;Access:&lt;/strong&gt; request confirmation of whether we process your personal data and
-            receive a copy of relevant data.
-        &lt;/li&gt;
-        &lt;li&gt;
-            &lt;strong&gt;Rectification:&lt;/strong&gt; ask us to correct inaccurate or incomplete personal data.
-        &lt;/li&gt;
-        &lt;li&gt;
-            &lt;strong&gt;Erasure:&lt;/strong&gt; ask us to delete personal data where there is no valid reason to
-            continue processing it.
-        &lt;/li&gt;
-        &lt;li&gt;
-            &lt;strong&gt;Restriction:&lt;/strong&gt; ask us to limit processing in certain circumstances.
-        &lt;/li&gt;
-        &lt;li&gt;
-            &lt;strong&gt;Data portability:&lt;/strong&gt; receive certain data in a structured, commonly used, and
-            machine-readable format and, where technically feasible, have it transmitted to another
-            controller.
-        &lt;/li&gt;
-        &lt;li&gt;
-            &lt;strong&gt;Object:&lt;/strong&gt; object to processing based on legitimate interests, including relevant
-            profiling, based on your particular situation.
-        &lt;/li&gt;
-        &lt;li&gt;
-            &lt;strong&gt;Object to direct marketing:&lt;/strong&gt; object at any time to the use of your personal data
-            for direct marketing.
-        &lt;/li&gt;
-        &lt;li&gt;
-            &lt;strong&gt;Withdraw consent:&lt;/strong&gt; withdraw consent at any time where processing relies on
-            consent.
-        &lt;/li&gt;
-        &lt;li&gt;
-            &lt;strong&gt;Automated decisions:&lt;/strong&gt; obtain information about, and where applicable challenge,
-            certain decisions based solely on automated processing that produce legal or similarly
-            significant effects.
-        &lt;/li&gt;
-    &lt;/ul&gt;
-
-    &lt;p&gt;
-        Withdrawing consent does not affect the lawfulness of processing performed before the withdrawal.
-        Some information may need to be retained despite a request where this is required by law, necessary
-        to perform an agreement, protect another person's rights, maintain assessment integrity, or
-        establish, exercise, or defend legal claims.
-    &lt;/p&gt;
-
-    &lt;h2&gt;12. How to exercise your rights&lt;/h2&gt;
-
-    &lt;p&gt;
-        To exercise a privacy right, email
-        &lt;a href="mailto:compliance@id-develops.com"&gt;compliance@id-develops.com&lt;/a&gt;.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        Please describe your request clearly and identify the account, order, organisation, or Service to
-        which it relates. We may request information needed to verify your identity and prevent unauthorised
-        disclosure.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        We will respond within the period required by applicable law. Under the GDPR, this is normally within
-        one month. That period may be extended where legally permitted due to the complexity or number of
-        requests, in which case we will inform you.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        Privacy requests are normally handled without charge. A reasonable fee may be charged, or a request
-        may be refused, where permitted by law because it is manifestly unfounded or excessive.
-    &lt;/p&gt;
-
-    &lt;h2&gt;13. Complaints&lt;/h2&gt;
-
-    &lt;p&gt;
-        We encourage you to contact us first so that we can investigate and try to resolve your concern.
-        You also have the right to submit a complaint to the supervisory authority in the country where you
-        live or work, or where you believe an infringement occurred.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        In the Netherlands, the supervisory authority is:
-    &lt;/p&gt;
-
-    &lt;address&gt;
-        &lt;strong&gt;Autoriteit Persoonsgegevens&lt;/strong&gt;&lt;br /&gt;
-        Dutch Data Protection Authority
-    &lt;/address&gt;
-
-    &lt;p&gt;
-        Information about submitting a complaint is available through the Autoriteit Persoonsgegevens
-        website.
-    &lt;/p&gt;
-
-    &lt;h2&gt;14. Children and young users&lt;/h2&gt;
-
-    &lt;p&gt;
-        Some training or assessment Services may be used by children or young people where access is arranged
-        by a parent, legal guardian, school, employer, training provider, or another authorised organisation.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        We do not knowingly ask a child to independently provide consent for processing where parental or
-        guardian authorisation is legally required. Where consent is used as the legal basis for an online
-        service offered directly to a child, we will take reasonable steps to obtain or verify the required
-        authorisation.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        Parents, guardians, and organisations arranging access must provide only the information reasonably
-        necessary for the Service and must ensure that they are authorised to do so.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        If you believe that a child's personal data has been provided or processed without appropriate
-        authorisation, contact us at
-        &lt;a href="mailto:compliance@id-develops.com"&gt;compliance@id-develops.com&lt;/a&gt;.
-    &lt;/p&gt;
-
-    &lt;h2&gt;15. External websites and embedded content&lt;/h2&gt;
-
-    &lt;p&gt;
-        The Services may contain links to independent external websites or embedded third-party content.
-        Those third parties may process personal data under their own privacy policies. We recommend
-        reviewing their privacy information before interacting with an external service.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        This Privacy Policy does not govern processing independently determined by third parties that we do
-        not control.
-    &lt;/p&gt;
-
-    &lt;h2&gt;16. Changes to this Privacy Policy&lt;/h2&gt;
-
-    &lt;p&gt;
-        We may update this Privacy Policy to reflect changes to our Services, providers, security measures,
-        legal obligations, or processing activities.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        The current version will be published on this page and identified by the "Last updated" date. Where a
-        change materially affects how we process personal data, we will take reasonable steps to provide
-        additional notice where required.
-    &lt;/p&gt;
-
-    &lt;h2&gt;17. Contact&lt;/h2&gt;
-
-    &lt;p&gt;
-        For questions, privacy requests, or complaints relating to this Privacy Policy, contact:
-    &lt;/p&gt;
-
-    &lt;address&gt;
-        &lt;strong&gt;iD! Training &amp;amp; Development&lt;/strong&gt;&lt;br /&gt;
-        Vennootschap onder firma (VOF)&lt;br /&gt;
-        Chamber of Commerce number: 61841277&lt;br /&gt;
-        Rusthoven 26&lt;br /&gt;
-        5655 CN Eindhoven&lt;br /&gt;
-        North Brabant&lt;br /&gt;
-        The Netherlands&lt;br /&gt;
-        Email: &lt;a href="mailto:compliance@id-develops.com"&gt;compliance@id-develops.com&lt;/a&gt;
-    &lt;/address&gt;</value>
-  </data>
+&lt;h2&gt;17. Contact&lt;/h2&gt;
+&lt;p&gt;Neem voor vragen, privacyverzoeken of klachten contact op met:&lt;/p&gt;
+&lt;address&gt;&lt;strong&gt;iD! Training &amp;amp; Development&lt;/strong&gt;&lt;br /&gt;Vennootschap onder firma (VOF)&lt;br /&gt;KvK-nummer: 61841277&lt;br /&gt;Rusthoven 26&lt;br /&gt;5655 CN Eindhoven&lt;br /&gt;Noord-Brabant&lt;br /&gt;Nederland&lt;br /&gt;E-mail: &lt;a href="mailto:compliance@id-develops.com"&gt;compliance@id-develops.com&lt;/a&gt;&lt;/address&gt;</value></data>
 </root>

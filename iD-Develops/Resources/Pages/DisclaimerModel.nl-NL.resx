@@ -1,437 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-  <resheader name="resmimetype">
-    <value>text/microsoft-resx</value>
-  </resheader>
-  <resheader name="version">
-    <value>2.0</value>
-  </resheader>
-  <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </resheader>
-  <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </resheader>
-  <data name="Title" xml:space="preserve">
-    <value>Disclaimer</value>
-  </data>
-  <data name="ContentHtml" xml:space="preserve">
-    <value>&lt;h1&gt;Disclaimer&lt;/h1&gt;
-
-    &lt;p&gt;
-        &lt;strong&gt;Last updated:&lt;/strong&gt; July 7, 2026
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        This Disclaimer applies to the iD! Training &amp;amp; Development website, customer portal,
-        digital products, downloads, courses, training materials, examination tools, assessments,
-        communications, and related services.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        The Services are operated by:
-    &lt;/p&gt;
-
-    &lt;address&gt;
-        &lt;strong&gt;iD! Training &amp;amp; Development&lt;/strong&gt;&lt;br /&gt;
-        Vennootschap onder firma (VOF)&lt;br /&gt;
-        Chamber of Commerce number: 61841277&lt;br /&gt;
-        Rusthoven 26&lt;br /&gt;
-        5655 CN Eindhoven&lt;br /&gt;
-        North Brabant&lt;br /&gt;
-        The Netherlands
-    &lt;/address&gt;
-
-    &lt;h2&gt;1. Relationship with our Terms and Conditions&lt;/h2&gt;
-
-    &lt;p&gt;
-        This Disclaimer provides additional information about the nature and limitations of our
-        content and Services. It should be read together with our
-        &lt;a href="/Terms-Conditions"&gt;Terms and Conditions&lt;/a&gt;,
-        &lt;a href="/Privacy"&gt;Privacy Policy&lt;/a&gt;, and
-        &lt;a href="/Cookie-Policy"&gt;Cookie Policy&lt;/a&gt;.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        If this Disclaimer conflicts with an expressly agreed contract, proposal, order
-        confirmation, or mandatory law, the applicable agreement or mandatory law will take
-        precedence.
-    &lt;/p&gt;
-
-    &lt;h2&gt;2. General educational information&lt;/h2&gt;
-
-    &lt;p&gt;
-        Content made available through the Services is generally provided for educational,
-        informational, language-learning, communication, personal-development, expatriate-support,
-        and business-training purposes.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        General website content, articles, examples, templates, downloads, exercises, and training
-        materials are not prepared specifically for your individual circumstances unless we have
-        expressly agreed to provide a personalised service.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        You should use your own judgement when applying general information and consider whether
-        it is suitable for your circumstances, objectives, level of experience, and organisation.
-    &lt;/p&gt;
-
-    &lt;h2&gt;3. No regulated professional advice&lt;/h2&gt;
-
-    &lt;p&gt;
-        Unless expressly agreed otherwise in writing, our general content does not constitute:
-    &lt;/p&gt;
-
-    &lt;ul&gt;
-        &lt;li&gt;legal advice;&lt;/li&gt;
-        &lt;li&gt;tax or accounting advice;&lt;/li&gt;
-        &lt;li&gt;financial or investment advice;&lt;/li&gt;
-        &lt;li&gt;immigration or visa advice;&lt;/li&gt;
-        &lt;li&gt;medical or psychological advice;&lt;/li&gt;
-        &lt;li&gt;employment-law or human-resources advice;&lt;/li&gt;
-        &lt;li&gt;regulated career or professional advice; or&lt;/li&gt;
-        &lt;li&gt;another service that may lawfully be provided only by a licensed or regulated professional.&lt;/li&gt;
-    &lt;/ul&gt;
-
-    &lt;p&gt;
-        References to laws, immigration procedures, employment practices, business matters, or
-        other specialist subjects are provided only as general educational information. Such
-        information may not reflect the latest rule, official interpretation, or your individual
-        circumstances.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        You should consult an appropriately qualified professional or the relevant official
-        authority before making a decision that requires regulated or specialist advice.
-    &lt;/p&gt;
-
-    &lt;h2&gt;4. Training, coaching, and learning outcomes&lt;/h2&gt;
-
-    &lt;p&gt;
-        Courses, lessons, coaching, exercises, assignments, and training materials are designed
-        to support learning and development. Individual outcomes depend on factors outside our
-        control, including:
-    &lt;/p&gt;
-
-    &lt;ul&gt;
-        &lt;li&gt;your starting level and prior experience;&lt;/li&gt;
-        &lt;li&gt;attendance, participation, and effort;&lt;/li&gt;
-        &lt;li&gt;the time available for study or practice;&lt;/li&gt;
-        &lt;li&gt;the accuracy and completeness of information you provide;&lt;/li&gt;
-        &lt;li&gt;your personal or organisational circumstances; and&lt;/li&gt;
-        &lt;li&gt;decisions made by employers, schools, authorities, or other third parties.&lt;/li&gt;
-    &lt;/ul&gt;
-
-    &lt;p&gt;
-        Unless expressly guaranteed in a written agreement, we do not guarantee that use of the
-        Services will result in:
-    &lt;/p&gt;
-
-    &lt;ul&gt;
-        &lt;li&gt;a particular language level;&lt;/li&gt;
-        &lt;li&gt;a particular examination score;&lt;/li&gt;
-        &lt;li&gt;successful completion of a course or assessment;&lt;/li&gt;
-        &lt;li&gt;employment, promotion, admission, or placement;&lt;/li&gt;
-        &lt;li&gt;a visa, residence permit, or immigration outcome;&lt;/li&gt;
-        &lt;li&gt;a professional qualification or regulated certification;&lt;/li&gt;
-        &lt;li&gt;increased income, sales, or business performance; or&lt;/li&gt;
-        &lt;li&gt;any other particular personal, educational, or commercial result.&lt;/li&gt;
-    &lt;/ul&gt;
-
-    &lt;h2&gt;5. Examinations, assessments, and results&lt;/h2&gt;
-
-    &lt;p&gt;
-        Examinations, quizzes, level tests, assignments, and other assessments are intended to
-        measure knowledge, skills, progress, or performance within the scope described for the
-        relevant assessment.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        Unless expressly stated otherwise in writing, assessment results are intended for
-        educational, coaching, placement, evaluation, or internal training purposes. They are
-        not:
-    &lt;/p&gt;
-
-    &lt;ul&gt;
-        &lt;li&gt;a government-issued diploma;&lt;/li&gt;
-        &lt;li&gt;a formally accredited qualification;&lt;/li&gt;
-        &lt;li&gt;a regulated professional licence;&lt;/li&gt;
-        &lt;li&gt;an immigration or visa document;&lt;/li&gt;
-        &lt;li&gt;an employment guarantee; or&lt;/li&gt;
-        &lt;li&gt;proof that a person is suitable for every role or situation.&lt;/li&gt;
-    &lt;/ul&gt;
-
-    &lt;p&gt;
-        Some results may be calculated automatically using predefined scoring rules. Automatically
-        generated or provisional results may be reviewed and corrected if we identify:
-    &lt;/p&gt;
-
-    &lt;ul&gt;
-        &lt;li&gt;an incorrect answer key;&lt;/li&gt;
-        &lt;li&gt;a scoring or configuration error;&lt;/li&gt;
-        &lt;li&gt;a technical malfunction;&lt;/li&gt;
-        &lt;li&gt;incomplete or corrupted assessment data;&lt;/li&gt;
-        &lt;li&gt;a breach of assessment rules; or&lt;/li&gt;
-        &lt;li&gt;another material irregularity.&lt;/li&gt;
-    &lt;/ul&gt;
-
-    &lt;p&gt;
-        An assessment reflects performance under the conditions and at the time it was completed.
-        It may not represent future performance or performance in a different context.
-    &lt;/p&gt;
-
-    &lt;h2&gt;6. Use of results by organisations&lt;/h2&gt;
-
-    &lt;p&gt;
-        Employers, schools, training providers, and other organisations may use the Services for
-        internal training, development, placement, or evaluation.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        Such organisations remain responsible for:
-    &lt;/p&gt;
-
-    &lt;ul&gt;
-        &lt;li&gt;deciding whether a particular assessment is suitable for their intended purpose;&lt;/li&gt;
-        &lt;li&gt;interpreting results fairly and in their proper context;&lt;/li&gt;
-        &lt;li&gt;considering other relevant information before making significant decisions;&lt;/li&gt;
-        &lt;li&gt;complying with employment, equality, education, privacy, and other applicable laws;&lt;/li&gt;
-        &lt;li&gt;avoiding unlawful discrimination or inappropriate automated decision-making; and&lt;/li&gt;
-        &lt;li&gt;providing any notices, review procedures, or human oversight required by law.&lt;/li&gt;
-    &lt;/ul&gt;
-
-    &lt;p&gt;
-        Unless we have expressly agreed to perform a separate professional evaluation, an
-        organisation should not rely exclusively on one assessment result when making a decision
-        that may significantly affect an individual.
-    &lt;/p&gt;
-
-    &lt;h2&gt;7. Accuracy and completeness&lt;/h2&gt;
-
-    &lt;p&gt;
-        We take reasonable care when preparing and maintaining our content. However, general
-        content may:
-    &lt;/p&gt;
-
-    &lt;ul&gt;
-        &lt;li&gt;contain an error or omission;&lt;/li&gt;
-        &lt;li&gt;become outdated;&lt;/li&gt;
-        &lt;li&gt;require additional explanation or context;&lt;/li&gt;
-        &lt;li&gt;differ from an official source or current professional practice; or&lt;/li&gt;
-        &lt;li&gt;not apply to every person, country, organisation, or situation.&lt;/li&gt;
-    &lt;/ul&gt;
-
-    &lt;p&gt;
-        We may correct, supplement, update, or remove content when reasonably necessary.
-        The existence of an error does not automatically mean that every related product,
-        assessment, or Service is invalid.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        Where you believe that content or an assessment result contains a material error, please
-        contact us and provide sufficient information for us to investigate it.
-    &lt;/p&gt;
-
-    &lt;h2&gt;8. Information supplied by users&lt;/h2&gt;
-
-    &lt;p&gt;
-        Some Services depend on information that you, your employer, your school, or another
-        organisation provides to us.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        We may be unable to provide an accurate, complete, or suitable service where supplied
-        information is:
-    &lt;/p&gt;
-
-    &lt;ul&gt;
-        &lt;li&gt;incorrect;&lt;/li&gt;
-        &lt;li&gt;incomplete;&lt;/li&gt;
-        &lt;li&gt;outdated;&lt;/li&gt;
-        &lt;li&gt;misleading;&lt;/li&gt;
-        &lt;li&gt;submitted without proper authority; or&lt;/li&gt;
-        &lt;li&gt;not provided within an applicable deadline.&lt;/li&gt;
-    &lt;/ul&gt;
-
-    &lt;p&gt;
-        You are responsible for checking information you submit and for informing us of relevant
-        corrections.
-    &lt;/p&gt;
-
-    &lt;h2&gt;9. Availability and technical limitations&lt;/h2&gt;
-
-    &lt;p&gt;
-        We aim to keep the Services reasonably available and functional, but uninterrupted or
-        error-free access cannot be guaranteed.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        Availability may be affected by:
-    &lt;/p&gt;
-
-    &lt;ul&gt;
-        &lt;li&gt;scheduled or emergency maintenance;&lt;/li&gt;
-        &lt;li&gt;internet or telecommunications failures;&lt;/li&gt;
-        &lt;li&gt;hosting, cloud, payment, email, or storage-provider disruptions;&lt;/li&gt;
-        &lt;li&gt;browser, device, software, or compatibility problems;&lt;/li&gt;
-        &lt;li&gt;security incidents or protective measures;&lt;/li&gt;
-        &lt;li&gt;power outages or events outside our reasonable control; and&lt;/li&gt;
-        &lt;li&gt;errors in information or files supplied by a user.&lt;/li&gt;
-    &lt;/ul&gt;
-
-    &lt;p&gt;
-        You are responsible for maintaining a suitable device, supported browser, internet
-        connection, email account, and any other technical requirements communicated for the
-        relevant Service.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        If a significant technical problem prevents you from receiving a paid Service, your
-        rights and available remedies will be determined by the applicable agreement, our Terms
-        and Conditions, and mandatory law.
-    &lt;/p&gt;
-
-    &lt;h2&gt;10. Downloads and digital materials&lt;/h2&gt;
-
-    &lt;p&gt;
-        You are responsible for checking whether downloadable files and digital materials are
-        suitable for your intended use and compatible with your device or software.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        Although we take reasonable security precautions, you should maintain appropriate
-        security software, backups, and device protections when downloading or using electronic
-        files.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        Templates, examples, and sample documents normally require review and adaptation before
-        they are used in a real business, legal, educational, employment, or personal situation.
-        Their availability does not mean that they are complete or suitable for every purpose.
-    &lt;/p&gt;
-
-    &lt;h2&gt;11. External links&lt;/h2&gt;
-
-    &lt;p&gt;
-        The Services may contain links to websites, platforms, documents, or resources operated
-        by independent third parties.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        An external link is normally provided for convenience or additional information. Unless
-        expressly stated otherwise, a link does not mean that we:
-    &lt;/p&gt;
-
-    &lt;ul&gt;
-        &lt;li&gt;control the external service;&lt;/li&gt;
-        &lt;li&gt;approve or endorse all of its content;&lt;/li&gt;
-        &lt;li&gt;guarantee its accuracy, security, or availability;&lt;/li&gt;
-        &lt;li&gt;accept responsibility for its products or services; or&lt;/li&gt;
-        &lt;li&gt;have a commercial relationship with its operator.&lt;/li&gt;
-    &lt;/ul&gt;
-
-    &lt;p&gt;
-        Independent third-party websites are governed by their own terms, privacy notices,
-        cookie policies, and security practices.
-    &lt;/p&gt;
-
-    &lt;h2&gt;12. Providers used to deliver the Services&lt;/h2&gt;
-
-    &lt;p&gt;
-        We may rely on providers for hosting, content delivery, cloud storage, email, payments,
-        security, and other operational functions.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        These service providers are different from unrelated external websites that you choose
-        to visit through a link. The fact that a provider performs part of a Service does not
-        automatically remove responsibilities that applicable law or our agreement places on us.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        Provider outages or failures may nevertheless affect availability or delivery. Where
-        this affects a paid Service, the applicable remedy will be determined under our Terms
-        and Conditions and mandatory law.
-    &lt;/p&gt;
-
-    &lt;h2&gt;13. Testimonials, reviews, and case studies&lt;/h2&gt;
-
-    &lt;p&gt;
-        Testimonials, reviews, case studies, examples, and sample outcomes may reflect an
-        individual's or organisation's particular experience. Results vary, and such material
-        does not promise that another user will achieve the same result.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        Where a scenario is fictional, simplified, anonymised, or compiled from multiple
-        situations, it may be presented solely to illustrate a concept.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        We aim not to publish testimonials or endorsements in a misleading manner. Any material
-        commercial relationship or incentive will be disclosed where required by law.
-    &lt;/p&gt;
-
-    &lt;h2&gt;14. Intellectual property&lt;/h2&gt;
-
-    &lt;p&gt;
-        The availability of content through the website or portal does not grant permission to
-        reproduce, publish, distribute, sell, scrape, or commercially exploit it.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        Permitted use of courses, downloads, examinations, templates, and other materials is
-        governed by our Terms and Conditions and any applicable written licence.
-    &lt;/p&gt;
-
-    &lt;h2&gt;15. Limitation of this Disclaimer&lt;/h2&gt;
-
-    &lt;p&gt;
-        This Disclaimer is not intended to exclude or limit:
-    &lt;/p&gt;
-
-    &lt;ul&gt;
-        &lt;li&gt;statutory consumer rights;&lt;/li&gt;
-        &lt;li&gt;rights relating to defective or non-conforming digital content or services;&lt;/li&gt;
-        &lt;li&gt;liability resulting from intent or deliberate recklessness where it cannot lawfully be limited;&lt;/li&gt;
-        &lt;li&gt;liability for fraud;&lt;/li&gt;
-        &lt;li&gt;liability for death or personal injury where exclusion is prohibited; or&lt;/li&gt;
-        &lt;li&gt;any other responsibility or remedy that cannot legally be excluded or limited.&lt;/li&gt;
-    &lt;/ul&gt;
-
-    &lt;p&gt;
-        Liability relating to the purchase or use of the Services is governed primarily by our
-        Terms and Conditions, the applicable agreement, and mandatory law.
-    &lt;/p&gt;
-
-    &lt;h2&gt;16. Changes to this Disclaimer&lt;/h2&gt;
-
-    &lt;p&gt;
-        We may update this Disclaimer to reflect changes to our Services, content, providers,
-        business operations, or legal obligations.
-    &lt;/p&gt;
-
-    &lt;p&gt;
-        The current version will be published on this page and identified by the "Last updated"
-        date.
-    &lt;/p&gt;
-
-    &lt;h2&gt;17. Contact&lt;/h2&gt;
-
-    &lt;p&gt;
-        Questions or reports concerning this Disclaimer, our content, or a possible material
-        error can be sent to:
-    &lt;/p&gt;
-
-    &lt;address&gt;
-        &lt;strong&gt;iD! Training &amp;amp; Development&lt;/strong&gt;&lt;br /&gt;
-        Vennootschap onder firma (VOF)&lt;br /&gt;
-        Rusthoven 26&lt;br /&gt;
-        5655 CN Eindhoven&lt;br /&gt;
-        North Brabant&lt;br /&gt;
-        The Netherlands&lt;br /&gt;
-        Email: &lt;a href="mailto:compliance@id-develops.com"&gt;compliance@id-develops.com&lt;/a&gt;
-    &lt;/address&gt;</value>
-  </data>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader><resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader><resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>Disclaimer</value></data>
+  <data name="ContentHtml" xml:space="preserve"><value>&lt;h1&gt;Disclaimer&lt;/h1&gt;
+&lt;p&gt;&lt;strong&gt;Laatst bijgewerkt:&lt;/strong&gt; 7 juli 2026&lt;/p&gt;
+&lt;p&gt;Deze Disclaimer geldt voor de website, het klantenportaal, digitale producten, downloads, cursussen, trainingsmaterialen, examentools, toetsen, communicatie en aanverwante diensten van iD! Training &amp;amp; Development.&lt;/p&gt;
+&lt;p&gt;De Diensten worden aangeboden door:&lt;/p&gt;
+&lt;address&gt;&lt;strong&gt;iD! Training &amp;amp; Development&lt;/strong&gt;&lt;br /&gt;Vennootschap onder firma (VOF)&lt;br /&gt;KvK-nummer: 61841277&lt;br /&gt;Rusthoven 26&lt;br /&gt;5655 CN Eindhoven&lt;br /&gt;Noord-Brabant&lt;br /&gt;Nederland&lt;/address&gt;
+
+&lt;h2&gt;1. Samenhang met onze Algemene voorwaarden&lt;/h2&gt;
+&lt;p&gt;Deze Disclaimer geeft aanvullende informatie over de aard en beperkingen van onze inhoud en Diensten. Lees hem samen met onze &lt;a href="Terms-Conditions"&gt;Algemene voorwaarden&lt;/a&gt;, ons &lt;a href="Privacy"&gt;Privacybeleid&lt;/a&gt; en ons &lt;a href="Cookie-Policy"&gt;Cookiebeleid&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Bij strijd met een uitdrukkelijk overeengekomen contract, offerte, orderbevestiging of dwingend recht, gaat de toepasselijke overeenkomst of het dwingende recht voor.&lt;/p&gt;
+
+&lt;h2&gt;2. Algemene educatieve informatie&lt;/h2&gt;
+&lt;p&gt;Inhoud via de Diensten is in het algemeen bedoeld voor onderwijs, informatie, taalverwerving, communicatie, persoonlijke ontwikkeling, expatondersteuning en bedrijfstraining. Algemene webinhoud, artikelen, voorbeelden, sjablonen, downloads, oefeningen en trainingsmaterialen zijn niet op uw individuele omstandigheden afgestemd, tenzij wij uitdrukkelijk een persoonlijke dienst hebben afgesproken.&lt;/p&gt;
+&lt;p&gt;Gebruik uw eigen oordeel en beoordeel of algemene informatie geschikt is voor uw omstandigheden, doelen, ervaringsniveau en organisatie.&lt;/p&gt;
+
+&lt;h2&gt;3. Geen gereguleerd professioneel advies&lt;/h2&gt;
+&lt;p&gt;Tenzij schriftelijk uitdrukkelijk anders afgesproken, vormt onze algemene inhoud geen juridisch, fiscaal, boekhoudkundig, financieel, beleggings-, immigratie-, visum-, medisch, psychologisch, arbeidsrechtelijk, HR- of ander gereguleerd professioneel advies.&lt;/p&gt;
+&lt;p&gt;Verwijzingen naar wetten, immigratieprocedures, arbeidspraktijken, bedrijfszaken of specialistische onderwerpen zijn alleen algemene educatieve informatie en hoeven niet de nieuwste regel, officiële uitleg of uw situatie weer te geven. Raadpleeg een passend gekwalificeerde professional of bevoegde instantie voordat u een besluit neemt waarvoor specialistisch of gereguleerd advies nodig is.&lt;/p&gt;
+
+&lt;h2&gt;4. Resultaten van training, coaching en leren&lt;/h2&gt;
+&lt;p&gt;Cursussen, lessen, coaching, oefeningen, opdrachten en materiaal ondersteunen leren en ontwikkeling. Resultaten hangen mede af van uw beginniveau en ervaring, aanwezigheid en inzet, beschikbare studie- of oefentijd, juistheid van uw informatie, persoonlijke of organisatorische omstandigheden en besluiten van werkgevers, scholen, autoriteiten of anderen.&lt;/p&gt;
+&lt;p&gt;Zonder uitdrukkelijke schriftelijke garantie garanderen wij geen bepaald taalniveau, examencijfer, succesvolle afronding, baan, promotie, toelating, plaatsing, visum, verblijfsrecht, kwalificatie, gereguleerd certificaat, hoger inkomen, betere verkoop of ander persoonlijk, educatief of commercieel resultaat.&lt;/p&gt;
+
+&lt;h2&gt;5. Examens, toetsen en resultaten&lt;/h2&gt;
+&lt;p&gt;Examens, quizzen, niveautoetsen, opdrachten en andere toetsen meten kennis, vaardigheden, voortgang of prestaties binnen hun beschreven bereik. Tenzij schriftelijk anders vermeld, dienen resultaten voor onderwijs, coaching, plaatsing, evaluatie of interne training. Ze zijn geen overheidsdiploma, geaccrediteerde kwalificatie, beroepsvergunning, immigratie- of visumdocument, baangarantie of bewijs van geschiktheid voor elke rol of situatie.&lt;/p&gt;
+&lt;p&gt;Sommige resultaten worden automatisch volgens vooraf ingestelde regels berekend. Automatische of voorlopige resultaten kunnen worden beoordeeld en gecorrigeerd bij een onjuiste antwoordsleutel, score- of configuratiefout, technische storing, onvolledige of beschadigde gegevens, regelovertreding of andere wezenlijke onregelmatigheid. Een toets weerspiegelt prestaties op het moment en onder de omstandigheden van afname en voorspelt niet noodzakelijk toekomstige prestaties of een andere context.&lt;/p&gt;
+
+&lt;h2&gt;6. Gebruik van resultaten door organisaties&lt;/h2&gt;
+&lt;p&gt;Werkgevers, scholen, opleiders en andere organisaties kunnen de Diensten gebruiken voor interne training, ontwikkeling, plaatsing of evaluatie. Zij blijven verantwoordelijk voor de geschiktheid van een toets, eerlijke interpretatie in context, het meewegen van andere relevante informatie, naleving van arbeids-, gelijkheids-, onderwijs-, privacy- en andere wetgeving, voorkoming van discriminatie of ongepaste automatische besluitvorming en wettelijk vereiste informatie, herbeoordeling en menselijk toezicht.&lt;/p&gt;
+&lt;p&gt;Zonder afzonderlijk afgesproken professionele evaluatie hoort een organisatie niet uitsluitend op één toetsresultaat te vertrouwen bij een besluit met mogelijk aanzienlijke gevolgen voor iemand.&lt;/p&gt;
+
+&lt;h2&gt;7. Juistheid en volledigheid&lt;/h2&gt;
+&lt;p&gt;Wij besteden redelijke zorg aan inhoud, maar algemene inhoud kan een fout of omissie bevatten, verouderd raken, extra uitleg of context nodig hebben, afwijken van een officiële bron of actuele beroepspraktijk of niet op iedere persoon, elk land, iedere organisatie of situatie van toepassing zijn. Wij kunnen inhoud waar redelijk nodig corrigeren, aanvullen, bijwerken of verwijderen; één fout maakt niet automatisch elk gerelateerd product, elke toets of Dienst ongeldig.&lt;/p&gt;
+&lt;p&gt;Denkt u dat inhoud of een resultaat een wezenlijke fout bevat, neem dan contact op met voldoende informatie voor onderzoek.&lt;/p&gt;
+
+&lt;h2&gt;8. Door gebruikers verstrekte informatie&lt;/h2&gt;
+&lt;p&gt;Sommige Diensten zijn afhankelijk van informatie van u, uw werkgever, school of een andere organisatie. Wij kunnen geen juiste, volledige of geschikte dienst leveren als die informatie onjuist, onvolledig, verouderd, misleidend, onbevoegd verstrekt of te laat is. U bent verantwoordelijk voor controle van uw inzendingen en het melden van correcties.&lt;/p&gt;
+
+&lt;h2&gt;9. Beschikbaarheid en technische beperkingen&lt;/h2&gt;
+&lt;p&gt;Wij streven naar redelijke beschikbaarheid en werking, maar garanderen geen ononderbroken of foutloze toegang. Onderhoud, internet- of telecomstoringen, storingen bij hosting-, cloud-, betaal-, e-mail- of opslagproviders, browser-, apparaat-, software- of compatibiliteitsproblemen, beveiligingsincidenten of maatregelen, stroomuitval, overmacht en fouten in door gebruikers geleverde gegevens of bestanden kunnen de beschikbaarheid beïnvloeden.&lt;/p&gt;
+&lt;p&gt;U zorgt voor een geschikt apparaat, ondersteunde browser, internetverbinding, e-mailaccount en gemelde technische vereisten. Als een ernstig technisch probleem een betaalde Dienst verhindert, worden uw rechten en remedies bepaald door de toepasselijke overeenkomst, onze Algemene voorwaarden en dwingend recht.&lt;/p&gt;
+
+&lt;h2&gt;10. Downloads en digitale materialen&lt;/h2&gt;
+&lt;p&gt;U controleert of downloads en digitale materialen voor uw doel geschikt en met uw apparaat of software compatibel zijn. Ondanks redelijke beveiliging hoort u geschikte beveiligingssoftware, back-ups en apparaatbescherming te gebruiken. Sjablonen, voorbeelden en modeldocumenten moeten normaal worden beoordeeld en aangepast vóór praktisch zakelijk, juridisch, educatief, arbeids- of persoonlijk gebruik; beschikbaarheid betekent niet dat zij voor elk doel volledig of geschikt zijn.&lt;/p&gt;
+
+&lt;h2&gt;11. Externe links&lt;/h2&gt;
+&lt;p&gt;De Diensten kunnen links bevatten naar onafhankelijke websites, platforms, documenten of bronnen. Een link dient normaal voor gemak of aanvullende informatie en betekent zonder uitdrukkelijke vermelding niet dat wij de externe dienst beheren, alle inhoud goedkeuren, juistheid, veiligheid of beschikbaarheid garanderen, verantwoordelijkheid voor producten of diensten aanvaarden of een commerciële relatie hebben. Onafhankelijke derden hanteren hun eigen voorwaarden, privacyverklaringen, cookiebeleid en beveiliging.&lt;/p&gt;
+
+&lt;h2&gt;12. Aanbieders die de Diensten helpen leveren&lt;/h2&gt;
+&lt;p&gt;Wij kunnen aanbieders gebruiken voor hosting, contentlevering, cloudopslag, e-mail, betalingen, beveiliging en andere functies. Zij verschillen van willekeurige externe websites die u via een link bezoekt. Uitbesteding neemt wettelijke of contractuele verantwoordelijkheden niet automatisch weg, maar storingen bij aanbieders kunnen levering wel beïnvloeden. Remedies voor een betaalde Dienst volgen onze Algemene voorwaarden en dwingend recht.&lt;/p&gt;
+
+&lt;h2&gt;13. Ervaringen, beoordelingen en casussen&lt;/h2&gt;
+&lt;p&gt;Getuigenissen, beoordelingen, casussen, voorbeelden en voorbeeldresultaten kunnen de ervaring van één persoon of organisatie weergeven. Resultaten verschillen en beloven geen gelijk resultaat voor anderen. Een situatie kan fictief, vereenvoudigd, geanonimiseerd of samengesteld zijn om een concept toe te lichten. Wij streven ernaar ervaringen en aanbevelingen niet misleidend te publiceren en melden een wezenlijke commerciële relatie of stimulans waar de wet dat vereist.&lt;/p&gt;
+
+&lt;h2&gt;14. Intellectuele eigendom&lt;/h2&gt;
+&lt;p&gt;Beschikbaarheid via website of portaal geeft geen toestemming om inhoud te reproduceren, publiceren, verspreiden, verkopen, scrapen of commercieel te exploiteren. Toegestaan gebruik van cursussen, downloads, examens, sjablonen en andere materialen volgt onze Algemene voorwaarden en eventuele schriftelijke licentie.&lt;/p&gt;
+
+&lt;h2&gt;15. Begrenzing van deze Disclaimer&lt;/h2&gt;
+&lt;p&gt;Deze Disclaimer beoogt geen uitsluiting of beperking van wettelijke consumentenrechten, rechten bij gebrekkige of niet-conforme digitale inhoud of diensten, aansprakelijkheid door opzet of bewuste roekeloosheid waar deze niet beperkt mag worden, aansprakelijkheid voor fraude, overlijden of persoonlijk letsel waar uitsluiting verboden is, of enige andere wettelijk niet-uitsluitbare verantwoordelijkheid of remedie. Aansprakelijkheid bij aankoop of gebruik wordt primair geregeld door onze Algemene voorwaarden, de toepasselijke overeenkomst en dwingend recht.&lt;/p&gt;
+
+&lt;h2&gt;16. Wijzigingen in deze Disclaimer&lt;/h2&gt;
+&lt;p&gt;Wij kunnen deze Disclaimer bijwerken bij wijzigingen in Diensten, inhoud, aanbieders, bedrijfsvoering of wettelijke verplichtingen. De actuele versie wordt op deze pagina gepubliceerd met de datum 'Laatst bijgewerkt'.&lt;/p&gt;
+
+&lt;h2&gt;17. Contact&lt;/h2&gt;
+&lt;p&gt;Vragen of meldingen over deze Disclaimer, onze inhoud of een mogelijke wezenlijke fout kunt u sturen naar:&lt;/p&gt;
+&lt;address&gt;&lt;strong&gt;iD! Training &amp;amp; Development&lt;/strong&gt;&lt;br /&gt;Vennootschap onder firma (VOF)&lt;br /&gt;Rusthoven 26&lt;br /&gt;5655 CN Eindhoven&lt;br /&gt;Noord-Brabant&lt;br /&gt;Nederland&lt;br /&gt;E-mail: &lt;a href="mailto:compliance@id-develops.com"&gt;compliance@id-develops.com&lt;/a&gt;&lt;/address&gt;</value></data>
 </root>
