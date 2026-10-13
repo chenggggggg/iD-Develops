@@ -70,6 +70,35 @@ public sealed partial class PublicLocalizationTests
     }
 
     [Fact]
+    public void ResourceFiles_DoNotReuseLongEnglishCopyAsDutchTranslation()
+    {
+        const int minimumTranslatedLength = 40;
+        var root = FindApplicationRoot();
+        var englishFiles = Directory.GetFiles(
+            Path.Combine(root, "Resources", "Pages"),
+            "*.en-US.resx",
+            SearchOption.AllDirectories);
+
+        foreach (var englishPath in englishFiles)
+        {
+            var dutchPath = englishPath.Replace(".en-US.resx", ".nl-NL.resx", StringComparison.OrdinalIgnoreCase);
+            Assert.True(File.Exists(dutchPath), $"Missing nl-NL resource for {englishPath}.");
+
+            var englishValues = LoadValues(englishPath);
+            var dutchValues = LoadValues(dutchPath);
+            foreach (var (key, englishValue) in englishValues)
+            {
+                if (englishValue.Length < minimumTranslatedLength)
+                {
+                    continue;
+                }
+
+                Assert.NotEqual(englishValue, dutchValues[key]);
+            }
+        }
+    }
+
+    [Fact]
     public void LocalizedPublicSurfaces_ReferenceKeysPresentInBothCultures()
     {
         var root = FindApplicationRoot();
@@ -178,6 +207,19 @@ public sealed partial class PublicLocalizationTests
 
         Assert.True(duplicateKeys.Count == 0, $"Duplicate resource keys in {path}: {string.Join(", ", duplicateKeys)}");
         return new SortedSet<string>(keys, StringComparer.Ordinal);
+    }
+
+    private static Dictionary<string, string> LoadValues(string path)
+    {
+        var document = XDocument.Load(path);
+        return document.Root?
+            .Elements("data")
+            .Where(element => !string.IsNullOrWhiteSpace(element.Attribute("name")?.Value))
+            .ToDictionary(
+                element => element.Attribute("name")!.Value,
+                element => element.Element("value")?.Value ?? string.Empty,
+                StringComparer.Ordinal)
+            ?? [];
     }
 
     private static string FindApplicationRoot()
