@@ -164,6 +164,23 @@ public sealed partial class PublicLocalizationTests
         }
     }
 
+    [Theory]
+    [InlineData("en-US")]
+    [InlineData("nl-NL")]
+    public void HomePage_ShowsAllLearningOptionsInSupportedCultures(string cultureName)
+    {
+        var resourceManager = new ResourceManager(
+            "iD_Develops.Resources.Pages.IndexModel",
+            typeof(global::iD_Develops.Pages.IndexModel).Assembly);
+
+        var value = resourceManager.GetString(
+            "ShowExpandedLearningOptions",
+            CultureInfo.GetCultureInfo(cultureName));
+
+        Assert.True(bool.TryParse(value, out var showExpandedLearningOptions));
+        Assert.True(showExpandedLearningOptions);
+    }
+
     [Fact]
     public void PublicRazorPageLinks_PreserveTheCurrentCulture()
     {

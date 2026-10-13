@@ -184,6 +184,26 @@ public sealed class PortalEntitlementSmokeTests : Microsoft.Playwright.Xunit.Pag
     }
 
     [Fact]
+    public async Task PublicHome_ShowsExpandedLearningOptionsInDutch()
+    {
+        var response = await Page.GotoAsync(
+            $"{PublicBaseUrl}/nl-nl/",
+            new Microsoft.Playwright.PageGotoOptions { WaitUntil = Microsoft.Playwright.WaitUntilState.DOMContentLoaded });
+
+        Assert.NotNull(response);
+        Assert.True(response!.Ok, $"Dutch home returned HTTP {response.Status}.");
+
+        await Expect(Page.GetByRole(
+                Microsoft.Playwright.AriaRole.Heading,
+                new() { Name = "Spreekcursus", Exact = true }))
+            .ToBeVisibleAsync();
+        await Expect(Page.GetByRole(
+                Microsoft.Playwright.AriaRole.Heading,
+                new() { Name = "Speed Class", Exact = true }))
+            .ToBeVisibleAsync();
+    }
+
+    [Fact]
     public async Task PublicErrorPage_UsesDutchResources()
     {
         var response = await Page.GotoAsync(
