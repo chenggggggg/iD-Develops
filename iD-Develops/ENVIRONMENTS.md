@@ -253,5 +253,9 @@ For Cloudflare R2, use:
 ## Notes
 
 - PostgreSQL Docker health checks use `pg_isready`.
+- Configure the DigitalOcean App Platform HTTP health check to use `/health/live`. This endpoint confirms that the web process can accept requests and deliberately stays healthy while a dependency is recovering.
+- Use `/health/ready` for operational readiness checks. It returns HTTP 503 until PostgreSQL is available and initialization has completed. Stripe failures are reported as a degraded state without taking the whole application out of service.
+- `/health/db` and `/health/stripe` expose the most recent background probe state without opening a new connection during the health request.
+- Database migrations and configured identity seeding run after HTTP startup. Failed database and Stripe probes retry in the background using the `DependencyRecovery` settings in `appsettings.json`.
 - Local development uses a file-based mock mail provider by default and writes rendered emails to `App_Data/Mail`.
 - Development, staging, and production should keep real integration credentials in env files only.

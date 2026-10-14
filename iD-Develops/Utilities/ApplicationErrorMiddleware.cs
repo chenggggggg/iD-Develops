@@ -20,7 +20,10 @@ namespace iD_Develops.Utilities
             _logger = logger;
         }
 
-        public async Task InvokeAsync(HttpContext context, IApplicationUrlService applicationUrls)
+        public async Task InvokeAsync(
+            HttpContext context,
+            IApplicationUrlService applicationUrls,
+            IDependencyStatusStore dependencyStatus)
         {
             if (IsErrorPageRequest(context.Request.Path))
             {
@@ -43,18 +46,37 @@ namespace iD_Develops.Utilities
                 }
 
                 var databaseUnavailable = DatabaseAvailability.IsDatabaseUnavailable(exception);
-                var statusCode = databaseUnavailable
+                var stripeUnavailable = ExternalDependencyAvailability.IsStripeUnavailable(exception);
+                var dependencyUnavailable = databaseUnavailable || stripeUnavailable;
+                var statusCode = dependencyUnavailable
                     ? StatusCodes.Status503ServiceUnavailable
                     : StatusCodes.Status500InternalServerError;
                 var errorCode = databaseUnavailable
                     ? DatabaseAvailability.GetDatabaseErrorCode(exception)
-                    : "server-error";
+                    : stripeUnavailable
+                        ? ExternalDependencyAvailability.GetStripeErrorCode(exception)
+                        : "server-error";
 
-                LogException(context, exception, statusCode, errorCode, databaseUnavailable);
+                if (databaseUnavailable)
+                {
+                    dependencyStatus.ReportDatabaseUnavailable(errorCode);
+                }
+                else if (stripeUnavailable)
+                {
+                    dependencyStatus.ReportStripeUnavailable(errorCode);
+                }
+
+                LogException(
+                    context,
+                    exception,
+                    statusCode,
+                    errorCode,
+                    databaseUnavailable,
+                    stripeUnavailable);
 
                 if (IsDirectResponseRequest(context))
                 {
-                    await WriteDirectErrorAsync(context, statusCode, errorCode, databaseUnavailable);
+                    await WriteDirectErrorAsync(context, statusCode, errorCode, dependencyUnavailable);
                     return;
                 }
 
@@ -193,11 +215,11 @@ namespace iD_Develops.Utilities
             HttpContext context,
             int statusCode,
             string errorCode,
-            bool databaseUnavailable)
+            bool dependencyUnavailable)
         {
             context.Response.Clear();
             context.Response.StatusCode = statusCode;
-            if (databaseUnavailable)
+            if (dependencyUnavailable)
             {
                 context.Response.Headers.RetryAfter = "60";
             }
@@ -213,7 +235,8 @@ namespace iD_Develops.Utilities
             Exception exception,
             int statusCode,
             string errorCode,
-            bool databaseUnavailable)
+            bool databaseUnavailable,
+            bool stripeUnavailable)
         {
             var requestTarget = context.Request.PathBase + context.Request.Path + context.Request.QueryString;
             if (databaseUnavailable)
@@ -221,6 +244,18 @@ namespace iD_Develops.Utilities
                 _logger.LogWarning(
                     exception,
                     "Database unavailable while processing {Method} {RequestTarget}. Returning HTTP {StatusCode} ({ErrorCode}).",
+                    context.Request.Method,
+                    requestTarget,
+                    statusCode,
+                    errorCode);
+                return;
+            }
+
+            if (stripeUnavailable)
+            {
+                _logger.LogWarning(
+                    exception,
+                    "Stripe unavailable while processing {Method} {RequestTarget}. Returning HTTP {StatusCode} ({ErrorCode}).",
                     context.Request.Method,
                     requestTarget,
                     statusCode,
