@@ -9,6 +9,20 @@ public sealed class PortalEntitlementSmokeTests : Microsoft.Playwright.Xunit.Pag
         (Environment.GetEnvironmentVariable("IDDEVELOPS_E2E_PORTAL_BASE_URL") ?? "http://portal.id.localhost:5000").TrimEnd('/');
 
     [Fact]
+    public async Task HealthEndpoints_ReportLivenessAndDependencyReadiness()
+    {
+        using var liveResponse = await SendWithoutRedirectAsync($"{PublicBaseUrl}/health/live");
+        Assert.Equal(System.Net.HttpStatusCode.OK, liveResponse.StatusCode);
+        Assert.Contains("\"status\":\"ok\"", await liveResponse.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+
+        using var readyResponse = await WaitForReadyAsync();
+        Assert.Equal(System.Net.HttpStatusCode.OK, readyResponse.StatusCode);
+        var readyBody = await readyResponse.Content.ReadAsStringAsync();
+        Assert.Contains("\"database\"", readyBody, StringComparison.Ordinal);
+        Assert.Contains("\"stripe\"", readyBody, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task ProductsPage_RemainsPublic()
     {
         var response = await Page.GotoAsync(
@@ -339,5 +353,23 @@ public sealed class PortalEntitlementSmokeTests : Microsoft.Playwright.Xunit.Pag
         using var request = new HttpRequestMessage(HttpMethod.Get, connectTo);
         request.Headers.Host = target.Authority;
         return await client.SendAsync(request);
+    }
+
+    private static async Task<HttpResponseMessage> WaitForReadyAsync()
+    {
+        HttpResponseMessage? response = null;
+        for (var attempt = 0; attempt < 30; attempt++)
+        {
+            response?.Dispose();
+            response = await SendWithoutRedirectAsync($"{PublicBaseUrl}/health/ready");
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                return response;
+            }
+
+            await Task.Delay(TimeSpan.FromSeconds(1));
+        }
+
+        return response!;
     }
 }

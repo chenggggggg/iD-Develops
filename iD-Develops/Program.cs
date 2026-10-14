@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using QuestPDF.Infrastructure;
+using Npgsql;
 using Stripe;
 using System.Globalization;
 using System.Security.Claims;
@@ -69,6 +70,8 @@ builder.Services.Configure<HostOptions>(options =>
 
 // ----------------------------
 builder.Services.Configure<RecordLifecycleOptions>(builder.Configuration.GetSection("RecordLifecycle"));
+builder.Services.Configure<DependencyRecoveryOptions>(
+    builder.Configuration.GetSection(DependencyRecoveryOptions.SectionName));
 builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("Mail"));
 builder.Services.Configure<TurnstileSettings>(builder.Configuration.GetSection("Turnstile"));
 builder.Services.Configure<CloudflareSettings>(builder.Configuration.GetSection("Cloudflare"));
@@ -144,9 +147,20 @@ builder.Services.AddDbContext<ApplicationDbContext>((sp, options) =>
         cs = "Host=localhost;Port=5432;Database=__missing__;Username=__missing__;Password=__missing__;";
     }
 
-    options.UseNpgsql(cs, sql =>
+    var recoveryOptions = config
+        .GetSection(DependencyRecoveryOptions.SectionName)
+        .Get<DependencyRecoveryOptions>() ?? new DependencyRecoveryOptions();
+    var connectionStringBuilder = new NpgsqlConnectionStringBuilder(cs)
     {
-        sql.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
+        Timeout = Math.Max(1, recoveryOptions.DatabaseConnectionTimeoutSeconds)
+    };
+
+    options.UseNpgsql(connectionStringBuilder.ConnectionString, sql =>
+    {
+        sql.EnableRetryOnFailure(
+            Math.Clamp(recoveryOptions.DatabaseRequestRetryCount, 0, 5),
+            TimeSpan.FromSeconds(Math.Max(1, recoveryOptions.DatabaseRequestMaximumDelaySeconds)),
+            null);
     });
 
     // EF's runtime auto-migration path can otherwise block startup on a false
@@ -399,6 +413,12 @@ builder.Services.AddScoped<CatalogProductSubmissionService>();
 builder.Services.AddScoped<CatalogProductAccessService>();
 builder.Services.AddScoped<EmailBrandingFactory>();
 
+builder.Services.AddSingleton<IDependencyStatusStore, DependencyStatusStore>();
+builder.Services.AddScoped<IApplicationDatabaseInitializer, ApplicationDatabaseInitializer>();
+builder.Services.AddScoped<IDatabaseRecoveryAttempt, DatabaseRecoveryAttempt>();
+builder.Services.AddHostedService<DatabaseRecoveryService>();
+builder.Services.AddHostedService<StripeRecoveryService>();
+
 builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 builder.Services.AddHostedService<QueuedHostedService>();
 builder.Services.AddHostedService<ExamExpirationService>();
@@ -455,11 +475,6 @@ builder.Services.Configure<AntiforgeryOptions>(options =>
 // ----------------------------
 var app = builder.Build();
 
-if (string.IsNullOrWhiteSpace(stripeSecretKey))
-{
-    app.Logger.LogWarning("Stripe is not configured. Stripe features are disabled for the Local environment.");
-}
-
 // ----------------------------
 // Connection string validation (Option A)
 // ----------------------------
@@ -471,187 +486,8 @@ if (string.IsNullOrWhiteSpace(runtimeConnectionString))
 }
 
 
-// ----------------------------
-// Apply EF migrations on startup (create DB if missing)
-// ----------------------------
-if (!string.IsNullOrWhiteSpace(runtimeConnectionString))
-{
-    const int migrationAttempts = 6;
-
-    for (var attempt = 1; attempt <= migrationAttempts; attempt++)
-    {
-        try
-        {
-            using var scope = app.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            var migrationLogger = scope.ServiceProvider
-                .GetRequiredService<ILoggerFactory>()
-                .CreateLogger("DatabaseMigrator");
-
-            await db.Database.MigrateAsync();
-            migrationLogger.LogInformation("Database is reachable and migrations are applied.");
-            break;
-        }
-        catch (Exception ex) when (DatabaseAvailability.IsDatabaseUnavailable(ex) || ex is TimeoutException)
-        {
-            if (attempt == migrationAttempts)
-            {
-                app.Logger.LogError(ex,
-                    "Database migrations were skipped after {MaxAttempts} failed startup attempts.",
-                    migrationAttempts);
-                break;
-            }
-
-            app.Logger.LogWarning(
-                "Database migration attempt {Attempt}/{MaxAttempts} failed with {ExceptionType}; retrying in 5 seconds.",
-                attempt,
-                migrationAttempts,
-                ex.GetType().Name);
-
-            await Task.Delay(TimeSpan.FromSeconds(5));
-        }
-        catch (Exception ex)
-        {
-            app.Logger.LogError(ex, "Automatic database migration failed.");
-            break;
-        }
-    }
-}
-
-// ----------------------------
-// Seed admin (DB-down safe / idempotent)
-// ----------------------------
-try
-{
-    var adminEmail = app.Configuration["Admin:Email"];
-    var adminPassword = app.Configuration["Admin:Password"];
-
-    if (!string.IsNullOrWhiteSpace(adminEmail) && !string.IsNullOrWhiteSpace(adminPassword))
-    {
-        using var scope = app.Services.CreateScope();
-        var services = scope.ServiceProvider;
-        var seedLogger = services.GetRequiredService<ILoggerFactory>().CreateLogger("IdentitySeeder");
-
-        // Quick DB availability check to avoid long timeouts / noisy logs when DB is down
-        try
-        {
-            var db = services.GetRequiredService<ApplicationDbContext>();
-
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
-            var canConnect = await db.Database.CanConnectAsync(cts.Token);
-
-            if (!canConnect)
-            {
-                seedLogger.LogWarning("Admin seeding skipped: database is unavailable.");
-            }
-            else
-            {
-                var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
-                var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-
-                var defaultRoles = new[] { "SuperAdmin", "Admin", "Teacher", "Student" };
-                foreach (var roleName in defaultRoles)
-                {
-                    if (!await roleManager.RoleExistsAsync(roleName))
-                        await roleManager.CreateAsync(new IdentityRole(roleName));
-                }
-
-                const string adminRole = "Admin";
-
-                // Ensure Admin user
-                var adminUser = await userManager.FindByEmailAsync(adminEmail);
-                if (adminUser == null)
-                {
-                    adminUser = new ApplicationUser
-                    {
-                        UserName = adminEmail,
-                        Email = adminEmail,
-                        FirstName = "Admin",
-                        LastName = "User",
-                        EmailConfirmed = true
-                    };
-
-                    var result = await userManager.CreateAsync(adminUser, adminPassword);
-                    if (!result.Succeeded)
-                    {
-                        seedLogger.LogWarning("Admin user creation failed: {Errors}",
-                            string.Join("; ", result.Errors.Select(e => e.Description)));
-                    }
-                }
-                else if (string.IsNullOrWhiteSpace(adminUser.FirstName) || string.IsNullOrWhiteSpace(adminUser.LastName))
-                {
-                    adminUser.FirstName ??= "Admin";
-                    adminUser.LastName ??= "User";
-                    await userManager.UpdateAsync(adminUser);
-                }
-
-                // Ensure role assignment
-                if (adminUser != null && !await userManager.IsInRoleAsync(adminUser, adminRole))
-                    await userManager.AddToRoleAsync(adminUser, adminRole);
-
-                var superAdminEmail = app.Configuration["SuperAdmin:Email"];
-                var superAdminPassword = app.Configuration["SuperAdmin:Password"];
-
-                if (string.IsNullOrWhiteSpace(superAdminEmail) != string.IsNullOrWhiteSpace(superAdminPassword))
-                {
-                    seedLogger.LogWarning(
-                        "SuperAdmin seeding skipped: configure both SuperAdmin:Email and SuperAdmin:Password.");
-                }
-                else if (!string.IsNullOrWhiteSpace(superAdminEmail) &&
-                         !string.IsNullOrWhiteSpace(superAdminPassword))
-                {
-                    const string superAdminRole = "SuperAdmin";
-                    var superAdminFirstName = app.Configuration["SuperAdmin:FirstName"] ?? "Super";
-                    var superAdminLastName = app.Configuration["SuperAdmin:LastName"] ?? "Admin";
-                    var superAdminUser = await userManager.FindByEmailAsync(superAdminEmail);
-
-                    if (superAdminUser == null)
-                    {
-                        superAdminUser = new ApplicationUser
-                        {
-                            UserName = superAdminEmail,
-                            Email = superAdminEmail,
-                            FirstName = superAdminFirstName,
-                            LastName = superAdminLastName,
-                            EmailConfirmed = true
-                        };
-
-                        var result = await userManager.CreateAsync(superAdminUser, superAdminPassword);
-                        if (!result.Succeeded)
-                        {
-                            seedLogger.LogWarning("SuperAdmin user creation failed: {Errors}",
-                                string.Join("; ", result.Errors.Select(e => e.Description)));
-                            superAdminUser = null;
-                        }
-                    }
-                    else if (string.IsNullOrWhiteSpace(superAdminUser.FirstName) ||
-                             string.IsNullOrWhiteSpace(superAdminUser.LastName))
-                    {
-                        superAdminUser.FirstName ??= superAdminFirstName;
-                        superAdminUser.LastName ??= superAdminLastName;
-                        await userManager.UpdateAsync(superAdminUser);
-                    }
-
-                    if (superAdminUser != null &&
-                        !await userManager.IsInRoleAsync(superAdminUser, superAdminRole))
-                    {
-                        await userManager.AddToRoleAsync(superAdminUser, superAdminRole);
-                    }
-                }
-            }
-        }
-        catch (Exception ex) when (DatabaseAvailability.IsDatabaseUnavailable(ex))
-        {
-            seedLogger.LogWarning("Admin seeding skipped: database is unavailable.");
-        }
-    }
-}
-catch (Exception ex)
-{
-    // Never prevent host startup due to seeding.
-    app.Logger.LogError(ex, "Admin seeding failed.");
-}
-
+// Migrations and configured identity data are handled by DatabaseRecoveryService.
+// The worker starts after the host and keeps retrying without delaying HTTP startup.
 
 // ----------------------------
 // Middleware
@@ -808,19 +644,45 @@ app.MapGet("/oauth/scheduling/{provider}/callback", async (
 .RequireAuthorization("ManageSchedulingConnections")
 .RequireHost(new Uri(app.Configuration[$"{ApplicationUrlOptions.SectionName}:PortalBaseUrl"]!).Host);
 
-app.MapGet("/health/db", async (ApplicationDbContext db) =>
+app.MapGet("/health/live", () => Results.Ok(new { status = "ok" }))
+.AllowAnonymous();
+
+app.MapGet("/health/ready", (IDependencyStatusStore dependencies) =>
 {
-    try
+    var database = dependencies.Database;
+    var stripe = dependencies.Stripe;
+    var payload = new
     {
-        var canConnect = await db.Database.CanConnectAsync();
-        return canConnect
-            ? Results.Ok(new { status = "ok" })
-            : Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
-    }
-    catch
-    {
-        return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
-    }
+        status = database.IsHealthy
+            ? stripe.Availability == DependencyAvailability.Unavailable ? "degraded" : "ok"
+            : "unavailable",
+        database = ToHealthPayload(database),
+        stripe = ToHealthPayload(stripe)
+    };
+
+    return database.IsHealthy
+        ? Results.Ok(payload)
+        : Results.Json(payload, statusCode: StatusCodes.Status503ServiceUnavailable);
+})
+.AllowAnonymous();
+
+app.MapGet("/health/db", (IDependencyStatusStore dependencies) =>
+{
+    var database = dependencies.Database;
+    var payload = ToHealthPayload(database);
+    return database.IsHealthy
+        ? Results.Ok(payload)
+        : Results.Json(payload, statusCode: StatusCodes.Status503ServiceUnavailable);
+})
+.AllowAnonymous();
+
+app.MapGet("/health/stripe", (IDependencyStatusStore dependencies) =>
+{
+    var stripe = dependencies.Stripe;
+    var payload = ToHealthPayload(stripe);
+    return stripe.Availability is DependencyAvailability.Healthy or DependencyAvailability.Disabled
+        ? Results.Ok(payload)
+        : Results.Json(payload, statusCode: StatusCodes.Status503ServiceUnavailable);
 })
 .AllowAnonymous();
 
@@ -838,6 +700,13 @@ app.MapPost("/api/stripe-webhook", async (HttpRequest request, IStripeWebhookSer
 .AllowAnonymous();
 
 app.Run();
+
+static object ToHealthPayload(DependencyStatusSnapshot snapshot) => new
+{
+    status = snapshot.Availability.ToString().ToLowerInvariant(),
+    lastCheckedAt = snapshot.LastCheckedAt,
+    error = snapshot.ErrorCode
+};
 
 static void LoadDotEnvForRuntime(string environment)
 {

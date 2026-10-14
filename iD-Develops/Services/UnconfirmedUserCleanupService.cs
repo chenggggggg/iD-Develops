@@ -2,10 +2,13 @@
 using iD_Develops.Models;
 using Microsoft.EntityFrameworkCore;
 using iD_Develops.Data;
+using iD_Develops.Services;
+using iD_Develops.Utilities;
 
 public class UnconfirmedUserCleanupService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
+    private readonly IDependencyStatusStore _dependencyStatus;
     private readonly ILogger<UnconfirmedUserCleanupService> _logger;
 
     // Normal cadence (healthy)
@@ -18,9 +21,13 @@ public class UnconfirmedUserCleanupService : BackgroundService
     private static readonly TimeSpan _minBackoff = TimeSpan.FromMinutes(10);
     private static readonly TimeSpan _maxBackoff = TimeSpan.FromHours(1);
 
-    public UnconfirmedUserCleanupService(IServiceProvider serviceProvider, ILogger<UnconfirmedUserCleanupService> logger)
+    public UnconfirmedUserCleanupService(
+        IServiceProvider serviceProvider,
+        IDependencyStatusStore dependencyStatus,
+        ILogger<UnconfirmedUserCleanupService> logger)
     {
         _serviceProvider = serviceProvider;
+        _dependencyStatus = dependencyStatus;
         _logger = logger;
     }
 
@@ -32,6 +39,7 @@ public class UnconfirmedUserCleanupService : BackgroundService
         {
             try
             {
+                await _dependencyStatus.WaitForDatabaseAsync(stoppingToken);
                 await CleanupUnconfirmedUsers(stoppingToken);
 
                 // Success => normal cadence
@@ -40,6 +48,24 @@ public class UnconfirmedUserCleanupService : BackgroundService
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
                 break; // normal shutdown
+            }
+            catch (Exception ex) when (DatabaseAvailability.IsDatabaseUnavailable(ex))
+            {
+                var stateChanged = _dependencyStatus.ReportDatabaseUnavailable(
+                    DatabaseAvailability.GetDatabaseErrorCode(ex));
+                currentDelay = _minBackoff;
+                if (stateChanged)
+                {
+                    _logger.LogWarning(
+                        "Unconfirmed-user cleanup paused because the database is unavailable. Retry delay: {RetryDelay}.",
+                        currentDelay);
+                }
+                else
+                {
+                    _logger.LogDebug(
+                        "Unconfirmed-user cleanup is waiting for database recovery. Retry delay: {RetryDelay}.",
+                        currentDelay);
+                }
             }
             catch (Exception ex)
             {
@@ -51,8 +77,10 @@ public class UnconfirmedUserCleanupService : BackgroundService
                     currentDelay);
 
                 // Failure => backoff (up to max)
-                currentDelay = TimeSpan.FromSeconds(
-                    Math.Min(_maxBackoff.TotalSeconds, Math.Max(_minBackoff.TotalSeconds, currentDelay.TotalSeconds * 2)));
+                currentDelay = currentDelay == _cleanupInterval
+                    ? _minBackoff
+                    : TimeSpan.FromSeconds(
+                        Math.Min(_maxBackoff.TotalSeconds, currentDelay.TotalSeconds * 2));
             }
 
             try
@@ -107,6 +135,10 @@ public class UnconfirmedUserCleanupService : BackgroundService
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             // normal shutdown
+            throw;
+        }
+        catch (Exception ex) when (DatabaseAvailability.IsDatabaseUnavailable(ex))
+        {
             throw;
         }
         catch (Exception ex)

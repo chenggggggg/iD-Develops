@@ -9,6 +9,11 @@ namespace iD_Develops.Utilities
         {
             for (var cur = ex; cur != null; cur = cur.InnerException)
             {
+                if (cur is TimeoutException)
+                {
+                    return "db-timeout";
+                }
+
                 if (cur is DbException dbEx)
                 {
                     var message = dbEx.Message ?? string.Empty;
@@ -17,7 +22,8 @@ namespace iD_Develops.Utilities
                         return "db-timeout";
                     }
 
-                    if (message.Contains("login failed", StringComparison.OrdinalIgnoreCase))
+                    if (message.Contains("login failed", StringComparison.OrdinalIgnoreCase)
+                        || message.Contains("authentication failed", StringComparison.OrdinalIgnoreCase))
                     {
                         return "db-login-failed";
                     }

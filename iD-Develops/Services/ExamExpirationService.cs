@@ -1,8 +1,11 @@
+using iD_Develops.Utilities;
+
 namespace iD_Develops.Services
 {
     public class ExamExpirationService : BackgroundService
     {
         private readonly IServiceProvider _serviceProvider;
+        private readonly IDependencyStatusStore _dependencyStatus;
         private readonly ILogger<ExamExpirationService> _logger;
 
         // Normal cadence when everything is healthy
@@ -14,9 +17,11 @@ namespace iD_Develops.Services
 
         public ExamExpirationService(
             IServiceProvider serviceProvider,
+            IDependencyStatusStore dependencyStatus,
             ILogger<ExamExpirationService> logger)
         {
             _serviceProvider = serviceProvider;
+            _dependencyStatus = dependencyStatus;
             _logger = logger;
         }
 
@@ -28,6 +33,7 @@ namespace iD_Develops.Services
             {
                 try
                 {
+                    await _dependencyStatus.WaitForDatabaseAsync(stoppingToken);
                     await CheckForOverdueExamsAsync(stoppingToken);
 
                     // Success => reset delay to normal cadence
@@ -36,6 +42,24 @@ namespace iD_Develops.Services
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
                 {
                     break; // normal shutdown
+                }
+                catch (Exception ex) when (DatabaseAvailability.IsDatabaseUnavailable(ex))
+                {
+                    var stateChanged = _dependencyStatus.ReportDatabaseUnavailable(
+                        DatabaseAvailability.GetDatabaseErrorCode(ex));
+                    currentDelay = MinBackoff;
+                    if (stateChanged)
+                    {
+                        _logger.LogWarning(
+                            "Exam-expiration processing paused because the database is unavailable. Retry delay: {RetryDelay}.",
+                            currentDelay);
+                    }
+                    else
+                    {
+                        _logger.LogDebug(
+                            "Exam-expiration processing is waiting for database recovery. Retry delay: {RetryDelay}.",
+                            currentDelay);
+                    }
                 }
                 catch (Exception ex)
                 {

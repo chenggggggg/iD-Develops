@@ -33,7 +33,7 @@ public sealed class ApplicationErrorMiddlewareTests
             await currentContext.Response.WriteAsync("localized error page");
         });
 
-        await middleware.InvokeAsync(context, CreateApplicationUrls());
+        await InvokeAsync(middleware, context);
 
         Assert.Equal(2, calls);
         Assert.Equal(StatusCodes.Status404NotFound, context.Response.StatusCode);
@@ -63,7 +63,7 @@ public sealed class ApplicationErrorMiddlewareTests
             return Task.CompletedTask;
         });
 
-        await middleware.InvokeAsync(context, CreateApplicationUrls());
+        await InvokeAsync(middleware, context);
 
         Assert.Equal(2, calls);
         Assert.Equal(StatusCodes.Status404NotFound, context.Response.StatusCode);
@@ -82,7 +82,7 @@ public sealed class ApplicationErrorMiddlewareTests
             return Task.CompletedTask;
         });
 
-        await middleware.InvokeAsync(context, CreateApplicationUrls());
+        await InvokeAsync(middleware, context);
 
         Assert.Equal(1, calls);
         Assert.Equal(StatusCodes.Status404NotFound, context.Response.StatusCode);
@@ -94,13 +94,16 @@ public sealed class ApplicationErrorMiddlewareTests
     {
         var context = CreateContext("portal.id.localhost", "/api/data");
         var middleware = CreateMiddleware(_ => throw new TestDbException("connection refused"));
+        var dependencyStatus = new DependencyStatusStore();
 
-        await middleware.InvokeAsync(context, CreateApplicationUrls());
+        await InvokeAsync(middleware, context, dependencyStatus);
 
         Assert.Equal(StatusCodes.Status503ServiceUnavailable, context.Response.StatusCode);
         Assert.Equal("60", context.Response.Headers.RetryAfter);
         var payload = JsonDocument.Parse(await ReadBodyAsync(context));
         Assert.Equal("db-offline", payload.RootElement.GetProperty("error").GetString());
+        Assert.Equal(DependencyAvailability.Unavailable, dependencyStatus.Database.Availability);
+        Assert.Equal("db-offline", dependencyStatus.Database.ErrorCode);
     }
 
     [Fact]
@@ -123,7 +126,7 @@ public sealed class ApplicationErrorMiddlewareTests
             return Task.CompletedTask;
         });
 
-        await middleware.InvokeAsync(context, CreateApplicationUrls());
+        await InvokeAsync(middleware, context);
 
         Assert.Equal(2, calls);
         Assert.Equal(StatusCodes.Status500InternalServerError, context.Response.StatusCode);
@@ -151,7 +154,7 @@ public sealed class ApplicationErrorMiddlewareTests
             return Task.CompletedTask;
         });
 
-        await middleware.InvokeAsync(context, CreateApplicationUrls());
+        await InvokeAsync(middleware, context);
 
         Assert.Equal(2, calls);
         Assert.Equal(HttpMethods.Post, context.Request.Method);
@@ -175,7 +178,7 @@ public sealed class ApplicationErrorMiddlewareTests
             throw new InvalidOperationException("error page failed");
         });
 
-        await middleware.InvokeAsync(context, CreateApplicationUrls());
+        await InvokeAsync(middleware, context);
 
         Assert.Equal(2, calls);
         Assert.Equal(StatusCodes.Status404NotFound, context.Response.StatusCode);
@@ -185,6 +188,15 @@ public sealed class ApplicationErrorMiddlewareTests
 
     private static ApplicationErrorMiddleware CreateMiddleware(RequestDelegate next) =>
         new(next, NullLogger<ApplicationErrorMiddleware>.Instance);
+
+    private static Task InvokeAsync(
+        ApplicationErrorMiddleware middleware,
+        HttpContext context,
+        IDependencyStatusStore? dependencyStatus = null)
+        => middleware.InvokeAsync(
+            context,
+            CreateApplicationUrls(),
+            dependencyStatus ?? new DependencyStatusStore());
 
     private static IApplicationUrlService CreateApplicationUrls() =>
         new ApplicationUrlService(Options.Create(new ApplicationUrlOptions
