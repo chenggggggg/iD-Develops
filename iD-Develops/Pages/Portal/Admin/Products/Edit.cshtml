@@ -56,19 +56,6 @@
 
 <section class="public-page product-page-shell @(Model.IsPreviewMode ? "product-edit-mode-shell" : null)">
     <div class="public-container">
-    @if (!Model.IsAdminEditMode && Model.IsPreviewMode)
-    {
-        <div class="public-alert public-alert-warning product-page-alert flex flex-wrap items-center justify-between gap-3">
-            <div>Preview mode shows the currently saved product. Purchase and signup actions are disabled.</div>
-            <a class="public-btn public-btn-outline public-btn-sm"
-               asp-route="PortalProductEdit"
-               asp-route-slug="@Model.Product.Slug"
-               asp-route-contentCulture="@Model.ContentCulture">
-                <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>Return to editor
-            </a>
-        </div>
-    }
-
     @if (TempData["StatusMessage"] is string statusMessage)
     {
         <div class="public-alert public-alert-success product-page-alert">@statusMessage</div>
@@ -1027,11 +1014,18 @@
 @if (!Model.IsAdminEditMode && Model.IsPreviewMode)
 {
     <div class="product-edit-mode-bar" role="status">
-        <div class="product-edit-mode-bar-inner">
+        <div class="product-edit-mode-bar-inner justify-between gap-4">
             <div class="product-edit-mode-bar-copy">
                 <span class="product-edit-mode-dot" aria-hidden="true"></span>
                 <span>You are in preview mode.</span>
             </div>
+            <a asp-route="PortalProductEdit"
+               asp-route-slug="@Model.Product.Slug"
+               asp-route-contentCulture="@Model.ContentCulture"
+               class="inline-flex items-center gap-2 text-xs font-semibold text-white no-underline transition-opacity hover:text-white hover:underline hover:underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+                <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+                Return to editor
+            </a>
         </div>
     </div>
 }
