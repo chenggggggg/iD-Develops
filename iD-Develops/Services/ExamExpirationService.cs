@@ -4,8 +4,11 @@ namespace iD_Develops.Services
 {
     public class ExamExpirationService : BackgroundService
     {
+        private const string OperationKey = "exam-record-lifecycle";
+        private const string OperationName = "Exam-attempt lifecycle cleanup";
         private readonly IServiceProvider _serviceProvider;
         private readonly IDependencyStatusStore _dependencyStatus;
+        private readonly IBackgroundOperationStatusStore _operationStatus;
         private readonly ILogger<ExamExpirationService> _logger;
 
         // Normal cadence when everything is healthy
@@ -18,10 +21,12 @@ namespace iD_Develops.Services
         public ExamExpirationService(
             IServiceProvider serviceProvider,
             IDependencyStatusStore dependencyStatus,
+            IBackgroundOperationStatusStore operationStatus,
             ILogger<ExamExpirationService> logger)
         {
             _serviceProvider = serviceProvider;
             _dependencyStatus = dependencyStatus;
+            _operationStatus = operationStatus;
             _logger = logger;
         }
 
@@ -34,7 +39,19 @@ namespace iD_Develops.Services
                 try
                 {
                     await _dependencyStatus.WaitForDatabaseAsync(stoppingToken);
-                    await CheckForOverdueExamsAsync(stoppingToken);
+                    var startedAtUtc = DateTime.UtcNow;
+                    var updatedCount = await CheckForOverdueExamsAsync(stoppingToken);
+                    var completedAtUtc = DateTime.UtcNow;
+                    _operationStatus.ReportSuccess(
+                        OperationKey,
+                        OperationName,
+                        startedAtUtc,
+                        completedAtUtc,
+                        completedAtUtc.Add(NormalInterval),
+                        updatedCount,
+                        updatedCount == 0
+                            ? "No stale or overdue exam attempts needed an update."
+                            : $"Updated {updatedCount} stale or overdue exam attempt(s).");
 
                     // Success => reset delay to normal cadence
                     currentDelay = NormalInterval;
@@ -48,6 +65,11 @@ namespace iD_Develops.Services
                     var stateChanged = _dependencyStatus.ReportDatabaseUnavailable(
                         DatabaseAvailability.GetDatabaseErrorCode(ex));
                     currentDelay = MinBackoff;
+                    _operationStatus.ReportWaiting(
+                        OperationKey,
+                        OperationName,
+                        DateTime.UtcNow.Add(currentDelay),
+                        "Waiting for the database to become available.");
                     if (stateChanged)
                     {
                         _logger.LogWarning(
@@ -71,6 +93,11 @@ namespace iD_Develops.Services
                     // Failure => backoff (up to max)
                     currentDelay = TimeSpan.FromSeconds(
                         Math.Min(MaxBackoff.TotalSeconds, Math.Max(MinBackoff.TotalSeconds, currentDelay.TotalSeconds * 2)));
+                    _operationStatus.ReportFailure(
+                        OperationKey,
+                        OperationName,
+                        DateTime.UtcNow.Add(currentDelay),
+                        "The cleanup run failed and will be retried.");
                 }
 
                 try
@@ -84,12 +111,12 @@ namespace iD_Develops.Services
             }
         }
 
-        private async Task CheckForOverdueExamsAsync(CancellationToken stoppingToken)
+        private async Task<int> CheckForOverdueExamsAsync(CancellationToken stoppingToken)
         {
             using var scope = _serviceProvider.CreateScope();
 
             var recordService = scope.ServiceProvider.GetRequiredService<IRecordService>();
-            await recordService.MarkExpiredRecordsOverdueAsync(stoppingToken);
+            return await recordService.MarkExpiredRecordsOverdueAsync(stoppingToken);
         }
     }
 }

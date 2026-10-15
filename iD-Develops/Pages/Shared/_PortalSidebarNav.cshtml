@@ -14,6 +14,7 @@
     var isProductsActive = IsPage("/Portal/Admin/Products");
     var isAdminPanelActive = IsPage("/Portal/Admin") && !isProductsActive;
     var isManageUsersActive = IsPage("/Portal/Admin/Users");
+    var isSystemOperationsActive = IsPage("/Portal/Admin/System");
 }
 
 <div class="portal-nav-list">
@@ -88,6 +89,13 @@
                     <i class="fa-solid fa-users"></i>
                     <span>Manage Users</span>
                 </a>
+                @if (User.IsInRole("SuperAdmin"))
+                {
+                    <a class="portal-subnav-link @(isSystemOperationsActive ? "active" : null)" asp-page="/Portal/Admin/System">
+                        <i class="fa-solid fa-server"></i>
+                        <span>System Operations</span>
+                    </a>
+                }
             </div>
         </details>
     }
