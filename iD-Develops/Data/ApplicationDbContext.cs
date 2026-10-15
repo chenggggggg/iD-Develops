@@ -4,12 +4,18 @@ using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using iD_Develops.Services;
 
 namespace iD_Develops.Data
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityRole, string>, IDataProtectionKeyContext
     {
+        private readonly IHttpContextAccessor? _httpContextAccessor;
+        private readonly HashSet<object> _capturedAuditEntities = new(ReferenceEqualityComparer.Instance);
+
         public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
+        public DbSet<ApplicationAuditEvent> ApplicationAuditEvents { get; set; }
         public DbSet<Exam> Exams { get; set; }
         public DbSet<UserExam> UserExams { get; set; }
         public DbSet<ExamAttemptGrant> ExamAttemptGrants { get; set; }
@@ -68,14 +74,331 @@ namespace iD_Develops.Data
         public DbSet<CatalogProductInvite> CatalogProductInvites { get; set; }
         public DbSet<CatalogProductInviteUse> CatalogProductInviteUses { get; set; }
 
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+        public ApplicationDbContext(
+            DbContextOptions<ApplicationDbContext> options,
+            IHttpContextAccessor? httpContextAccessor = null)
             : base(options)
         {
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+        public override int SaveChanges(bool acceptAllChangesOnSuccess)
+        {
+            CaptureAuditEvents();
+            var result = base.SaveChanges(acceptAllChangesOnSuccess);
+            _capturedAuditEntities.Clear();
+            return result;
+        }
+
+        public override async Task<int> SaveChangesAsync(
+            bool acceptAllChangesOnSuccess,
+            CancellationToken cancellationToken = default)
+        {
+            CaptureAuditEvents();
+            var result = await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+            _capturedAuditEntities.Clear();
+            return result;
+        }
+
+        private void CaptureAuditEvents()
+        {
+            ChangeTracker.DetectChanges();
+
+            var entries = ChangeTracker.Entries()
+                .Where(entry =>
+                    entry.Entity is not ApplicationAuditEvent &&
+                    entry.State is EntityState.Added or EntityState.Modified or EntityState.Deleted &&
+                    !_capturedAuditEntities.Contains(entry.Entity))
+                .ToList();
+
+            foreach (var entry in entries)
+            {
+                var auditEntry = CreateAuditEntry(entry);
+                if (auditEntry == null)
+                {
+                    continue;
+                }
+
+                _capturedAuditEntities.Add(entry.Entity);
+                ApplicationAuditEvents.Add(ApplicationAuditService.CreateEvent(
+                    auditEntry,
+                    _httpContextAccessor?.HttpContext));
+            }
+        }
+
+        private static ApplicationAuditEntry? CreateAuditEntry(EntityEntry entry)
+            => entry.Entity switch
+            {
+                Record record => CreateRecordAuditEntry(entry, record),
+                UserCourse userCourse => CreateCourseAccessAuditEntry(entry, userCourse),
+                UserExam userExam => CreateExamAssignmentAuditEntry(entry, userExam),
+                CourseSectionUserAccess access => CreateSectionAccessAuditEntry(entry, access),
+                CourseContentUserAccess access => CreateContentAccessAuditEntry(entry, access),
+                EventBooking booking => CreateBookingAuditEntry(entry, booking),
+                UserCreditTransaction transaction when entry.State == EntityState.Added => new ApplicationAuditEntry(
+                    ApplicationAuditEventTypes.CreditTransactionRecorded,
+                    AuditEventCategory.Commerce,
+                    AuditEventOutcome.Success,
+                    $"Credit transaction recorded ({transaction.TransactionType}, {transaction.QuantityDelta:+#;-#;0}).",
+                    SubjectUserId: transaction.UserId,
+                    EntityType: nameof(UserCreditTransaction),
+                    EntityId: transaction.Id > 0
+                        ? transaction.Id.ToString()
+                        : $"credit-lot:{transaction.UserCreditLotId}",
+                    Metadata: new Dictionary<string, object?>
+                    {
+                        ["creditTypeId"] = transaction.CreditTypeId,
+                        ["creditLotId"] = transaction.UserCreditLotId,
+                        ["bookingId"] = transaction.EventBookingId,
+                        ["transactionType"] = transaction.TransactionType.ToString(),
+                        ["quantityDelta"] = transaction.QuantityDelta
+                    }),
+                IdentityUserRole<string> role => CreateRoleAuditEntry(entry, role),
+                _ => null
+            };
+
+        private static ApplicationAuditEntry? CreateRecordAuditEntry(EntityEntry entry, Record record)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                return new ApplicationAuditEntry(
+                    ApplicationAuditEventTypes.ExamAttemptStarted,
+                    AuditEventCategory.Examination,
+                    AuditEventOutcome.Success,
+                    "Exam attempt started.",
+                    SubjectUserId: record.UserId,
+                    EntityType: nameof(Record),
+                    EntityId: record.Id.ToString(),
+                    Metadata: new Dictionary<string, object?>
+                    {
+                        ["examId"] = record.ExamId,
+                        ["examVersionId"] = record.ExamVersionId,
+                        ["deadlineUtc"] = record.EndDateTime
+                    });
+            }
+
+            var statusProperty = entry.Property(nameof(Record.ExamStatus));
+            if (entry.State != EntityState.Modified || !statusProperty.IsModified)
+            {
+                return null;
+            }
+
+            return new ApplicationAuditEntry(
+                ApplicationAuditEventTypes.ExamAttemptStatusChanged,
+                AuditEventCategory.Examination,
+                record.ExamStatus == ExamStatus.Completed
+                    ? AuditEventOutcome.Success
+                    : AuditEventOutcome.Information,
+                $"Exam attempt changed from {statusProperty.OriginalValue} to {record.ExamStatus}.",
+                SubjectUserId: record.UserId,
+                EntityType: nameof(Record),
+                EntityId: record.Id.ToString(),
+                Metadata: new Dictionary<string, object?>
+                {
+                    ["examId"] = record.ExamId,
+                    ["previousStatus"] = statusProperty.OriginalValue?.ToString(),
+                    ["status"] = record.ExamStatus.ToString(),
+                    ["reason"] = record.StatusReason.ToString(),
+                    ["score"] = record.Score
+                });
+        }
+
+        private static ApplicationAuditEntry? CreateCourseAccessAuditEntry(EntityEntry entry, UserCourse access)
+        {
+            var eventType = entry.State switch
+            {
+                EntityState.Added => ApplicationAuditEventTypes.CourseAccessGranted,
+                EntityState.Modified => ApplicationAuditEventTypes.CourseAccessChanged,
+                EntityState.Deleted => ApplicationAuditEventTypes.CourseAccessRevoked,
+                _ => null
+            };
+
+            if (eventType == null)
+            {
+                return null;
+            }
+
+            return new ApplicationAuditEntry(
+                eventType,
+                AuditEventCategory.CourseAccess,
+                AuditEventOutcome.Success,
+                entry.State == EntityState.Deleted ? "Course access revoked." : "Course access granted or updated.",
+                ActorUserId: access.GrantedByUserId,
+                SubjectUserId: access.UserId,
+                EntityType: nameof(Course),
+                EntityId: access.CourseId.ToString(),
+                Metadata: new Dictionary<string, object?>
+                {
+                    ["assignmentSource"] = access.AssignmentSource.ToString(),
+                    ["purchasedAtUtc"] = access.PurchasedAtUtc
+                });
+        }
+
+        private static ApplicationAuditEntry? CreateExamAssignmentAuditEntry(EntityEntry entry, UserExam assignment)
+        {
+            if (entry.State is not (EntityState.Added or EntityState.Deleted))
+            {
+                return null;
+            }
+
+            return new ApplicationAuditEntry(
+                entry.State == EntityState.Added
+                    ? ApplicationAuditEventTypes.ExamAssigned
+                    : ApplicationAuditEventTypes.ExamUnassigned,
+                AuditEventCategory.Examination,
+                AuditEventOutcome.Success,
+                entry.State == EntityState.Added ? "Exam assigned to user." : "Exam unassigned from user.",
+                ActorUserId: assignment.AssignedByUserId,
+                SubjectUserId: assignment.UserId,
+                EntityType: nameof(Exam),
+                EntityId: assignment.ExamId.ToString(),
+                Metadata: new Dictionary<string, object?>
+                {
+                    ["unlockAtUtc"] = assignment.UnlockAtUtc,
+                    ["dueAtUtc"] = assignment.DueAtUtc
+                });
+        }
+
+        private static ApplicationAuditEntry? CreateSectionAccessAuditEntry(
+            EntityEntry entry,
+            CourseSectionUserAccess access)
+        {
+            if (entry.State is not (EntityState.Added or EntityState.Modified or EntityState.Deleted))
+            {
+                return null;
+            }
+
+            return new ApplicationAuditEntry(
+                ApplicationAuditEventTypes.CourseAccessChanged,
+                AuditEventCategory.CourseAccess,
+                AuditEventOutcome.Success,
+                "Learner section access changed.",
+                ActorUserId: access.UpdatedByUserId,
+                SubjectUserId: access.UserId,
+                EntityType: nameof(CourseSection),
+                EntityId: access.CourseSectionId.ToString(),
+                Metadata: new Dictionary<string, object?>
+                {
+                    ["change"] = entry.State.ToString(),
+                    ["unlockAtUtc"] = access.UnlockAtUtc,
+                    ["manualOverride"] = access.IsManualOverride
+                });
+        }
+
+        private static ApplicationAuditEntry? CreateContentAccessAuditEntry(
+            EntityEntry entry,
+            CourseContentUserAccess access)
+        {
+            if (entry.State is not (EntityState.Added or EntityState.Modified or EntityState.Deleted))
+            {
+                return null;
+            }
+
+            return new ApplicationAuditEntry(
+                ApplicationAuditEventTypes.CourseAccessChanged,
+                AuditEventCategory.CourseAccess,
+                AuditEventOutcome.Success,
+                "Learner course-content access changed.",
+                ActorUserId: access.UpdatedByUserId,
+                SubjectUserId: access.UserId,
+                EntityType: access.ContentKind,
+                EntityId: access.ContentId.ToString(),
+                Metadata: new Dictionary<string, object?>
+                {
+                    ["change"] = entry.State.ToString(),
+                    ["courseId"] = access.CourseId,
+                    ["unlockAtUtc"] = access.UnlockAtUtc
+                });
+        }
+
+        private static ApplicationAuditEntry? CreateBookingAuditEntry(EntityEntry entry, EventBooking booking)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                return new ApplicationAuditEntry(
+                    ApplicationAuditEventTypes.BookingCreated,
+                    AuditEventCategory.Scheduling,
+                    AuditEventOutcome.Success,
+                    "Event booking created.",
+                    SubjectUserId: booking.UserId,
+                    EntityType: nameof(EventBooking),
+                    EntityId: booking.Id > 0
+                        ? booking.Id.ToString()
+                        : $"event:{booking.ScheduledEventId}/user:{booking.UserId}",
+                    Metadata: new Dictionary<string, object?>
+                    {
+                        ["scheduledEventId"] = booking.ScheduledEventId,
+                        ["status"] = booking.Status.ToString()
+                    });
+            }
+
+            var statusProperty = entry.Property(nameof(EventBooking.Status));
+            if (entry.State != EntityState.Modified || !statusProperty.IsModified)
+            {
+                return null;
+            }
+
+            return new ApplicationAuditEntry(
+                ApplicationAuditEventTypes.BookingStatusChanged,
+                AuditEventCategory.Scheduling,
+                AuditEventOutcome.Success,
+                $"Event booking changed from {statusProperty.OriginalValue} to {booking.Status}.",
+                SubjectUserId: booking.UserId,
+                EntityType: nameof(EventBooking),
+                EntityId: booking.Id.ToString(),
+                Metadata: new Dictionary<string, object?>
+                {
+                    ["scheduledEventId"] = booking.ScheduledEventId,
+                    ["previousStatus"] = statusProperty.OriginalValue?.ToString(),
+                    ["status"] = booking.Status.ToString(),
+                    ["attendanceSeconds"] = booking.ZoomAttendanceSeconds
+                });
+        }
+
+        private static ApplicationAuditEntry? CreateRoleAuditEntry(EntityEntry entry, IdentityUserRole<string> role)
+        {
+            if (entry.State is not (EntityState.Added or EntityState.Deleted))
+            {
+                return null;
+            }
+
+            return new ApplicationAuditEntry(
+                entry.State == EntityState.Added
+                    ? ApplicationAuditEventTypes.RoleAssigned
+                    : ApplicationAuditEventTypes.RoleRemoved,
+                AuditEventCategory.Administration,
+                AuditEventOutcome.Success,
+                entry.State == EntityState.Added ? "User role assigned." : "User role removed.",
+                SubjectUserId: role.UserId,
+                EntityType: "IdentityRole",
+                EntityId: role.RoleId);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<ApplicationAuditEvent>()
+                .Property(auditEvent => auditEvent.Category)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<ApplicationAuditEvent>()
+                .Property(auditEvent => auditEvent.Outcome)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<ApplicationAuditEvent>()
+                .HasIndex(auditEvent => auditEvent.OccurredAtUtc);
+
+            modelBuilder.Entity<ApplicationAuditEvent>()
+                .HasIndex(auditEvent => new { auditEvent.Category, auditEvent.OccurredAtUtc });
+
+            modelBuilder.Entity<ApplicationAuditEvent>()
+                .HasIndex(auditEvent => new { auditEvent.SubjectUserId, auditEvent.OccurredAtUtc });
+
+            modelBuilder.Entity<ApplicationAuditEvent>()
+                .HasIndex(auditEvent => auditEvent.DeduplicationKey)
+                .IsUnique()
+                .HasFilter("\"DeduplicationKey\" IS NOT NULL");
 
             modelBuilder.Entity<Question>()
                 .HasDiscriminator<string>("QuestionType")

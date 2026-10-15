@@ -15,6 +15,10 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using System.Security.Cryptography;
+using System.Text;
+using iD_Develops.Enums;
+using iD_Develops.Services;
 
 namespace iD_Develops.Areas.Identity.Pages.Account
 {
@@ -22,11 +26,16 @@ namespace iD_Develops.Areas.Identity.Pages.Account
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ILogger<LoginModel> _logger;
+        private readonly IApplicationAuditService _auditService;
 
-        public LoginModel(SignInManager<ApplicationUser> signInManager, ILogger<LoginModel> logger)
+        public LoginModel(
+            SignInManager<ApplicationUser> signInManager,
+            ILogger<LoginModel> logger,
+            IApplicationAuditService auditService)
         {
             _signInManager = signInManager;
             _logger = logger;
+            _auditService = auditService;
         }
 
         /// <summary>
@@ -126,6 +135,20 @@ namespace iD_Develops.Areas.Identity.Pages.Account
                 var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
+                    var user = await _signInManager.UserManager.FindByEmailAsync(Input.Email);
+                    await _auditService.RecordAsync(new ApplicationAuditEntry(
+                        ApplicationAuditEventTypes.LoginSucceeded,
+                        AuditEventCategory.Authentication,
+                        AuditEventOutcome.Success,
+                        "User signed in.",
+                        ActorUserId: user?.Id,
+                        SubjectUserId: user?.Id,
+                        EntityType: nameof(ApplicationUser),
+                        EntityId: user?.Id,
+                        Metadata: new Dictionary<string, object>
+                        {
+                            ["persistentSession"] = Input.RememberMe
+                        }));
                     _logger.LogInformation("User logged in.");
                     return LocalRedirect(returnUrl);
                 }
@@ -135,11 +158,13 @@ namespace iD_Develops.Areas.Identity.Pages.Account
                 }
                 if (result.IsLockedOut)
                 {
+                    await RecordFailedLoginAsync("locked_out");
                     _logger.LogWarning("User account locked out.");
                     return RedirectToPage("./Lockout");
                 }
                 else
                 {
+                    await RecordFailedLoginAsync(result.IsNotAllowed ? "not_allowed" : "invalid_credentials");
                     ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                     return Page();
                 }
@@ -147,6 +172,24 @@ namespace iD_Develops.Areas.Identity.Pages.Account
 
             // If we got this far, something failed, redisplay form
             return Page();
+        }
+
+        private Task<bool> RecordFailedLoginAsync(string reason)
+        {
+            var normalizedIdentifier = Input.Email?.Trim().ToUpperInvariant() ?? string.Empty;
+            var identifierHash = Convert.ToHexString(
+                SHA256.HashData(Encoding.UTF8.GetBytes(normalizedIdentifier)));
+
+            return _auditService.RecordAsync(new ApplicationAuditEntry(
+                ApplicationAuditEventTypes.LoginFailed,
+                AuditEventCategory.Authentication,
+                AuditEventOutcome.Failure,
+                "Sign-in attempt failed.",
+                Metadata: new Dictionary<string, object>
+                {
+                    ["reason"] = reason,
+                    ["identifierHash"] = identifierHash
+                }));
         }
     }
 }

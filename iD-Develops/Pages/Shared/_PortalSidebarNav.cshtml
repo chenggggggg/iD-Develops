@@ -15,6 +15,7 @@
     var isAdminPanelActive = IsPage("/Portal/Admin") && !isProductsActive;
     var isManageUsersActive = IsPage("/Portal/Admin/Users");
     var isSystemOperationsActive = IsPage("/Portal/Admin/System");
+    var isAuditLogActive = IsPage("/Portal/Admin/AuditLog");
 }
 
 <div class="portal-nav-list">
@@ -94,6 +95,10 @@
                     <a class="portal-subnav-link @(isSystemOperationsActive ? "active" : null)" asp-page="/Portal/Admin/System">
                         <i class="fa-solid fa-server"></i>
                         <span>System Operations</span>
+                    </a>
+                    <a class="portal-subnav-link @(isAuditLogActive ? "active" : null)" asp-page="/Portal/Admin/AuditLog">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        <span>Audit Log</span>
                     </a>
                 }
             </div>

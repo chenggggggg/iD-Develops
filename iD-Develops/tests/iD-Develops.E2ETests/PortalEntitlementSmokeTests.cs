@@ -128,6 +128,16 @@ public sealed class PortalEntitlementSmokeTests : Microsoft.Playwright.Xunit.Pag
     }
 
     [Fact]
+    public async Task PortalAuditLog_RequiresAuthentication()
+    {
+        await Page.GotoAsync(
+            $"{PortalBaseUrl}/admin/audit-log",
+            new Microsoft.Playwright.PageGotoOptions { WaitUntil = Microsoft.Playwright.WaitUntilState.DOMContentLoaded });
+
+        Assert.StartsWith($"{PortalBaseUrl}/login", Page.Url, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public async Task PublicErrorPage_RendersWithoutEndpointAmbiguity()
     {
         var response = await Page.GotoAsync(
