@@ -28,6 +28,7 @@ namespace iD_Develops.Pages
         private readonly ITurnstileService _turnstileService;
         private readonly IApplicationUrlService _applicationUrls;
         private readonly IPortalAuthenticationHandoffService _authenticationHandoffService;
+        private readonly IApplicationAuditService _auditService;
         private readonly IStringLocalizer<ProductModel> _localizer;
 
         public ProductModel(
@@ -41,6 +42,7 @@ namespace iD_Develops.Pages
             ITurnstileService turnstileService,
             IApplicationUrlService applicationUrls,
             IPortalAuthenticationHandoffService authenticationHandoffService,
+            IApplicationAuditService auditService,
             IStringLocalizer<ProductModel> localizer)
         {
             _catalogProductService = catalogProductService;
@@ -53,6 +55,7 @@ namespace iD_Develops.Pages
             _turnstileService = turnstileService;
             _applicationUrls = applicationUrls;
             _authenticationHandoffService = authenticationHandoffService;
+            _auditService = auditService;
             _localizer = localizer;
         }
 
@@ -294,6 +297,22 @@ namespace iD_Develops.Pages
                         localBaseUrl,
                         ct);
 
+                    await _auditService.RecordAsync(new ApplicationAuditEntry(
+                        ApplicationAuditEventTypes.PurchaseCompleted,
+                        AuditEventCategory.Commerce,
+                        AuditEventOutcome.Success,
+                        "Local checkout completed.",
+                        SubjectUserId: authenticatedUserId,
+                        EntityType: nameof(CatalogProduct),
+                        EntityId: product.Id.ToString(),
+                        Metadata: new Dictionary<string, object?>
+                        {
+                            ["checkoutProvider"] = "local",
+                            ["quantity"] = OrderQuantity,
+                            ["participantCount"] = ParticipantCount,
+                            ["inviteUseId"] = inviteUse?.Id
+                        }), ct);
+
                     return RedirectToPage("/PaymentResult", new { local = true, product = product.Name });
                 }
 
@@ -314,12 +333,28 @@ namespace iD_Develops.Pages
 
                     return Redirect(checkoutUrl);
                 }
-                catch
+                catch (Exception exception)
                 {
                     if (inviteUse != null)
                     {
                         await _catalogProductAccessService.CancelInviteUseAsync(inviteUse.Id, ct);
                     }
+
+                    await _auditService.RecordAsync(new ApplicationAuditEntry(
+                        ApplicationAuditEventTypes.CheckoutSessionCreationFailed,
+                        AuditEventCategory.Commerce,
+                        AuditEventOutcome.Failure,
+                        "Checkout session could not be created.",
+                        SubjectUserId: authenticatedUserId,
+                        EntityType: nameof(CatalogProduct),
+                        EntityId: product.Id.ToString(),
+                        Metadata: new Dictionary<string, object?>
+                        {
+                            ["checkoutProvider"] = "stripe",
+                            ["variantId"] = selectedVariant.Id,
+                            ["inviteUseId"] = inviteUse?.Id,
+                            ["exceptionType"] = exception.GetType().Name
+                        }), ct);
 
                     throw;
                 }

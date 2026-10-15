@@ -363,6 +363,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 // App services
 // ----------------------------
 builder.Services.AddScoped<IExamService, ExamService>();
+builder.Services.AddScoped<IApplicationAuditService, ApplicationAuditService>();
 builder.Services.AddScoped<IPortalAuthenticationHandoffService, PortalAuthenticationHandoffService>();
 builder.Services.AddScoped<IExamAccessService, ExamAccessService>();
 builder.Services.AddScoped<IExamAssignmentService, ExamAssignmentService>();

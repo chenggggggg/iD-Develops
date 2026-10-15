@@ -18,6 +18,7 @@ namespace iD_Develops.Pages.Portal.Admin.Products
             ITurnstileService turnstileService,
             IApplicationUrlService applicationUrls,
             IPortalAuthenticationHandoffService authenticationHandoffService,
+            IApplicationAuditService auditService,
             IStringLocalizer<iD_Develops.Pages.ProductModel> localizer)
             : base(
                 catalogProductService,
@@ -30,6 +31,7 @@ namespace iD_Develops.Pages.Portal.Admin.Products
                 turnstileService,
                 applicationUrls,
                 authenticationHandoffService,
+                auditService,
                 localizer)
         {
         }

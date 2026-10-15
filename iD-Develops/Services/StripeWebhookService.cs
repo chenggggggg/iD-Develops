@@ -19,6 +19,7 @@ namespace iD_Develops.Services
         private readonly CatalogProductAccessService _catalogProductAccessService;
         private readonly IPurchasedCreditService _purchasedCreditService;
         private readonly ApplicationDbContext _dbContext;
+        private readonly IApplicationAuditService _auditService;
 
         public StripeWebhookService(
             ILogger<StripeWebhookService> logger,
@@ -27,7 +28,8 @@ namespace iD_Develops.Services
             CatalogProductSubmissionService catalogProductSubmissionService,
             CatalogProductAccessService catalogProductAccessService,
             IPurchasedCreditService purchasedCreditService,
-            ApplicationDbContext dbContext)
+            ApplicationDbContext dbContext,
+            IApplicationAuditService auditService)
         {
             _logger = logger;
             _webhookSecret = stripeSettings;
@@ -36,6 +38,7 @@ namespace iD_Develops.Services
             _catalogProductAccessService = catalogProductAccessService;
             _purchasedCreditService = purchasedCreditService;
             _dbContext = dbContext;
+            _auditService = auditService;
         }
 
         public async Task<IResult> CheckoutCompletedAsync(HttpRequest request)
@@ -113,6 +116,27 @@ namespace iD_Develops.Services
                         await _catalogProductAccessService.CancelInviteUseAsync(inviteUseId.Value);
                     }
 
+                    await _auditService.RecordAsync(new ApplicationAuditEntry(
+                        ApplicationAuditEventTypes.PurchaseFailed,
+                        AuditEventCategory.Commerce,
+                        AuditEventOutcome.Failure,
+                        stripeEvent.Type == EventTypes.CheckoutSessionExpired
+                            ? "Checkout session expired before payment completed."
+                            : "Checkout payment failed.",
+                        SubjectUserId: authenticatedUserId,
+                        EntityType: nameof(CatalogProduct),
+                        EntityId: catalogProduct.Id.ToString(),
+                        Metadata: new Dictionary<string, object?>
+                        {
+                            ["stripeEventId"] = stripeEvent.Id,
+                            ["stripeSessionId"] = session.Id,
+                            ["stripeEventType"] = stripeEvent.Type,
+                            ["quantity"] = orderQuantity,
+                            ["amountTotalMinorUnits"] = session.AmountTotal,
+                            ["currency"] = session.Currency
+                        },
+                        DeduplicationKey: $"stripe:{stripeEvent.Id}:purchase-failed"), request.HttpContext.RequestAborted);
+
                     return Results.Json(new { status = "payment_not_completed" });
                 }
 
@@ -141,6 +165,26 @@ namespace iD_Develops.Services
                     session.Id,
                     orderQuantity,
                     request.HttpContext.RequestAborted);
+
+                await _auditService.RecordAsync(new ApplicationAuditEntry(
+                    ApplicationAuditEventTypes.PurchaseCompleted,
+                    AuditEventCategory.Commerce,
+                    AuditEventOutcome.Success,
+                    "Product purchase completed and entitlements were processed.",
+                    SubjectUserId: authenticatedUserId,
+                    EntityType: nameof(CatalogProduct),
+                    EntityId: catalogProduct.Id.ToString(),
+                    Metadata: new Dictionary<string, object?>
+                    {
+                        ["stripeEventId"] = stripeEvent.Id,
+                        ["stripeSessionId"] = session.Id,
+                        ["quantity"] = orderQuantity,
+                        ["participantCount"] = participantCount,
+                        ["amountTotalMinorUnits"] = session.AmountTotal,
+                        ["currency"] = session.Currency,
+                        ["inviteUseId"] = inviteUseId
+                    },
+                    DeduplicationKey: $"stripe:{stripeEvent.Id}:purchase-completed"), request.HttpContext.RequestAborted);
 
                 return Results.Json(new { status = "success" });
             }

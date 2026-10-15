@@ -1,6 +1,7 @@
 using EFCore.BulkExtensions;
 using iD_Develops.Configuration;
 using iD_Develops.Data;
+using iD_Develops.Enums;
 using iD_Develops.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -150,11 +151,36 @@ namespace iD_Develops.Services
                 expiredTimedRecords.Count,
                 staleNoLimitRecords.Count);
 
+            var lifecycleRecords = expiredTimedRecords.Concat(staleNoLimitRecords).ToList();
+            var auditEvents = lifecycleRecords
+                .Select(record => ApplicationAuditService.CreateEvent(
+                    new ApplicationAuditEntry(
+                        ApplicationAuditEventTypes.ExamAttemptStatusChanged,
+                        AuditEventCategory.Examination,
+                        AuditEventOutcome.Information,
+                        record.ExamStatus == ExamStatus.Overdue
+                            ? "Exam attempt became overdue after its deadline passed."
+                            : "Exam attempt was cancelled after prolonged inactivity.",
+                        SubjectUserId: record.UserId,
+                        EntityType: nameof(Record),
+                        EntityId: record.Id.ToString(),
+                        Metadata: new Dictionary<string, object?>
+                        {
+                            ["examId"] = record.ExamId,
+                            ["status"] = record.ExamStatus.ToString(),
+                            ["reason"] = record.StatusReason.ToString(),
+                            ["deadlineUtc"] = record.EndDateTime,
+                            ["lastActivityUtc"] = record.LastActivityUtc
+                        }),
+                    httpContext: null))
+                .ToList();
+
             var strategy = _dbContext.Database.CreateExecutionStrategy();
             await strategy.ExecuteAsync(async () =>
             {
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
-                await _dbContext.BulkUpdateAsync(expiredTimedRecords.Concat(staleNoLimitRecords).ToList(), cancellationToken: cancellationToken);
+                await _dbContext.BulkUpdateAsync(lifecycleRecords, cancellationToken: cancellationToken);
+                await _dbContext.BulkInsertAsync(auditEvents, cancellationToken: cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
             });
 
