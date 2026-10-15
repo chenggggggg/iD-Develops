@@ -54,7 +54,7 @@
     var isArchived = Model.Product.Status == CatalogProductStatus.Archived;
 }
 
-<section class="public-page product-page-shell @(Model.IsAdminEditMode ? "product-edit-mode-shell" : null)">
+<section class="public-page product-page-shell @(Model.IsPreviewMode ? "product-edit-mode-shell" : null)">
     <div class="public-container">
     @if (!Model.IsAdminEditMode && Model.IsPreviewMode)
     {
@@ -1022,12 +1022,15 @@
     <input type="hidden" id="ProductUploadsEnabled" value="@Model.UploadsEnabled.ToString().ToLowerInvariant()" />
     <input type="hidden" id="ProductMaxImageBytes" value="@Model.MaxImageBytes" />
     <input type="hidden" id="ProductMaxDownloadBytes" value="@Model.MaxDownloadBytes" />
+}
 
+@if (!Model.IsAdminEditMode && Model.IsPreviewMode)
+{
     <div class="product-edit-mode-bar" role="status">
         <div class="product-edit-mode-bar-inner">
             <div class="product-edit-mode-bar-copy">
                 <span class="product-edit-mode-dot" aria-hidden="true"></span>
-                <span>You are in edit mode.</span>
+                <span>You are in preview mode.</span>
             </div>
         </div>
     </div>
