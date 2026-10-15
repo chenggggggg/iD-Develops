@@ -70,6 +70,8 @@ builder.Services.Configure<HostOptions>(options =>
 
 // ----------------------------
 builder.Services.Configure<RecordLifecycleOptions>(builder.Configuration.GetSection("RecordLifecycle"));
+builder.Services.Configure<BackgroundCleanupOptions>(
+    builder.Configuration.GetSection(BackgroundCleanupOptions.SectionName));
 builder.Services.Configure<DependencyRecoveryOptions>(
     builder.Configuration.GetSection(DependencyRecoveryOptions.SectionName));
 builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("Mail"));
@@ -414,6 +416,7 @@ builder.Services.AddScoped<CatalogProductAccessService>();
 builder.Services.AddScoped<EmailBrandingFactory>();
 
 builder.Services.AddSingleton<IDependencyStatusStore, DependencyStatusStore>();
+builder.Services.AddSingleton<IBackgroundOperationStatusStore, BackgroundOperationStatusStore>();
 builder.Services.AddScoped<IApplicationDatabaseInitializer, ApplicationDatabaseInitializer>();
 builder.Services.AddScoped<IDatabaseRecoveryAttempt, DatabaseRecoveryAttempt>();
 builder.Services.AddHostedService<DatabaseRecoveryService>();
@@ -423,6 +426,7 @@ builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 builder.Services.AddHostedService<QueuedHostedService>();
 builder.Services.AddHostedService<ExamExpirationService>();
 builder.Services.AddHostedService<UnconfirmedUserCleanupService>();
+builder.Services.AddHostedService<CatalogInviteReservationCleanupService>();
 builder.Services.AddHostedService<ScheduleOccurrenceGeneratorService>();
 builder.Services.AddHostedService<ZoomAttendanceReconciliationWorker>();
 

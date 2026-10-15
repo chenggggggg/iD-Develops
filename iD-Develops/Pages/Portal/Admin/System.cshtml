@@ -1,0 +1,162 @@
+@page
+@using iD_Develops.Services
+@model iD_Develops.Pages.Portal.Admin.SystemModel
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = "System operations";
+
+    static string DependencyTone(DependencyAvailability availability) => availability switch
+    {
+        DependencyAvailability.Healthy => "border-emerald-200 bg-emerald-50 text-emerald-800",
+        DependencyAvailability.Disabled => "border-slate-200 bg-slate-100 text-slate-700",
+        DependencyAvailability.Unavailable => "border-red-200 bg-red-50 text-red-800",
+        _ => "border-amber-200 bg-amber-50 text-amber-800"
+    };
+
+    static string OperationTone(BackgroundOperationState state) => state switch
+    {
+        BackgroundOperationState.Healthy => "border-emerald-200 bg-emerald-50 text-emerald-800",
+        BackgroundOperationState.Waiting => "border-amber-200 bg-amber-50 text-amber-800",
+        _ => "border-red-200 bg-red-50 text-red-800"
+    };
+
+    static string FormatUtc(DateTime? value) => value.HasValue
+        ? $"{value.Value:yyyy-MM-dd HH:mm:ss} UTC"
+        : "Not recorded yet";
+}
+
+<section class="portal-page-shell space-y-6">
+    <header class="portal-page-header">
+        <div>
+            <p class="portal-eyebrow">SuperAdmin</p>
+            <h1 class="portal-title-sm">System operations</h1>
+            <p class="portal-copy">Monitor runtime dependencies and automatic maintenance without opening the infrastructure console.</p>
+        </div>
+    </header>
+
+    <div class="grid gap-4 lg:grid-cols-2" aria-label="Dependency health">
+        @foreach (var dependency in new[] { Model.DatabaseStatus, Model.StripeStatus })
+        {
+            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="m-0 text-xs font-semibold uppercase tracking-wider text-slate-500">Runtime dependency</p>
+                        <h2 class="mt-1 text-lg font-semibold capitalize text-slate-950">@dependency.Name</h2>
+                    </div>
+                    <span class="inline-flex rounded-full border px-3 py-1 text-xs font-semibold @DependencyTone(dependency.Availability)">
+                        @dependency.Availability
+                    </span>
+                </div>
+                <dl class="mt-5 grid gap-3 text-sm sm:grid-cols-2">
+                    <div>
+                        <dt class="font-medium text-slate-500">Last checked</dt>
+                        <dd class="mt-1 text-slate-900">@dependency.LastCheckedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss") UTC</dd>
+                    </div>
+                    <div>
+                        <dt class="font-medium text-slate-500">Error code</dt>
+                        <dd class="mt-1 text-slate-900">@(dependency.ErrorCode ?? "None")</dd>
+                    </div>
+                </dl>
+            </article>
+        }
+    </div>
+
+    <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+                <p class="m-0 text-xs font-semibold uppercase tracking-wider text-slate-500">Configuration</p>
+                <h2 class="mt-1 text-lg font-semibold text-slate-950">Automatic cleanup policy</h2>
+            </div>
+            <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">Read-only</span>
+        </div>
+        <dl class="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div class="rounded-lg bg-slate-50 p-4">
+                <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Unconfirmed users</dt>
+                <dd class="mt-2 text-xl font-semibold text-slate-950">Every @Model.CleanupOptions.UnconfirmedUserIntervalHours h</dd>
+            </div>
+            <div class="rounded-lg bg-slate-50 p-4">
+                <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Retention period</dt>
+                <dd class="mt-2 text-xl font-semibold text-slate-950">@Model.CleanupOptions.UnconfirmedUserRetentionDays days</dd>
+            </div>
+            <div class="rounded-lg bg-slate-50 p-4">
+                <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Maximum batch</dt>
+                <dd class="mt-2 text-xl font-semibold text-slate-950">@Model.CleanupOptions.UnconfirmedUserBatchSize users</dd>
+            </div>
+            <div class="rounded-lg bg-slate-50 p-4">
+                <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Checkout reservations</dt>
+                <dd class="mt-2 text-xl font-semibold text-slate-950">Every @Model.CleanupOptions.InviteReservationIntervalMinutes min</dd>
+            </div>
+        </dl>
+        <p class="mb-0 mt-4 text-sm text-slate-500">Values come from application configuration and environment-variable overrides. They cannot be changed from this page.</p>
+    </article>
+
+    <div>
+        <div class="mb-3">
+            <h2 class="m-0 text-lg font-semibold text-slate-950">Maintenance jobs</h2>
+            <p class="m-0 mt-1 text-sm text-slate-500">Current status and the most recent result from this running application instance.</p>
+        </div>
+        <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            @if (Model.Operations.Count == 0)
+            {
+                <div class="px-5 py-10 text-center">
+                    <i class="fa-solid fa-hourglass-start text-2xl text-slate-400" aria-hidden="true"></i>
+                    <p class="mb-0 mt-3 font-medium text-slate-700">Maintenance workers are still starting.</p>
+                </div>
+            }
+            else
+            {
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-[760px] border-collapse text-left text-sm">
+                        <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                            <tr>
+                                <th class="px-5 py-3 font-semibold" scope="col">Job</th>
+                                <th class="px-5 py-3 font-semibold" scope="col">Status</th>
+                                <th class="px-5 py-3 font-semibold" scope="col">Last completed</th>
+                                <th class="px-5 py-3 font-semibold" scope="col">Next run</th>
+                                <th class="px-5 py-3 font-semibold" scope="col">Result</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @foreach (var operation in Model.Operations)
+                            {
+                                <tr class="align-top">
+                                    <th class="px-5 py-4 font-semibold text-slate-950" scope="row">@operation.DisplayName</th>
+                                    <td class="px-5 py-4">
+                                        <span class="inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold @OperationTone(operation.State)">@operation.State</span>
+                                    </td>
+                                    <td class="px-5 py-4 text-slate-600">@FormatUtc(operation.LastCompletedAtUtc)</td>
+                                    <td class="px-5 py-4 text-slate-600">@FormatUtc(operation.NextRunAtUtc)</td>
+                                    <td class="max-w-md px-5 py-4 text-slate-700">@operation.Message</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h2 class="m-0 text-lg font-semibold text-slate-950">Recent maintenance activity</h2>
+        <p class="mb-0 mt-1 text-sm text-slate-500">Only meaningful changes, waits, and failures are listed. This short history resets whenever the application restarts or is deployed.</p>
+        @if (Model.RecentEvents.Count == 0)
+        {
+            <p class="mb-0 mt-5 rounded-lg bg-slate-50 px-4 py-5 text-sm text-slate-600">No maintenance activity has required attention during this process lifetime.</p>
+        }
+        else
+        {
+            <ol class="mb-0 mt-5 space-y-3 p-0">
+                @foreach (var operationEvent in Model.RecentEvents)
+                {
+                    <li class="flex flex-col gap-2 rounded-lg border border-slate-200 px-4 py-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                            <p class="m-0 font-semibold text-slate-900">@operationEvent.OperationName</p>
+                            <p class="mb-0 mt-1 text-sm text-slate-600">@operationEvent.Message</p>
+                        </div>
+                        <time class="flex-none text-xs font-medium text-slate-500">@operationEvent.OccurredAtUtc.ToString("yyyy-MM-dd HH:mm:ss") UTC</time>
+                    </li>
+                }
+            </ol>
+        }
+    </article>
+</section>

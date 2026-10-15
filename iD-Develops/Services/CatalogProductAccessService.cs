@@ -209,7 +209,7 @@ namespace iD_Develops.Services
             await _dbContext.SaveChangesAsync(ct);
         }
 
-        private async Task ExpirePendingUsesAsync(CancellationToken ct)
+        public async Task<int> ExpirePendingUsesAsync(CancellationToken ct = default)
         {
             var now = DateTime.UtcNow;
             var expiredUses = await _dbContext.CatalogProductInviteUses
@@ -218,7 +218,7 @@ namespace iD_Develops.Services
 
             if (expiredUses.Count == 0)
             {
-                return;
+                return 0;
             }
 
             foreach (var use in expiredUses)
@@ -227,6 +227,7 @@ namespace iD_Develops.Services
             }
 
             await _dbContext.SaveChangesAsync(ct);
+            return expiredUses.Count;
         }
 
         private static string GenerateToken()
