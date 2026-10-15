@@ -124,7 +124,7 @@
                         <td>@(AssignmentsModel.ToAmsterdam(assignment.UnlockAtUtc)?.ToString("dd MMM yyyy HH:mm") ?? "Immediately")</td>
                         <td>@(AssignmentsModel.ToAmsterdam(assignment.DueAtUtc)?.ToString("dd MMM yyyy HH:mm") ?? "No due date")</td>
                         <td>@AssignmentsModel.ToAmsterdam(assignment.AssignedAtUtc)!.Value.ToString("dd MMM yyyy")<small class="block">by @assignment.AssignedBy</small></td>
-                        <td><form method="post" asp-page-handler="Remove" asp-route-examId="@Model.Data.ExamId" onsubmit="return confirm('Remove this direct assignment?');"><input type="hidden" name="userId" value="@assignment.UserId" /><button class="portal-btn portal-btn-danger portal-btn-sm" type="submit">Remove</button></form></td>
+                        <td><form method="post" asp-page-handler="Remove" asp-route-examId="@Model.Data.ExamId" data-confirm-title="Remove assignment" data-confirm-message="Remove this direct assignment?" data-confirm-action="Remove" data-confirm-tone="danger"><input type="hidden" name="userId" value="@assignment.UserId" /><button class="portal-btn portal-btn-danger portal-btn-sm" type="submit">Remove</button></form></td>
                     </tr>
                 }
                 </tbody>

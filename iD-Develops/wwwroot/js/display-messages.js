@@ -12,107 +12,9 @@
         host.id = "toast-host";
         host.setAttribute("aria-live", "polite");
         host.setAttribute("aria-atomic", "true");
+        host.className = "pointer-events-none fixed top-4 right-4 z-[20000] flex w-[min(24rem,calc(100%-2rem))] flex-col gap-2 max-[420px]:right-2 max-[420px]:left-2 max-[420px]:w-auto";
         document.body.appendChild(host);
         return host;
-    }
-
-    function ensureStyles() {
-        if (document.getElementById("toast-styles")) return;
-
-        const style = document.createElement("style");
-        style.id = "toast-styles";
-        style.textContent = `
-#toast-host{
-  position: fixed;
-  top: 16px;
-  right: 16px;
-  z-index: 20000;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  pointer-events: none;
-}
-
-.toast-msg{
-  pointer-events: auto;
-  min-width: 280px;
-  max-width: 380px;
-  background: rgba(20,20,20,0.92);
-  color: #fff;
-  border-radius: 10px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-  padding: 12px 12px 10px 12px;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  grid-template-rows: auto auto;
-  column-gap: 10px;
-  row-gap: 6px;
-  transform: translateY(-6px);
-  opacity: 0;
-  transition: transform 160ms ease, opacity 160ms ease;
-}
-
-.toast-msg.show{
-  transform: translateY(0);
-  opacity: 1;
-}
-
-.toast-title{
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: .2px;
-  opacity: .9;
-}
-
-.toast-body{
-  grid-column: 1 / -1;
-  font-size: 0.92rem;
-  line-height: 1.25rem;
-}
-
-.toast-close{
-  appearance: none;
-  border: 0;
-  background: transparent;
-  color: rgba(255,255,255,0.85);
-  font-size: 18px;
-  line-height: 18px;
-  padding: 4px 6px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-.toast-close:hover{
-  background: rgba(255,255,255,0.08);
-}
-
-.toast-bar{
-  grid-column: 1 / -1;
-  height: 3px;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.18);
-  overflow: hidden;
-}
-
-.toast-bar > i{
-  display: block;
-  height: 100%;
-  width: 100%;
-  transform-origin: left;
-  transform: scaleX(1);
-  background: rgba(255,255,255,0.65);
-}
-
-.toast-msg.success .toast-bar > i{ background: rgba(80, 200, 120, 0.85); }
-.toast-msg.error   .toast-bar > i{ background: rgba(255, 90, 90, 0.85); }
-.toast-msg.info    .toast-bar > i{ background: rgba(110, 180, 255, 0.85); }
-.toast-msg.warn    .toast-bar > i{ background: rgba(255, 200, 80, 0.85); }
-
-@media (max-width: 420px){
-  #toast-host{ left: 12px; right: 12px; top: 12px; }
-  .toast-msg{ max-width: none; width: 100%; }
-}
-    `;
-        document.head.appendChild(style);
     }
 
     function escapeHtml(s) {
@@ -125,55 +27,70 @@
     }
 
     function showToast(message, opts = {}) {
-        ensureStyles();
         const host = ensureHost();
 
-        const type = (opts.type || "info").toLowerCase(); // info|success|error|warn
+        const requestedType = (opts.type || "info").toLowerCase();
+        const type = requestedType === "warning" ? "warn" : requestedType;
         const title = opts.title || (type === "success" ? "Success" :
             type === "error" ? "Error" :
                 type === "warn" ? "Warning" : "Notice");
         const durationMs = Number.isFinite(opts.durationMs) ? opts.durationMs : DEFAULT_DURATION_MS;
+        const variants = {
+            success: {
+                borderClass: "border-emerald-200",
+                iconClass: "bg-emerald-50 text-emerald-700",
+                icon: "fa-check"
+            },
+            error: {
+                borderClass: "border-red-200",
+                iconClass: "bg-red-50 text-red-700",
+                icon: "fa-exclamation"
+            },
+            warn: {
+                borderClass: "border-amber-200",
+                iconClass: "bg-amber-50 text-amber-700",
+                icon: "fa-triangle-exclamation"
+            },
+            info: {
+                borderClass: "border-sky-200",
+                iconClass: "bg-sky-50 text-sky-700",
+                icon: "fa-circle-info"
+            }
+        };
+        const variant = variants[type] || variants.info;
 
         const el = document.createElement("div");
-        el.className = `toast-msg ${type}`;
-        el.setAttribute("role", "status");
+        el.className = `pointer-events-auto -translate-y-1 rounded-xl border ${variant.borderClass} bg-white p-4 text-slate-800 opacity-0 shadow-[0_18px_45px_rgba(15,23,42,0.16)] transition-[opacity,translate] duration-200`;
+        el.setAttribute("role", type === "error" ? "alert" : "status");
 
         el.innerHTML = `
-      <div class="toast-title">${escapeHtml(title)}</div>
-      <button class="toast-close" type="button" aria-label="Close">×</button>
-      <div class="toast-body">${escapeHtml(message)}</div>
-      <div class="toast-bar" aria-hidden="true"><i></i></div>
-    `;
+            <div class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3">
+                <span class="grid size-9 place-items-center rounded-full ${variant.iconClass}" aria-hidden="true">
+                    <i class="fa-solid ${variant.icon}"></i>
+                </span>
+                <div class="min-w-0">
+                    <div class="text-sm font-semibold text-slate-950">${escapeHtml(title)}</div>
+                    <div class="mt-0.5 text-sm leading-5 text-slate-600">${escapeHtml(message)}</div>
+                </div>
+                <button data-toast-close class="grid size-7 place-items-center rounded-md border-0 bg-transparent text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#005190]" type="button" aria-label="Close">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </div>`;
 
         host.appendChild(el);
 
-        // animate in
-        requestAnimationFrame(() => el.classList.add("show"));
-
-        // progress bar animation (robust: force style flush before starting)
-        const bar = el.querySelector(".toast-bar > i");
-        if (bar && durationMs > 0) {
-            bar.style.transition = "none";
-            bar.style.transform = "scaleX(1)";
-
-            // Force a reflow so the browser commits the initial state
-            bar.getBoundingClientRect();
-
-            bar.style.transition = `transform ${durationMs}ms linear`;
-
-            // Start on next frame
-            requestAnimationFrame(() => {
-                bar.style.transform = "scaleX(0)";
-            });
-        }
+        requestAnimationFrame(() => {
+            el.classList.remove("-translate-y-1", "opacity-0");
+            el.classList.add("translate-y-0", "opacity-100");
+        });
 
         const close = () => {
-            el.classList.remove("show");
-            // allow transition to finish before remove
-            setTimeout(() => el.remove(), 180);
+            el.classList.remove("translate-y-0", "opacity-100");
+            el.classList.add("-translate-y-1", "opacity-0");
+            setTimeout(() => el.remove(), 200);
         };
 
-        el.querySelector(".toast-close")?.addEventListener("click", close);
+        el.querySelector("[data-toast-close]")?.addEventListener("click", close);
 
         if (durationMs > 0) {
             setTimeout(close, durationMs);

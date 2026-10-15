@@ -345,15 +345,6 @@ document.addEventListener("DOMContentLoaded", function () {
         requireAccessTokenCheckbox.addEventListener("change", updateSecureInviteVisibility);
     }
 
-    document.querySelectorAll("[data-confirm-submit]").forEach(function (button) {
-        button.addEventListener("click", function (event) {
-            const message = button.getAttribute("data-confirm-submit") || "Are you sure?";
-            if (!window.confirm(message)) {
-                event.preventDefault();
-            }
-        });
-    });
-
     document.querySelectorAll(".product-field-editor").forEach(function (editor) {
         const typeSelect = editor.querySelector(".product-field-type");
         if (typeSelect) {

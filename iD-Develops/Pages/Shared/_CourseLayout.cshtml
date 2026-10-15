@@ -20,6 +20,10 @@
 <body class="course-layout @ViewData["BodyClass"]">
     @RenderBody()
 
+    <partial name="_AppDialog" />
+
+    <script src="~/js/display-messages.js" asp-append-version="true"></script>
+    <script src="~/js/app-dialogs.js" asp-append-version="true"></script>
     <script src="~/js/course-view.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

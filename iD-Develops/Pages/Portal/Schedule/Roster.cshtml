@@ -167,7 +167,12 @@
                                     title="Edit recurring class">
                                 <i class="fa-solid fa-pencil" aria-hidden="true"></i>
                             </button>
-                            <form method="post" asp-page-handler="DeleteRule" onsubmit="return confirm('Remove this recurring class and its unbooked future meetings?');">
+                            <form method="post"
+                                  asp-page-handler="DeleteRule"
+                                  data-confirm-title="Remove recurring class"
+                                  data-confirm-message="Remove this recurring class and its unbooked future meetings?"
+                                  data-confirm-action="Remove class"
+                                  data-confirm-tone="danger">
                                 <input type="hidden" name="ruleId" value="@rule.Id" />
                                 <button type="submit" aria-label="Remove @rule.ClassTitle" title="Remove recurring class">
                                     <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
