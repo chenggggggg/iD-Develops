@@ -22,7 +22,9 @@ namespace iD_Develops.Pages
 
         public async Task OnGetAsync(string? type, CancellationToken ct)
         {
-            var products = await _catalogProductService.GetPublishedProductsAsync(ct);
+            var products = await _catalogProductService.GetPublishedProductsForCultureAsync(
+                System.Globalization.CultureInfo.CurrentUICulture.Name,
+                ct);
             if (string.Equals(type, "credit", StringComparison.OrdinalIgnoreCase))
                 products = products.Where(product => product.ProductType == CatalogProductType.Credit).ToList();
 

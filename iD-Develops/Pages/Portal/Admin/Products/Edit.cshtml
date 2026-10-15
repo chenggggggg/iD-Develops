@@ -54,18 +54,8 @@
     var isArchived = Model.Product.Status == CatalogProductStatus.Archived;
 }
 
-<section class="public-page product-page-shell @(Model.IsAdminEditMode ? "product-edit-mode-shell" : null)">
+<section class="public-page product-page-shell @(Model.IsPreviewMode ? "product-edit-mode-shell" : null)">
     <div class="public-container">
-    @if (!Model.IsAdminEditMode && Model.IsPreviewMode)
-    {
-        <div class="public-alert public-alert-warning product-page-alert flex flex-wrap items-center justify-between gap-3">
-            <div>Preview mode shows the currently saved product. Purchase and signup actions are disabled.</div>
-            <a class="public-btn public-btn-outline public-btn-sm" asp-route="PortalProductEdit" asp-route-slug="@Model.Product.Slug">
-                <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>Return to editor
-            </a>
-        </div>
-    }
-
     @if (TempData["StatusMessage"] is string statusMessage)
     {
         <div class="public-alert public-alert-success product-page-alert">@statusMessage</div>
@@ -95,12 +85,30 @@
                 <i class="fa-solid fa-arrow-left-long" aria-hidden="true"></i>Products
             </a>
 
+            <nav class="inline-flex min-h-9 items-stretch overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm" aria-label="Product content language">
+                <span class="inline-flex items-center gap-2 border-r border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-500">
+                    <i class="fa-solid fa-language text-[#005190]" aria-hidden="true"></i>
+                    Content language
+                </span>
+                @foreach (var option in Model.ContentCultureOptions)
+                {
+                    var isActiveCulture = string.Equals(Model.ContentCulture, option.Culture, StringComparison.Ordinal);
+                    <a href="?contentCulture=@option.Culture"
+                       title="Edit @option.DisplayName content"
+                       aria-current="@(isActiveCulture ? "page" : null)"
+                       class="inline-flex min-w-20 items-center justify-center border-r border-slate-200 px-3 text-xs font-semibold no-underline transition-colors last:border-r-0 hover:no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#005190] @(isActiveCulture ? "bg-[#005190] text-white" : "text-slate-600 hover:bg-slate-50 hover:text-[#005190]")">
+                        @option.DisplayName
+                    </a>
+                }
+            </nav>
+
             <div class="product-edit-command-actions">
                 <span class="product-edit-status-pill">@Model.Product.Status</span>
                 <a class="public-btn public-btn-outline public-btn-sm"
                    asp-route="PortalProductEdit"
                    asp-route-slug="@Model.Product.Slug"
                    asp-route-preview="true"
+                   asp-route-contentCulture="@Model.ContentCulture"
                    target="_blank"
                    rel="noopener"
                    title="Preview the saved product">
@@ -125,6 +133,7 @@
                 {
                     <form method="post" asp-page-handler="SetStatus" asp-route-slug="@Model.Product.Slug" class="m-0">
                         @Html.AntiForgeryToken()
+                        <input type="hidden" name="ContentCulture" value="@Model.ContentCulture" />
                         <input type="hidden" name="status" value="@CatalogProductStatus.Draft" />
                         <button type="submit" class="public-btn public-btn-outline public-btn-sm">
                             <i class="fa-solid fa-file-lines" aria-hidden="true"></i>Draft
@@ -136,6 +145,7 @@
                 {
                     <form method="post" asp-page-handler="SetStatus" asp-route-slug="@Model.Product.Slug" class="m-0">
                         @Html.AntiForgeryToken()
+                        <input type="hidden" name="ContentCulture" value="@Model.ContentCulture" />
                         <input type="hidden" name="status" value="@CatalogProductStatus.Archived" />
                         <button type="submit" class="public-btn public-btn-danger public-btn-sm">
                             <i class="fa-solid fa-box-archive" aria-hidden="true"></i>Archive
@@ -148,6 +158,7 @@
         <form method="post" enctype="multipart/form-data" id="product-edit-form" asp-page-handler="SaveContent" asp-route-slug="@Model.Product.Slug" data-product-slug="@Model.Product.Slug">
             @Html.AntiForgeryToken()
             <input type="hidden" name="targetStatus" value="" data-target-status />
+            <input type="hidden" name="ContentCulture" value="@Model.ContentCulture" />
 
             <div class="product-page-header product-edit-page-header">
                 <div class="product-edit-header-content">
@@ -271,9 +282,12 @@
                                                 <option value="@CatalogFormFieldType.NumberedList">List</option>
                                             </select>
                                         </div>
-                                        <button type="button" class="product-icon-button product-icon-button-danger product-form-builder-remove" data-remove-form-field aria-label="Remove form field">
-                                            <i class="fa-solid fa-trash" aria-hidden="true"></i>
-                                        </button>
+                                        @if (Model.IsDefaultContentCulture)
+                                        {
+                                            <button type="button" class="product-icon-button product-icon-button-danger product-form-builder-remove" data-remove-form-field aria-label="Remove form field">
+                                                <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                                            </button>
+                                        }
                                     </div>
                                     <div class="product-form-builder-list-count" data-form-section="list-count">
                                         <input class="public-field product-admin-field" asp-for="EditInput.FormFields[index].ListItemCount" type="number" min="2" placeholder="Number" />
@@ -319,16 +333,19 @@
                             }
                         </div>
 
-                        <div class="product-form-builder-placeholders">
-                            <button type="button" class="product-form-builder-placeholder" data-add-form-field="input">
-                                <i class="fa-solid fa-keyboard" aria-hidden="true"></i>
-                                <span>Add input</span>
-                            </button>
-                            <button type="button" class="product-form-builder-placeholder" data-add-form-field="note">
-                                <i class="fa-solid fa-note-sticky" aria-hidden="true"></i>
-                                <span>Add note</span>
-                            </button>
-                        </div>
+                        @if (Model.IsDefaultContentCulture)
+                        {
+                            <div class="product-form-builder-placeholders">
+                                <button type="button" class="product-form-builder-placeholder" data-add-form-field="input">
+                                    <i class="fa-solid fa-keyboard" aria-hidden="true"></i>
+                                    <span>Add input</span>
+                                </button>
+                                <button type="button" class="product-form-builder-placeholder" data-add-form-field="note">
+                                    <i class="fa-solid fa-note-sticky" aria-hidden="true"></i>
+                                    <span>Add note</span>
+                                </button>
+                            </div>
+                        }
                     </section>
                 </div>
 
@@ -992,13 +1009,23 @@
     <input type="hidden" id="ProductUploadsEnabled" value="@Model.UploadsEnabled.ToString().ToLowerInvariant()" />
     <input type="hidden" id="ProductMaxImageBytes" value="@Model.MaxImageBytes" />
     <input type="hidden" id="ProductMaxDownloadBytes" value="@Model.MaxDownloadBytes" />
+}
 
+@if (!Model.IsAdminEditMode && Model.IsPreviewMode)
+{
     <div class="product-edit-mode-bar" role="status">
-        <div class="product-edit-mode-bar-inner">
+        <div class="product-edit-mode-bar-inner justify-between gap-4">
             <div class="product-edit-mode-bar-copy">
                 <span class="product-edit-mode-dot" aria-hidden="true"></span>
-                <span>You are in edit mode.</span>
+                <span>You are in preview mode.</span>
             </div>
+            <a asp-route="PortalProductEdit"
+               asp-route-slug="@Model.Product.Slug"
+               asp-route-contentCulture="@Model.ContentCulture"
+               class="inline-flex items-center gap-2 text-xs font-semibold text-white no-underline transition-opacity hover:text-white hover:underline hover:underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+                <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+                Return to editor
+            </a>
         </div>
     </div>
 }

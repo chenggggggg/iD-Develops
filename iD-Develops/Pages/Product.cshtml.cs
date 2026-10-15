@@ -77,6 +77,17 @@ namespace iD_Develops.Pages
         public string? ResolvedAttachmentUrl { get; private set; }
         public bool RequiresAuthenticatedAccount => Product.RequiresAuthenticatedAccount;
 
+        [BindProperty(SupportsGet = true)]
+        public string? ContentCulture { get; set; } = CatalogContentCulture.Default;
+
+        public bool IsDefaultContentCulture => CatalogContentCulture.IsDefault(ContentCulture);
+
+        public IReadOnlyList<ProductContentCultureOption> ContentCultureOptions { get; } =
+        [
+            new(CatalogContentCulture.Default, "EN", "English"),
+            new(CatalogContentCulture.Dutch, "NL", "Dutch")
+        ];
+
         [BindProperty]
         public ProductEditInput EditInput { get; set; } = new();
 
@@ -89,6 +100,7 @@ namespace iD_Develops.Pages
             bool preview = false,
             CancellationToken ct = default)
         {
+            ContentCulture = CatalogContentCulture.Normalize(ContentCulture);
             var isEditorRequest = IsProductEditorRequest();
             if (isEditorRequest && !CanManageProducts())
             {
@@ -99,6 +111,15 @@ namespace iD_Develops.Pages
             if (product == null)
             {
                 return NotFound();
+            }
+
+            if (isEditorRequest && preview && !IsDefaultContentCulture)
+            {
+                product = await _catalogProductService.GetLocalizedProductBySlugAsync(
+                    slug,
+                    ContentCulture,
+                    requirePublished: false,
+                    ct) ?? product;
             }
 
             if (inviteUseId.HasValue)
@@ -124,7 +145,7 @@ namespace iD_Develops.Pages
             OrderQuantity = GetOrderQuantity(product);
             ParticipantCount = GetParticipantCount(product);
             SelectedVariantId = GetSelectedVariantId();
-            EditInput = CreateEditInput(product);
+            EditInput = CreateEditInput(product, ContentCulture);
             if (IsAdminEditMode)
             {
                 await LoadConfigurationOptionsAsync(ct);
@@ -149,6 +170,7 @@ namespace iD_Develops.Pages
 
         public async Task<IActionResult> OnPostAsync(string slug, string? access = null, CancellationToken ct = default)
         {
+            ContentCulture = CatalogContentCulture.Normalize(ContentCulture);
             if (IsProductEditorRequest())
             {
                 return BadRequest();
@@ -452,6 +474,7 @@ namespace iD_Develops.Pages
 
         public async Task<IActionResult> OnPostPublishAsync(string slug, CancellationToken ct)
         {
+            ContentCulture = CatalogContentCulture.Normalize(ContentCulture);
             if (!CanManageProducts())
             {
                 return Forbid();
@@ -462,14 +485,13 @@ namespace iD_Develops.Pages
             {
                 return NotFound();
             }
-
             if (product.Status != CatalogProductStatus.Published)
             {
                 ValidateExistingProductForPublish(product);
                 if (!ModelState.IsValid)
                 {
                     TempData["StatusMessage"] = string.Join(" ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
-                    return RedirectToEditor(product.Slug);
+                    return RedirectToEditor(product.Slug, ContentCulture);
                 }
 
                 await SavePrimaryVariantSettingsAsync(product, ct);
@@ -480,11 +502,12 @@ namespace iD_Develops.Pages
             }
 
             TempData["StatusMessage"] = "Product published successfully.";
-            return RedirectToEditor(product.Slug);
+            return RedirectToEditor(product.Slug, ContentCulture);
         }
 
         public async Task<IActionResult> OnPostSetStatusAsync(string slug, CatalogProductStatus status, CancellationToken ct)
         {
+            ContentCulture = CatalogContentCulture.Normalize(ContentCulture);
             if (!CanManageProducts())
             {
                 return Forbid();
@@ -506,7 +529,7 @@ namespace iD_Develops.Pages
                 !_catalogProductFileStorageService.Exists(product.IncludedBookingBenefitUrl))
             {
                 TempData["StatusMessage"] = "Attach an existing download file before publishing this free download.";
-                return RedirectToEditor(product.Slug);
+                return RedirectToEditor(product.Slug, ContentCulture);
             }
 
             if (status == CatalogProductStatus.Published)
@@ -515,7 +538,7 @@ namespace iD_Develops.Pages
                 if (!ModelState.IsValid)
                 {
                     TempData["StatusMessage"] = string.Join(" ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
-                    return RedirectToEditor(product.Slug);
+                    return RedirectToEditor(product.Slug, ContentCulture);
                 }
 
                 await SavePrimaryVariantSettingsAsync(product, ct);
@@ -533,7 +556,7 @@ namespace iD_Develops.Pages
                 _ => "Product status updated."
             };
 
-            return RedirectToEditor(product.Slug);
+            return RedirectToEditor(product.Slug, ContentCulture);
         }
 
         public async Task<IActionResult> OnPostSaveContentAsync(
@@ -541,6 +564,7 @@ namespace iD_Develops.Pages
             CatalogProductStatus? targetStatus = null,
             CancellationToken ct = default)
         {
+            ContentCulture = CatalogContentCulture.Normalize(ContentCulture);
             if (!CanManageProducts())
             {
                 return Forbid();
@@ -550,6 +574,13 @@ namespace iD_Develops.Pages
             if (product == null)
             {
                 return NotFound();
+            }
+
+            CatalogProductTranslationInput? translationInput = null;
+            if (!IsDefaultContentCulture)
+            {
+                translationInput = CreateTranslationInput(product, EditInput, ContentCulture);
+                ApplyCanonicalContentToEditInput(product, EditInput);
             }
 
             Product = product;
@@ -648,6 +679,10 @@ namespace iD_Develops.Pages
 
                 await SavePrimaryVariantSettingsAsync(product, ct);
                 await SaveFormFieldsAsync(product, ct);
+                if (translationInput != null)
+                {
+                    await _catalogProductService.SaveTranslationsAsync(product.Id, translationInput, ct);
+                }
             }
             catch
             {
@@ -679,7 +714,7 @@ namespace iD_Develops.Pages
             TempData["StatusMessage"] = requestedStatus == CatalogProductStatus.Published
                 ? "Product published."
                 : "Product updated.";
-            return RedirectToEditor(savedProduct.Slug);
+            return RedirectToEditor(savedProduct.Slug, ContentCulture);
         }
 
         private void ValidateProductSave(CatalogProduct product, CatalogProductStatus requestedStatus)
@@ -1073,10 +1108,14 @@ namespace iD_Develops.Pages
             => IsProductEditorRequest() &&
                (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"));
 
-        private IActionResult RedirectToEditor(string slug)
+        private IActionResult RedirectToEditor(string slug, string? contentCulture = null)
             => RedirectToRoute(
                 ApplicationHostPageRouteModelConvention.PortalProductEditRouteName,
-                new { slug });
+                new
+                {
+                    slug,
+                    contentCulture = CatalogContentCulture.IsDefault(contentCulture) ? null : CatalogContentCulture.Normalize(contentCulture)
+                });
 
         private async Task<CatalogProduct?> LoadProductAsync(string slug, bool isEditorRequest, CancellationToken ct)
         {
@@ -1085,7 +1124,11 @@ namespace iD_Develops.Pages
                 return await _catalogProductService.GetProductBySlugAsync(slug, ct);
             }
 
-            return await _catalogProductService.GetPublishedProductBySlugAsync(slug, ct);
+            return await _catalogProductService.GetLocalizedProductBySlugAsync(
+                slug,
+                System.Globalization.CultureInfo.CurrentUICulture.Name,
+                requirePublished: true,
+                ct);
         }
 
         private async Task ResolveProductFilesAsync(CatalogProduct product)
@@ -1233,8 +1276,14 @@ namespace iD_Develops.Pages
         public static bool IsDraftPlaceholderName(string? name)
             => string.Equals(name, DraftProductName, StringComparison.Ordinal);
 
-        private static ProductEditInput CreateEditInput(CatalogProduct product)
+        private static ProductEditInput CreateEditInput(CatalogProduct product, string? contentCulture = null)
         {
+            var normalizedCulture = CatalogContentCulture.Normalize(contentCulture);
+            var useTranslation = !CatalogContentCulture.IsDefault(normalizedCulture);
+            var productTranslation = useTranslation
+                ? product.Translations.FirstOrDefault(translation =>
+                    string.Equals(translation.Culture, normalizedCulture, StringComparison.OrdinalIgnoreCase))
+                : null;
             var primaryVariant = product.Variants
                 .OrderByDescending(v => v.IsDefault)
                 .ThenBy(v => v.SortOrder)
@@ -1242,10 +1291,12 @@ namespace iD_Develops.Pages
 
             return new()
             {
-                Name = IsDraftPlaceholderName(product.Name) ? string.Empty : product.Name,
-                Summary = product.Summary,
-                Description = product.Description,
-                FullDescriptionHtml = product.FullDescriptionHtml,
+                Name = useTranslation
+                    ? productTranslation?.Name
+                    : IsDraftPlaceholderName(product.Name) ? string.Empty : product.Name,
+                Summary = useTranslation ? productTranslation?.Summary : product.Summary,
+                Description = useTranslation ? productTranslation?.Description : product.Description,
+                FullDescriptionHtml = useTranslation ? productTranslation?.FullDescriptionHtml : product.FullDescriptionHtml,
                 ImageObjectKey = product.ImageUrl,
                 AttachmentObjectKey = product.IncludedBookingBenefitUrl,
                 BasePrice = primaryVariant?.Price ?? product.BasePrice,
@@ -1253,9 +1304,14 @@ namespace iD_Develops.Pages
                 RegistrationFee = product.RegistrationFee,
                 TransactionFee = product.TransactionFee,
                 ServiceFee = product.ServiceFee,
-                PrimaryVariantName = primaryVariant?.Name,
+                PrimaryVariantName = useTranslation
+                    ? primaryVariant?.Translations.FirstOrDefault(translation =>
+                        string.Equals(translation.Culture, normalizedCulture, StringComparison.OrdinalIgnoreCase))?.Name
+                    : primaryVariant?.Name,
                 ExternalBookingUrl = product.ExternalBookingUrl,
-                ExternalBookingButtonText = product.ExternalBookingButtonText,
+                ExternalBookingButtonText = useTranslation
+                    ? productTranslation?.ExternalBookingButtonText
+                    : product.ExternalBookingButtonText,
                 HideFromProductsPage = product.HideFromProductsPage,
                 GrantedCourseId = product.GrantedCourseId,
                 CreditConfiguration = CreateCreditConfigurationInput(product),
@@ -1269,9 +1325,18 @@ namespace iD_Develops.Pages
                     {
                         Id = f.Id,
                         Key = f.Key,
-                        Label = f.Label,
-                        Placeholder = f.Placeholder,
-                        HelpText = f.HelpText,
+                        Label = useTranslation
+                            ? f.Translations.FirstOrDefault(translation =>
+                                string.Equals(translation.Culture, normalizedCulture, StringComparison.OrdinalIgnoreCase))?.Label
+                            : f.Label,
+                        Placeholder = useTranslation
+                            ? f.Translations.FirstOrDefault(translation =>
+                                string.Equals(translation.Culture, normalizedCulture, StringComparison.OrdinalIgnoreCase))?.Placeholder
+                            : f.Placeholder,
+                        HelpText = useTranslation
+                            ? f.Translations.FirstOrDefault(translation =>
+                                string.Equals(translation.Culture, normalizedCulture, StringComparison.OrdinalIgnoreCase))?.HelpText
+                            : f.HelpText,
                         FieldType = f.FieldType,
                         IsRequired = f.IsRequired,
                         IsPerParticipant = false,
@@ -1279,10 +1344,74 @@ namespace iD_Develops.Pages
                         ListItemCount = f.ListItemCount,
                         AllowMultipleOptions = f.AllowMultipleOptions,
                         SortOrder = f.SortOrder,
-                        OptionsText = f.OptionsText
+                        OptionsText = useTranslation
+                            ? f.Translations.FirstOrDefault(translation =>
+                                string.Equals(translation.Culture, normalizedCulture, StringComparison.OrdinalIgnoreCase))?.OptionsText
+                            : f.OptionsText
                     })
                     .ToList()
             };
+        }
+
+        private static CatalogProductTranslationInput CreateTranslationInput(
+            CatalogProduct product,
+            ProductEditInput editInput,
+            string culture)
+        {
+            var primaryVariant = product.Variants
+                .OrderByDescending(variant => variant.IsDefault)
+                .ThenBy(variant => variant.SortOrder)
+                .FirstOrDefault();
+
+            return new CatalogProductTranslationInput(
+                CatalogContentCulture.Normalize(culture),
+                editInput.Name,
+                editInput.Summary,
+                editInput.Description,
+                editInput.FullDescriptionHtml,
+                editInput.ExternalBookingButtonText,
+                primaryVariant == null
+                    ? []
+                    : [new CatalogProductVariantTranslationInput(primaryVariant.Id, editInput.PrimaryVariantName)],
+                editInput.FormFields
+                    .Where(field => field.Id > 0)
+                    .Select(field => new CatalogProductFormFieldTranslationInput(
+                        field.Id,
+                        field.Label,
+                        field.Placeholder,
+                        field.HelpText,
+                        field.OptionsText))
+                    .ToList());
+        }
+
+        private static void ApplyCanonicalContentToEditInput(CatalogProduct product, ProductEditInput editInput)
+        {
+            var canonical = CreateEditInput(product, CatalogContentCulture.Default);
+            editInput.Name = canonical.Name;
+            editInput.Summary = canonical.Summary;
+            editInput.Description = canonical.Description;
+            editInput.FullDescriptionHtml = canonical.FullDescriptionHtml;
+            editInput.PrimaryVariantName = canonical.PrimaryVariantName;
+            editInput.ExternalBookingButtonText = canonical.ExternalBookingButtonText;
+            var submittedFields = editInput.FormFields
+                .Where(field => field.Id > 0)
+                .ToDictionary(field => field.Id);
+            editInput.FormFields = canonical.FormFields
+                .Select(canonicalField =>
+                {
+                    if (!submittedFields.TryGetValue(canonicalField.Id, out var submittedField))
+                    {
+                        return canonicalField;
+                    }
+
+                    submittedField.Key = canonicalField.Key;
+                    submittedField.Label = canonicalField.Label;
+                    submittedField.Placeholder = canonicalField.Placeholder;
+                    submittedField.HelpText = canonicalField.HelpText;
+                    submittedField.OptionsText = canonicalField.OptionsText;
+                    return submittedField;
+                })
+                .ToList();
         }
 
         private static CreditProductConfigurationInput CreateCreditConfigurationInput(CatalogProduct product)
@@ -1415,5 +1544,7 @@ namespace iD_Develops.Pages
 
             public string? OptionsText { get; set; }
         }
+
+        public sealed record ProductContentCultureOption(string Culture, string ShortLabel, string DisplayName);
     }
 }

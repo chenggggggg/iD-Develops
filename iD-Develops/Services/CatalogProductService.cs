@@ -1,6 +1,7 @@
 using iD_Develops.Data;
 using iD_Develops.Enums;
 using iD_Develops.Models;
+using iD_Develops.Utilities;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
 using System.Text.RegularExpressions;
@@ -43,6 +44,24 @@ namespace iD_Develops.Services
                 .ThenBy(p => p.Name)
                 .ToListAsync(ct);
 
+        public async Task<List<CatalogProduct>> GetPublishedProductsForCultureAsync(
+            string culture,
+            CancellationToken ct = default)
+        {
+            var products = await ReadQuery()
+                .Where(p => p.Status == CatalogProductStatus.Published &&
+                            p.ProductType != CatalogProductType.FreeDownload &&
+                            !p.HideFromProductsPage &&
+                            !p.RequireAccessToken)
+                .OrderByDescending(p => p.IsFeatured)
+                .ThenBy(p => p.SortOrder)
+                .ThenBy(p => p.Name)
+                .ToListAsync(ct);
+
+            ApplyTranslations(products, culture);
+            return products;
+        }
+
         public Task<List<CatalogProduct>> GetPublishedFreeDownloadsAsync(CancellationToken ct = default)
             => ReadQuery()
                 .Where(p => p.Status == CatalogProductStatus.Published &&
@@ -52,6 +71,23 @@ namespace iD_Develops.Services
                 .ThenBy(p => p.SortOrder)
                 .ThenBy(p => p.Name)
                 .ToListAsync(ct);
+
+        public async Task<List<CatalogProduct>> GetPublishedFreeDownloadsForCultureAsync(
+            string culture,
+            CancellationToken ct = default)
+        {
+            var products = await ReadQuery()
+                .Where(p => p.Status == CatalogProductStatus.Published &&
+                            p.ProductType == CatalogProductType.FreeDownload &&
+                            !p.RequireAccessToken)
+                .OrderByDescending(p => p.IsFeatured)
+                .ThenBy(p => p.SortOrder)
+                .ThenBy(p => p.Name)
+                .ToListAsync(ct);
+
+            ApplyTranslations(products, culture);
+            return products;
+        }
 
         public Task<List<Course>> GetCourseOptionsAsync(CancellationToken ct = default)
             => _dbContext.Courses
@@ -81,6 +117,26 @@ namespace iD_Develops.Services
                 .FirstOrDefaultAsync(
                     p => p.Slug == slug && p.Status == CatalogProductStatus.Published,
                     ct);
+
+        public async Task<CatalogProduct?> GetLocalizedProductBySlugAsync(
+            string slug,
+            string culture,
+            bool requirePublished,
+            CancellationToken ct = default)
+        {
+            var product = await ReadQuery()
+                .FirstOrDefaultAsync(
+                    candidate => candidate.Slug == slug &&
+                                 (!requirePublished || candidate.Status == CatalogProductStatus.Published),
+                    ct);
+
+            if (product != null)
+            {
+                ApplyTranslation(product, culture);
+            }
+
+            return product;
+        }
 
         public async Task<CatalogProduct> CreateProductAsync(CatalogProduct product, CancellationToken ct = default)
         {
@@ -399,12 +455,106 @@ namespace iD_Develops.Services
             await _dbContext.SaveChangesAsync(ct);
         }
 
+        public async Task SaveTranslationsAsync(
+            int productId,
+            CatalogProductTranslationInput input,
+            CancellationToken ct = default)
+        {
+            var culture = CatalogContentCulture.Normalize(input.Culture);
+            if (CatalogContentCulture.IsDefault(culture))
+            {
+                throw new InvalidOperationException("English product content is stored on the product itself.");
+            }
+
+            if (!await _dbContext.CatalogProducts.AnyAsync(product => product.Id == productId, ct))
+            {
+                throw new InvalidOperationException("Product not found.");
+            }
+
+            var translation = await _dbContext.CatalogProductTranslations
+                .FirstOrDefaultAsync(
+                    candidate => candidate.CatalogProductId == productId && candidate.Culture == culture,
+                    ct);
+
+            if (translation == null)
+            {
+                translation = new CatalogProductTranslation
+                {
+                    CatalogProductId = productId,
+                    Culture = culture
+                };
+                _dbContext.CatalogProductTranslations.Add(translation);
+            }
+
+            translation.Name = NormalizeTranslation(input.Name);
+            translation.Summary = NormalizeTranslation(input.Summary);
+            translation.Description = NormalizeTranslation(input.Description);
+            translation.FullDescriptionHtml = NormalizeTranslation(input.FullDescriptionHtml);
+            translation.ExternalBookingButtonText = NormalizeTranslation(input.ExternalBookingButtonText);
+
+            var variantIds = input.Variants.Select(item => item.VariantId).Where(id => id > 0).Distinct().ToList();
+            var validVariantIds = await _dbContext.CatalogProductVariants
+                .Where(variant => variant.CatalogProductId == productId && variantIds.Contains(variant.Id))
+                .Select(variant => variant.Id)
+                .ToListAsync(ct);
+            var existingVariantTranslations = await _dbContext.CatalogProductVariantTranslations
+                .Where(candidate => candidate.Culture == culture && validVariantIds.Contains(candidate.CatalogProductVariantId))
+                .ToDictionaryAsync(candidate => candidate.CatalogProductVariantId, ct);
+
+            foreach (var variantInput in input.Variants.Where(item => validVariantIds.Contains(item.VariantId)))
+            {
+                if (!existingVariantTranslations.TryGetValue(variantInput.VariantId, out var variantTranslation))
+                {
+                    variantTranslation = new CatalogProductVariantTranslation
+                    {
+                        CatalogProductVariantId = variantInput.VariantId,
+                        Culture = culture
+                    };
+                    _dbContext.CatalogProductVariantTranslations.Add(variantTranslation);
+                }
+
+                variantTranslation.Name = NormalizeTranslation(variantInput.Name);
+            }
+
+            var fieldIds = input.FormFields.Select(item => item.FormFieldId).Where(id => id > 0).Distinct().ToList();
+            var validFieldIds = await _dbContext.CatalogProductFormFields
+                .Where(field => field.CatalogProductId == productId && fieldIds.Contains(field.Id))
+                .Select(field => field.Id)
+                .ToListAsync(ct);
+            var existingFieldTranslations = await _dbContext.CatalogProductFormFieldTranslations
+                .Where(candidate => candidate.Culture == culture && validFieldIds.Contains(candidate.CatalogProductFormFieldId))
+                .ToDictionaryAsync(candidate => candidate.CatalogProductFormFieldId, ct);
+
+            foreach (var fieldInput in input.FormFields.Where(item => validFieldIds.Contains(item.FormFieldId)))
+            {
+                if (!existingFieldTranslations.TryGetValue(fieldInput.FormFieldId, out var fieldTranslation))
+                {
+                    fieldTranslation = new CatalogProductFormFieldTranslation
+                    {
+                        CatalogProductFormFieldId = fieldInput.FormFieldId,
+                        Culture = culture
+                    };
+                    _dbContext.CatalogProductFormFieldTranslations.Add(fieldTranslation);
+                }
+
+                fieldTranslation.Label = NormalizeTranslation(fieldInput.Label);
+                fieldTranslation.Placeholder = NormalizeTranslation(fieldInput.Placeholder);
+                fieldTranslation.HelpText = NormalizeTranslation(fieldInput.HelpText);
+                fieldTranslation.OptionsText = NormalizeOptions(fieldInput.OptionsText);
+            }
+
+            await _dbContext.SaveChangesAsync(ct);
+        }
+
         private IQueryable<CatalogProduct> BaseQuery()
             => _dbContext.CatalogProducts
                 .AsSplitQuery()
+                .Include(p => p.Translations)
                 .Include(p => p.Invites.OrderByDescending(i => i.CreatedAtUtc))
                 .Include(p => p.Variants.OrderBy(v => v.SortOrder))
+                    .ThenInclude(variant => variant.Translations)
                 .Include(p => p.FormFields.OrderBy(f => f.SortOrder))
+                    .ThenInclude(field => field.Translations)
                 .Include(p => p.CreditGrants)
                     .ThenInclude(grant => grant.CreditType)
                 .Include(p => p.CreditGrants)
@@ -483,6 +633,63 @@ namespace iD_Develops.Services
                 .Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
             return string.Join(Environment.NewLine, lines);
+        }
+
+        private static string? NormalizeTranslation(string? value)
+            => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+        private static void ApplyTranslations(IEnumerable<CatalogProduct> products, string culture)
+        {
+            foreach (var product in products)
+            {
+                ApplyTranslation(product, culture);
+            }
+        }
+
+        private static void ApplyTranslation(CatalogProduct product, string culture)
+        {
+            var normalizedCulture = CatalogContentCulture.Normalize(culture);
+            if (CatalogContentCulture.IsDefault(normalizedCulture))
+            {
+                return;
+            }
+
+            var translation = product.Translations.FirstOrDefault(candidate =>
+                string.Equals(candidate.Culture, normalizedCulture, StringComparison.OrdinalIgnoreCase));
+            if (translation != null)
+            {
+                product.Name = translation.Name ?? product.Name;
+                product.Summary = translation.Summary ?? product.Summary;
+                product.Description = translation.Description ?? product.Description;
+                product.FullDescriptionHtml = translation.FullDescriptionHtml ?? product.FullDescriptionHtml;
+                product.ExternalBookingButtonText = translation.ExternalBookingButtonText ?? product.ExternalBookingButtonText;
+                product.ConfirmationEmailSubject = translation.ConfirmationEmailSubject ?? product.ConfirmationEmailSubject;
+                product.ConfirmationEmailBodyHtml = translation.ConfirmationEmailBodyHtml ?? product.ConfirmationEmailBodyHtml;
+                product.OwnerNotificationSubject = translation.OwnerNotificationSubject ?? product.OwnerNotificationSubject;
+                product.OwnerNotificationBodyHtml = translation.OwnerNotificationBodyHtml ?? product.OwnerNotificationBodyHtml;
+            }
+
+            foreach (var variant in product.Variants)
+            {
+                var variantTranslation = variant.Translations.FirstOrDefault(candidate =>
+                    string.Equals(candidate.Culture, normalizedCulture, StringComparison.OrdinalIgnoreCase));
+                variant.Name = variantTranslation?.Name ?? variant.Name;
+            }
+
+            foreach (var field in product.FormFields)
+            {
+                var fieldTranslation = field.Translations.FirstOrDefault(candidate =>
+                    string.Equals(candidate.Culture, normalizedCulture, StringComparison.OrdinalIgnoreCase));
+                if (fieldTranslation == null)
+                {
+                    continue;
+                }
+
+                field.Label = fieldTranslation.Label ?? field.Label;
+                field.Placeholder = fieldTranslation.Placeholder ?? field.Placeholder;
+                field.HelpText = fieldTranslation.HelpText ?? field.HelpText;
+                field.OptionsText = fieldTranslation.OptionsText ?? field.OptionsText;
+            }
         }
 
         private static string NormalizeCurrency(string? currency)

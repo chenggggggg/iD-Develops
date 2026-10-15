@@ -32,11 +32,17 @@ namespace iD_Develops.Pages
         public string ImageAccept => _catalogProductFileStorageService.ImageAccept;
         public string DownloadAccept => _catalogProductFileStorageService.DownloadAccept;
 
+        [BindProperty(SupportsGet = true)]
+        public string? ContentCulture { get; set; } = CatalogContentCulture.Default;
+
+        public bool IsDefaultContentCulture => CatalogContentCulture.IsDefault(ContentCulture);
+
         [BindProperty]
         public FreeDownloadEditInput EditInput { get; set; } = new();
 
         public async Task OnGetAsync(CancellationToken ct = default)
         {
+            ContentCulture = CatalogContentCulture.Normalize(ContentCulture);
             await LoadDownloadsAsync(ct);
         }
 
@@ -88,6 +94,7 @@ namespace iD_Develops.Pages
 
         public async Task<IActionResult> OnPostSaveAsync(int id, CancellationToken ct)
         {
+            ContentCulture = CatalogContentCulture.Normalize(ContentCulture);
             if (!CanManageProducts())
             {
                 return Forbid();
@@ -109,7 +116,7 @@ namespace iD_Develops.Pages
                 ? product.IncludedBookingBenefitUrl
                 : EditInput.DownloadObjectKey.Trim();
 
-            if (string.IsNullOrWhiteSpace(EditInput.Name))
+            if (IsDefaultContentCulture && string.IsNullOrWhiteSpace(EditInput.Name))
             {
                 ModelState.AddModelError(string.Empty, "Give this download a title before saving.");
             }
@@ -122,7 +129,7 @@ namespace iD_Develops.Pages
             if (!ModelState.IsValid)
             {
                 await DeleteNewUploadsAsync(product, imageUrl, attachmentUrl);
-                Downloads = await _catalogProductService.GetAdminFreeDownloadsAsync(ct);
+                Downloads = await LoadAdminDownloadsAsync(ct);
                 return Page();
             }
 
@@ -131,12 +138,15 @@ namespace iD_Develops.Pages
 
             try
             {
+                var canonicalName = IsDefaultContentCulture
+                    ? EditInput.Name!.Trim()
+                    : product.Name;
                 await _catalogProductService.UpdateProductAsync(new CatalogProduct
                 {
                     Id = product.Id,
-                    Name = EditInput.Name!.Trim(),
-                    Slug = EditInput.Name,
-                    Summary = EditInput.Description,
+                    Name = canonicalName,
+                    Slug = IsDefaultContentCulture ? EditInput.Name : product.Slug,
+                    Summary = IsDefaultContentCulture ? EditInput.Description : product.Summary,
                     Description = product.Description,
                     FullDescriptionHtml = product.FullDescriptionHtml,
                     ImageUrl = imageUrl,
@@ -161,17 +171,35 @@ namespace iD_Develops.Pages
                     MaxQuantity = product.MaxQuantity,
                     RequiresAccountCreation = product.RequiresAccountCreation,
                     GrantedCourseId = product.GrantedCourseId,
-                    IncludedBookingBenefitLabel = EditInput.Name,
+                    IncludedBookingBenefitLabel = IsDefaultContentCulture
+                        ? EditInput.Name
+                        : product.IncludedBookingBenefitLabel,
                     IncludedBookingBenefitUrl = attachmentUrl,
                     IsFeatured = product.IsFeatured,
                     SortOrder = product.SortOrder
                 }, ct);
+
+                if (!IsDefaultContentCulture)
+                {
+                    await _catalogProductService.SaveTranslationsAsync(
+                        product.Id,
+                        new CatalogProductTranslationInput(
+                            ContentCulture,
+                            EditInput.Name,
+                            EditInput.Description,
+                            null,
+                            null,
+                            null,
+                            [],
+                            []),
+                        ct);
+                }
             }
             catch
             {
                 await DeleteNewUploadsAsync(product, imageUrl, attachmentUrl);
                 ModelState.AddModelError(string.Empty, "Save failed. Your uploaded file was not published. Please try again.");
-                Downloads = await _catalogProductService.GetAdminFreeDownloadsAsync(ct);
+                Downloads = await LoadAdminDownloadsAsync(ct);
                 return Page();
             }
 
@@ -188,7 +216,7 @@ namespace iD_Develops.Pages
             TempData["StatusMessage"] = product.Status == CatalogProductStatus.Published
                 ? "Download saved."
                 : "Download published.";
-            return RedirectToEditor();
+            return RedirectToEditor(ContentCulture);
         }
 
         public async Task<IActionResult> OnPostSetStatusAsync(
@@ -196,6 +224,7 @@ namespace iD_Develops.Pages
             CatalogProductStatus status,
             CancellationToken ct)
         {
+            ContentCulture = CatalogContentCulture.Normalize(ContentCulture);
             if (!CanManageProducts())
             {
                 return Forbid();
@@ -218,7 +247,7 @@ namespace iD_Develops.Pages
             TempData["StatusMessage"] = status == CatalogProductStatus.Draft
                 ? "Download moved to draft."
                 : "Download archived.";
-            return RedirectToEditor();
+            return RedirectToEditor(ContentCulture);
         }
 
         public async Task<IActionResult> OnPostCreateImageUploadAsync(int id, string fileName, string? contentType, long fileSize, CancellationToken ct)
@@ -263,6 +292,7 @@ namespace iD_Develops.Pages
 
         public async Task<IActionResult> OnPostDeleteAsync(int id, CancellationToken ct)
         {
+            ContentCulture = CatalogContentCulture.Normalize(ContentCulture);
             if (!CanManageProducts())
             {
                 return Forbid();
@@ -278,7 +308,7 @@ namespace iD_Develops.Pages
             await _catalogProductFileStorageService.DeleteAsync(product.IncludedBookingBenefitUrl);
             await _catalogProductService.DeleteProductAsync(id, ct);
             TempData["StatusMessage"] = "Download removed.";
-            return RedirectToEditor();
+            return RedirectToEditor(ContentCulture);
         }
 
         public async Task<string?> ResolveReadUrlAsync(string? reference)
@@ -396,15 +426,43 @@ namespace iD_Develops.Pages
             => IsEditorPage &&
                (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"));
 
-        private IActionResult RedirectToEditor()
-            => RedirectToRoute(ApplicationHostPageRouteModelConvention.PortalFreeDownloadsEditRouteName);
+        private IActionResult RedirectToEditor(string? contentCulture = null)
+            => RedirectToRoute(
+                ApplicationHostPageRouteModelConvention.PortalFreeDownloadsEditRouteName,
+                new
+                {
+                    contentCulture = CatalogContentCulture.IsDefault(contentCulture)
+                        ? null
+                        : CatalogContentCulture.Normalize(contentCulture)
+                });
 
         private async Task LoadDownloadsAsync(CancellationToken ct)
         {
             IsAdminEditMode = CanManageProducts();
             Downloads = IsAdminEditMode
-                ? await _catalogProductService.GetAdminFreeDownloadsAsync(ct)
-                : await _catalogProductService.GetPublishedFreeDownloadsAsync(ct);
+                ? await LoadAdminDownloadsAsync(ct)
+                : await _catalogProductService.GetPublishedFreeDownloadsForCultureAsync(
+                    System.Globalization.CultureInfo.CurrentUICulture.Name,
+                    ct);
+        }
+
+        private async Task<List<CatalogProduct>> LoadAdminDownloadsAsync(CancellationToken ct)
+        {
+            var downloads = await _catalogProductService.GetAdminFreeDownloadsAsync(ct);
+            if (IsDefaultContentCulture)
+            {
+                return downloads;
+            }
+
+            foreach (var download in downloads)
+            {
+                var translation = download.Translations.FirstOrDefault(candidate =>
+                    string.Equals(candidate.Culture, ContentCulture, StringComparison.OrdinalIgnoreCase));
+                download.Name = translation?.Name ?? string.Empty;
+                download.Summary = translation?.Summary;
+            }
+
+            return downloads;
         }
 
         public class FreeDownloadEditInput

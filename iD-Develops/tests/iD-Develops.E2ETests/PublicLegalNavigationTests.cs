@@ -104,6 +104,14 @@ public sealed class PublicLegalNavigationTests : Microsoft.Playwright.Xunit.Page
 
         Assert.NotNull(previewResponse);
         Assert.True(previewResponse!.Ok, $"Product preview returned HTTP {previewResponse.Status}.");
+        await Expect(Page.GetByText("You are in preview mode.", new() { Exact = true }))
+            .ToBeVisibleAsync();
+        await Expect(Page.GetByText("You are in edit mode.", new() { Exact = true }))
+            .ToHaveCountAsync(0);
+        await Expect(Page.GetByRole(Microsoft.Playwright.AriaRole.Link, new() { Name = "Return to editor", Exact = true }))
+            .ToBeVisibleAsync();
+        await Expect(Page.GetByText("Preview mode shows the currently saved product.", new() { Exact = false }))
+            .ToHaveCountAsync(0);
         await Expect(Page.Locator(".public-nav-brand img"))
             .ToHaveAttributeAsync("src", "/images/iddevelops-navlogo-dark.png");
         await Expect(Page.GetByRole(Microsoft.Playwright.AriaRole.Link, new() { Name = "Privacy Policy", Exact = true }))

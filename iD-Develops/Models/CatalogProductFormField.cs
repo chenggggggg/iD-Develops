@@ -43,6 +43,8 @@ namespace iD_Develops.Models
 
         public string? OptionsText { get; set; }
 
+        public ICollection<CatalogProductFormFieldTranslation> Translations { get; set; } = new List<CatalogProductFormFieldTranslation>();
+
         [NotMapped]
         public IReadOnlyList<string> Options => (OptionsText ?? string.Empty)
             .Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
