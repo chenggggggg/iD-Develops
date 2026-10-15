@@ -251,14 +251,6 @@ function initializeExamLaunchDialog() {
         });
     });
 
-    restartForm.addEventListener("submit", function (event) {
-        const confirmed = window.confirm(
-            "Restarting will end your current attempt and use another attempt. Continue?"
-        );
-
-        if (!confirmed) event.preventDefault();
-    });
-
     dialog.querySelectorAll("[data-exam-launch-primary-form], [data-exam-launch-restart-form]")
         .forEach(function (form) {
             form.addEventListener("submit", function (event) {

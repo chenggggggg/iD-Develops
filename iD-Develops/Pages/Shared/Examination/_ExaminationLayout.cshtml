@@ -22,6 +22,10 @@
 <body class="@(ViewData.ContainsKey("ExaminationBodyClass") ? bodyClass : "examination-body")">
     @RenderBody()
 
+    <partial name="_AppDialog" />
+
+    <script src="~/js/app-dialogs.js" asp-append-version="true"></script>
+
     @RenderSection("Head", required: false)
     @RenderSection("Scripts", required: false)
 </body>

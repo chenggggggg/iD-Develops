@@ -373,14 +373,27 @@
     by("book").addEventListener("click", function () {
         if (selectedEvent) runAction("Book", { scheduledEventId: selectedEvent.id });
     });
-    by("cancel-booking").addEventListener("click", function () {
-        if (selectedEvent && window.confirm("Cancel this booking?")) {
+    by("cancel-booking").addEventListener("click", async function () {
+        const confirmed = selectedEvent && await window.appConfirm({
+            title: "Cancel booking",
+            message: "Cancel this booking?",
+            confirmLabel: "Cancel booking",
+            tone: "danger"
+        });
+        if (confirmed) {
             runAction("CancelBooking", { scheduledEventId: selectedEvent.id });
         }
     });
-    by("cancel-event").addEventListener("click", function () {
+    by("cancel-event").addEventListener("click", async function () {
         if (!selectedEvent) return;
-        const reason = window.prompt("Reason for cancelling this meeting:", "Schedule change");
+        const reason = await window.appPrompt({
+            title: "Cancel meeting",
+            message: "Provide a reason for cancelling this meeting.",
+            inputLabel: "Cancellation reason",
+            value: "Schedule change",
+            confirmLabel: "Cancel meeting",
+            tone: "danger"
+        });
         if (reason !== null) runAction("CancelEvent", { scheduledEventId: selectedEvent.id, reason: reason });
     });
 

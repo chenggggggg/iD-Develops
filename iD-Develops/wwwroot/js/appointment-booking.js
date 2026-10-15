@@ -98,10 +98,16 @@
         });
     }
 
-    function book(slot) {
+    async function book(slot) {
         const item = selectedType();
         const when = formatter({ dateStyle: "full", timeStyle: "short" }).format(new Date(slot.startUtc));
-        if (!window.confirm(`Book ${item.name} for ${when}? This uses ${item.creditCost} ${item.creditLabel}.`)) return;
+        const confirmed = await window.appConfirm({
+            title: "Confirm booking",
+            message: `Book ${item.name} for ${when}? This uses ${item.creditCost} ${item.creditLabel}.`,
+            confirmLabel: "Book appointment",
+            tone: "info"
+        });
+        if (!confirmed) return;
         root.querySelector("[data-book-type]").value = item.id;
         root.querySelector("[data-book-teacher]").value = teacherSelect.value;
         root.querySelector("[data-book-start]").value = slot.startUtc;

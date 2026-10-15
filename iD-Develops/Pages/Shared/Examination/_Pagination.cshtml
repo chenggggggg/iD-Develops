@@ -146,14 +146,17 @@
                     @* In-progress exists: allow restart if attempts left (or unlimited). *@
                     <form method="post"
                           asp-page-handler="Restart"
-                          class="m-0 exam-pagination-form">
+                          class="m-0 exam-pagination-form"
+                          data-confirm-title="@Localizer["RestartAction"]"
+                          data-confirm-message="@Localizer["RestartConfirmation"]"
+                          data-confirm-action="@Localizer["RestartAction"]"
+                          data-confirm-tone="warning">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="examId" value="@Model.ExamId" />
 
                         <button type="submit"
                                 class="exam-action-btn exam-action-primary"
-                                disabled="@(!isPublished || !hasAttemptsLeft)"
-                                onclick="return confirm('@Localizer["RestartConfirmation"]');">
+                                disabled="@(!isPublished || !hasAttemptsLeft)">
                             @Localizer["RestartAction"]
                         </button>
                     </form>

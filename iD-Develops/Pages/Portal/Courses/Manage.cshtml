@@ -155,7 +155,15 @@
                                 <td class="portal-table-cell-end">
                                     @if (!user.IsOwner && !string.Equals(user.AssignedBy, "Purchase", StringComparison.OrdinalIgnoreCase))
                                     {
-                                        <form method="post" asp-page-handler="Remove" asp-route-courseId="@Model.CourseAccess.CourseId" asp-route-userId="@user.UserId" class="m-0" onsubmit="return confirm('Unassign @user.Name from this course?');">
+                                        <form method="post"
+                                              asp-page-handler="Remove"
+                                              asp-route-courseId="@Model.CourseAccess.CourseId"
+                                              asp-route-userId="@user.UserId"
+                                              class="m-0"
+                                              data-confirm-title="Unassign learner"
+                                              data-confirm-message="Unassign @user.Name from this course?"
+                                              data-confirm-action="Unassign"
+                                              data-confirm-tone="danger">
                                             <input type="hidden" asp-for="Search" /><input type="hidden" asp-for="Sort" /><input type="hidden" asp-for="Direction" />
                                             <button class="portal-btn portal-btn-danger portal-btn-sm portal-btn-icon" type="submit" title="Unassign user" aria-label="Unassign @user.Name from this course"><i class="fa-solid fa-user-minus" aria-hidden="true"></i></button>
                                         </form>

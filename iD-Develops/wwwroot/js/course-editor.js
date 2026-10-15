@@ -745,8 +745,14 @@
         state.Sections.push(section); expanded.add(section.Id); selected = { type: "section", id: section.Id }; markDirty(); render();
     }
 
-    function removeItem(target) {
-        if (!window.confirm(`Remove this ${target.type}?`)) return;
+    async function removeItem(target) {
+        const confirmed = await window.appConfirm({
+            title: `Remove ${target.type}`,
+            message: `Remove this ${target.type}? Unsaved changes to it will be lost.`,
+            confirmLabel: "Remove",
+            tone: "danger"
+        });
+        if (!confirmed) return;
         if (target.type === "section") state.Sections = state.Sections.filter(function (item) { return Number(item.Id) !== target.id; });
         else state.Sections.forEach(function (section) { const key = collectionKey(target.type); section[key] = section[key].filter(function (item) { return Number(item.Id) !== target.id; }); });
         selected = { type: "course", id: courseId }; markDirty(); render();
@@ -808,7 +814,13 @@
 
     async function uploadVideo(input) {
         const file = input.files?.[0]; if (!file || !canUpload(input)) return;
-        if (!window.confirm(`Upload ${file.name} to Cloudflare Stream?`)) { input.value = ""; return; }
+        const confirmed = await window.appConfirm({
+            title: "Upload video",
+            message: `Upload ${file.name} to Cloudflare Stream?`,
+            confirmLabel: "Upload video",
+            tone: "info"
+        });
+        if (!confirmed) { input.value = ""; return; }
         const status = input.closest(".course-editor-upload").querySelector("[data-upload-status]");
         try {
             status.textContent = "Preparing upload...";
@@ -823,7 +835,13 @@
 
     async function uploadFile(input) {
         const file = input.files?.[0]; if (!file || !canUpload(input)) return;
-        if (!window.confirm(`Upload ${file.name} to object storage?`)) { input.value = ""; return; }
+        const confirmed = await window.appConfirm({
+            title: "Upload file",
+            message: `Upload ${file.name} to object storage?`,
+            confirmLabel: "Upload file",
+            tone: "info"
+        });
+        if (!confirmed) { input.value = ""; return; }
         const status = input.closest(".course-editor-upload").querySelector("[data-upload-status]");
         try {
             status.textContent = "Preparing upload...";

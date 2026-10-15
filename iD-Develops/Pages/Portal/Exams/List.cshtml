@@ -338,7 +338,15 @@
                 Cancel
             </button>
 
-            <form method="post" asp-page-handler="LaunchExam" class="portal-exam-launch-form" data-exam-launch-restart-form hidden>
+            <form method="post"
+                  asp-page-handler="LaunchExam"
+                  class="portal-exam-launch-form"
+                  data-exam-launch-restart-form
+                  data-confirm-title="Restart exam"
+                  data-confirm-message="Restarting will end your current attempt and use another attempt. Continue?"
+                  data-confirm-action="Restart"
+                  data-confirm-tone="warning"
+                  hidden>
                 <input type="hidden" name="examId" data-exam-launch-restart-id />
                 <input type="hidden" name="launchAction" value="restart" />
                 <button type="submit" class="portal-btn portal-btn-outline">
@@ -360,7 +368,6 @@
 </div>
 
 @section Scripts {
-    <script src="/js/display-messages.js"></script>
     <script src="/js/exam-table.js"></script>
     <script src="~/js/exams-list.js" asp-append-version="true"></script>
 }
