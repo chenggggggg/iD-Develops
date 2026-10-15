@@ -60,8 +60,11 @@ namespace iD_Develops.Data
         public DbSet<ExamVersionCorrectAnswer> ExamVersionCorrectAnswers { get; set; }
         public DbSet<ProductFormSubmission> ProductFormSubmissions { get; set; }
         public DbSet<CatalogProduct> CatalogProducts { get; set; }
+        public DbSet<CatalogProductTranslation> CatalogProductTranslations { get; set; }
         public DbSet<CatalogProductVariant> CatalogProductVariants { get; set; }
+        public DbSet<CatalogProductVariantTranslation> CatalogProductVariantTranslations { get; set; }
         public DbSet<CatalogProductFormField> CatalogProductFormFields { get; set; }
+        public DbSet<CatalogProductFormFieldTranslation> CatalogProductFormFieldTranslations { get; set; }
         public DbSet<CatalogProductInvite> CatalogProductInvites { get; set; }
         public DbSet<CatalogProductInviteUse> CatalogProductInviteUses { get; set; }
 
@@ -914,6 +917,15 @@ namespace iD_Develops.Data
                 .HasForeignKey(p => p.GrantedCourseId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            modelBuilder.Entity<CatalogProductTranslation>()
+                .HasKey(translation => new { translation.CatalogProductId, translation.Culture });
+
+            modelBuilder.Entity<CatalogProductTranslation>()
+                .HasOne(translation => translation.CatalogProduct)
+                .WithMany(product => product.Translations)
+                .HasForeignKey(translation => translation.CatalogProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<CatalogProductInvite>()
                 .HasIndex(i => i.Token)
                 .IsUnique();
@@ -940,6 +952,15 @@ namespace iD_Develops.Data
                 .HasForeignKey(v => v.CatalogProductId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<CatalogProductVariantTranslation>()
+                .HasKey(translation => new { translation.CatalogProductVariantId, translation.Culture });
+
+            modelBuilder.Entity<CatalogProductVariantTranslation>()
+                .HasOne(translation => translation.CatalogProductVariant)
+                .WithMany(variant => variant.Translations)
+                .HasForeignKey(translation => translation.CatalogProductVariantId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<CatalogProductFormField>()
                 .Property(f => f.FieldType)
                 .HasConversion<string>();
@@ -948,6 +969,15 @@ namespace iD_Develops.Data
                 .HasOne(f => f.CatalogProduct)
                 .WithMany(p => p.FormFields)
                 .HasForeignKey(f => f.CatalogProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CatalogProductFormFieldTranslation>()
+                .HasKey(translation => new { translation.CatalogProductFormFieldId, translation.Culture });
+
+            modelBuilder.Entity<CatalogProductFormFieldTranslation>()
+                .HasOne(translation => translation.CatalogProductFormField)
+                .WithMany(field => field.Translations)
+                .HasForeignKey(translation => translation.CatalogProductFormFieldId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

@@ -15,9 +15,23 @@
         </div>
         @if (Model.IsAdminEditMode)
         {
-            <a class="public-btn public-btn-outline" asp-page="/Portal/Admin/Products/Index">
-                <i class="fa-solid fa-arrow-left-long" aria-hidden="true"></i>Products
-            </a>
+            <div class="flex items-center gap-3">
+                <a class="public-btn public-btn-outline" asp-page="/Portal/Admin/Products/Index">
+                    <i class="fa-solid fa-arrow-left-long" aria-hidden="true"></i>Products
+                </a>
+                <nav class="inline-flex min-h-9 items-stretch overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm" aria-label="Download content language">
+                    <span class="inline-flex items-center gap-2 border-r border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-500">
+                        <i class="fa-solid fa-language text-[#005190]" aria-hidden="true"></i>
+                        Content language
+                    </span>
+                    <a href="?contentCulture=en-US"
+                       aria-current="@(Model.IsDefaultContentCulture ? "page" : null)"
+                       class="inline-flex min-w-20 items-center justify-center border-r border-slate-200 px-3 text-xs font-semibold no-underline transition-colors hover:no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#005190] @(Model.IsDefaultContentCulture ? "bg-[#005190] text-white" : "text-slate-600 hover:bg-slate-50 hover:text-[#005190]")">English</a>
+                    <a href="?contentCulture=nl-NL"
+                       aria-current="@(!Model.IsDefaultContentCulture ? "page" : null)"
+                       class="inline-flex min-w-20 items-center justify-center px-3 text-xs font-semibold no-underline transition-colors hover:no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#005190] @(!Model.IsDefaultContentCulture ? "bg-[#005190] text-white" : "text-slate-600 hover:bg-slate-50 hover:text-[#005190]")">Dutch</a>
+                </nav>
+            </div>
         }
     </div>
 
@@ -67,8 +81,9 @@
                                     <span class="public-status-pill @(download.Status == CatalogProductStatus.Published ? "public-status-pill-success" : "public-status-pill-warning")">@download.Status</span>
                                 </div>
 
-                                <form id="@saveFormId" method="post" enctype="multipart/form-data" asp-page-handler="Save" asp-route-id="@download.Id" class="grid gap-3" data-product-id="@download.Id">
+                                <form id="@saveFormId" method="post" enctype="multipart/form-data" asp-page-handler="Save" asp-route-id="@download.Id" class="grid gap-3" data-product-id="@download.Id" data-require-title="@Model.IsDefaultContentCulture.ToString().ToLowerInvariant()">
                                     @Html.AntiForgeryToken()
+                                    <input type="hidden" name="ContentCulture" value="@Model.ContentCulture" />
                                     <div class="product-editable-field">
                                         <input class="product-editable-input"
                                                name="EditInput.Name"
@@ -149,6 +164,7 @@
                                     {
                                         <form method="post" asp-page-handler="SetStatus" asp-route-id="@download.Id" class="m-0">
                                             @Html.AntiForgeryToken()
+                                            <input type="hidden" name="ContentCulture" value="@Model.ContentCulture" />
                                             <input type="hidden" name="status" value="@CatalogProductStatus.Draft" />
                                             <button type="submit" class="public-btn public-btn-outline">
                                                 <i class="fa-solid fa-file-lines" aria-hidden="true"></i>Move to draft
@@ -165,6 +181,7 @@
                                         {
                                             <form method="post" asp-page-handler="SetStatus" asp-route-id="@download.Id" class="m-0">
                                                 @Html.AntiForgeryToken()
+                                                <input type="hidden" name="ContentCulture" value="@Model.ContentCulture" />
                                                 <input type="hidden" name="status" value="@CatalogProductStatus.Draft" />
                                                 <button type="submit" class="public-btn public-btn-outline">
                                                     <i class="fa-solid fa-file-lines" aria-hidden="true"></i>Draft
@@ -178,6 +195,7 @@
                                     {
                                         <form method="post" asp-page-handler="SetStatus" asp-route-id="@download.Id" class="m-0">
                                             @Html.AntiForgeryToken()
+                                            <input type="hidden" name="ContentCulture" value="@Model.ContentCulture" />
                                             <input type="hidden" name="status" value="@CatalogProductStatus.Archived" />
                                             <button type="submit" class="public-btn public-btn-outline" aria-label="Archive download">
                                                 <i class="fa-solid fa-box-archive" aria-hidden="true"></i>
@@ -186,6 +204,7 @@
                                     }
                                     <form method="post" asp-page-handler="Delete" asp-route-id="@download.Id" class="m-0">
                                         @Html.AntiForgeryToken()
+                                        <input type="hidden" name="ContentCulture" value="@Model.ContentCulture" />
                                         <button type="submit" class="public-btn public-btn-outline free-download-delete-button" aria-label="Delete download">
                                             <i class="fa-solid fa-trash" aria-hidden="true"></i>
                                         </button>
@@ -217,7 +236,7 @@
                 </div>
             }
 
-            @if (Model.IsAdminEditMode)
+            @if (Model.IsAdminEditMode && Model.IsDefaultContentCulture)
             {
                 <div>
                     <form method="post" asp-page-handler="Create" class="h-full">
@@ -673,7 +692,7 @@
                         const downloadKeyInput = form.querySelector('[data-upload-key="download"]');
                         const staged = getStagedFiles(form);
 
-                        if (!title) {
+                        if (form.dataset.requireTitle === "true" && !title) {
                             titleInput?.focus();
                             setStatus(form, "download", "Give this download a title before saving.", true, false);
                             return;

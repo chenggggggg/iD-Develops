@@ -7,12 +7,19 @@ namespace iD_Develops.Services
         Task<List<CatalogProduct>> GetAdminProductsAsync(CancellationToken ct = default);
         Task<List<CatalogProduct>> GetAdminFreeDownloadsAsync(CancellationToken ct = default);
         Task<List<CatalogProduct>> GetPublishedProductsAsync(CancellationToken ct = default);
+        Task<List<CatalogProduct>> GetPublishedProductsForCultureAsync(string culture, CancellationToken ct = default);
         Task<List<CatalogProduct>> GetPublishedFreeDownloadsAsync(CancellationToken ct = default);
+        Task<List<CatalogProduct>> GetPublishedFreeDownloadsForCultureAsync(string culture, CancellationToken ct = default);
         Task<List<Course>> GetCourseOptionsAsync(CancellationToken ct = default);
         Task<List<CatalogProduct>> GetCreditProductOptionsAsync(int? excludeProductId = null, CancellationToken ct = default);
         Task<CatalogProduct?> GetProductByIdAsync(int id, CancellationToken ct = default);
         Task<CatalogProduct?> GetProductBySlugAsync(string slug, CancellationToken ct = default);
         Task<CatalogProduct?> GetPublishedProductBySlugAsync(string slug, CancellationToken ct = default);
+        Task<CatalogProduct?> GetLocalizedProductBySlugAsync(
+            string slug,
+            string culture,
+            bool requirePublished,
+            CancellationToken ct = default);
         Task<CatalogProduct> CreateProductAsync(CatalogProduct product, CancellationToken ct = default);
         Task UpdateProductAsync(CatalogProduct product, CancellationToken ct = default);
         Task UpdateProductWithCreditGrantsAsync(
@@ -34,5 +41,28 @@ namespace iD_Develops.Services
         Task<CatalogProductFormField?> GetFieldByIdAsync(int productId, int fieldId, CancellationToken ct = default);
         Task UpdateFieldAsync(int productId, CatalogProductFormField field, CancellationToken ct = default);
         Task DeleteFieldAsync(int productId, int fieldId, CancellationToken ct = default);
+        Task SaveTranslationsAsync(
+            int productId,
+            CatalogProductTranslationInput input,
+            CancellationToken ct = default);
     }
+
+    public sealed record CatalogProductTranslationInput(
+        string Culture,
+        string? Name,
+        string? Summary,
+        string? Description,
+        string? FullDescriptionHtml,
+        string? ExternalBookingButtonText,
+        IReadOnlyCollection<CatalogProductVariantTranslationInput> Variants,
+        IReadOnlyCollection<CatalogProductFormFieldTranslationInput> FormFields);
+
+    public sealed record CatalogProductVariantTranslationInput(int VariantId, string? Name);
+
+    public sealed record CatalogProductFormFieldTranslationInput(
+        int FormFieldId,
+        string? Label,
+        string? Placeholder,
+        string? HelpText,
+        string? OptionsText);
 }

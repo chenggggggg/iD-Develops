@@ -109,6 +109,8 @@ namespace iD_Develops.Models
 
         public ICollection<CatalogProductVariant> Variants { get; set; } = new List<CatalogProductVariant>();
 
+        public ICollection<CatalogProductTranslation> Translations { get; set; } = new List<CatalogProductTranslation>();
+
         public ICollection<CatalogProductFormField> FormFields { get; set; } = new List<CatalogProductFormField>();
 
         public ICollection<CatalogProductInvite> Invites { get; set; } = new List<CatalogProductInvite>();

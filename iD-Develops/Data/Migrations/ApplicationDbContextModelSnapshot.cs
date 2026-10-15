@@ -636,6 +636,35 @@ namespace iD_Develops.Data.Migrations
                     b.ToTable("CatalogProductFormFields");
                 });
 
+            modelBuilder.Entity("iD_Develops.Models.CatalogProductFormFieldTranslation", b =>
+                {
+                    b.Property<int>("CatalogProductFormFieldId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Culture")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("HelpText")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("Label")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("OptionsText")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Placeholder")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.HasKey("CatalogProductFormFieldId", "Culture");
+
+                    b.ToTable("CatalogProductFormFieldTranslations");
+                });
+
             modelBuilder.Entity("iD_Develops.Models.CatalogProductIncludedCreditProduct", b =>
                 {
                     b.Property<int>("CatalogProductId")
@@ -739,6 +768,52 @@ namespace iD_Develops.Data.Migrations
                     b.ToTable("CatalogProductInviteUses");
                 });
 
+            modelBuilder.Entity("iD_Develops.Models.CatalogProductTranslation", b =>
+                {
+                    b.Property<int>("CatalogProductId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Culture")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("ConfirmationEmailBodyHtml")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ConfirmationEmailSubject")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ExternalBookingButtonText")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("FullDescriptionHtml")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("OwnerNotificationBodyHtml")
+                        .HasColumnType("text");
+
+                    b.Property<string>("OwnerNotificationSubject")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Summary")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.HasKey("CatalogProductId", "Culture");
+
+                    b.ToTable("CatalogProductTranslations");
+                });
+
             modelBuilder.Entity("iD_Develops.Models.CatalogProductVariant", b =>
                 {
                     b.Property<int>("Id")
@@ -781,6 +856,24 @@ namespace iD_Develops.Data.Migrations
                     b.HasIndex("CatalogProductId");
 
                     b.ToTable("CatalogProductVariants");
+                });
+
+            modelBuilder.Entity("iD_Develops.Models.CatalogProductVariantTranslation", b =>
+                {
+                    b.Property<int>("CatalogProductVariantId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Culture")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.HasKey("CatalogProductVariantId", "Culture");
+
+                    b.ToTable("CatalogProductVariantTranslations");
                 });
 
             modelBuilder.Entity("iD_Develops.Models.CorrectAnswer", b =>
@@ -2896,6 +2989,17 @@ namespace iD_Develops.Data.Migrations
                     b.Navigation("CatalogProduct");
                 });
 
+            modelBuilder.Entity("iD_Develops.Models.CatalogProductFormFieldTranslation", b =>
+                {
+                    b.HasOne("iD_Develops.Models.CatalogProductFormField", "CatalogProductFormField")
+                        .WithMany("Translations")
+                        .HasForeignKey("CatalogProductFormFieldId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CatalogProductFormField");
+                });
+
             modelBuilder.Entity("iD_Develops.Models.CatalogProductIncludedCreditProduct", b =>
                 {
                     b.HasOne("iD_Develops.Models.CatalogProduct", "CatalogProduct")
@@ -2937,6 +3041,17 @@ namespace iD_Develops.Data.Migrations
                     b.Navigation("CatalogProductInvite");
                 });
 
+            modelBuilder.Entity("iD_Develops.Models.CatalogProductTranslation", b =>
+                {
+                    b.HasOne("iD_Develops.Models.CatalogProduct", "CatalogProduct")
+                        .WithMany("Translations")
+                        .HasForeignKey("CatalogProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CatalogProduct");
+                });
+
             modelBuilder.Entity("iD_Develops.Models.CatalogProductVariant", b =>
                 {
                     b.HasOne("iD_Develops.Models.CatalogProduct", "CatalogProduct")
@@ -2946,6 +3061,17 @@ namespace iD_Develops.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("CatalogProduct");
+                });
+
+            modelBuilder.Entity("iD_Develops.Models.CatalogProductVariantTranslation", b =>
+                {
+                    b.HasOne("iD_Develops.Models.CatalogProductVariant", "CatalogProductVariant")
+                        .WithMany("Translations")
+                        .HasForeignKey("CatalogProductVariantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CatalogProductVariant");
                 });
 
             modelBuilder.Entity("iD_Develops.Models.CorrectAnswer", b =>
@@ -3682,12 +3808,24 @@ namespace iD_Develops.Data.Migrations
 
                     b.Navigation("Invites");
 
+                    b.Navigation("Translations");
+
                     b.Navigation("Variants");
+                });
+
+            modelBuilder.Entity("iD_Develops.Models.CatalogProductFormField", b =>
+                {
+                    b.Navigation("Translations");
                 });
 
             modelBuilder.Entity("iD_Develops.Models.CatalogProductInvite", b =>
                 {
                     b.Navigation("Uses");
+                });
+
+            modelBuilder.Entity("iD_Develops.Models.CatalogProductVariant", b =>
+                {
+                    b.Navigation("Translations");
                 });
 
             modelBuilder.Entity("iD_Develops.Models.Course", b =>
