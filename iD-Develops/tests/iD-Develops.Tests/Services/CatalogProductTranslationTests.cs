@@ -39,7 +39,12 @@ public sealed class CatalogProductTranslationTests
                         "E-mailadres",
                         "naam@voorbeeld.nl",
                         "We sturen de bevestiging hierheen.",
-                        null)]));
+                        null)],
+                    HomepageDescription: "Korte homepagebeschrijving",
+                    HomepageHighlights: "Persoonlijke feedback\nFlexibele planning",
+                    HomepageButtonText: "Bekijk cursus",
+                    HomepageSubtitle: "Voor elk niveau",
+                    HomepageHighlightText: "Populair"));
         }
 
         await using var verificationContext = factory.CreateDbContext();
@@ -50,12 +55,21 @@ public sealed class CatalogProductTranslationTests
 
         Assert.Equal("English course", canonical.Name);
         Assert.Equal("English summary", canonical.Summary);
+        Assert.Equal("Short homepage description", canonical.HomepageDescription);
+        Assert.Equal("For every level", canonical.HomepageSubtitle);
+        Assert.Equal($"Personal feedback{Environment.NewLine}Flexible planning", canonical.HomepageHighlights);
+        Assert.Equal("Popular", canonical.HomepageHighlightText);
         Assert.Equal("Standard option", canonical.Variants.Single().Name);
         Assert.Equal("Email address", canonical.FormFields.Single().Label);
 
         var translation = await verificationContext.CatalogProductTranslations
             .SingleAsync(item => item.CatalogProductId == productId && item.Culture == "nl-NL");
         Assert.Equal("Nederlandse cursus", translation.Name);
+        Assert.Equal("Korte homepagebeschrijving", translation.HomepageDescription);
+        Assert.Equal("Voor elk niveau", translation.HomepageSubtitle);
+        Assert.Equal($"Persoonlijke feedback{Environment.NewLine}Flexibele planning", translation.HomepageHighlights);
+        Assert.Equal("Bekijk cursus", translation.HomepageButtonText);
+        Assert.Equal("Populair", translation.HomepageHighlightText);
     }
 
     [Fact]
@@ -157,6 +171,11 @@ public sealed class CatalogProductTranslationTests
             Name = "English course",
             Slug = "english-course",
             Summary = "English summary",
+            HomepageDescription = "Short homepage description",
+            HomepageSubtitle = "For every level",
+            HomepageHighlights = "Personal feedback\nFlexible planning",
+            HomepageButtonText = "View course",
+            HomepageHighlightText = "Popular",
             ProductType = CatalogProductType.Standard,
             WorkflowType = CatalogWorkflowType.FormThenStripeCheckout,
             Status = CatalogProductStatus.Published,

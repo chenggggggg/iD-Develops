@@ -107,6 +107,9 @@ public sealed class ExamEditFlowServiceTests
         public Task<Exam?> GetPublicExamBySlugAsync(string publicSlug)
             => throw new NotSupportedException();
 
+        public Task<bool> IsPublicSlugAvailableAsync(string publicSlug, int examId)
+            => Task.FromResult(true);
+
         public Task<List<Exam>> GetPublishedExamsAsync()
             => throw new NotSupportedException();
 

@@ -94,7 +94,7 @@ public sealed class ExamEditMutationServiceTests
     }
 
     [Fact]
-    public async Task SaveSettingsAsync_AllowsAdminToUpdatePublicSlug()
+    public async Task SaveSettingsAsync_AllowsAdminToDesignatePublicLevelTest()
     {
         var exam = new Exam
         {
@@ -114,7 +114,7 @@ public sealed class ExamEditMutationServiceTests
             new CreateExamInputModel
             {
                 Name = "Updated name",
-                PublicSlug = "New-Slug",
+                IsPublicLevelTest = true,
                 IntroductionPrimaryLanguage = "Updated intro"
             },
             "admin-1",
@@ -123,9 +123,44 @@ public sealed class ExamEditMutationServiceTests
         Assert.True(result.Success);
         Assert.Equal(StatusCodes.Status200OK, result.StatusCode);
         Assert.Equal("Updated name", exam.Name);
-        Assert.Equal("new-slug", exam.PublicSlug);
+        Assert.Equal("level-test", exam.PublicSlug);
         Assert.Equal("Updated intro", exam.IntroductionPrimaryLanguage);
         Assert.True(examService.SaveChangesCalled);
+    }
+
+    [Fact]
+    public async Task SaveSettingsAsync_RejectsSecondPublicLevelTest()
+    {
+        var exam = new Exam
+        {
+            Id = 42,
+            Name = "Candidate",
+            CreatedByUserId = "teacher-owner",
+            IntroductionPrimaryLanguage = "Intro",
+            DifficultyValue = 0
+        };
+
+        var examService = new StubExamService(exam, canTeacherManageExam: false)
+        {
+            PublicSlugAvailable = false
+        };
+        var service = new ExamEditMutationService(examService, null!, null!, null!);
+
+        var result = await service.SaveSettingsAsync(
+            42,
+            new CreateExamInputModel
+            {
+                Name = "Candidate",
+                IsPublicLevelTest = true,
+                IntroductionPrimaryLanguage = "Intro"
+            },
+            "admin-1",
+            isAdmin: true);
+
+        Assert.False(result.Success);
+        Assert.Equal(StatusCodes.Status409Conflict, result.StatusCode);
+        Assert.Null(exam.PublicSlug);
+        Assert.False(examService.SaveChangesCalled);
     }
 
     [Fact]
@@ -294,6 +329,7 @@ public sealed class ExamEditMutationServiceTests
         }
 
         public bool SaveChangesCalled { get; private set; }
+        public bool PublicSlugAvailable { get; init; } = true;
 
         public Task<bool> CanTeacherManageExamAsync(int examId, string teacherUserId)
             => Task.FromResult(_canTeacherManageExam);
@@ -324,6 +360,9 @@ public sealed class ExamEditMutationServiceTests
 
         public Task<Exam?> GetPublicExamBySlugAsync(string publicSlug)
             => throw new NotSupportedException();
+
+        public Task<bool> IsPublicSlugAvailableAsync(string publicSlug, int examId)
+            => Task.FromResult(PublicSlugAvailable);
 
         public Task<List<Exam>> GetPublishedExamsAsync()
             => throw new NotSupportedException();

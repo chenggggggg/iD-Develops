@@ -678,6 +678,21 @@ namespace iD_Develops.Pages
                     Summary = EditInput.Summary,
                     Description = EditInput.Description,
                     FullDescriptionHtml = EditInput.FullDescriptionHtml,
+                    HomepageDescription = product.ProductType == CatalogProductType.FreeDownload
+                        ? product.HomepageDescription
+                        : EditInput.HomepageDescription,
+                    HomepageSubtitle = product.ProductType == CatalogProductType.FreeDownload
+                        ? product.HomepageSubtitle
+                        : EditInput.HomepageSubtitle,
+                    HomepageHighlights = product.ProductType == CatalogProductType.FreeDownload
+                        ? product.HomepageHighlights
+                        : EditInput.HomepageHighlights,
+                    HomepageButtonText = product.ProductType == CatalogProductType.FreeDownload
+                        ? product.HomepageButtonText
+                        : EditInput.HomepageButtonText,
+                    HomepageHighlightText = product.ProductType == CatalogProductType.FreeDownload
+                        ? product.HomepageHighlightText
+                        : EditInput.HomepageHighlightText,
                     ImageUrl = imageUrl,
                     ProductType = product.ProductType,
                     WorkflowType = product.WorkflowType,
@@ -707,8 +722,15 @@ namespace iD_Develops.Pages
                     CreditConsumptionPolicyId = product.CreditConsumptionPolicyId,
                     IncludedBookingBenefitLabel = ResolveStoredFileLabel(attachmentUrl),
                     IncludedBookingBenefitUrl = attachmentUrl,
-                    IsFeatured = product.IsFeatured,
-                    SortOrder = product.SortOrder
+                    IsFeatured = product.ProductType == CatalogProductType.FreeDownload
+                        ? product.IsFeatured
+                        : EditInput.IsFeatured,
+                    SortOrder = product.ProductType == CatalogProductType.FreeDownload
+                        ? product.SortOrder
+                        : EditInput.SortOrder,
+                    IsHomepageHighlighted = product.ProductType == CatalogProductType.FreeDownload
+                        ? product.IsHomepageHighlighted
+                        : EditInput.IsHomepageHighlighted
                 }, product.ProductType == CatalogProductType.Credit ? EditInput.CreditConfiguration : null,
                     EditInput.IncludedCreditProductIds, ct);
 
@@ -812,6 +834,11 @@ namespace iD_Develops.Pages
                !string.IsNullOrWhiteSpace(EditInput.Summary) ||
                !string.IsNullOrWhiteSpace(EditInput.Description) ||
                !string.IsNullOrWhiteSpace(EditInput.FullDescriptionHtml) ||
+               !string.IsNullOrWhiteSpace(EditInput.HomepageDescription) ||
+               !string.IsNullOrWhiteSpace(EditInput.HomepageSubtitle) ||
+               !string.IsNullOrWhiteSpace(EditInput.HomepageHighlights) ||
+               !string.IsNullOrWhiteSpace(EditInput.HomepageButtonText) ||
+               !string.IsNullOrWhiteSpace(EditInput.HomepageHighlightText) ||
                EditInput.BasePrice.HasValue && EditInput.BasePrice.Value > 0 ||
                EditInput.VatPercentage.HasValue && EditInput.VatPercentage.Value > 0 ||
                EditInput.RegistrationFee.HasValue && EditInput.RegistrationFee.Value > 0 ||
@@ -1332,6 +1359,11 @@ namespace iD_Develops.Pages
                 Summary = useTranslation ? productTranslation?.Summary : product.Summary,
                 Description = useTranslation ? productTranslation?.Description : product.Description,
                 FullDescriptionHtml = useTranslation ? productTranslation?.FullDescriptionHtml : product.FullDescriptionHtml,
+                HomepageDescription = useTranslation ? productTranslation?.HomepageDescription : product.HomepageDescription,
+                HomepageSubtitle = useTranslation ? productTranslation?.HomepageSubtitle : product.HomepageSubtitle,
+                HomepageHighlights = useTranslation ? productTranslation?.HomepageHighlights : product.HomepageHighlights,
+                HomepageButtonText = useTranslation ? productTranslation?.HomepageButtonText : product.HomepageButtonText,
+                HomepageHighlightText = useTranslation ? productTranslation?.HomepageHighlightText : product.HomepageHighlightText,
                 ImageObjectKey = product.ImageUrl,
                 AttachmentObjectKey = product.IncludedBookingBenefitUrl,
                 BasePrice = primaryVariant?.Price ?? product.BasePrice,
@@ -1348,6 +1380,9 @@ namespace iD_Develops.Pages
                     ? productTranslation?.ExternalBookingButtonText
                     : product.ExternalBookingButtonText,
                 HideFromProductsPage = product.HideFromProductsPage,
+                IsFeatured = product.IsFeatured,
+                SortOrder = product.SortOrder,
+                IsHomepageHighlighted = product.IsHomepageHighlighted,
                 GrantedCourseId = product.GrantedCourseId,
                 CreditConfiguration = CreateCreditConfigurationInput(product),
                 IncludedCreditProductIds = product.IncludedCreditProducts
@@ -1416,7 +1451,12 @@ namespace iD_Develops.Pages
                         field.Placeholder,
                         field.HelpText,
                         field.OptionsText))
-                    .ToList());
+                    .ToList(),
+                editInput.HomepageDescription,
+                editInput.HomepageHighlights,
+                editInput.HomepageButtonText,
+                editInput.HomepageSubtitle,
+                editInput.HomepageHighlightText);
         }
 
         private static void ApplyCanonicalContentToEditInput(CatalogProduct product, ProductEditInput editInput)
@@ -1426,6 +1466,11 @@ namespace iD_Develops.Pages
             editInput.Summary = canonical.Summary;
             editInput.Description = canonical.Description;
             editInput.FullDescriptionHtml = canonical.FullDescriptionHtml;
+            editInput.HomepageDescription = canonical.HomepageDescription;
+            editInput.HomepageSubtitle = canonical.HomepageSubtitle;
+            editInput.HomepageHighlights = canonical.HomepageHighlights;
+            editInput.HomepageButtonText = canonical.HomepageButtonText;
+            editInput.HomepageHighlightText = canonical.HomepageHighlightText;
             editInput.PrimaryVariantName = canonical.PrimaryVariantName;
             editInput.ExternalBookingButtonText = canonical.ExternalBookingButtonText;
             var submittedFields = editInput.FormFields
@@ -1511,6 +1556,21 @@ namespace iD_Develops.Pages
             public string? Description { get; set; }
             public string? FullDescriptionHtml { get; set; }
 
+            [MaxLength(300)]
+            public string? HomepageDescription { get; set; }
+
+            [MaxLength(150)]
+            public string? HomepageSubtitle { get; set; }
+
+            [MaxLength(2000)]
+            public string? HomepageHighlights { get; set; }
+
+            [MaxLength(100)]
+            public string? HomepageButtonText { get; set; }
+
+            [MaxLength(24)]
+            public string? HomepageHighlightText { get; set; }
+
             [MaxLength(500)]
             public string? ImageObjectKey { get; set; }
 
@@ -1537,6 +1597,13 @@ namespace iD_Develops.Pages
             public string? ExternalBookingButtonText { get; set; }
 
             public bool HideFromProductsPage { get; set; }
+
+            public bool IsFeatured { get; set; }
+
+            [Range(0, 10000)]
+            public int SortOrder { get; set; }
+
+            public bool IsHomepageHighlighted { get; set; }
 
             public int? GrantedCourseId { get; set; }
 

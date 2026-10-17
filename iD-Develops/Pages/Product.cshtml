@@ -618,6 +618,60 @@
                         }
                     </section>
                 }
+                @if (Model.Product.ProductType != CatalogProductType.FreeDownload)
+                {
+                    <div class="col-span-full grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 md:grid-cols-[minmax(0,1fr)_9rem]">
+                        <label class="flex cursor-pointer items-start gap-3">
+                            <input asp-for="EditInput.IsFeatured" class="mt-1 h-4 w-4 rounded border-slate-300 text-[#B23A48] focus:ring-[#B23A48]" />
+                            <span>
+                                <span class="block text-sm font-semibold text-slate-900">Show on homepage</span>
+                                <span class="mt-1 block text-xs leading-5 text-slate-500">The homepage shows up to four published, active products. Display order decides which products appear first; draft and hidden products remain excluded.</span>
+                            </span>
+                        </label>
+                        <label class="grid gap-1.5">
+                            <span class="text-sm font-medium text-slate-800">Display order</span>
+                            <input asp-for="EditInput.SortOrder" type="number" min="0" max="10000" class="public-field product-admin-field" />
+                            <span asp-validation-for="EditInput.SortOrder" class="text-xs text-red-600"></span>
+                        </label>
+                        <label class="col-span-full flex cursor-pointer items-start gap-3 border-t border-slate-100 pt-4">
+                            <input asp-for="EditInput.IsHomepageHighlighted" class="mt-1 h-4 w-4 rounded border-slate-300 text-[#B23A48] focus:ring-[#B23A48]" />
+                            <span>
+                                <span class="block text-sm font-semibold text-slate-900">Highlight homepage card</span>
+                                <span class="mt-1 block text-xs leading-5 text-slate-500">Adds the accent background, top border, warmer shadow, and primary action styling.</span>
+                            </span>
+                        </label>
+                        <label class="col-span-full grid gap-1.5">
+                            <span class="text-sm font-medium text-slate-800">Highlight badge text</span>
+                            <input asp-for="EditInput.HomepageHighlightText" maxlength="24" class="public-field product-admin-field" placeholder="Popular" />
+                            <span class="text-xs leading-5 text-slate-500">Shown at the top of a highlighted card. Maximum 24 characters.</span>
+                            <span asp-validation-for="EditInput.HomepageHighlightText" class="text-xs text-red-600"></span>
+                        </label>
+                        <label class="col-span-full grid gap-1.5">
+                            <span class="text-sm font-medium text-slate-800">Homepage subtitle</span>
+                            <input asp-for="EditInput.HomepageSubtitle" maxlength="150" class="public-field product-admin-field" placeholder="Short supporting line below the product title" />
+                            <span class="text-xs leading-5 text-slate-500">Appears directly below the title and follows the selected content language.</span>
+                            <span asp-validation-for="EditInput.HomepageSubtitle" class="text-xs text-red-600"></span>
+                        </label>
+                        <label class="col-span-full grid gap-1.5">
+                            <span class="text-sm font-medium text-slate-800">Homepage description</span>
+                            <textarea asp-for="EditInput.HomepageDescription" rows="2" maxlength="300" class="public-field product-admin-field" placeholder="Short description shown below the product name"></textarea>
+                            <span class="text-xs leading-5 text-slate-500">This is separate from the summary on the product page and follows the selected content language.</span>
+                            <span asp-validation-for="EditInput.HomepageDescription" class="text-xs text-red-600"></span>
+                        </label>
+                        <label class="col-span-full grid gap-1.5">
+                            <span class="text-sm font-medium text-slate-800">Homepage CTA text</span>
+                            <input asp-for="EditInput.HomepageButtonText" maxlength="100" class="public-field product-admin-field" placeholder="View product" />
+                            <span class="text-xs leading-5 text-slate-500">Leave empty to use the standard localized “View product” label.</span>
+                            <span asp-validation-for="EditInput.HomepageButtonText" class="text-xs text-red-600"></span>
+                        </label>
+                        <label class="col-span-full grid gap-1.5">
+                            <span class="text-sm font-medium text-slate-800">Homepage checkmarks</span>
+                            <textarea asp-for="EditInput.HomepageHighlights" rows="4" maxlength="2000" class="public-field product-admin-field" placeholder="One benefit per line"></textarea>
+                            <span class="text-xs leading-5 text-slate-500">Every non-empty line becomes a separate checkmark on the homepage card.</span>
+                            <span asp-validation-for="EditInput.HomepageHighlights" class="text-xs text-red-600"></span>
+                        </label>
+                    </div>
+                }
                 <div class="product-advanced-field">
                     <label class="product-check">
                         <input class="product-check-input" asp-for="EditInput.HideFromProductsPage" />

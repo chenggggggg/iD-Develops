@@ -8,6 +8,8 @@ namespace iD_Develops.Services
 {
     public sealed class ExamEditMutationService : IExamEditMutationService
     {
+        private const string PublicLevelTestSlug = "level-test";
+
         private readonly IExamService _examService;
         private readonly IQuestionService _questionService;
         private readonly IExamVersionService _examVersionService;
@@ -146,7 +148,26 @@ namespace iD_Develops.Services
             }
 
             if (isAdmin)
-                exam.PublicSlug = NormalizePublicSlug(settings.PublicSlug);
+            {
+                if (settings.IsPublicLevelTest)
+                {
+                    if (!await _examService.IsPublicSlugAvailableAsync(PublicLevelTestSlug, examId))
+                    {
+                        return new SettingsMutationResult
+                        {
+                            Success = false,
+                            StatusCode = StatusCodes.Status409Conflict,
+                            ErrorMessage = "Another exam is already configured as the public level test. Disable that setting first."
+                        };
+                    }
+
+                    exam.PublicSlug = PublicLevelTestSlug;
+                }
+                else if (string.Equals(exam.PublicSlug, PublicLevelTestSlug, StringComparison.OrdinalIgnoreCase))
+                {
+                    exam.PublicSlug = null;
+                }
+            }
 
             await _examService.SaveChangesAsync();
             return new SettingsMutationResult { Success = true, StatusCode = StatusCodes.Status200OK };
@@ -466,9 +487,6 @@ namespace iD_Develops.Services
                 (TrueOrFalseQuestion, "TrueOrFalse") => true,
                 _ => false
             };
-
-        private static string? NormalizePublicSlug(string? input)
-            => string.IsNullOrWhiteSpace(input) ? null : input.Trim().ToLowerInvariant();
 
         private static string BuildQuestionObjectKey(int examId, int questionId, string kind)
             => $"exams/questions/{examId}/{questionId}/{kind}";

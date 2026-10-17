@@ -28,6 +28,8 @@ namespace iD_Develops.Pages.Portal.Examination.Models
         [StringLength(100)]
         public string? PublicSlug { get; set; }
 
+        public bool IsPublicLevelTest { get; set; }
+
         public string? CompletionTextSecondary { get; set; }
         public ResultGradeDisplayMode ResultGradeDisplayMode { get; set; } = ResultGradeDisplayMode.Score;
         public string? ResultGradeCustomTextPrimary { get; set; }

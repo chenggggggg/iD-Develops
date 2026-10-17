@@ -186,11 +186,15 @@
 
                 @if ((User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
                 {
-                    <div class="mb-6">
-                        <label asp-for="Settings.PublicSlug" class="portal-info-label">Public slug</label>
-                        <input asp-for="Settings.PublicSlug" class="portal-field" placeholder="level-test" />
-                        <div class="exam-field-help">Set to <code>level-test</code> to use this exam for the public level test page.</div>
-                        <span asp-validation-for="Settings.PublicSlug" class="portal-validation-message"></span>
+                    <div class="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                        <label class="flex cursor-pointer items-start gap-3">
+                            <input asp-for="Settings.IsPublicLevelTest" class="mt-1 h-4 w-4 rounded border-slate-300 text-[#B23A48] focus:ring-[#B23A48]" />
+                            <span>
+                                <span class="block text-sm font-semibold text-[#10224d]">Use as public level test</span>
+                                <span class="mt-1 block text-sm leading-6 text-slate-600">Connect this exam to the public level-test page and its Start button. Only one exam can be selected. The exam must still be published with questions before visitors can begin it.</span>
+                            </span>
+                        </label>
+                        <span asp-validation-for="Settings.IsPublicLevelTest" class="portal-validation-message"></span>
                     </div>
                 }
 
