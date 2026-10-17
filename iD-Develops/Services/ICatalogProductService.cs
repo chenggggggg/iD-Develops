@@ -8,6 +8,10 @@ namespace iD_Develops.Services
         Task<List<CatalogProduct>> GetAdminFreeDownloadsAsync(CancellationToken ct = default);
         Task<List<CatalogProduct>> GetPublishedProductsAsync(CancellationToken ct = default);
         Task<List<CatalogProduct>> GetPublishedProductsForCultureAsync(string culture, CancellationToken ct = default);
+        Task<List<CatalogProduct>> GetFeaturedProductsForCultureAsync(
+            string culture,
+            int maximumCount = 4,
+            CancellationToken ct = default);
         Task<List<CatalogProduct>> GetPublishedFreeDownloadsAsync(CancellationToken ct = default);
         Task<List<CatalogProduct>> GetPublishedFreeDownloadsForCultureAsync(string culture, CancellationToken ct = default);
         Task<List<Course>> GetCourseOptionsAsync(CancellationToken ct = default);
@@ -55,7 +59,12 @@ namespace iD_Develops.Services
         string? FullDescriptionHtml,
         string? ExternalBookingButtonText,
         IReadOnlyCollection<CatalogProductVariantTranslationInput> Variants,
-        IReadOnlyCollection<CatalogProductFormFieldTranslationInput> FormFields);
+        IReadOnlyCollection<CatalogProductFormFieldTranslationInput> FormFields,
+        string? HomepageDescription = null,
+        string? HomepageHighlights = null,
+        string? HomepageButtonText = null,
+        string? HomepageSubtitle = null,
+        string? HomepageHighlightText = null);
 
     public sealed record CatalogProductVariantTranslationInput(int VariantId, string? Name);
 

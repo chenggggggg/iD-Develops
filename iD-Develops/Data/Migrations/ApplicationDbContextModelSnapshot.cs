@@ -505,6 +505,26 @@ namespace iD_Develops.Data.Migrations
                     b.Property<bool>("HideFromProductsPage")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("HomepageButtonText")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("HomepageDescription")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("HomepageHighlightText")
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)");
+
+                    b.Property<string>("HomepageHighlights")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("HomepageSubtitle")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
                     b.Property<string>("ImageUrl")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
@@ -518,6 +538,9 @@ namespace iD_Develops.Data.Migrations
                         .HasColumnType("character varying(500)");
 
                     b.Property<bool>("IsFeatured")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsHomepageHighlighted")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("IsSalesActive")
@@ -876,6 +899,26 @@ namespace iD_Develops.Data.Migrations
 
                     b.Property<string>("FullDescriptionHtml")
                         .HasColumnType("text");
+
+                    b.Property<string>("HomepageButtonText")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("HomepageDescription")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("HomepageHighlightText")
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)");
+
+                    b.Property<string>("HomepageHighlights")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("HomepageSubtitle")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
 
                     b.Property<string>("Name")
                         .HasMaxLength(200)

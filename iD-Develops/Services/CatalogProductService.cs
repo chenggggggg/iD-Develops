@@ -62,6 +62,31 @@ namespace iD_Develops.Services
             return products;
         }
 
+        public async Task<List<CatalogProduct>> GetFeaturedProductsForCultureAsync(
+            string culture,
+            int maximumCount = 4,
+            CancellationToken ct = default)
+        {
+            if (maximumCount < 1)
+                return [];
+
+            var products = await ReadQuery()
+                .Where(product =>
+                    product.Status == CatalogProductStatus.Published &&
+                    product.IsSalesActive &&
+                    product.IsFeatured &&
+                    product.ProductType != CatalogProductType.FreeDownload &&
+                    !product.HideFromProductsPage &&
+                    !product.RequireAccessToken)
+                .OrderBy(product => product.SortOrder)
+                .ThenBy(product => product.Name)
+                .Take(maximumCount)
+                .ToListAsync(ct);
+
+            ApplyTranslations(products, culture);
+            return products;
+        }
+
         public Task<List<CatalogProduct>> GetPublishedFreeDownloadsAsync(CancellationToken ct = default)
             => ReadQuery()
                 .Where(p => p.Status == CatalogProductStatus.Published &&
@@ -148,6 +173,11 @@ namespace iD_Develops.Services
             product.RegistrationFee = NormalizeMoney(product.RegistrationFee);
             product.TransactionFee = NormalizeMoney(product.TransactionFee);
             product.ServiceFee = NormalizeMoney(product.ServiceFee);
+            product.HomepageDescription = product.HomepageDescription?.Trim();
+            product.HomepageSubtitle = product.HomepageSubtitle?.Trim();
+            product.HomepageHighlights = NormalizeOptions(product.HomepageHighlights);
+            product.HomepageButtonText = product.HomepageButtonText?.Trim();
+            product.HomepageHighlightText = product.HomepageHighlightText?.Trim();
             product.UpdatedAtUtc = DateTime.UtcNow;
 
             foreach (var variant in product.Variants)
@@ -184,6 +214,12 @@ namespace iD_Develops.Services
             existing.Summary = product.Summary?.Trim();
             existing.Description = product.Description?.Trim();
             existing.FullDescriptionHtml = product.FullDescriptionHtml?.Trim();
+            existing.HomepageDescription = product.HomepageDescription?.Trim();
+            existing.HomepageSubtitle = product.HomepageSubtitle?.Trim();
+            existing.HomepageHighlights = NormalizeOptions(product.HomepageHighlights);
+            existing.HomepageButtonText = product.HomepageButtonText?.Trim();
+            existing.HomepageHighlightText = product.HomepageHighlightText?.Trim();
+            existing.IsHomepageHighlighted = product.IsHomepageHighlighted;
             existing.ImageUrl = product.ImageUrl?.Trim();
             existing.ProductType = product.ProductType;
             existing.WorkflowType = product.WorkflowType;
@@ -490,6 +526,11 @@ namespace iD_Develops.Services
             translation.Summary = NormalizeTranslation(input.Summary);
             translation.Description = NormalizeTranslation(input.Description);
             translation.FullDescriptionHtml = NormalizeTranslation(input.FullDescriptionHtml);
+            translation.HomepageDescription = NormalizeTranslation(input.HomepageDescription);
+            translation.HomepageSubtitle = NormalizeTranslation(input.HomepageSubtitle);
+            translation.HomepageHighlights = NormalizeOptions(input.HomepageHighlights);
+            translation.HomepageButtonText = NormalizeTranslation(input.HomepageButtonText);
+            translation.HomepageHighlightText = NormalizeTranslation(input.HomepageHighlightText);
             translation.ExternalBookingButtonText = NormalizeTranslation(input.ExternalBookingButtonText);
 
             var variantIds = input.Variants.Select(item => item.VariantId).Where(id => id > 0).Distinct().ToList();
@@ -662,6 +703,11 @@ namespace iD_Develops.Services
                 product.Summary = translation.Summary ?? product.Summary;
                 product.Description = translation.Description ?? product.Description;
                 product.FullDescriptionHtml = translation.FullDescriptionHtml ?? product.FullDescriptionHtml;
+                product.HomepageDescription = translation.HomepageDescription ?? product.HomepageDescription;
+                product.HomepageSubtitle = translation.HomepageSubtitle ?? product.HomepageSubtitle;
+                product.HomepageHighlights = translation.HomepageHighlights ?? product.HomepageHighlights;
+                product.HomepageButtonText = translation.HomepageButtonText ?? product.HomepageButtonText;
+                product.HomepageHighlightText = translation.HomepageHighlightText ?? product.HomepageHighlightText;
                 product.ExternalBookingButtonText = translation.ExternalBookingButtonText ?? product.ExternalBookingButtonText;
                 product.ConfirmationEmailSubject = translation.ConfirmationEmailSubject ?? product.ConfirmationEmailSubject;
                 product.ConfirmationEmailBodyHtml = translation.ConfirmationEmailBodyHtml ?? product.ConfirmationEmailBodyHtml;

@@ -14,6 +14,7 @@ namespace iD_Develops.Services
         Task<List<Exam>> GetPublishedExamsForUserAsync(string userId, CancellationToken cancellationToken = default);
         Task<Exam?> GetExamForSettingsUpdateAsync(int examId);
         Task<Exam?> GetPublicExamBySlugAsync(string publicSlug);
+        Task<bool> IsPublicSlugAvailableAsync(string publicSlug, int examId);
         Task<OperationResult> ArchiveExamAsync(int examId);
         Task<OperationResult> DeleteExamByIdAsync(int examId);
         Task<(string ExamTitle, string CourseName, int DurationSeconds)?> GetExamHeaderAsync(int examId);

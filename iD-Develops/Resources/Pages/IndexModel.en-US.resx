@@ -492,4 +492,10 @@
   <data name="NextStepContactButton" xml:space="preserve">
     <value>Get in touch</value>
   </data>
+  <data name="CustomPrice" xml:space="preserve">
+    <value>Price on request</value>
+  </data>
+  <data name="ViewProductButton" xml:space="preserve">
+    <value>View product</value>
+  </data>
 </root>

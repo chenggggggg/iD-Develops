@@ -94,7 +94,22 @@ namespace iD_Develops.Pages.Portal.Examination
 
             var result = await _examEditMutationService.SaveSettingsAsync(ExamId, Settings, CurrentUserId, (User.IsInRole("Admin") || User.IsInRole("SuperAdmin")));
             if (!result.Success)
+            {
+                if (!string.IsNullOrWhiteSpace(result.ErrorMessage) &&
+                    result.StatusCode is StatusCodes.Status400BadRequest or StatusCodes.Status409Conflict)
+                {
+                    ModelState.AddModelError(nameof(Settings.IsPublicLevelTest), result.ErrorMessage);
+                    var pageData = await _examEditFlowService.LoadPageAsync(ExamId, 0, CurrentUserId, (User.IsInRole("Admin") || User.IsInRole("SuperAdmin")));
+                    if (pageData == null)
+                        return NotFound();
+
+                    Header = pageData.Header;
+                    Header.Mode = PaginationMode.Start;
+                    return Page();
+                }
+
                 return StatusCode(result.StatusCode);
+            }
 
             StatusMessage = "Settings saved.";
             return RedirectToPage(new { ExamId, ReturnCourseId });

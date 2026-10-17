@@ -158,6 +158,20 @@ namespace iD_Develops.Services
                 .FirstOrDefaultAsync();
         }
 
+        public async Task<bool> IsPublicSlugAvailableAsync(string publicSlug, int examId)
+        {
+            if (string.IsNullOrWhiteSpace(publicSlug))
+                return false;
+
+            var normalizedSlug = publicSlug.Trim().ToLowerInvariant();
+            return !await _dbContext.Exams
+                .AsNoTracking()
+                .AnyAsync(exam =>
+                    exam.Id != examId &&
+                    !exam.IsDeleted &&
+                    exam.PublicSlug == normalizedSlug);
+        }
+
         public async Task<OperationResult> DeleteExamByIdAsync(int examId)
         {
             var result = new OperationResult();

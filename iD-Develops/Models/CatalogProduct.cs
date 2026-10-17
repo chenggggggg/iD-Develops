@@ -103,6 +103,23 @@ namespace iD_Develops.Models
 
         public int SortOrder { get; set; }
 
+        [MaxLength(300)]
+        public string? HomepageDescription { get; set; }
+
+        [MaxLength(150)]
+        public string? HomepageSubtitle { get; set; }
+
+        [MaxLength(2000)]
+        public string? HomepageHighlights { get; set; }
+
+        [MaxLength(100)]
+        public string? HomepageButtonText { get; set; }
+
+        [MaxLength(24)]
+        public string? HomepageHighlightText { get; set; }
+
+        public bool IsHomepageHighlighted { get; set; }
+
         public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 
         public DateTime UpdatedAtUtc { get; set; } = DateTime.UtcNow;

@@ -218,7 +218,7 @@ public sealed class PortalEntitlementSmokeTests : Microsoft.Playwright.Xunit.Pag
     }
 
     [Fact]
-    public async Task PublicHome_ShowsExpandedLearningOptionsInDutch()
+    public async Task PublicHome_FeaturedProductLinksUseLocalizedProductRoutes()
     {
         var response = await Page.GotoAsync(
             $"{PublicBaseUrl}/nl-nl/",
@@ -227,14 +227,14 @@ public sealed class PortalEntitlementSmokeTests : Microsoft.Playwright.Xunit.Pag
         Assert.NotNull(response);
         Assert.True(response!.Ok, $"Dutch home returned HTTP {response.Status}.");
 
-        await Expect(Page.GetByRole(
-                Microsoft.Playwright.AriaRole.Heading,
-                new() { Name = "Spreekcursus", Exact = true }))
-            .ToBeVisibleAsync();
-        await Expect(Page.GetByRole(
-                Microsoft.Playwright.AriaRole.Heading,
-                new() { Name = "Speed Class", Exact = true }))
-            .ToBeVisibleAsync();
+        var productLinks = Page.Locator("[data-home-product-link]");
+        var productLinkCount = await productLinks.CountAsync();
+        for (var index = 0; index < productLinkCount; index++)
+        {
+            var href = await productLinks.Nth(index).GetAttributeAsync("href");
+            Assert.NotNull(href);
+            Assert.StartsWith("/nl-nl/products/", href, StringComparison.OrdinalIgnoreCase);
+        }
     }
 
     [Fact]

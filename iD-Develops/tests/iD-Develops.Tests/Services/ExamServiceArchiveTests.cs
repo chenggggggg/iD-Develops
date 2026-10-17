@@ -9,6 +9,29 @@ namespace iD_Develops.Tests.Services;
 public sealed class ExamServiceArchiveTests
 {
     [Fact]
+    public async Task IsPublicSlugAvailableAsync_ConsidersDraftExamsAndExcludesCurrentExam()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var dbContext = factory.CreateDbContext();
+        var existing = new Exam
+        {
+            Name = "Draft level test",
+            CreatedByUserId = "owner",
+            Difficulty = DifficultyLevel.A1,
+            IntroductionPrimaryLanguage = string.Empty,
+            PublishStatus = ExamPublishStatus.Draft,
+            PublicSlug = "level-test"
+        };
+        dbContext.Exams.Add(existing);
+        await dbContext.SaveChangesAsync();
+
+        var service = new ExamService(dbContext);
+
+        Assert.True(await service.IsPublicSlugAvailableAsync("level-test", existing.Id));
+        Assert.False(await service.IsPublicSlugAvailableAsync("level-test", existing.Id + 1));
+    }
+
+    [Fact]
     public async Task ArchiveExam_PreservesExamAndClearsPublicRoute()
     {
         using var factory = new SqliteTestDbFactory();
