@@ -24,6 +24,7 @@ namespace iD_Develops.Services
 
         private const string ActiveValue = "active";
         private readonly ITimeLimitedDataProtector _protector;
+        private readonly string _cookieName;
         private readonly string? _sharedCookieDomain;
 
         public PortalSessionIndicatorService(
@@ -36,14 +37,18 @@ namespace iD_Develops.Services
             _protector = dataProtectionProvider
                 .CreateProtector("PortalSessionIndicator:v1")
                 .ToTimeLimitedDataProtector();
-            _sharedCookieDomain = ResolveSharedCookieDomain(applicationUrlOptions.Value);
+            var options = applicationUrlOptions.Value;
+            _cookieName = string.IsNullOrWhiteSpace(options.PortalSessionIndicatorCookieName)
+                ? CookieName
+                : options.PortalSessionIndicatorCookieName.Trim();
+            _sharedCookieDomain = ResolveSharedCookieDomain(options);
         }
 
         public bool HasActiveSession(HttpRequest request)
         {
             ArgumentNullException.ThrowIfNull(request);
 
-            if (!request.Cookies.TryGetValue(CookieName, out var protectedValue) ||
+            if (!request.Cookies.TryGetValue(_cookieName, out var protectedValue) ||
                 string.IsNullOrWhiteSpace(protectedValue))
             {
                 return false;
@@ -73,7 +78,7 @@ namespace iD_Develops.Services
             }
 
             context.Response.Cookies.Append(
-                CookieName,
+                _cookieName,
                 _protector.Protect(ActiveValue, Lifetime),
                 options);
         }
@@ -81,7 +86,7 @@ namespace iD_Develops.Services
         public void Clear(HttpContext context)
         {
             ArgumentNullException.ThrowIfNull(context);
-            context.Response.Cookies.Delete(CookieName, CreateCookieOptions(context));
+            context.Response.Cookies.Delete(_cookieName, CreateCookieOptions(context));
         }
 
         private CookieOptions CreateCookieOptions(HttpContext context) => new()
@@ -111,6 +116,19 @@ namespace iD_Develops.Services
                 return null;
             }
 
+            if (!string.IsNullOrWhiteSpace(options.PortalSessionIndicatorCookieDomain))
+            {
+                var configuredDomain = options.PortalSessionIndicatorCookieDomain.Trim().Trim('.');
+                if (!HostBelongsToDomain(publicHost, configuredDomain) ||
+                    !HostBelongsToDomain(portalHost, configuredDomain))
+                {
+                    throw new InvalidOperationException(
+                        "ApplicationUrls:PortalSessionIndicatorCookieDomain must contain both the public and portal hosts.");
+                }
+
+                return "." + configuredDomain;
+            }
+
             if (portalHost.EndsWith('.' + publicHost, StringComparison.OrdinalIgnoreCase))
             {
                 return "." + publicHost;
@@ -123,5 +141,9 @@ namespace iD_Develops.Services
 
             return null;
         }
+
+        private static bool HostBelongsToDomain(string host, string domain)
+            => string.Equals(host, domain, StringComparison.OrdinalIgnoreCase) ||
+               host.EndsWith('.' + domain, StringComparison.OrdinalIgnoreCase);
     }
 }
