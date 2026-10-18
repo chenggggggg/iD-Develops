@@ -6,5 +6,7 @@ namespace iD_Develops.Configuration
 
         public string PublicBaseUrl { get; set; } = "http://id.localhost:5000";
         public string PortalBaseUrl { get; set; } = "http://portal.id.localhost:5000";
+        public string? PortalSessionIndicatorCookieDomain { get; set; }
+        public string PortalSessionIndicatorCookieName { get; set; } = ".iDDevelops.PortalSession";
     }
 }

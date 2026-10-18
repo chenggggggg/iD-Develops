@@ -113,6 +113,12 @@ Configure both hostnames in every deployed environment:
 - `ApplicationUrls__PublicBaseUrl`: the bilingual public website, for example `https://id-develops.com`
 - `ApplicationUrls__PortalBaseUrl`: the English-only authenticated portal, for example `https://portal.id-develops.com`
 
+When the public and portal hosts are siblings rather than one being a subdomain of the other,
+configure `ApplicationUrls__PortalSessionIndicatorCookieDomain` with their shared parent and
+give the environment a unique `ApplicationUrls__PortalSessionIndicatorCookieName`. Staging uses
+`.id-develops.com` and `.iDDevelops.Staging.PortalSession`. This cookie contains only protected
+display state for the public navigation; the authentication cookie remains portal-host-only.
+
 For local development, use `http://id.localhost:5000` for the public website and
 `http://portal.id.localhost:5000` for the portal. Both resolve to the existing local application;
 do not start a second application instance. In DigitalOcean App Platform, attach both custom
@@ -136,6 +142,8 @@ public checkout without sharing the portal cookie with the public hostname.
 - `ConnectionStrings__ApplicationDbContextConnection`
 - `ApplicationUrls__PublicBaseUrl`
 - `ApplicationUrls__PortalBaseUrl`
+- `ApplicationUrls__PortalSessionIndicatorCookieDomain` (required for sibling public/portal hosts)
+- `ApplicationUrls__PortalSessionIndicatorCookieName` (use a unique value per shared parent domain)
 - `LOCAL_POSTGRES_USER`
 - `LOCAL_POSTGRES_PASSWORD`
 - `POSTGRES_USER`
@@ -191,7 +199,7 @@ Configure these exact portal redirect URLs for the environments where Zoom is en
 
 - Local: offline mode; Zoom is not configured
 - Development: `http://portal.id.localhost:5003/oauth/scheduling/zoom/callback`
-- Staging: `https://portal.staging.id-develops.com/oauth/scheduling/zoom/callback`
+- Staging: `https://portal-staging.id-develops.com/oauth/scheduling/zoom/callback`
 - Production: `https://portal.id-develops.com/oauth/scheduling/zoom/callback`
 
 Use the Zoom app's Development credentials for both the Development and Staging deployments while the app is being built and tested. Because Zoom requires an HTTPS primary redirect, use the Staging callback as the primary Development-tab redirect. To test OAuth against the laptop Docker deployment, expose port 5003 through an HTTPS tunnel, add that tunnel's exact callback to the Development OAuth allow list, and open the portal through the tunnel URL. Use the separate Production credentials and Production redirect only for the live Production deployment when the app is ready for Marketplace review or publication. Never mix the Zoom app's Development and Production credential pairs.
@@ -225,7 +233,7 @@ Request these exact scopes in the consent configuration:
 
 Configure these exact authorized redirect URIs:
 
-- Staging: `https://portal.staging.id-develops.com/oauth/scheduling/google-calendar/callback`
+- Staging: `https://portal-staging.id-develops.com/oauth/scheduling/google-calendar/callback`
 - Production: `https://portal.id-develops.com/oauth/scheduling/google-calendar/callback`
 
 Local and Development keep Google Calendar disabled. Add test Google accounts while the consent screen is in Testing status. Store the Web client ID and client secret as `SchedulingProviders__GoogleCalendar__ClientId` and `SchedulingProviders__GoogleCalendar__ClientSecret` in the deployment environment, and set `SchedulingProviders__GoogleCalendar__Enabled=true` for Staging or Production.

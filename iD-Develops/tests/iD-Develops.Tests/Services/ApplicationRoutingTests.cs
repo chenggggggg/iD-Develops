@@ -64,6 +64,34 @@ public sealed class ApplicationRoutingTests
     }
 
     [Fact]
+    public void PortalSessionIndicator_SupportsSiblingStagingHostsWithoutReplacingProductionCookie()
+    {
+        const string stagingCookieName = ".iDDevelops.Staging.PortalSession";
+        var service = new PortalSessionIndicatorService(
+            new EphemeralDataProtectionProvider(),
+            Options.Create(new ApplicationUrlOptions
+            {
+                PublicBaseUrl = "https://staging.id-develops.com",
+                PortalBaseUrl = "https://portal-staging.id-develops.com",
+                PortalSessionIndicatorCookieDomain = ".id-develops.com",
+                PortalSessionIndicatorCookieName = stagingCookieName
+            }));
+        var portalContext = new DefaultHttpContext();
+        portalContext.Request.Scheme = "https";
+
+        service.MarkSignedIn(portalContext, isPersistent: true);
+
+        var setCookie = portalContext.Response.Headers.SetCookie.ToString();
+        Assert.StartsWith(stagingCookieName + "=", setCookie, StringComparison.Ordinal);
+        Assert.Contains("domain=.id-develops.com", setCookie, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain(PortalSessionIndicatorService.CookieName + "=", setCookie, StringComparison.Ordinal);
+
+        var publicContext = new DefaultHttpContext();
+        publicContext.Request.Headers.Cookie = setCookie.Split(';', 2)[0];
+        Assert.True(service.HasActiveSession(publicContext.Request));
+    }
+
+    [Fact]
     public void RouteConvention_AssignsPublicProductToPublicModuleOnly()
     {
         var model = CreatePageRouteModel("/Product", "{slug}");
