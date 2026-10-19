@@ -6,6 +6,7 @@ using iD_Develops.Services;
 using iD_Develops.Tests.Infrastructure;
 using iD_Develops.Utilities;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -13,6 +14,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
@@ -28,6 +32,83 @@ namespace iD_Develops.Tests.Pages;
 
 public sealed class CompletedModelTests
 {
+    [Theory]
+    [InlineData("en-us")]
+    [InlineData("nl-nl")]
+    public async Task OnGetAsync_CompletedPublicLevelTest_RendersResultsForm(string culture)
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var exam = SeedLevelTestExam(db);
+        var record = SeedCompletedRecord(db, exam);
+        var harness = await TestHarness.CreateAsync(db);
+        var model = harness.CreateModel();
+        model.RecordId = record.Id;
+
+        Assert.IsType<PageResult>(await model.OnGetAsync());
+        Assert.True(model.ShowLevelTestCompletedPartial);
+
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+        {
+            ApplicationName = typeof(CompletedModel).Assembly.GetName().Name,
+            EnvironmentName = "Development"
+        });
+        builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+        builder.Services.AddRazorPages()
+            .AddApplicationPart(typeof(CompletedModel).Assembly)
+            .AddRazorPagesOptions(options => options.Conventions.Add(
+                new ApplicationHostPageRouteModelConvention("localhost", "portal.localhost")));
+        builder.Services.AddSingleton<ITurnstileService, NoOpTurnstileService>();
+        builder.Services.AddSingleton<IApplicationUrlService>(new ApplicationUrlService(
+            Options.Create(new ApplicationUrlOptions
+            {
+                PublicBaseUrl = "https://localhost:5001",
+                PortalBaseUrl = "https://portal.localhost:5001"
+            })));
+        await using var app = builder.Build();
+        app.UseRouting();
+        app.MapRazorPages();
+        app.UseEndpoints(_ => { });
+        using var scope = app.Services.CreateScope();
+        model.HttpContext.RequestServices = scope.ServiceProvider;
+        model.RouteData.Values["page"] = "/Examination/Completed";
+        model.RouteData.Values["culture"] = culture;
+        model.RouteData.Values["recordId"] = record.Id;
+        model.HttpContext.Request.RouteValues = model.RouteData.Values;
+        model.HttpContext.Request.Path = $"/{culture}/examination/completed/{record.Id}";
+        var endpoint = ((IEndpointRouteBuilder)app).DataSources
+            .SelectMany(source => source.Endpoints)
+            .Single(endpoint => endpoint.Metadata.GetMetadata<PageActionDescriptor>()?.ViewEnginePath == "/Examination/Completed");
+        model.HttpContext.SetEndpoint(endpoint);
+        model.PageContext.ActionDescriptor = new CompiledPageActionDescriptor(
+            endpoint.Metadata.GetMetadata<PageActionDescriptor>()!);
+
+        var viewEngine = scope.ServiceProvider.GetRequiredService<IRazorViewEngine>();
+        var view = viewEngine.GetView(null, "/Pages/Examination/Completed.cshtml", isMainPage: true);
+        Assert.True(view.Success, string.Join(Environment.NewLine, view.SearchedLocations ?? []));
+        using var writer = new StringWriter();
+        var viewData = new ViewDataDictionary<CompletedModel>(
+            scope.ServiceProvider.GetRequiredService<IModelMetadataProvider>(), model.ModelState)
+        {
+            Model = model
+        };
+        var context = new ViewContext(model.PageContext, view.View, viewData,
+            new TempDataDictionary(model.HttpContext,
+                scope.ServiceProvider.GetRequiredService<ITempDataProvider>()),
+            writer, new HtmlHelperOptions());
+        model.PageContext.ViewData = viewData;
+        var razorPage = Assert.IsAssignableFrom<Page>(((RazorView)view.View).RazorPage);
+        razorPage.PageContext = model.PageContext;
+
+        await view.View.RenderAsync(context);
+
+        var html = writer.ToString();
+        Assert.Contains("handler=SubmitForm", html, StringComparison.Ordinal);
+        Assert.Contains("name=\"Name\"", html, StringComparison.Ordinal);
+        Assert.Contains("name=\"Email\"", html, StringComparison.Ordinal);
+        Assert.Contains(record.Id.ToString(), html, StringComparison.Ordinal);
+    }
+
     [Fact]
     public async Task OnPostSubmitFormAsync_AnonymousWithoutInputs_ReturnsPageWithValidationErrors()
     {

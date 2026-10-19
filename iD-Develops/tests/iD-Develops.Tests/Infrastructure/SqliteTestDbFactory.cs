@@ -14,13 +14,13 @@ internal sealed class SqliteTestDbFactory : IDisposable
         _connection.Open();
     }
 
-    public ApplicationDbContext CreateDbContext()
+    public ApplicationDbContext CreateDbContext(Action<DbContextOptionsBuilder<ApplicationDbContext>>? configure = null)
     {
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseSqlite(_connection)
-            .Options;
+        var builder = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseSqlite(_connection);
+        configure?.Invoke(builder);
 
-        var dbContext = new ApplicationDbContext(options);
+        var dbContext = new ApplicationDbContext(builder.Options);
         dbContext.Database.EnsureCreated();
         return dbContext;
     }
