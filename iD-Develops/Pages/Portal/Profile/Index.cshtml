@@ -1,5 +1,6 @@
 @page
 @model iD_Develops.Pages.Portal.Profile.IndexModel
+@inject iD_Develops.Services.IApplicationUrlService ApplicationUrls
 @{
     Layout = "_PortalLayout";
     ViewData["Title"] = "My Profile";
@@ -67,7 +68,7 @@
                 }
                 </div>
             }
-            <a class="portal-btn portal-btn-primary w-full justify-center" asp-page="/Products" asp-route-type="credit"><i class="fa-solid fa-plus" aria-hidden="true"></i>Add credits</a>
+            <a class="portal-btn portal-btn-primary w-full justify-center" href="@ApplicationUrls.PublicUrl("/en-us/products?type=credit")"><i class="fa-solid fa-plus" aria-hidden="true"></i>Add credits</a>
             <p class="mb-0 mt-4 text-xs leading-5 text-slate-500">Member since @Model.MemberSinceUtc.ToString("MMMM yyyy"). Level-test results will appear here once that feature is available.</p>
         </aside>
     </div>

@@ -50,6 +50,7 @@
     var isDraft = Model.Product.Status == CatalogProductStatus.Draft;
     var isPublished = Model.Product.Status == CatalogProductStatus.Published;
     var isArchived = Model.Product.Status == CatalogProductStatus.Archived;
+    var submittedForm = Request.HasFormContentType ? Request.Form : Microsoft.AspNetCore.Http.FormCollection.Empty;
 }
 
 <section class="public-page product-page-shell @(Model.IsAdminEditMode ? "product-edit-mode-shell" : null)">
@@ -882,14 +883,14 @@
                                                   name="@ProductModel.GetFieldName(field, null)"
                                                   placeholder="@field.Placeholder"
                                                   maxlength="@field.CharacterLimit"
-                                                  rows="4">@Request.Form[ProductModel.GetFieldName(field, null)]</textarea>
+                                                  rows="4">@submittedForm[ProductModel.GetFieldName(field, null)]</textarea>
                                         break;
                                     case CatalogFormFieldType.Select:
                                         <select class="public-field" id="@ProductModel.GetFieldName(field, null)" name="@ProductModel.GetFieldName(field, null)">
                                             <option value="">@Localizer["SelectOption"]</option>
                                             @foreach (var option in field.Options)
                                             {
-                                                if (Request.Form[ProductModel.GetFieldName(field, null)] == option)
+                                                if (submittedForm[ProductModel.GetFieldName(field, null)] == option)
                                                 {
                                                     <option value="@option" selected>@option</option>
                                                 }
@@ -911,7 +912,7 @@
                                                 var optionName = field.AllowMultipleOptions ? $"{ProductModel.GetFieldName(field, null)}_{optionIndex}" : ProductModel.GetFieldName(field, null);
                                                 var optionId = $"{ProductModel.GetFieldName(field, null)}_{optionIndex}";
                                                 var optionInputType = field.AllowMultipleOptions ? "checkbox" : "radio";
-                                                var optionChecked = Request.Form[optionName] == optionLabel || Request.Form[optionName] == "on";
+                                                var optionChecked = submittedForm[optionName] == optionLabel || submittedForm[optionName] == "on";
                                                 <div class="product-checkbox-with-text">
                                                     <label class="product-check">
                                                         <input class="product-check-input" type="@optionInputType" id="@optionId" name="@optionName" value="@optionLabel" @(optionChecked ? "checked" : null) />
@@ -919,7 +920,7 @@
                                                     </label>
                                                     @if (optionKind == "text")
                                                     {
-                                                        <input class="public-field" type="text" name="@(optionId)_text" value="@Request.Form[$"{optionId}_text"]" maxlength="@optionLimit" placeholder="@Localizer["SpecifyPlaceholder"]" />
+                                                        <input class="public-field" type="text" name="@(optionId)_text" value="@submittedForm[$"{optionId}_text"]" maxlength="@optionLimit" placeholder="@Localizer["SpecifyPlaceholder"]" />
                                                     }
                                                 </div>
                                             }
@@ -933,7 +934,7 @@
                                                 var optionName = $"{ProductModel.GetFieldName(field, null)}_{optionIndex}";
                                                 <li>
                                                     <label class="product-visually-hidden" for="@optionName">@optionLabel</label>
-                                                    <input class="public-field" id="@optionName" name="@optionName" value="@Request.Form[optionName]" placeholder="@optionLabel" />
+                                                    <input class="public-field" id="@optionName" name="@optionName" value="@submittedForm[optionName]" placeholder="@optionLabel" />
                                                 </li>
                                             }
                                         </ol>
@@ -949,7 +950,7 @@
                                                type="@inputType"
                                                id="@ProductModel.GetFieldName(field, null)"
                                                name="@ProductModel.GetFieldName(field, null)"
-                                               value="@Request.Form[ProductModel.GetFieldName(field, null)]"
+                                               value="@submittedForm[ProductModel.GetFieldName(field, null)]"
                                                placeholder="@field.Placeholder" />
                                         break;
                                 }
