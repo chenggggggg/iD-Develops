@@ -58,60 +58,84 @@ namespace iD_Develops.Services
 
             var submittedAnswer = participantAnswer.AnswerText?.Trim() ?? string.Empty;
             var shouldClear = string.IsNullOrWhiteSpace(submittedAnswer);
+            var originalAnswerId = participantAnswer.Id;
+            var strategy = _dbContext.Database.CreateExecutionStrategy();
 
-            await using var tx = await _dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable);
-
-            var record = await _dbContext.Records
-                .FirstOrDefaultAsync(r =>
-                    r.Id == participantAnswer.RecordId &&
-                    !r.IsDeleted &&
-                    r.ExamStatus == ExamStatus.InProgress);
-
-            if (record == null)
-                return false;
-
-            if (record.EndDateTime.HasValue &&
-                participantAnswer.Timestamp > record.EndDateTime.Value.AddSeconds(graceSeconds))
+            return await strategy.ExecuteAsync(async () =>
             {
-                return false;
-            }
+                await using var tx = await _dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+                Record? record = null;
+                ParticipantAnswer? existingAnswer = null;
 
-            var existingAnswer = await _dbContext.ParticipantAnswers
-                .FirstOrDefaultAsync(pa =>
-                    pa.QuestionId == participantAnswer.QuestionId &&
-                    pa.RecordId == participantAnswer.RecordId);
-
-            var changed = false;
-            if (existingAnswer == null)
-            {
-                if (!shouldClear)
+                try
                 {
-                    participantAnswer.AnswerText = submittedAnswer;
-                    participantAnswer.IsDeleted = false;
-                    _dbContext.ParticipantAnswers.Add(participantAnswer);
-                    changed = true;
+                    record = await _dbContext.Records
+                        .FirstOrDefaultAsync(r =>
+                            r.Id == participantAnswer.RecordId &&
+                            !r.IsDeleted &&
+                            r.ExamStatus == ExamStatus.InProgress);
+
+                    if (record == null)
+                        return false;
+
+                    if (record.EndDateTime.HasValue &&
+                        participantAnswer.Timestamp > record.EndDateTime.Value.AddSeconds(graceSeconds))
+                    {
+                        return false;
+                    }
+
+                    existingAnswer = await _dbContext.ParticipantAnswers
+                        .FirstOrDefaultAsync(pa =>
+                            pa.QuestionId == participantAnswer.QuestionId &&
+                            pa.RecordId == participantAnswer.RecordId);
+
+                    var changed = false;
+                    if (existingAnswer == null)
+                    {
+                        if (!shouldClear)
+                        {
+                            participantAnswer.AnswerText = submittedAnswer;
+                            participantAnswer.IsDeleted = false;
+                            participantAnswer.Record = record;
+                            _dbContext.Entry(participantAnswer).State = EntityState.Added;
+                            changed = true;
+                        }
+                    }
+                    else if (existingAnswer.Timestamp < participantAnswer.Timestamp)
+                    {
+                        existingAnswer.AnswerText = shouldClear ? string.Empty : submittedAnswer;
+                        existingAnswer.Timestamp = participantAnswer.Timestamp;
+                        existingAnswer.IsDeleted = shouldClear;
+                        changed = true;
+                    }
+
+                    if (record.LastActivityUtc == null || record.LastActivityUtc < participantAnswer.Timestamp)
+                    {
+                        record.LastActivityUtc = participantAnswer.Timestamp;
+                        changed = true;
+                    }
+
+                    if (!changed)
+                        return false;
+
+                    await _dbContext.SaveChangesAsync(acceptAllChangesOnSuccess: false);
+                    await tx.CommitAsync();
+                    _dbContext.ChangeTracker.AcceptAllChanges();
+                    return true;
                 }
-            }
-            else if (existingAnswer.Timestamp < participantAnswer.Timestamp)
-            {
-                existingAnswer.AnswerText = shouldClear ? string.Empty : submittedAnswer;
-                existingAnswer.Timestamp = participantAnswer.Timestamp;
-                existingAnswer.IsDeleted = shouldClear;
-                changed = true;
-            }
-
-            if (record.LastActivityUtc == null || record.LastActivityUtc < participantAnswer.Timestamp)
-            {
-                record.LastActivityUtc = participantAnswer.Timestamp;
-                changed = true;
-            }
-
-            if (!changed)
-                return false;
-
-            await _dbContext.SaveChangesAsync();
-            await tx.CommitAsync();
-            return true;
+                catch
+                {
+                    // A rolled-back save may already have updated tracked values and generated an ID.
+                    // Reload only this operation's entities on retry, keeping unrelated tracked work intact.
+                    if (record != null)
+                        _dbContext.Entry(record).State = EntityState.Detached;
+                    if (existingAnswer != null)
+                        _dbContext.Entry(existingAnswer).State = EntityState.Detached;
+                    _dbContext.Entry(participantAnswer).State = EntityState.Detached;
+                    participantAnswer.Id = originalAnswerId;
+                    throw;
+                }
+            });
         }
 
         public async Task<List<int>> GetAnsweredQuestionsAsync(Guid recordId)

@@ -443,7 +443,8 @@
         const source = options.source || "manual";
 
         if (saveInFlightPromise) {
-            return saveInFlightPromise;
+            await saveInFlightPromise;
+            return window.submitCurrentAnswer(options);
         }
 
         saveInFlightPromise = submitAnswerCore(source)
@@ -475,7 +476,18 @@
         if (submitBtn) submitBtn.disabled = true;
 
         try {
-            try { await window.submitCurrentAnswer({ source: timeoutTriggered ? "timeout-submit" : "submit" }); } catch { }
+            let answerSaveResult;
+            try {
+                answerSaveResult = await window.submitCurrentAnswer({ source: timeoutTriggered ? "timeout-submit" : "submit" });
+            } catch {
+                answerSaveResult = { success: false };
+            }
+
+            if (!timeoutTriggered && !answerSaveResult?.success) {
+                const message = "Your latest answer could not be saved. Please try submitting again.";
+                notify(message, { type: "error", title: "Submit failed" });
+                return { success: false, errorMessage: message };
+            }
 
             if (!force) {
                 const validateUrl = `${getPagePath()}?handler=ValidateMissingQuestions`;
