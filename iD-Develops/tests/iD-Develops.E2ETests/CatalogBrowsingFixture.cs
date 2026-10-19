@@ -3,16 +3,13 @@ using iD_Develops.Enums;
 using iD_Develops.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 
 namespace iD_Develops.E2ETests;
 
 internal sealed class CatalogBrowsingFixture(ApplicationDbContext db) : IAsyncDisposable
 {
-    public static string PublicBaseUrl =>
-        (Environment.GetEnvironmentVariable("IDDEVELOPS_E2E_PUBLIC_BASE_URL") ?? "http://id.localhost:5000").TrimEnd('/');
-    public static string PortalBaseUrl =>
-        (Environment.GetEnvironmentVariable("IDDEVELOPS_E2E_PORTAL_BASE_URL") ?? "http://portal.id.localhost:5000").TrimEnd('/');
+    public static string PublicBaseUrl => LocalTestApplication.PublicBaseUrl;
+    public static string PortalBaseUrl => LocalTestApplication.PortalBaseUrl;
 
     public CatalogProduct Credit { get; private set; } = null!;
     public CatalogProduct Standard { get; private set; } = null!;
@@ -21,22 +18,12 @@ internal sealed class CatalogBrowsingFixture(ApplicationDbContext db) : IAsyncDi
     public ApplicationUser User { get; private set; } = null!;
     public string Password { get; } = $"Catalog!{Guid.NewGuid():N}aA1";
 
-    public static async Task<CatalogBrowsingFixture> CreateAsync()
+    public static async Task<CatalogBrowsingFixture> CreateAsync(bool administrator = false)
     {
-        var connectionString = Environment.GetEnvironmentVariable("IDDEVELOPS_E2E_DATABASE_CONNECTION");
-        if (string.IsNullOrWhiteSpace(connectionString))
-            throw new InvalidOperationException("Set IDDEVELOPS_E2E_DATABASE_CONNECTION to the running local application's PostgreSQL connection string.");
-        if (!IsLocalHost(new Uri(PublicBaseUrl).Host) || !IsLocalHost(new Uri(PortalBaseUrl).Host) ||
-            !IsLocalHost(new NpgsqlConnectionStringBuilder(connectionString).Host ?? string.Empty))
-            throw new InvalidOperationException("Catalog browsing fixtures require local application and database hosts.");
-
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseNpgsql(connectionString)
-            .Options;
-        var fixture = new CatalogBrowsingFixture(new ApplicationDbContext(options));
+        var fixture = new CatalogBrowsingFixture(LocalTestApplication.CreateDbContext());
         try
         {
-            await fixture.SeedAsync();
+            await fixture.SeedAsync(administrator);
             return fixture;
         }
         catch
@@ -46,7 +33,7 @@ internal sealed class CatalogBrowsingFixture(ApplicationDbContext db) : IAsyncDi
         }
     }
 
-    private async Task SeedAsync()
+    private async Task SeedAsync(bool administrator)
     {
         var suffix = Guid.NewGuid().ToString("N");
         Credit = Product("Credits", CatalogProductType.Credit);
@@ -84,8 +71,9 @@ internal sealed class CatalogBrowsingFixture(ApplicationDbContext db) : IAsyncDi
         };
         User.PasswordHash = new PasswordHasher<ApplicationUser>().HashPassword(User, Password);
         db.Users.Add(User);
-        var studentRole = await db.Roles.SingleAsync(role => role.NormalizedName == "STUDENT");
-        db.UserRoles.Add(new IdentityUserRole<string> { UserId = User.Id, RoleId = studentRole.Id });
+        var roleName = administrator ? "ADMIN" : "STUDENT";
+        var userRole = await db.Roles.SingleAsync(role => role.NormalizedName == roleName);
+        db.UserRoles.Add(new IdentityUserRole<string> { UserId = User.Id, RoleId = userRole.Id });
         await db.SaveChangesAsync();
 
         CatalogProduct Product(string name, CatalogProductType type) => new()
@@ -108,11 +96,6 @@ internal sealed class CatalogBrowsingFixture(ApplicationDbContext db) : IAsyncDi
             IsRequired = required,
             OptionsText = options
         };
-
-    private static bool IsLocalHost(string host)
-        => host.Equals("localhost", StringComparison.OrdinalIgnoreCase) ||
-           host.EndsWith(".localhost", StringComparison.OrdinalIgnoreCase) ||
-           (System.Net.IPAddress.TryParse(host, out var address) && System.Net.IPAddress.IsLoopback(address));
 
     public async ValueTask DisposeAsync()
     {

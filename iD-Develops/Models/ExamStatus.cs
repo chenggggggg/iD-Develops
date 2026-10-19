@@ -3,18 +3,16 @@ namespace iD_Develops.Models
     public enum ExamStatus
     {
         // Record has not started yet (reserved for future use).
-        NotStarted,
+        NotStarted = 0,
         // Active attempt, timer is still running.
-        InProgress,
-        // Submitted within the allowed time window.
-        Completed,
-        // Time limit has passed before a valid submit.
-        Overdue,
+        InProgress = 1,
+        // Submitted manually or finalized automatically when the time limit expires.
+        Completed = 2,
         // Attempt was intentionally stopped (restart/manual cancel/cleanup).
-        Cancelled,
+        Cancelled = 4,
         // Record could not be found or state is not resolvable.
-        Invalid,
+        Invalid = 5,
         // Legacy value kept for backward compatibility with existing data.
-        Disconnected
+        Disconnected = 6
     }
 }

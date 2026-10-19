@@ -78,7 +78,7 @@ namespace iD_Develops.Services
                 }
             }
 
-            // Attempts used per your RecordService rule (InProgress/Completed/Overdue/Cancelled count)
+            // In-progress, completed, and cancelled attempts all count toward the limit.
             var attemptsUsed = await _recordService.CountAttemptsAsync(userId, examId, descriptor.ExamVersionId);
 
             var unlimited = maxAttempts == -1;

@@ -18,7 +18,7 @@ namespace iD_Develops.Services
         Task<AttemptAccessState> GetAttemptAccessStateAsync(Guid recordId, int? examId = null, string? userId = null, CancellationToken cancellationToken = default);
         Task<Guid> CreateRecordAsync(Record record);
         Task CompleteRecordAsync(Guid id, DateTime submitTime);
-        Task<int> MarkExpiredRecordsOverdueAsync(CancellationToken cancellationToken = default);
+        Task<int> FinalizeExpiredRecordsAsync(CancellationToken cancellationToken = default);
         Task<ExamStatus> GetExamStatusAsync(Guid recordId, int? examId = null, CancellationToken cancellationToken = default);
         Task<DateTime?> GetRecordEndTimeAsync(Guid recordId);
         Task<int> CountAttemptsAsync(string userId, int examId, int? examVersionId = null);

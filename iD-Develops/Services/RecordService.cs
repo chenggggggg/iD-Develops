@@ -1,4 +1,3 @@
-using EFCore.BulkExtensions;
 using iD_Develops.Configuration;
 using iD_Develops.Data;
 using iD_Develops.Enums;
@@ -16,6 +15,7 @@ namespace iD_Develops.Services
         private readonly IExamVersionService _examVersionService;
         private readonly IParticipantAnswerService _participantAnswerService;
         private readonly IExamEvaluationService _examEvaluationService;
+        private readonly IHttpContextAccessor? _httpContextAccessor;
 
         public RecordService(
             ApplicationDbContext dbContext,
@@ -23,7 +23,8 @@ namespace iD_Develops.Services
             IOptions<RecordLifecycleOptions> lifecycleOptions,
             IExamVersionService examVersionService,
             IParticipantAnswerService participantAnswerService,
-            IExamEvaluationService examEvaluationService)
+            IExamEvaluationService examEvaluationService,
+            IHttpContextAccessor? httpContextAccessor = null)
         {
             _dbContext = dbContext;
             _logger = logger;
@@ -31,6 +32,7 @@ namespace iD_Develops.Services
             _examVersionService = examVersionService;
             _participantAnswerService = participantAnswerService;
             _examEvaluationService = examEvaluationService;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<AttemptAccessState> GetAttemptAccessStateAsync(
@@ -48,7 +50,7 @@ namespace iD_Develops.Services
             if (record == null)
                 return AttemptAccessState.Missing;
 
-            await RefreshTrackedInProgressRecordAsync(record, cancellationToken);
+            await ApplyRecordLifecycleAsync(record, cancellationToken);
 
             return new AttemptAccessState
             {
@@ -87,34 +89,12 @@ namespace iD_Develops.Services
                 return;
             }
 
-            if (recordToUpdate.ExamStatus != ExamStatus.InProgress)
-                return;
-
-            var gracePeriod = GetSubmissionGracePeriod();
-            var now = DateTime.UtcNow;
-
-            if (!recordToUpdate.EndDateTime.HasValue)
-            {
-                ApplyStatus(recordToUpdate, ExamStatus.Completed, RecordStatusReason.ManualSubmit, now);
-            }
-            else
-            {
-                if (submitTime <= recordToUpdate.EndDateTime.Value.Add(gracePeriod))
-                    ApplyStatus(recordToUpdate, ExamStatus.Completed, RecordStatusReason.ManualSubmit, now);
-                else
-                    ApplyStatus(recordToUpdate, ExamStatus.Overdue, RecordStatusReason.DeadlinePassed, now);
-            }
-
-            TouchActivity(recordToUpdate, submitTime);
-            await UpdateRecordScoreAsync(recordToUpdate);
-            await _dbContext.SaveChangesAsync();
+            await ApplyRecordLifecycleAsync(recordToUpdate, CancellationToken.None, submitTime);
         }
 
-        public async Task<int> MarkExpiredRecordsOverdueAsync(CancellationToken cancellationToken = default)
+        public async Task<int> FinalizeExpiredRecordsAsync(CancellationToken cancellationToken = default)
         {
             var now = DateTime.UtcNow;
-            var updatedCount = 0;
-
             var expiredTimedRecords = await _dbContext.Records
                 .Where(r =>
                     !r.IsDeleted &&
@@ -123,21 +103,12 @@ namespace iD_Develops.Services
                     r.EndDateTime.Value <= now)
                 .ToListAsync(cancellationToken);
 
-            if (expiredTimedRecords.Count > 0)
-            {
-                expiredTimedRecords.ForEach(record =>
-                    ApplyStatus(record, ExamStatus.Overdue, RecordStatusReason.DeadlinePassed, now));
-
-                updatedCount += expiredTimedRecords.Count;
-            }
-
             var staleNoLimitRecords = await GetStaleNoTimeLimitInProgressRecordsAsync(cancellationToken);
-            if (staleNoLimitRecords.Count > 0)
+            var updatedCount = 0;
+            foreach (var record in expiredTimedRecords.Concat(staleNoLimitRecords))
             {
-                staleNoLimitRecords.ForEach(record =>
-                    ApplyStatus(record, ExamStatus.Cancelled, RecordStatusReason.AbandonedNoTimeLimit, now));
-
-                updatedCount += staleNoLimitRecords.Count;
+                if (await ApplyRecordLifecycleAsync(record, cancellationToken))
+                    updatedCount++;
             }
 
             if (updatedCount == 0)
@@ -147,42 +118,9 @@ namespace iD_Develops.Services
             }
 
             _logger.LogInformation(
-                "Updating record lifecycle states. OverdueTimed={OverdueCount}, CancelledNoLimit={CancelledCount}",
+                "Updating record lifecycle states. CompletedTimed={CompletedCount}, CancelledNoLimit={CancelledCount}",
                 expiredTimedRecords.Count,
                 staleNoLimitRecords.Count);
-
-            var lifecycleRecords = expiredTimedRecords.Concat(staleNoLimitRecords).ToList();
-            var auditEvents = lifecycleRecords
-                .Select(record => ApplicationAuditService.CreateEvent(
-                    new ApplicationAuditEntry(
-                        ApplicationAuditEventTypes.ExamAttemptStatusChanged,
-                        AuditEventCategory.Examination,
-                        AuditEventOutcome.Information,
-                        record.ExamStatus == ExamStatus.Overdue
-                            ? "Exam attempt became overdue after its deadline passed."
-                            : "Exam attempt was cancelled after prolonged inactivity.",
-                        SubjectUserId: record.UserId,
-                        EntityType: nameof(Record),
-                        EntityId: record.Id.ToString(),
-                        Metadata: new Dictionary<string, object?>
-                        {
-                            ["examId"] = record.ExamId,
-                            ["status"] = record.ExamStatus.ToString(),
-                            ["reason"] = record.StatusReason.ToString(),
-                            ["deadlineUtc"] = record.EndDateTime,
-                            ["lastActivityUtc"] = record.LastActivityUtc
-                        }),
-                    httpContext: null))
-                .ToList();
-
-            var strategy = _dbContext.Database.CreateExecutionStrategy();
-            await strategy.ExecuteAsync(async () =>
-            {
-                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
-                await _dbContext.BulkUpdateAsync(lifecycleRecords, cancellationToken: cancellationToken);
-                await _dbContext.BulkInsertAsync(auditEvents, cancellationToken: cancellationToken);
-                await transaction.CommitAsync(cancellationToken);
-            });
 
             return updatedCount;
         }
@@ -198,7 +136,7 @@ namespace iD_Develops.Services
             if (record == null)
                 return ExamStatus.Invalid;
 
-            await RefreshTrackedInProgressRecordAsync(record, cancellationToken);
+            await ApplyRecordLifecycleAsync(record, cancellationToken);
 
             return record.ExamStatus;
         }
@@ -234,23 +172,12 @@ namespace iD_Develops.Services
             var expiredTimedRecords = await expiredTimedRecordsQuery
                 .ToListAsync(cancellationToken);
 
-            if (expiredTimedRecords.Count > 0)
-            {
-                expiredTimedRecords.ForEach(record =>
-                    ApplyStatus(record, ExamStatus.Overdue, RecordStatusReason.DeadlinePassed, now));
-                updated += expiredTimedRecords.Count;
-            }
-
             var staleNoLimitRecords = await GetStaleNoTimeLimitInProgressRecordsForUserExamAsync(userId, examId, examVersionId, cancellationToken);
-            if (staleNoLimitRecords.Count > 0)
+            foreach (var record in expiredTimedRecords.Concat(staleNoLimitRecords))
             {
-                staleNoLimitRecords.ForEach(record =>
-                    ApplyStatus(record, ExamStatus.Cancelled, RecordStatusReason.AbandonedNoTimeLimit, now));
-                updated += staleNoLimitRecords.Count;
+                if (await ApplyRecordLifecycleAsync(record, cancellationToken))
+                    updated++;
             }
-
-            if (updated > 0)
-                await _dbContext.SaveChangesAsync(cancellationToken);
 
             return updated;
         }
@@ -288,7 +215,6 @@ namespace iD_Develops.Services
             {
                 ExamStatus.InProgress,
                 ExamStatus.Completed,
-                ExamStatus.Overdue,
                 ExamStatus.Cancelled
             };
 
@@ -432,7 +358,6 @@ namespace iD_Develops.Services
             var visibleStatuses = new[]
             {
                 ExamStatus.Completed,
-                ExamStatus.Overdue,
                 ExamStatus.Cancelled
             };
 
@@ -472,15 +397,6 @@ namespace iD_Develops.Services
             return summaries;
         }
 
-        private TimeSpan GetSubmissionGracePeriod()
-        {
-            var seconds = _lifecycleOptions.SubmissionGraceSeconds;
-            if (seconds < 0)
-                seconds = 0;
-
-            return TimeSpan.FromSeconds(seconds);
-        }
-
         private TimeSpan GetNoTimeLimitInactivityWindow()
         {
             var days = _lifecycleOptions.NoTimeLimitInactivityDays;
@@ -495,12 +411,6 @@ namespace iD_Develops.Services
             record.ExamStatus = status;
             record.StatusReason = reason;
             record.StatusChangedAtUtc = changedAtUtc;
-        }
-
-        private void TouchActivity(Record record, DateTime activityUtc)
-        {
-            if (!record.LastActivityUtc.HasValue || activityUtc > record.LastActivityUtc.Value)
-                record.LastActivityUtc = activityUtc;
         }
 
         private bool ShouldCancelAsStaleNoLimit(Record record, DateTime nowUtc)
@@ -579,24 +489,131 @@ namespace iD_Develops.Services
             return query;
         }
 
-        private async Task RefreshTrackedInProgressRecordAsync(Record record, CancellationToken cancellationToken)
+        private async Task<bool> ApplyRecordLifecycleAsync(Record record, CancellationToken cancellationToken, DateTime? submitTime = null)
         {
-            if (record.ExamStatus != ExamStatus.InProgress)
-                return;
+            var entry = _dbContext.Entry(record);
+            await entry.ReloadAsync(cancellationToken);
+            if (!CanTransition(DateTime.UtcNow))
+                return false;
 
-            var now = DateTime.UtcNow;
-
-            if (record.EndDateTime.HasValue && record.EndDateTime.Value <= now)
+            ApplicationAuditEvent? auditEvent = null;
+            try
             {
-                ApplyStatus(record, ExamStatus.Overdue, RecordStatusReason.DeadlinePassed, now);
-                await _dbContext.SaveChangesAsync(cancellationToken);
-                return;
+                // Starting another attempt already supplies a transaction and retry strategy.
+                if (_dbContext.Database.CurrentTransaction != null)
+                    return await ApplyTransitionAsync();
+
+                var strategy = _dbContext.Database.CreateExecutionStrategy();
+                return await strategy.ExecuteAsync(async () =>
+                {
+                    await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                    try
+                    {
+                        var changed = await ApplyTransitionAsync();
+                        await transaction.CommitAsync(cancellationToken);
+                        return changed;
+                    }
+                    catch
+                    {
+                        DiscardFailedTransition();
+                        throw;
+                    }
+                });
+            }
+            catch
+            {
+                DiscardFailedTransition();
+                throw;
             }
 
-            if (ShouldCancelAsStaleNoLimit(record, now))
+            bool CanTransition(DateTime now)
+                => entry.State != EntityState.Detached && !record.IsDeleted &&
+                   record.ExamStatus == ExamStatus.InProgress &&
+                   (submitTime.HasValue || (record.EndDateTime.HasValue && record.EndDateTime.Value <= now) ||
+                    ShouldCancelAsStaleNoLimit(record, now));
+
+            async Task<bool> ApplyTransitionAsync()
             {
-                ApplyStatus(record, ExamStatus.Cancelled, RecordStatusReason.AbandonedNoTimeLimit, now);
+                if (entry.State == EntityState.Detached)
+                    entry.State = EntityState.Unchanged;
+                await entry.ReloadAsync(cancellationToken);
+                var now = DateTime.UtcNow;
+                if (!CanTransition(now))
+                    return false;
+
+                var timedOut = record.EndDateTime.HasValue;
+                var status = timedOut ? ExamStatus.Completed : ExamStatus.Cancelled;
+                var reason = timedOut ? RecordStatusReason.DeadlinePassed : RecordStatusReason.AbandonedNoTimeLimit;
+                if (submitTime.HasValue)
+                {
+                    status = ExamStatus.Completed;
+                    reason = record.EndDateTime.HasValue && submitTime.Value >= record.EndDateTime.Value
+                        ? RecordStatusReason.DeadlinePassed : RecordStatusReason.ManualSubmit;
+                }
+                var eligible = _dbContext.Records.Where(item =>
+                    item.Id == record.Id && !item.IsDeleted && item.ExamStatus == ExamStatus.InProgress);
+                if (submitTime.HasValue)
+                {
+                    var deadline = record.EndDateTime;
+                    eligible = eligible.Where(item => item.EndDateTime == deadline);
+                }
+                else if (timedOut)
+                {
+                    eligible = eligible.Where(item => item.EndDateTime.HasValue && item.EndDateTime <= now);
+                }
+                else
+                {
+                    var cutoff = now.Subtract(GetNoTimeLimitInactivityWindow());
+                    eligible = eligible.Where(item => !item.EndDateTime.HasValue &&
+                        (item.LastActivityUtc ?? item.StartDateTime) <= cutoff);
+                }
+
+                var activityUtc = submitTime ?? record.LastActivityUtc;
+                var changed = await eligible.ExecuteUpdateAsync(update => update
+                    .SetProperty(item => item.ExamStatus, status)
+                    .SetProperty(item => item.StatusReason, reason)
+                    .SetProperty(item => item.StatusChangedAtUtc, now)
+                    .SetProperty(item => item.LastActivityUtc, item =>
+                        !item.LastActivityUtc.HasValue || item.LastActivityUtc < activityUtc
+                            ? activityUtc : item.LastActivityUtc), cancellationToken);
+
+                // Reload the winning state so EF cannot save or audit an obsolete transition again.
+                await entry.ReloadAsync(cancellationToken);
+                if (changed == 0)
+                    return false;
+
+                if (status == ExamStatus.Completed)
+                    await UpdateRecordScoreAsync(record, cancellationToken);
+
+                auditEvent = ApplicationAuditService.CreateEvent(new ApplicationAuditEntry(
+                    ApplicationAuditEventTypes.ExamAttemptStatusChanged,
+                    AuditEventCategory.Examination,
+                    status == ExamStatus.Completed ? AuditEventOutcome.Success : AuditEventOutcome.Information,
+                    $"Exam attempt changed from {ExamStatus.InProgress} to {status}.",
+                    SubjectUserId: record.UserId,
+                    EntityType: nameof(Record),
+                    EntityId: record.Id.ToString(),
+                    Metadata: new Dictionary<string, object?>
+                    {
+                        ["examId"] = record.ExamId,
+                        ["previousStatus"] = ExamStatus.InProgress.ToString(),
+                        ["status"] = status.ToString(),
+                        ["reason"] = reason.ToString(),
+                        ["score"] = record.Score,
+                        ["deadlineUtc"] = record.EndDateTime,
+                        ["lastActivityUtc"] = record.LastActivityUtc
+                    }), _httpContextAccessor?.HttpContext);
+                _dbContext.ApplicationAuditEvents.Add(auditEvent);
                 await _dbContext.SaveChangesAsync(cancellationToken);
+                return true;
+            }
+
+            void DiscardFailedTransition()
+            {
+                if (auditEvent != null)
+                    _dbContext.Entry(auditEvent).State = EntityState.Detached;
+                auditEvent = null;
+                entry.State = EntityState.Detached;
             }
         }
 

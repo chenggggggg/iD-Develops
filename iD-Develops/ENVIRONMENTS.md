@@ -197,15 +197,15 @@ Run Playwright against the existing local application on `id.localhost:5000` and
 `portal.id.localhost:5000`. Set `IDDEVELOPS_E2E_PUBLIC_BASE_URL` and
 `IDDEVELOPS_E2E_PORTAL_BASE_URL` if these local addresses differ.
 
-The catalog browsing tests require `IDDEVELOPS_E2E_DATABASE_CONNECTION` to contain
+The catalog browsing and exam lifecycle tests require `IDDEVELOPS_E2E_DATABASE_CONNECTION` to contain
 the PostgreSQL connection string for that same running local application. They
-create uniquely named products and a dedicated learner, then remove those records
+create dedicated products, a learner, or exam attempts, then remove those records
 after each test. These fixtures accept only local application and database hosts.
 CI supplies its isolated PostgreSQL connection automatically.
 
 ```powershell
 $env:IDDEVELOPS_E2E_DATABASE_CONNECTION = '<local application database connection string>'
-dotnet test tests/iD-Develops.E2ETests/iD-Develops.E2ETests.csproj --filter FullyQualifiedName~ProductBrowsingTests
+dotnet test tests/iD-Develops.E2ETests/iD-Develops.E2ETests.csproj --filter "FullyQualifiedName~ProductBrowsingTests|FullyQualifiedName~ExpiredExamTests"
 ```
 
 ## Zoom OAuth Setup

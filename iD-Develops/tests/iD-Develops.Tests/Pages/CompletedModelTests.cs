@@ -33,14 +33,16 @@ namespace iD_Develops.Tests.Pages;
 public sealed class CompletedModelTests
 {
     [Theory]
-    [InlineData("en-us")]
-    [InlineData("nl-nl")]
-    public async Task OnGetAsync_CompletedPublicLevelTest_RendersResultsForm(string culture)
+    [InlineData("en-us", RecordStatusReason.ManualSubmit)]
+    [InlineData("nl-nl", RecordStatusReason.ManualSubmit)]
+    [InlineData("en-us", RecordStatusReason.DeadlinePassed)]
+    [InlineData("nl-nl", RecordStatusReason.DeadlinePassed)]
+    public async Task OnGetAsync_CompletedPublicLevelTest_RendersResultsForm(string culture, RecordStatusReason reason)
     {
         using var factory = new SqliteTestDbFactory();
         await using var db = factory.CreateDbContext();
         var exam = SeedLevelTestExam(db);
-        var record = SeedCompletedRecord(db, exam);
+        var record = SeedCompletedRecord(db, exam, reason: reason);
         var harness = await TestHarness.CreateAsync(db);
         var model = harness.CreateModel();
         model.RecordId = record.Id;
@@ -109,14 +111,16 @@ public sealed class CompletedModelTests
         Assert.Contains(record.Id.ToString(), html, StringComparison.Ordinal);
     }
 
-    [Fact]
-    public async Task OnPostSubmitFormAsync_AnonymousWithoutInputs_ReturnsPageWithValidationErrors()
+    [Theory]
+    [InlineData(RecordStatusReason.ManualSubmit)]
+    [InlineData(RecordStatusReason.DeadlinePassed)]
+    public async Task OnPostSubmitFormAsync_AnonymousWithoutInputs_ReturnsPageWithValidationErrors(RecordStatusReason reason)
     {
         using var factory = new SqliteTestDbFactory();
         await using var db = factory.CreateDbContext();
 
         var exam = SeedLevelTestExam(db);
-        var record = SeedCompletedRecord(db, exam);
+        var record = SeedCompletedRecord(db, exam, reason: reason);
 
         var harness = await TestHarness.CreateAsync(db);
         var model = harness.CreateModel();
@@ -133,14 +137,16 @@ public sealed class CompletedModelTests
         Assert.Empty(harness.MailService.SentMessages);
     }
 
-    [Fact]
-    public async Task OnPostSubmitFormAsync_SignedInUser_AttachesRecordAndSkipsRegistrationInputs()
+    [Theory]
+    [InlineData(RecordStatusReason.ManualSubmit)]
+    [InlineData(RecordStatusReason.DeadlinePassed)]
+    public async Task OnPostSubmitFormAsync_SignedInUser_AttachesRecordAndSkipsRegistrationInputs(RecordStatusReason reason)
     {
         using var factory = new SqliteTestDbFactory();
         await using var db = factory.CreateDbContext();
 
         var exam = SeedLevelTestExam(db);
-        var record = SeedCompletedRecord(db, exam);
+        var record = SeedCompletedRecord(db, exam, reason: reason);
 
         var harness = await TestHarness.CreateAsync(db);
         var user = await harness.CreateUserAsync("student@example.com", "Portal", "Student", role: "Student", emailConfirmed: true);
@@ -165,14 +171,16 @@ public sealed class CompletedModelTests
         Assert.Equal("student@example.com", harness.MailService.SentMessages[0].RecipientEmail);
     }
 
-    [Fact]
-    public async Task OnPostSubmitFormAsync_AnonymousExistingEmail_DoesNotAttachRecordAndEmailsClaimLink()
+    [Theory]
+    [InlineData(RecordStatusReason.ManualSubmit)]
+    [InlineData(RecordStatusReason.DeadlinePassed)]
+    public async Task OnPostSubmitFormAsync_AnonymousExistingEmail_DoesNotAttachRecordAndEmailsClaimLink(RecordStatusReason reason)
     {
         using var factory = new SqliteTestDbFactory();
         await using var db = factory.CreateDbContext();
 
         var exam = SeedLevelTestExam(db);
-        var record = SeedCompletedRecord(db, exam);
+        var record = SeedCompletedRecord(db, exam, reason: reason);
 
         var harness = await TestHarness.CreateAsync(db);
         var existingUser = await harness.CreateUserAsync("existing@example.com", "Existing", "User", role: "Student", emailConfirmed: true);
@@ -220,6 +228,109 @@ public sealed class CompletedModelTests
         Assert.Equal(user.Id, updatedRecord.UserId);
     }
 
+    [Theory]
+    [InlineData(ExamStatus.InProgress)]
+    [InlineData(ExamStatus.Cancelled)]
+    [InlineData(ExamStatus.NotStarted)]
+    public async Task OnGetAsync_UnfinishedPublicAttempt_DoesNotExposeCompletion(ExamStatus status)
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var record = SeedCompletedRecord(db, SeedLevelTestExam(db), status);
+        var harness = await TestHarness.CreateAsync(db);
+        var model = harness.CreateModel();
+        model.RecordId = record.Id;
+
+        Assert.IsType<NotFoundResult>(await model.OnGetAsync());
+        Assert.False(model.ShowLevelTestCompletedPartial);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task OnGetAsync_UsesPublishedAttemptVersionToIdentifyLevelTest(bool publicSnapshot)
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var exam = SeedLevelTestExam(db);
+        var record = SeedCompletedRecord(db, exam, ExamStatus.Completed);
+        exam.PublicSlug = publicSnapshot ? null : "level-test";
+        record.ExamVersion = new ExamVersion
+        {
+            Exam = exam,
+            VersionNumber = 1,
+            Name = exam.Name,
+            PublicSlug = publicSnapshot ? "level-test" : null
+        };
+        await db.SaveChangesAsync();
+        var harness = await TestHarness.CreateAsync(db);
+        var model = harness.CreateModel();
+        model.RecordId = record.Id;
+
+        var result = await model.OnGetAsync();
+
+        if (publicSnapshot)
+            Assert.IsType<PageResult>(result);
+        else
+            Assert.IsType<NotFoundResult>(result);
+    }
+
+    [Fact]
+    public async Task OnPostResendAsync_CompletedAttempt_SendsResultsWithoutChangingStatus()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var record = SeedCompletedRecord(db, SeedLevelTestExam(db), ExamStatus.Completed);
+        var harness = await TestHarness.CreateAsync(db);
+        var model = harness.CreateModel();
+        model.RecordId = record.Id;
+        model.LevelTestResendName = "Test learner";
+        model.LevelTestResendEmail = "learner@example.test";
+
+        Assert.IsType<RedirectToPageResult>(await model.OnPostResendAsync());
+
+        Assert.Single(harness.MailService.SentMessages);
+        Assert.Equal(ExamStatus.Completed, (await db.Records.SingleAsync()).ExamStatus);
+    }
+
+    [Theory]
+    [InlineData(ExamStatus.Completed, true)]
+    [InlineData(ExamStatus.NotStarted, false)]
+    [InlineData(ExamStatus.InProgress, false)]
+    [InlineData(ExamStatus.Cancelled, false)]
+    public async Task PublicResults_ValidToken_OnlyDisplaysFinishedAttempts(ExamStatus status, bool canView)
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var record = SeedCompletedRecord(db, SeedLevelTestExam(db), status);
+        var harness = await TestHarness.CreateAsync(db);
+        var model = harness.CreateResultsModel(record.Id);
+
+        Assert.IsType<PageResult>(await model.OnGetAsync(CancellationToken.None));
+
+        Assert.Equal(!canView, model.IsInvalidResult);
+        if (canView)
+            Assert.Equal(48d, Assert.IsType<ResultsModel.ResultSummaryViewModel>(model.Summary).Score);
+        else
+            Assert.Null(model.Summary);
+    }
+
+    [Fact]
+    public async Task PublicResults_CompletedAttemptWithInvalidToken_DoesNotExposeAnswers()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var record = SeedCompletedRecord(db, SeedLevelTestExam(db), ExamStatus.Completed);
+        var harness = await TestHarness.CreateAsync(db);
+        var model = harness.CreateResultsModel(record.Id);
+        model.Token = "invalid";
+
+        Assert.IsType<PageResult>(await model.OnGetAsync(CancellationToken.None));
+        Assert.True(model.IsInvalidResult);
+        Assert.Null(model.Summary);
+        Assert.Empty(model.Questions);
+    }
+
     private static Exam SeedLevelTestExam(ApplicationDbContext db)
     {
         var exam = new Exam
@@ -238,16 +349,16 @@ public sealed class CompletedModelTests
         return exam;
     }
 
-    private static iD_Develops.Models.Record SeedCompletedRecord(ApplicationDbContext db, Exam exam)
+    private static iD_Develops.Models.Record SeedCompletedRecord(ApplicationDbContext db, Exam exam, ExamStatus status = ExamStatus.Completed, RecordStatusReason reason = RecordStatusReason.ManualSubmit)
     {
         var record = new iD_Develops.Models.Record
         {
             Id = Guid.NewGuid(),
             ExamId = exam.Id,
-            ExamStatus = ExamStatus.Completed,
+            ExamStatus = status,
             StartDateTime = DateTime.UtcNow.AddMinutes(-30),
             EndDateTime = DateTime.UtcNow,
-            StatusReason = RecordStatusReason.ManualSubmit,
+            StatusReason = reason,
             StatusChangedAtUtc = DateTime.UtcNow,
             LastActivityUtc = DateTime.UtcNow,
             Score = 48
@@ -394,6 +505,19 @@ public sealed class CompletedModelTests
             model.Url = new TestUrlHelper(actionContext);
             return model;
         }
+
+        public ResultsModel CreateResultsModel(Guid recordId)
+            => new(_db, _examVersionService, _participantAnswerService, _examEvaluationService,
+                _dataProtectionProvider, new ResultsTestLocalizer())
+            {
+                RecordId = recordId,
+                Token = ResultsModel.CreatePublicResultToken(_dataProtectionProvider, recordId, "learner@example.test"),
+                PageContext = new PageContext
+                {
+                    HttpContext = new DefaultHttpContext { RequestServices = _serviceProvider },
+                    ViewData = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary())
+                }
+            };
 
         public async Task<ApplicationUser> CreateUserAsync(string email, string firstName, string lastName, string role, bool emailConfirmed)
         {
@@ -546,6 +670,13 @@ public sealed class CompletedModelTests
 
         public IEnumerable<LocalizedString> GetAllStrings(bool includeParentCultures)
             => Values.Select(pair => new LocalizedString(pair.Key, pair.Value));
+    }
+
+    private sealed class ResultsTestLocalizer : IStringLocalizer<ResultsModel>
+    {
+        public LocalizedString this[string name] => new(name, name);
+        public LocalizedString this[string name, params object[] arguments] => new(name, name);
+        public IEnumerable<LocalizedString> GetAllStrings(bool includeParentCultures) => [];
     }
 
     private sealed class TestUrlHelper : IUrlHelper

@@ -74,28 +74,20 @@ public sealed class PublicLegalNavigationTests : Microsoft.Playwright.Xunit.Page
     [Fact]
     public async Task ProductPreview_UsesWorkingPublicLegalNavigation()
     {
-        var email = Environment.GetEnvironmentVariable("IDDEVELOPS_E2E_EMAIL");
-        var password = Environment.GetEnvironmentVariable("IDDEVELOPS_E2E_PASSWORD");
-        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
-        {
-            return;
-        }
+        await using var data = await CatalogBrowsingFixture.CreateAsync(administrator: true);
 
         await Page.GotoAsync(
             $"{PortalBaseUrl}/login?returnUrl=%2Fproducts",
             new Microsoft.Playwright.PageGotoOptions { WaitUntil = Microsoft.Playwright.WaitUntilState.DOMContentLoaded });
-        await Page.GetByLabel("E-mail").FillAsync(email);
-        await Page.GetByLabel("Password").FillAsync(password);
+        await Page.GetByLabel("E-mail").FillAsync(data.User.Email!);
+        await Page.GetByLabel("Password").FillAsync(data.Password);
         await Page.GetByRole(Microsoft.Playwright.AriaRole.Button, new() { Name = "Log in", Exact = true }).ClickAsync();
         await Page.WaitForURLAsync($"{PortalBaseUrl}/products");
 
-        var editLinks = Page.GetByRole(Microsoft.Playwright.AriaRole.Link, new() { Name = "Edit", Exact = true });
-        if (await editLinks.CountAsync() == 0)
-        {
-            return;
-        }
-
-        var editorHref = await editLinks.First.GetAttributeAsync("href");
+        var productRow = Page.GetByRole(Microsoft.Playwright.AriaRole.Row).Filter(new() { HasText = data.Credit.Name });
+        var editLink = productRow.GetByRole(Microsoft.Playwright.AriaRole.Link, new() { Name = "Edit", Exact = true });
+        await Expect(editLink).ToBeVisibleAsync();
+        var editorHref = await editLink.GetAttributeAsync("href");
         Assert.False(string.IsNullOrWhiteSpace(editorHref));
         var previewUrl = $"{new Uri(new Uri(PortalBaseUrl), editorHref)}?preview=true";
         var previewResponse = await Page.GotoAsync(
