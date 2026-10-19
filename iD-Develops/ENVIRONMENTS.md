@@ -191,6 +191,23 @@ public checkout without sharing the portal cookie with the public hostname.
 
 `Stripe__SecretKey` and `Stripe__WebhookSecret` are optional only in the `Local` environment. `Development`, `Staging`, and `Production` require both because payment fulfillment depends on signed Stripe webhooks.
 
+## Browser Regression Tests
+
+Run Playwright against the existing local application on `id.localhost:5000` and
+`portal.id.localhost:5000`. Set `IDDEVELOPS_E2E_PUBLIC_BASE_URL` and
+`IDDEVELOPS_E2E_PORTAL_BASE_URL` if these local addresses differ.
+
+The catalog browsing tests require `IDDEVELOPS_E2E_DATABASE_CONNECTION` to contain
+the PostgreSQL connection string for that same running local application. They
+create uniquely named products and a dedicated learner, then remove those records
+after each test. These fixtures accept only local application and database hosts.
+CI supplies its isolated PostgreSQL connection automatically.
+
+```powershell
+$env:IDDEVELOPS_E2E_DATABASE_CONNECTION = '<local application database connection string>'
+dotnet test tests/iD-Develops.E2ETests/iD-Develops.E2ETests.csproj --filter FullyQualifiedName~ProductBrowsingTests
+```
+
 ## Zoom OAuth Setup
 
 Create one user-managed General OAuth app in the Zoom App Marketplace for iD Develops. The app credentials belong in the server environment; teachers never enter a client ID, client secret, or API key.

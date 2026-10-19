@@ -176,6 +176,7 @@ jobs:
           IDDEVELOPS_E2E_PORTAL_BASE_URL: http://portal.id.localhost:5000
           IDDEVELOPS_E2E_EMAIL: admin@example.test
           IDDEVELOPS_E2E_PASSWORD: CI-Admin-Password-123!
+          IDDEVELOPS_E2E_DATABASE_CONNECTION: Host=127.0.0.1;Port=5432;Database=iddevelops_ci;Username=postgres;Password=ci-postgres-password;
         run: >-
           dotnet test "$E2E_TEST_PROJECT"
           --configuration Release
