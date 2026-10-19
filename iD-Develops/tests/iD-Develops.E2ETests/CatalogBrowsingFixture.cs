@@ -3,16 +3,13 @@ using iD_Develops.Enums;
 using iD_Develops.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 
 namespace iD_Develops.E2ETests;
 
 internal sealed class CatalogBrowsingFixture(ApplicationDbContext db) : IAsyncDisposable
 {
-    public static string PublicBaseUrl =>
-        (Environment.GetEnvironmentVariable("IDDEVELOPS_E2E_PUBLIC_BASE_URL") ?? "http://id.localhost:5000").TrimEnd('/');
-    public static string PortalBaseUrl =>
-        (Environment.GetEnvironmentVariable("IDDEVELOPS_E2E_PORTAL_BASE_URL") ?? "http://portal.id.localhost:5000").TrimEnd('/');
+    public static string PublicBaseUrl => LocalTestApplication.PublicBaseUrl;
+    public static string PortalBaseUrl => LocalTestApplication.PortalBaseUrl;
 
     public CatalogProduct Credit { get; private set; } = null!;
     public CatalogProduct Standard { get; private set; } = null!;
@@ -23,17 +20,7 @@ internal sealed class CatalogBrowsingFixture(ApplicationDbContext db) : IAsyncDi
 
     public static async Task<CatalogBrowsingFixture> CreateAsync()
     {
-        var connectionString = Environment.GetEnvironmentVariable("IDDEVELOPS_E2E_DATABASE_CONNECTION");
-        if (string.IsNullOrWhiteSpace(connectionString))
-            throw new InvalidOperationException("Set IDDEVELOPS_E2E_DATABASE_CONNECTION to the running local application's PostgreSQL connection string.");
-        if (!IsLocalHost(new Uri(PublicBaseUrl).Host) || !IsLocalHost(new Uri(PortalBaseUrl).Host) ||
-            !IsLocalHost(new NpgsqlConnectionStringBuilder(connectionString).Host ?? string.Empty))
-            throw new InvalidOperationException("Catalog browsing fixtures require local application and database hosts.");
-
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseNpgsql(connectionString)
-            .Options;
-        var fixture = new CatalogBrowsingFixture(new ApplicationDbContext(options));
+        var fixture = new CatalogBrowsingFixture(LocalTestApplication.CreateDbContext());
         try
         {
             await fixture.SeedAsync();
@@ -108,11 +95,6 @@ internal sealed class CatalogBrowsingFixture(ApplicationDbContext db) : IAsyncDi
             IsRequired = required,
             OptionsText = options
         };
-
-    private static bool IsLocalHost(string host)
-        => host.Equals("localhost", StringComparison.OrdinalIgnoreCase) ||
-           host.EndsWith(".localhost", StringComparison.OrdinalIgnoreCase) ||
-           (System.Net.IPAddress.TryParse(host, out var address) && System.Net.IPAddress.IsLoopback(address));
 
     public async ValueTask DisposeAsync()
     {

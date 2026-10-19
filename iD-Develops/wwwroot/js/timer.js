@@ -58,10 +58,7 @@ function initializeTimer(elementId, endTime) {
     }
 
     async function updateTimer() {
-        const now = new Date();
-        const utcNow = new Date(now.getTime() + now.getTimezoneOffset() * 60000);
-
-        const remainingTime = endTime - utcNow;
+        const remainingTime = endTime.getTime() - Date.now();
 
         if (remainingTime <= 0) {
             timerElement.textContent = "00:00:00";

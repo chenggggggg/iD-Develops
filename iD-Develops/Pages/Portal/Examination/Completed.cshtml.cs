@@ -107,7 +107,7 @@ namespace iD_Develops.Pages.Portal.Examination
             if (accessResult != null)
                 return accessResult;
 
-            ShowLevelTestCompletedPartial = IsCompletedLevelTestRecord(record);
+            ShowLevelTestCompletedPartial = IsFinishedLevelTestRecord(record);
             IsSignedInPortalUser = IsPortalUser();
 
             if (IsSignedInPortalUser)
@@ -131,7 +131,7 @@ namespace iD_Develops.Pages.Portal.Examination
             if (accessResult != null)
                 return accessResult;
 
-            if (!IsCompletedLevelTestRecord(record))
+            if (!IsFinishedLevelTestRecord(record))
                 return RedirectToPage(new { recordId = RecordId });
 
             ShowLevelTestCompletedPartial = true;
@@ -197,7 +197,7 @@ namespace iD_Develops.Pages.Portal.Examination
             if (accessResult != null)
                 return accessResult;
 
-            if (!IsCompletedLevelTestRecord(record))
+            if (!IsFinishedLevelTestRecord(record))
                 return RedirectToPage(new { recordId = RecordId });
 
             if (IsPortalUser())
@@ -340,7 +340,7 @@ namespace iD_Develops.Pages.Portal.Examination
             if (record == null)
                 return (null, NotFound());
 
-            var isLevelTest = IsCompletedLevelTestRecord(record);
+            var isLevelTest = IsFinishedLevelTestRecord(record);
             var isPortalRequest = IsPortalSurface;
             if (isLevelTest && isPortalRequest)
             {
@@ -374,14 +374,16 @@ namespace iD_Develops.Pages.Portal.Examination
 
             return await _dbContext.Records
                 .Include(r => r.Exam)
+                .Include(r => r.ExamVersion)
                 .FirstOrDefaultAsync(r => r.Id == RecordId && !r.IsDeleted);
         }
 
-        private static bool IsCompletedLevelTestRecord(Record? record)
+        private static bool IsFinishedLevelTestRecord(Record? record)
         {
             return record != null
                 && record.ExamStatus == ExamStatus.Completed
-                && string.Equals(record.Exam?.PublicSlug, LevelTestPublicSlug, StringComparison.OrdinalIgnoreCase);
+                && string.Equals(record.ExamVersionId.HasValue ? record.ExamVersion?.PublicSlug : record.Exam?.PublicSlug,
+                    LevelTestPublicSlug, StringComparison.OrdinalIgnoreCase);
         }
 
         private bool IsPortalUser()

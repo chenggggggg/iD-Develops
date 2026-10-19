@@ -12,6 +12,9 @@
     var durationDisplay = Model.ShowTimer ? ExamDuration.Format(durationSeconds) : string.Empty;
     var examTitle = !string.IsNullOrWhiteSpace(Model.ExamTitle) ? Model.ExamTitle : Localizer["UntitledExam"].Value;
     var examTitleInputSize = Math.Clamp(examTitle.Length, 1, 60);
+    var deadlineUtc = Model.EndDateTime.HasValue
+        ? DateTime.SpecifyKind(Model.EndDateTime.Value, DateTimeKind.Utc).ToString("O", System.Globalization.CultureInfo.InvariantCulture)
+        : null;
 }
 
 <header>
@@ -36,7 +39,7 @@
 
                         @if (Model.Mode == PaginationMode.Exam && Model.ShowTimer)
                         {
-                            <div class="exam-header-value" id="countdown" data-duration="@Model.EndDateTime">
+                            <div class="exam-header-value" id="countdown" data-duration="@deadlineUtc">
                                 --:--:--
                             </div>
                         }

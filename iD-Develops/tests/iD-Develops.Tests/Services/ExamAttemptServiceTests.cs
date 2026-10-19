@@ -230,7 +230,7 @@ public sealed class ExamAttemptServiceTests
         public Task CompleteRecordAsync(Guid id, DateTime submitTime)
             => throw new NotSupportedException();
 
-        public Task<int> MarkExpiredRecordsOverdueAsync(CancellationToken cancellationToken = default)
+        public Task<int> FinalizeExpiredRecordsAsync(CancellationToken cancellationToken = default)
             => throw new NotSupportedException();
 
         public Task<ExamStatus> GetExamStatusAsync(Guid recordId, int? examId = null, CancellationToken cancellationToken = default)

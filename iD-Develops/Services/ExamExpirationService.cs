@@ -40,7 +40,7 @@ namespace iD_Develops.Services
                 {
                     await _dependencyStatus.WaitForDatabaseAsync(stoppingToken);
                     var startedAtUtc = DateTime.UtcNow;
-                    var updatedCount = await CheckForOverdueExamsAsync(stoppingToken);
+                    var updatedCount = await FinalizeExpiredExamsAsync(stoppingToken);
                     var completedAtUtc = DateTime.UtcNow;
                     _operationStatus.ReportSuccess(
                         OperationKey,
@@ -50,8 +50,8 @@ namespace iD_Develops.Services
                         completedAtUtc.Add(NormalInterval),
                         updatedCount,
                         updatedCount == 0
-                            ? "No stale or overdue exam attempts needed an update."
-                            : $"Updated {updatedCount} stale or overdue exam attempt(s).");
+                            ? "No stale or expired exam attempts needed an update."
+                            : $"Finalized {updatedCount} stale or expired exam attempt(s).");
 
                     // Success => reset delay to normal cadence
                     currentDelay = NormalInterval;
@@ -87,7 +87,7 @@ namespace iD_Develops.Services
                 {
                     // Keep running even if DB is down / transient failures occur.
                     _logger.LogWarning(ex,
-                        "ExamExpirationService failed to mark expired records overdue. Will retry in {Delay}.",
+                        "ExamExpirationService failed to finalize expired records. Will retry in {Delay}.",
                         currentDelay);
 
                     // Failure => backoff (up to max)
@@ -111,12 +111,12 @@ namespace iD_Develops.Services
             }
         }
 
-        private async Task<int> CheckForOverdueExamsAsync(CancellationToken stoppingToken)
+        private async Task<int> FinalizeExpiredExamsAsync(CancellationToken stoppingToken)
         {
             using var scope = _serviceProvider.CreateScope();
 
             var recordService = scope.ServiceProvider.GetRequiredService<IRecordService>();
-            return await recordService.MarkExpiredRecordsOverdueAsync(stoppingToken);
+            return await recordService.FinalizeExpiredRecordsAsync(stoppingToken);
         }
     }
 }

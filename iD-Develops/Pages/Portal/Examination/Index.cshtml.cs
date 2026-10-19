@@ -62,7 +62,7 @@ namespace iD_Develops.Pages.Portal.Examination
             if (!pageData.UserMatches)
                 return Forbid();
 
-            if (pageData.ExamStatus == ExamStatus.Completed || pageData.ExamStatus == ExamStatus.Overdue)
+            if (pageData.ExamStatus == ExamStatus.Completed)
                 return RedirectToRoute(
                     ApplicationHostPageRouteModelConvention.PortalExamCompletedRouteName,
                     new { recordId = RecordId });

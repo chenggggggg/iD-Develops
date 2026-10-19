@@ -45,7 +45,7 @@ namespace iD_Develops.Pages.Portal.Examination
             if (!pageData.Exists)
                 return NotFound();
 
-            if (pageData.ExamStatus == ExamStatus.Completed || pageData.ExamStatus == ExamStatus.Overdue)
+            if (pageData.ExamStatus == ExamStatus.Completed)
                 return RedirectToRoute(
                     ApplicationHostPageRouteModelConvention.PublicExamCompletedRouteName,
                     new

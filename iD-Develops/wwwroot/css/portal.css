@@ -1206,12 +1206,6 @@ body.portal-dialog-open {
     color: #176b47;
 }
 
-.portal-table-pill-status-overdue {
-    background: rgba(220, 53, 69, 0.1);
-    border-color: rgba(220, 53, 69, 0.2);
-    color: #a52333;
-}
-
 .portal-table-pill-status-cancelled {
     background: rgba(73, 80, 87, 0.11);
     border-color: rgba(73, 80, 87, 0.2);

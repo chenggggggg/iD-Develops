@@ -98,6 +98,7 @@ namespace iD_Develops.Pages.Examination
             var record = await _dbContext.Records
                 .AsNoTracking()
                 .Include(r => r.Exam)
+                .Include(r => r.ExamVersion)
                 .FirstOrDefaultAsync(r => r.Id == RecordId && !r.IsDeleted, cancellationToken);
 
             if (!IsDisplayableLevelTestRecord(record))
@@ -195,7 +196,8 @@ namespace iD_Develops.Pages.Examination
         {
             return record != null
                 && record.ExamStatus == ExamStatus.Completed
-                && string.Equals(record.Exam?.PublicSlug, LevelTestPublicSlug, StringComparison.OrdinalIgnoreCase);
+                && string.Equals(record.ExamVersionId.HasValue ? record.ExamVersion?.PublicSlug : record.Exam?.PublicSlug,
+                    LevelTestPublicSlug, StringComparison.OrdinalIgnoreCase);
         }
 
         private (string Level, string Advice) ResolveLevelTestResult(double score)
