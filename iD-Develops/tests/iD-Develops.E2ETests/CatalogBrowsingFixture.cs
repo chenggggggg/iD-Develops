@@ -18,12 +18,12 @@ internal sealed class CatalogBrowsingFixture(ApplicationDbContext db) : IAsyncDi
     public ApplicationUser User { get; private set; } = null!;
     public string Password { get; } = $"Catalog!{Guid.NewGuid():N}aA1";
 
-    public static async Task<CatalogBrowsingFixture> CreateAsync()
+    public static async Task<CatalogBrowsingFixture> CreateAsync(bool administrator = false)
     {
         var fixture = new CatalogBrowsingFixture(LocalTestApplication.CreateDbContext());
         try
         {
-            await fixture.SeedAsync();
+            await fixture.SeedAsync(administrator);
             return fixture;
         }
         catch
@@ -33,7 +33,7 @@ internal sealed class CatalogBrowsingFixture(ApplicationDbContext db) : IAsyncDi
         }
     }
 
-    private async Task SeedAsync()
+    private async Task SeedAsync(bool administrator)
     {
         var suffix = Guid.NewGuid().ToString("N");
         Credit = Product("Credits", CatalogProductType.Credit);
@@ -71,8 +71,9 @@ internal sealed class CatalogBrowsingFixture(ApplicationDbContext db) : IAsyncDi
         };
         User.PasswordHash = new PasswordHasher<ApplicationUser>().HashPassword(User, Password);
         db.Users.Add(User);
-        var studentRole = await db.Roles.SingleAsync(role => role.NormalizedName == "STUDENT");
-        db.UserRoles.Add(new IdentityUserRole<string> { UserId = User.Id, RoleId = studentRole.Id });
+        var roleName = administrator ? "ADMIN" : "STUDENT";
+        var userRole = await db.Roles.SingleAsync(role => role.NormalizedName == roleName);
+        db.UserRoles.Add(new IdentityUserRole<string> { UserId = User.Id, RoleId = userRole.Id });
         await db.SaveChangesAsync();
 
         CatalogProduct Product(string name, CatalogProductType type) => new()
