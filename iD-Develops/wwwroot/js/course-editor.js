@@ -31,6 +31,8 @@
     let dirty = false;
     let allowConfirmedSubmit = false;
     let createExamPlaceholderId = null;
+    const fileUploads = new Map();
+    let nextUploadId = 0;
 
     const originalUnlockRules = new Map();
     state.Sections.forEach(function (section) {
@@ -338,7 +340,7 @@
                 </div>
                 ${type === 1 || type === 3 ? uploadBox("video", "Upload video", ".mp4,.mov,.mkv,.avi,.webm,.mpeg,.mpg") : ""}
                 ${type === 2 || type === 3 ? uploadBox("file", type === 2 ? "Upload article files" : "Upload PDF", type === 3 ? ".pdf" : ".pdf,.doc,.docx,.txt,.zip") : ""}
-                ${renderFiles(lecture.SourceFiles || [], "Article files")}
+                <div data-course-file-list>${renderFiles(lecture.SourceFiles || [], "Article files")}</div>
             </section>${learnerUnlockPanel("lecture", lecture)}`;
     }
 
@@ -353,7 +355,7 @@
                 <div class="course-editor-resources-header"><div><p class="course-kicker">Instructional content</p><h2>Files</h2></div></div>
                 ${uploadBox("video", "Upload instructional video", ".mp4,.mov,.mkv,.avi,.webm,.mpeg,.mpg")}
                 ${uploadBox("file", "Upload supporting files", ".pdf,.zip,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.mp3,.m4a")}
-                ${renderFiles(assignment.SupportingFiles || [], "Supporting files")}
+                <div data-course-file-list>${renderFiles(assignment.SupportingFiles || [], "Supporting files")}</div>
             </section>${learnerUnlockPanel("assignment", assignment)}`;
     }
 
@@ -460,13 +462,13 @@
 
     function uploadBox(kind, label, accept) {
         const enabled = kind === "video" ? document.body.dataset.courseVideoUploads !== "false" : document.body.dataset.courseFileUploads !== "false";
-        return `<div class="course-editor-upload ${enabled ? "" : "is-disabled"}"><label><span>${label}</span><input type="file" accept="${accept}" data-upload-${kind} ${enabled ? "" : "disabled"} /></label><span data-upload-status>${enabled ? "" : "Uploads are not configured"}</span></div>`;
+        return `<div class="course-editor-upload ${enabled ? "" : "is-disabled"}"><label><span>${label}</span><input type="file" accept="${accept}" data-upload-${kind} ${kind === "file" ? "multiple" : ""} ${enabled ? "" : "disabled"} /></label><span data-upload-status role="status">${enabled ? "" : "Uploads are not configured"}</span>${kind === "file" ? `<div class="grid w-full gap-2" data-file-upload-list>${renderPendingUploads()}</div>` : ""}</div>`;
     }
 
     function renderFiles(files, title) {
         if (!files.length) return "";
         return `<div class="course-editor-resource-list"><p class="course-kicker">${title}</p>${files.map(function (file, index) {
-            return `<div class="course-editor-resource"><i class="fa-solid fa-paperclip" aria-hidden="true"></i><span>${escapeHtml(file.Name)}</span><button type="button" data-remove-file="${index}" aria-label="Remove file"><i class="fa-solid fa-trash" aria-hidden="true"></i></button></div>`;
+            return `<div class="course-editor-resource"><i class="fa-solid fa-paperclip" aria-hidden="true"></i><div class="flex min-w-0 flex-wrap items-center gap-x-2"><span class="min-w-0 truncate">${escapeHtml(file.Name)}</span>${Number(file.Id) <= 0 ? '<span class="shrink-0 text-xs text-amber-700">Ready to save</span>' : ""}</div><button type="button" data-remove-file="${index}" aria-label="Remove file"><i class="fa-solid fa-trash" aria-hidden="true"></i></button></div>`;
         }).join("")}</div>`;
     }
 
@@ -547,6 +549,7 @@
         });
         main.querySelector("[data-upload-video]")?.addEventListener("change", function (event) { uploadVideo(event.target); });
         main.querySelector("[data-upload-file]")?.addEventListener("change", function (event) { uploadFile(event.target); });
+        bindFileUploadActions();
         main.querySelector("[data-create-new-exam]")?.addEventListener("click", function () {
             const match = findTarget(selected);
             if (match.parent) startCreateExam(match.parent);
@@ -833,26 +836,124 @@
         } catch (error) { status.textContent = error.message || "Upload failed."; input.value = ""; }
     }
 
-    async function uploadFile(input) {
-        const file = input.files?.[0]; if (!file || !canUpload(input)) return;
-        const confirmed = await window.appConfirm({
-            title: "Upload file",
-            message: `Upload ${file.name} to object storage?`,
-            confirmLabel: "Upload file",
-            tone: "info"
+    function renderPendingUploads() {
+        return Array.from(fileUploads.values()).filter(function (upload) {
+            return upload.target.type === selected.type && upload.target.id === selected.id;
+        }).map(function (upload) {
+            return `<div class="flex flex-wrap items-center gap-2 rounded-md border p-3 text-sm ${upload.failed ? "border-red-200 bg-red-50 text-red-800" : "border-slate-200 bg-slate-50 text-slate-700"}" role="${upload.failed ? "alert" : "status"}">
+                ${upload.failed ? "" : '<i class="fa-solid fa-spinner animate-spin" aria-hidden="true"></i>'}
+                <span class="min-w-0 flex-1 break-words">${escapeHtml(upload.file.name)}: ${escapeHtml(upload.message)}</span>
+                ${upload.failed ? `<button class="rounded border border-red-300 px-2 py-1 font-semibold hover:bg-red-100" type="button" data-retry-upload="${upload.id}">Retry upload</button>` : ""}
+                <button class="rounded px-2 py-1 underline" type="button" data-discard-upload="${upload.id}">${upload.failed ? "Remove upload" : "Cancel upload"}</button>
+            </div>`;
+        }).join("");
+    }
+
+    function bindFileUploadActions() {
+        main.querySelectorAll("[data-retry-upload]").forEach(function (button) {
+            button.addEventListener("click", function () {
+                const upload = fileUploads.get(Number(button.dataset.retryUpload));
+                if (upload?.failed) transferFile(upload);
+            });
         });
-        if (!confirmed) { input.value = ""; return; }
-        const status = input.closest(".course-editor-upload").querySelector("[data-upload-status]");
+        main.querySelectorAll("[data-discard-upload]").forEach(function (button) {
+            button.addEventListener("click", function () {
+                const id = Number(button.dataset.discardUpload);
+                const upload = fileUploads.get(id);
+                fileUploads.delete(id);
+                upload?.xhr?.abort();
+                refreshFileUploads();
+            });
+        });
+    }
+
+    function refreshFileUploads() {
+        for (const [id, upload] of fileUploads) {
+            if (!findTarget(upload.target).item) {
+                fileUploads.delete(id);
+                upload.xhr?.abort();
+            }
+        }
+        const list = main.querySelector("[data-file-upload-list]");
+        if (list) {
+            list.innerHTML = renderPendingUploads();
+            bindFileUploadActions();
+        }
+        updateUploadSaveFeedback();
+    }
+
+    function updateUploadSaveFeedback() {
+        let feedback = form.querySelector("[data-course-upload-feedback]");
+        if (!feedback) {
+            feedback = document.createElement("p");
+            feedback.dataset.courseUploadFeedback = "";
+            feedback.className = "mb-4 text-sm text-amber-800";
+            feedback.setAttribute("role", "status");
+            form.prepend(feedback);
+        }
+        feedback.textContent = fileUploads.size
+            ? Array.from(fileUploads.values()).some(function (upload) { return upload.failed; })
+                ? "Retry or remove failed uploads before saving the course."
+                : "Files are uploading. Wait for them to finish before saving the course."
+            : "";
+    }
+
+    function uploadFile(input) {
+        const target = { type: selected.type, id: selected.id };
+        if (!findTarget(target).item) return;
+        const files = Array.from(input.files || []);
+        input.value = "";
+        files.forEach(function (file) {
+            const upload = { id: ++nextUploadId, target: target, file: file, failed: false, message: "Preparing upload..." };
+            fileUploads.set(upload.id, upload);
+            markDirty();
+            transferFile(upload);
+        });
+    }
+
+    async function transferFile(uploadState) {
+        uploadState.failed = false;
+        uploadState.message = "Preparing upload...";
+        refreshFileUploads();
         try {
-            status.textContent = "Preparing upload...";
-            const upload = await createUpload("CreateFileUpload", file);
-            const headers = { "Content-Type": file.type || "application/octet-stream" };
-            if (upload.cacheControl) headers["Cache-Control"] = upload.cacheControl;
-            status.textContent = "Uploading file...";
-            const response = await fetch(upload.putUrl, { method: "PUT", headers: headers, body: file });
-            if (!response.ok) throw new Error("File upload failed.");
-            status.textContent = "File uploaded."; window.location.reload();
-        } catch (error) { status.textContent = error.message || "Upload failed."; input.value = ""; }
+            const upload = await createUpload("CreateFileUpload", uploadState.file, uploadState.target);
+            if (!fileUploads.has(uploadState.id)) return;
+            if (!upload.objectKey || !upload.putUrl) throw new Error("Upload could not be started.");
+            uploadState.message = "Uploading...";
+            refreshFileUploads();
+            await new Promise(function (resolve, reject) {
+                const xhr = uploadState.xhr = new XMLHttpRequest();
+                xhr.open("PUT", upload.putUrl);
+                xhr.timeout = 300000;
+                xhr.setRequestHeader("Content-Type", upload.contentType || uploadState.file.type || "application/octet-stream");
+                if (upload.cacheControl) xhr.setRequestHeader("Cache-Control", upload.cacheControl);
+                xhr.upload.onprogress = function (event) {
+                    uploadState.message = event.lengthComputable ? `Uploading ${Math.round(event.loaded * 100 / event.total)}%...` : "Uploading...";
+                    refreshFileUploads();
+                };
+                xhr.onload = function () { xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error("File upload failed. Please retry.")); };
+                xhr.onerror = function () { reject(new Error("File upload failed. Check your connection and retry.")); };
+                xhr.ontimeout = function () { reject(new Error("File upload timed out. Please retry.")); };
+                xhr.onabort = function () { reject(new Error("Upload cancelled.")); };
+                xhr.send(uploadState.file);
+            });
+            if (!fileUploads.has(uploadState.id)) return;
+            const item = findTarget(uploadState.target).item;
+            if (!item) return;
+            const key = uploadState.target.type === "lecture" ? "SourceFiles" : "SupportingFiles";
+            item[key] = item[key] || [];
+            item[key].push({ Id: 0, Name: uploadState.file.name, FileReference: upload.objectKey, OrderNumber: item[key].length });
+            fileUploads.delete(uploadState.id);
+            markDirty();
+            if (selected.type === uploadState.target.type && selected.id === uploadState.target.id) renderMain();
+        } catch (error) {
+            if (fileUploads.has(uploadState.id)) {
+                uploadState.failed = true;
+                uploadState.message = error.message || "Upload failed. Please retry.";
+            }
+        } finally {
+            refreshFileUploads();
+        }
     }
 
     function canUpload(input) {
@@ -864,9 +965,10 @@
         return true;
     }
 
-    async function createUpload(handler, file) {
+    async function createUpload(handler, file, target = selected) {
         const token = form.querySelector('input[name="__RequestVerificationToken"]')?.value || "";
-        const body = new URLSearchParams({ itemType: selected.type, itemId: String(selected.id), fileName: file.name, fileSize: String(file.size), contentType: file.type || "application/octet-stream", __RequestVerificationToken: token });
+        const item = findTarget(target).item;
+        const body = new URLSearchParams({ itemType: target.type, itemId: String(target.id), lectureContentType: String(item?.ContentType ?? ""), fileName: file.name, fileSize: String(file.size), contentType: file.type || "", __RequestVerificationToken: token });
         const response = await fetch(`${window.location.pathname}?handler=${handler}&courseId=${courseId}`, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" }, body: body });
         const json = await response.json().catch(function () { return {}; });
         if (!response.ok) throw new Error(json.errorMessage || "Upload could not be started.");
@@ -921,6 +1023,14 @@
 
     document.querySelector('[data-course-add-top="section"]')?.addEventListener("click", addSection);
     form.addEventListener("submit", function (event) {
+        refreshFileUploads();
+        if (fileUploads.size) {
+            event.preventDefault();
+            const upload = fileUploads.values().next().value;
+            selected = { type: upload.target.type, id: upload.target.id };
+            render();
+            return;
+        }
         const invalidExam = findUnselectedExam(createExamPlaceholderId);
         if (invalidExam) {
             event.preventDefault();

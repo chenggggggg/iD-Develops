@@ -2,13 +2,14 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using iD_Develops.Data;
+using iD_Develops.Enums;
 using iD_Develops.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace iD_Develops.Services
 {
     public sealed record CourseVideoUpload(string Uid, string UploadUrl, long MaxBytes);
-    public sealed record CourseFileUpload(int FileId, string ObjectKey, string PutUrl, long MaxBytes, string? CacheControl);
+    public sealed record CourseFileUpload(string ObjectKey, string PutUrl, string ContentType, long MaxBytes, string? CacheControl);
 
     public interface ICourseMediaService
     {
@@ -19,7 +20,7 @@ namespace iD_Develops.Services
             int courseId, string itemType, int itemId, string userId, bool canViewAll, string fileName, long fileSize, CancellationToken cancellationToken);
 
         Task<CourseFileUpload> CreateFileUploadAsync(
-            int courseId, string itemType, int itemId, string userId, bool canViewAll, string fileName, string? contentType, long fileSize, CancellationToken cancellationToken);
+            int courseId, string itemType, int itemId, string userId, bool canViewAll, string fileName, string? contentType, long fileSize, LectureContentType? lectureContentType, CancellationToken cancellationToken);
     }
 
     public sealed class CourseMediaService : ICourseMediaService
@@ -118,54 +119,40 @@ namespace iD_Develops.Services
             string fileName,
             string? contentType,
             long fileSize,
+            LectureContentType? lectureContentType,
             CancellationToken cancellationToken)
         {
-            var target = await ResolveTargetAsync(courseId, itemType, itemId, userId, canViewAll, cancellationToken);
-            if (target.Lecture != null && target.Lecture.ContentType is not (Enums.LectureContentType.Article or Enums.LectureContentType.Mashup))
-                throw new InvalidOperationException("Save this lecture as Article or Mashup before uploading files.");
-            if (target.Lecture?.ContentType == Enums.LectureContentType.Mashup &&
-                !string.Equals(contentType, "application/pdf", StringComparison.OrdinalIgnoreCase))
-                throw new InvalidOperationException("Mashup documents must be PDF files.");
-            var scope = target.Lecture != null
-                ? CatalogProductFileScope.CourseLecture
-                : CatalogProductFileScope.CourseAssignment;
-            var upload = await _fileStorage.CreateUploadAsync(
-                CatalogProductFileKind.Download,
-                scope,
-                itemId,
-                fileName,
-                contentType,
-                fileSize);
+            var normalizedType = itemType?.Trim().ToLowerInvariant();
+            if (normalizedType is not ("lecture" or "assignment"))
+                throw new InvalidOperationException("Unsupported course content type.");
 
-            int fileId;
-            if (target.Lecture != null)
+            MediaTarget? target = null;
+            if (itemId > 0)
             {
-                var file = new LectureSourceFile
-                {
-                    Lecture = target.Lecture,
-                    Name = Path.GetFileName(fileName),
-                    FileReference = upload.ObjectKey,
-                    OrderNumber = target.Lecture.SourceFiles.Count
-                };
-                target.Lecture.SourceFiles.Add(file);
-                await _dbContext.SaveChangesAsync(cancellationToken);
-                fileId = file.Id;
+                target = await ResolveTargetAsync(courseId, normalizedType, itemId, userId, canViewAll, cancellationToken);
             }
             else
             {
-                var file = new AssignmentSupportingFile
-                {
-                    CourseAssignment = target.Assignment!,
-                    Name = Path.GetFileName(fileName),
-                    FileReference = upload.ObjectKey,
-                    OrderNumber = target.Assignment!.SupportingFiles.Count
-                };
-                target.Assignment.SupportingFiles.Add(file);
-                await _dbContext.SaveChangesAsync(cancellationToken);
-                fileId = file.Id;
+                var canManage = !string.IsNullOrWhiteSpace(userId) && await _dbContext.Courses.AnyAsync(course =>
+                    course.Id == courseId && (canViewAll || course.CreatedByUserId == userId ||
+                        course.Instructors.Any(instructor => instructor.UserId == userId)), cancellationToken);
+                if (!canManage)
+                    throw new InvalidOperationException("Course not found.");
             }
 
-            return new CourseFileUpload(fileId, upload.ObjectKey, upload.PutUrl, upload.MaxBytes, upload.CacheControl);
+            var pendingContentType = lectureContentType ?? target?.Lecture?.ContentType;
+            if (normalizedType == "lecture" && pendingContentType is not (LectureContentType.Article or LectureContentType.Mashup))
+                throw new InvalidOperationException("Choose Article or Mashup before uploading files.");
+            var verified = _fileStorage.VerifyUpload(CatalogProductFileKind.Download, fileName, contentType, fileSize);
+            if (normalizedType == "lecture" && pendingContentType == LectureContentType.Mashup &&
+                !string.Equals(verified.ContentType, "application/pdf", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("Mashup documents must be PDF files.");
+
+            // New content has no database ID yet. Scope the object to its existing course,
+            // and attach it only when the editor saves after a successful browser upload.
+            var upload = await _fileStorage.CreateUploadAsync(CatalogProductFileKind.Download,
+                CatalogProductFileScope.Course, courseId, verified.FileName, verified.ContentType, fileSize);
+            return new CourseFileUpload(upload.ObjectKey, upload.PutUrl, verified.ContentType, upload.MaxBytes, upload.CacheControl);
         }
 
         private async Task<MediaTarget> ResolveTargetAsync(

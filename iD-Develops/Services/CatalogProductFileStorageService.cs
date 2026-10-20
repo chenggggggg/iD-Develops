@@ -14,7 +14,8 @@ namespace iD_Develops.Services
         Product,
         FreeDownload,
         CourseLecture,
-        CourseAssignment
+        CourseAssignment,
+        Course
     }
 
     public sealed record CatalogProductFile(string Url, string FileName);
@@ -250,6 +251,7 @@ namespace iD_Develops.Services
                 CatalogProductFileScope.FreeDownload => "free-downloads",
                 CatalogProductFileScope.CourseLecture => "courses/lectures",
                 CatalogProductFileScope.CourseAssignment => "courses/assignments",
+                CatalogProductFileScope.Course => "courses",
                 _ => "products"
             };
             var area = kind == CatalogProductFileKind.Image ? "images" : "files";
