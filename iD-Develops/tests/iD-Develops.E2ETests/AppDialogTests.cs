@@ -1,3 +1,6 @@
+using iD_Develops.Models;
+using Microsoft.EntityFrameworkCore;
+
 namespace iD_Develops.E2ETests;
 
 public sealed class AppDialogTests : Microsoft.Playwright.Xunit.PageTest
@@ -129,44 +132,37 @@ public sealed class AppDialogTests : Microsoft.Playwright.Xunit.PageTest
     [Fact]
     public async Task CourseEditor_RemoveItemUsesSharedConfirmationDialog()
     {
-        var email = Environment.GetEnvironmentVariable("IDDEVELOPS_E2E_EMAIL");
-        var password = Environment.GetEnvironmentVariable("IDDEVELOPS_E2E_PASSWORD");
-        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+        await using var data = await CatalogBrowsingFixture.CreateAsync(administrator: true);
+        await using var db = LocalTestApplication.CreateDbContext();
+        var course = new Course
         {
-            return;
-        }
-
-        await Page.GotoAsync(
-            $"{PortalBaseUrl}/login?returnUrl=%2Fcourses",
-            new Microsoft.Playwright.PageGotoOptions { WaitUntil = Microsoft.Playwright.WaitUntilState.DOMContentLoaded });
-        await Page.GetByLabel("E-mail").FillAsync(email);
-        await Page.GetByLabel("Password").FillAsync(password);
-        await Page.GetByRole(Microsoft.Playwright.AriaRole.Button, new() { Name = "Log in", Exact = true }).ClickAsync();
-        await Page.WaitForURLAsync($"{PortalBaseUrl}/courses");
-
-        var editLinks = Page.GetByRole(Microsoft.Playwright.AriaRole.Link, new() { Name = "Edit course", Exact = true });
-        if (await editLinks.CountAsync() == 0)
+            Name = $"E2E course dialog {Guid.NewGuid():N}",
+            CreatedByUserId = data.User.Id,
+            Sections = [new CourseSection { Title = "Dialog section" }]
+        };
+        db.Courses.Add(course);
+        await db.SaveChangesAsync();
+        try
         {
-            return;
+            var editorPath = $"/courses/{course.Id}?edit=true";
+            await Page.GotoAsync(
+                $"{PortalBaseUrl}/login?returnUrl={Uri.EscapeDataString(editorPath)}",
+                new Microsoft.Playwright.PageGotoOptions { WaitUntil = Microsoft.Playwright.WaitUntilState.DOMContentLoaded });
+            await Page.GetByLabel("E-mail").FillAsync(data.User.Email!);
+            await Page.GetByLabel("Password").FillAsync(data.Password);
+            await Page.GetByRole(Microsoft.Playwright.AriaRole.Button, new() { Name = "Log in", Exact = true }).ClickAsync();
+            await Page.WaitForURLAsync($"{PortalBaseUrl}{editorPath}");
+            await Page.WaitForFunctionAsync("() => typeof window.appConfirm === 'function'");
+            await Page.GetByRole(Microsoft.Playwright.AriaRole.Button, new() { Name = "Remove section", Exact = true }).ClickAsync();
+            await Expect(Page.GetByRole(Microsoft.Playwright.AriaRole.Heading, new() { Name = "Remove section", Exact = true }))
+                .ToBeVisibleAsync();
+            await Page.GetByRole(Microsoft.Playwright.AriaRole.Button, new() { Name = "Cancel", Exact = true }).ClickAsync();
+            await Expect(Page.Locator("[data-app-dialog]")).ToBeHiddenAsync();
         }
-
-        var editorHref = await editLinks.First.GetAttributeAsync("href");
-        Assert.False(string.IsNullOrWhiteSpace(editorHref));
-        await Page.GotoAsync(
-            new Uri(new Uri(PortalBaseUrl), editorHref).ToString(),
-            new Microsoft.Playwright.PageGotoOptions { WaitUntil = Microsoft.Playwright.WaitUntilState.DOMContentLoaded });
-        await Page.WaitForFunctionAsync("() => typeof window.appConfirm === 'function'");
-
-        var removeButtons = Page.GetByRole(Microsoft.Playwright.AriaRole.Button, new() { Name = "Remove section", Exact = true });
-        if (await removeButtons.CountAsync() == 0)
+        finally
         {
-            return;
+            await db.Courses.Where(item => item.Id == course.Id).ExecuteDeleteAsync();
+            await db.ApplicationAuditEvents.Where(audit => audit.EntityType == nameof(Course) && audit.EntityId == course.Id.ToString()).ExecuteDeleteAsync();
         }
-
-        await removeButtons.First.ClickAsync();
-        await Expect(Page.GetByRole(Microsoft.Playwright.AriaRole.Heading, new() { Name = "Remove section", Exact = true }))
-            .ToBeVisibleAsync();
-        await Page.GetByRole(Microsoft.Playwright.AriaRole.Button, new() { Name = "Cancel", Exact = true }).ClickAsync();
-        await Expect(Page.Locator("[data-app-dialog]")).ToBeHiddenAsync();
     }
 }

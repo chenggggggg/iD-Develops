@@ -197,16 +197,20 @@ Run Playwright against the existing local application on `id.localhost:5000` and
 `portal.id.localhost:5000`. Set `IDDEVELOPS_E2E_PUBLIC_BASE_URL` and
 `IDDEVELOPS_E2E_PORTAL_BASE_URL` if these local addresses differ.
 
-The catalog browsing and exam lifecycle tests require `IDDEVELOPS_E2E_DATABASE_CONNECTION` to contain
+The catalog, exam lifecycle, and course attachment persistence tests require `IDDEVELOPS_E2E_DATABASE_CONNECTION` to contain
 the PostgreSQL connection string for that same running local application. They
-create dedicated products, a learner, or exam attempts, then remove those records
+create dedicated products, users, exam attempts, or courses, then remove those records
 after each test. These fixtures accept only local application and database hosts.
 CI supplies its isolated PostgreSQL connection automatically.
 
 ```powershell
 $env:IDDEVELOPS_E2E_DATABASE_CONNECTION = '<local application database connection string>'
-dotnet test tests/iD-Develops.E2ETests/iD-Develops.E2ETests.csproj --filter "FullyQualifiedName~ProductBrowsingTests|FullyQualifiedName~ExpiredExamTests"
+dotnet test tests/iD-Develops.E2ETests/iD-Develops.E2ETests.csproj --filter "FullyQualifiedName~ProductBrowsingTests|FullyQualifiedName~ExpiredExamTests|FullyQualifiedName~CourseAttachmentPersistenceTests"
 ```
+
+Course attachment browser tests mock the external storage capability, signing, and
+file transfer in Local/CI. Course saves, reloads, and enrolled learner access use
+the running application and database. They do not upload files to Cloudflare.
 
 ## Zoom OAuth Setup
 

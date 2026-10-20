@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using System.Text.Json;
 using iD_Develops.Services;
+using iD_Develops.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -455,6 +456,7 @@ namespace iD_Develops.Pages.Portal.Courses
             string fileName,
             string? contentType,
             long fileSize,
+            LectureContentType? lectureContentType,
             CancellationToken cancellationToken)
         {
             if (!CanManageCourseContent())
@@ -467,12 +469,12 @@ namespace iD_Develops.Pages.Portal.Courses
             try
             {
                 var upload = await _courseMediaService.CreateFileUploadAsync(
-                    courseId, itemType, itemId, userId, CanViewAllCourses(), fileName, contentType, fileSize, cancellationToken);
+                    courseId, itemType, itemId, userId, CanViewAllCourses(), fileName, contentType, fileSize, lectureContentType, cancellationToken);
                 return new JsonResult(new
                 {
-                    fileId = upload.FileId,
                     objectKey = upload.ObjectKey,
                     putUrl = upload.PutUrl,
+                    contentType = upload.ContentType,
                     maxBytes = upload.MaxBytes,
                     cacheControl = upload.CacheControl
                 });
