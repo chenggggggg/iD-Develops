@@ -44,6 +44,11 @@ through pull requests. Pull requests run formatting, build, unit/integration, an
 checks. A successful merge to `main` builds the staging container and deploys the immutable
 commit to DigitalOcean.
 
+After a healthy deployment, the workflow reports obsolete container images while
+protecting deployed versions and rollback images. Deletion is disabled by default.
+See the [registry retention runbook](.github/REGISTRY_RETENTION.md) for reviewing
+reports, configuring protected environments, and enabling cleanup.
+
 ## Security
 
 Never commit populated `.env` files, credentials, data-protection keys, generated mail,

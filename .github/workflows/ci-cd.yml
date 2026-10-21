@@ -34,6 +34,14 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v7
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Test registry retention policy
+        run: node --test .github/scripts/registry-retention.test.mjs
+
       - name: Set up .NET
         uses: actions/setup-dotnet@v6
         with:
@@ -214,6 +222,9 @@ jobs:
       - e2e
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: read
     concurrency:
       group: staging
       cancel-in-progress: false
@@ -224,6 +235,11 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
 
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
@@ -269,6 +285,27 @@ jobs:
           done
           echo "DigitalOcean did not expose commit $GITHUB_SHA before the deployment timeout."
           exit 1
+
+      - name: Report or apply image retention
+        id: retention
+        env:
+          DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+          DO_REGISTRY_NAME: ${{ vars.DO_REGISTRY_NAME }}
+          DO_IMAGE_REPOSITORY: ${{ vars.DO_IMAGE_REPOSITORY }}
+          STAGING_URL: ${{ vars.STAGING_URL }}
+          REGISTRY_RETENTION_MODE: ${{ vars.REGISTRY_RETENTION_MODE || 'report' }}
+          REGISTRY_RETENTION_VERSION_URLS: ${{ vars.REGISTRY_RETENTION_VERSION_URLS }}
+          REGISTRY_RETENTION_REPORT_PATH: ${{ runner.temp }}/registry-retention-report
+        run: node .github/scripts/registry-retention.mjs
+
+      - name: Upload registry retention report
+        if: always() && (steps.retention.outcome == 'success' || steps.retention.outcome == 'failure')
+        uses: actions/upload-artifact@v4
+        with:
+          name: registry-retention-report
+          path: ${{ runner.temp }}/registry-retention-report.*
+          if-no-files-found: ignore
 
       - name: Sign out of DigitalOcean Container Registry
         if: always()
