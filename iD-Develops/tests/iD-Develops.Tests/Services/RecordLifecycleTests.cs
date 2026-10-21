@@ -189,6 +189,41 @@ public sealed class RecordLifecycleTests
         await AssertExpiredOnceAsync(db, record.Id);
     }
 
+    [Fact]
+    public async Task StartAttemptAtomicAsync_ContinuesEarlierVersion_AndCountsAttemptsAcrossVersions()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var record = await SeedAsync(db);
+        var user = new ApplicationUser { UserName = "versions@example.test" };
+        db.Users.Add(user);
+        record.UserId = user.Id;
+        record.StartDateTime = DateTime.UtcNow;
+        record.EndDateTime = record.StartDateTime.AddHours(1);
+        record.Exam.PublishStatus = ExamPublishStatus.Published;
+        record.Exam.TimeLimitSeconds = 3600;
+        await db.SaveChangesAsync();
+        var versions = new ExamVersionService(db);
+        record.ExamVersionId = (await versions.GetOrCreateAttemptVersionAsync(record.ExamId))!.ExamVersionId;
+        await db.SaveChangesAsync();
+        var firstVersionId = record.ExamVersionId;
+        record.Exam.TimeLimitSeconds = 2400;
+        await db.SaveChangesAsync();
+        var newVersion = (await versions.GetOrCreateAttemptVersionAsync(record.ExamId))!;
+        var records = CreateService(db);
+
+        var continued = await records.StartAttemptAtomicAsync(user.Id, record.ExamId, newVersion.ExamVersionId,
+            DateTime.UtcNow, DateTime.UtcNow.AddMinutes(40));
+
+        Assert.Equal(record.Id, continued);
+        Assert.Single(await db.Records.ToListAsync());
+        Assert.Equal(firstVersionId, record.ExamVersionId);
+        Assert.Equal(TimeSpan.FromHours(1), record.EndDateTime - record.StartDateTime);
+        Assert.Equal(1, await records.CountAttemptsAsync(user.Id, record.ExamId));
+        Assert.Equal(0, await records.CountAttemptsAsync(user.Id, record.ExamId, newVersion.ExamVersionId));
+        Assert.Single(await records.GetInProgressRecordsAsync(user.Id, record.ExamId));
+    }
+
     private static RecordService CreateService(ApplicationDbContext db)
     {
         var options = Options.Create(new RecordLifecycleOptions { NoTimeLimitInactivityDays = 14 });

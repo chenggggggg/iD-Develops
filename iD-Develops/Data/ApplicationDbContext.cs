@@ -488,6 +488,12 @@ namespace iD_Develops.Data
                 .IsUnique();
 
             modelBuilder.Entity<ExamVersion>()
+                .HasOne(v => v.ParentVersion)
+                .WithMany()
+                .HasForeignKey(v => v.ParentVersionId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<ExamVersion>()
                 .HasOne(v => v.Exam)
                 .WithMany(e => e.Versions)
                 .HasForeignKey(v => v.ExamId)

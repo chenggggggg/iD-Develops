@@ -9,6 +9,27 @@ namespace iD_Develops.Tests.Services;
 
 public sealed class ExamEditFlowServiceTests
 {
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(0)]
+    public async Task LoadPageAsync_LeavesUnlimitedAttemptsEmptyForSettingsValidation(int attempts)
+    {
+        var exam = new Exam
+        {
+            Id = 42,
+            Name = "Unlimited exam",
+            CreatedByUserId = "teacher-1",
+            IntroductionPrimaryLanguage = "Intro",
+            MaxAttempts = attempts
+        };
+        var service = new ExamEditFlowService(new StubExamService(exam), new StubQuestionService([]), new ConfigurationBuilder().Build());
+
+        var page = await service.LoadPageAsync(exam.Id, 0, "teacher-1", isAdmin: false);
+
+        Assert.NotNull(page);
+        Assert.Null(page.Settings.MaxAttempts);
+    }
+
     [Fact]
     public async Task LoadPageAsync_RebuildsUpperScoreBandsFromQuestionScores_WhenExamQuestionsAreNotLoaded()
     {

@@ -9,6 +9,54 @@ namespace iD_Develops.Tests.Services;
 public sealed class ExamVersionServiceTests
 {
     [Fact]
+    public async Task GetPublishedDescriptorAsync_UsesSavedSettingsForFutureAttempts()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var timed = Exam("Timed", 120);
+        var untimed = Exam("Untimed", 60);
+        var legacy = Exam("Legacy", 15);
+        var draft = Exam("Draft", 60);
+        var deleted = Exam("Deleted", 60);
+        db.Exams.AddRange(timed, untimed, legacy, draft, deleted);
+        await db.SaveChangesAsync();
+        var service = new ExamVersionService(db);
+        timed.PublishStatus = ExamPublishStatus.Published;
+        await db.SaveChangesAsync();
+        await service.GetOrCreateAttemptVersionAsync(timed.Id);
+        untimed.PublishStatus = ExamPublishStatus.Published;
+        await db.SaveChangesAsync();
+        await service.GetOrCreateAttemptVersionAsync(untimed.Id);
+        untimed.TimeLimitSeconds = null;
+        untimed.PublishStatus = ExamPublishStatus.Published;
+        await db.SaveChangesAsync();
+        await service.GetOrCreateAttemptVersionAsync(untimed.Id);
+        draft.PublishStatus = ExamPublishStatus.Published;
+        await db.SaveChangesAsync();
+        await service.GetOrCreateAttemptVersionAsync(draft.Id);
+        draft.PublishStatus = ExamPublishStatus.Draft;
+        deleted.IsDeleted = true;
+        timed.TimeLimitSeconds = 15;
+        untimed.TimeLimitSeconds = 15;
+        await db.SaveChangesAsync();
+
+        Assert.Equal(15, (await service.GetPublishedDescriptorAsync(timed.Id))!.DurationSeconds);
+        Assert.Equal(15, (await service.GetPublishedDescriptorAsync(untimed.Id))!.DurationSeconds);
+        Assert.Equal(15, (await service.GetPublishedDescriptorAsync(legacy.Id))!.DurationSeconds);
+        Assert.Null(await service.GetPublishedDescriptorAsync(draft.Id));
+        Assert.Null(await service.GetPublishedDescriptorAsync(deleted.Id));
+
+        static Exam Exam(string name, int duration) => new()
+        {
+            Name = name,
+            CreatedByUserId = "owner",
+            TimeLimitSeconds = duration,
+            IntroductionPrimaryLanguage = "Intro",
+            PublishStatus = ExamPublishStatus.Published
+        };
+    }
+
+    [Fact]
     public async Task PublishVersionAsync_CreatesImmutableSnapshotThatSurvivesLiveEdits()
     {
         using var factory = new SqliteTestDbFactory();
@@ -45,9 +93,11 @@ public sealed class ExamVersionServiceTests
 
         var service = new ExamVersionService(dbContext);
 
-        var publishResult = await service.PublishVersionAsync(exam, new List<Question> { question });
+        exam.PublishStatus = ExamPublishStatus.Published;
+        await dbContext.SaveChangesAsync();
+        var publishResult = await service.GetOrCreateAttemptVersionAsync(exam.Id);
 
-        Assert.True(publishResult.Success);
+        Assert.NotNull(publishResult);
 
         var firstVersion = await dbContext.ExamVersions
             .OrderBy(v => v.VersionNumber)
@@ -112,7 +162,9 @@ public sealed class ExamVersionServiceTests
 
         var service = new ExamVersionService(dbContext);
 
-        await service.PublishVersionAsync(exam, new List<Question> { question });
+        exam.PublishStatus = ExamPublishStatus.Published;
+        await dbContext.SaveChangesAsync();
+        await service.GetOrCreateAttemptVersionAsync(exam.Id);
 
         exam.Name = "Updated level test";
         exam.TimeLimitSeconds = 45 * 60;
@@ -126,7 +178,9 @@ public sealed class ExamVersionServiceTests
         question.CorrectAnswers.Add(new CorrectAnswer { Text = "Answer v2", Score = 10 });
         await dbContext.SaveChangesAsync();
 
-        await service.PublishVersionAsync(exam, new List<Question> { question });
+        exam.PublishStatus = ExamPublishStatus.Published;
+        await dbContext.SaveChangesAsync();
+        await service.GetOrCreateAttemptVersionAsync(exam.Id);
 
         var descriptor = await service.GetPublishedDescriptorAsync(exam.Id);
 
@@ -136,7 +190,7 @@ public sealed class ExamVersionServiceTests
         Assert.Equal(45 * 60, descriptor.DurationSeconds);
         Assert.Equal("Intro v2", descriptor!.IntroductionPrimary);
         Assert.Equal("Secondary v2", descriptor.IntroductionSecondary);
-        Assert.Equal(2, descriptor.ExamVersionId);
+        Assert.Null(descriptor.ExamVersionId);
         Assert.Equal(-1, descriptor.MaxAttempts);
         Assert.Equal("level-test-v2", descriptor.PublicSlug);
     }
@@ -163,7 +217,9 @@ public sealed class ExamVersionServiceTests
         await dbContext.SaveChangesAsync();
 
         var service = new ExamVersionService(dbContext);
-        await service.PublishVersionAsync(exam, Array.Empty<Question>());
+        exam.PublishStatus = ExamPublishStatus.Published;
+        await dbContext.SaveChangesAsync();
+        await service.GetOrCreateAttemptVersionAsync(exam.Id);
         var publishedVersionId = await dbContext.ExamVersions
             .Where(version => version.ExamId == exam.Id)
             .Select(version => version.Id)
@@ -226,9 +282,11 @@ public sealed class ExamVersionServiceTests
 
         var service = new ExamVersionService(dbContext);
 
-        var publishResult = await service.PublishVersionAsync(exam, new List<Question> { question });
+        exam.PublishStatus = ExamPublishStatus.Published;
+        await dbContext.SaveChangesAsync();
+        var publishResult = await service.GetOrCreateAttemptVersionAsync(exam.Id);
 
-        Assert.True(publishResult.Success);
+        Assert.NotNull(publishResult);
 
         var firstVersion = await dbContext.ExamVersions
             .OrderBy(v => v.VersionNumber)

@@ -1776,6 +1776,9 @@ namespace iD_Develops.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("ChangesJson")
+                        .HasColumnType("text");
+
                     b.Property<string>("CompletionTextPrimary")
                         .HasColumnType("text");
 
@@ -1805,6 +1808,9 @@ namespace iD_Develops.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int?>("ParentVersionId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("PublicSlug")
                         .HasColumnType("text");
 
@@ -1827,6 +1833,8 @@ namespace iD_Develops.Data.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ParentVersionId");
 
                     b.HasIndex("ExamId", "VersionNumber")
                         .IsUnique();
@@ -3485,7 +3493,14 @@ namespace iD_Develops.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("iD_Develops.Models.ExamVersion", "ParentVersion")
+                        .WithMany()
+                        .HasForeignKey("ParentVersionId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.Navigation("Exam");
+
+                    b.Navigation("ParentVersion");
                 });
 
             modelBuilder.Entity("iD_Develops.Models.ExamVersionCorrectAnswer", b =>

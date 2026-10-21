@@ -7,6 +7,7 @@ namespace iD_Develops.Pages.Shared.Examination
         public int? ExamId { get; init; }
         public string ExamTitle { get; init; } = string.Empty;
         public string CourseName { get; init; } = string.Empty;
+        public int? VersionNumber { get; init; }
 
         public int? DurationSeconds { get; set; }
         /// <summary>

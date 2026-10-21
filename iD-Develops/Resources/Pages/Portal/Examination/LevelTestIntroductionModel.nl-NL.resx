@@ -39,4 +39,8 @@
   <data name="TimerExplanation" xml:space="preserve"><value>De timer start zodra je de test opent. Je hebt geen account nodig.</value></data>
   <data name="Title" xml:space="preserve"><value>Gratis Nederlandse niveautest</value></data>
   <data name="UnavailableMessage" xml:space="preserve"><value>De openbare niveautest is op dit moment niet beschikbaar. Probeer het later opnieuw.</value></data>
+  <data name="NoTimeLimit" xml:space="preserve"><value>Geen tijdslimiet</value></data>
+  <data name="UntimedExplanation" xml:space="preserve"><value>Werk in je eigen tempo. Je hebt geen account nodig.</value></data>
+  <data name="UntimedStartText" xml:space="preserve"><value>Er is geen tijdslimiet. Kies een rustig moment en werk in je eigen tempo.</value></data>
+  <data name="UntimedBeforeStep1Text" xml:space="preserve"><value>Kies een rustig moment waarop je niet gestoord wordt. Er is geen tijdslimiet.</value></data>
 </root>

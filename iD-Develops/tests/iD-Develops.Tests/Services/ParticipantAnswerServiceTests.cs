@@ -27,7 +27,9 @@ public sealed class ParticipantAnswerServiceTests
         question.CorrectAnswers.Add(new CorrectAnswer { Text = "Amsterdam" });
         await db.SaveChangesAsync();
         var versions = new ExamVersionService(db);
-        Assert.True((await versions.PublishVersionAsync(record.Exam, [question])).Success);
+        record.Exam.PublishStatus = ExamPublishStatus.Published;
+        await db.SaveChangesAsync();
+        Assert.NotNull(await versions.GetOrCreateAttemptVersionAsync(record.ExamId));
         record.ExamVersionId = (await db.ExamVersions.SingleAsync()).Id;
         await db.SaveChangesAsync();
 

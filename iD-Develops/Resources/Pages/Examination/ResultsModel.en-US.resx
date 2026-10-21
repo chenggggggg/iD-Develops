@@ -39,4 +39,6 @@
   <data name="GradeReadyA1A2Advice" xml:space="preserve"><value>You are good to go with this course as well, although you will have to do all the exercises.</value></data>
   <data name="GradeBelowA1" xml:space="preserve"><value>Below A1</value></data>
   <data name="GradeBelowA1Advice" xml:space="preserve"><value>Less than 45 points but still want to give it a shot? That is great, but please contact us at info@id-develops.com. We are happy to give you some advice.</value></data>
+  <data name="TimeLimitLabel" xml:space="preserve"><value>Time limit</value></data>
+  <data name="NoTimeLimit" xml:space="preserve"><value>No time limit</value></data>
 </root>

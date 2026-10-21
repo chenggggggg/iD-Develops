@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", function () {
+function initializePortalLayout() {
     const sidebar = document.querySelector("[data-portal-sidebar]");
     const backdrop = document.querySelector("[data-portal-sidebar-backdrop]");
     const toggle = document.querySelector("[data-portal-sidebar-toggle]");
@@ -183,4 +183,10 @@ document.addEventListener("DOMContentLoaded", function () {
             setDialogOpen(dialog.id, false);
         });
     });
-});
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initializePortalLayout, { once: true });
+} else {
+    initializePortalLayout();
+}

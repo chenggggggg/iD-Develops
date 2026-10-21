@@ -12,6 +12,10 @@ namespace iD_Develops.Pages.Portal.Exams
     public class ListModel : PageModel
     {
         public IReadOnlyList<Exam> Exams { get; private set; } = Array.Empty<Exam>();
+        public IReadOnlyList<ExamVersionSummary> Versions { get; private set; } = Array.Empty<ExamVersionSummary>();
+        [BindProperty(SupportsGet = true)]
+        public string Tab { get; set; } = "active";
+        public bool CanManage => User.IsInRole("Admin") || User.IsInRole("SuperAdmin") || User.IsInRole("Teacher");
         public IReadOnlyDictionary<int, ExamAccessDecision> AvailabilityByExamId { get; private set; } =
             new Dictionary<int, ExamAccessDecision>();
         private readonly IAuthorizationService _authorizationService;
@@ -35,8 +39,12 @@ namespace iD_Develops.Pages.Portal.Exams
             _examAccessService = examAccessService;
         }
 
-        public async Task OnGetAsync(CancellationToken cancellationToken)
+        public async Task<IActionResult> OnGetAsync(CancellationToken cancellationToken)
         {
+            if (Tab is not ("active" or "archived" or "versions"))
+                return NotFound();
+            if (Tab != "active" && !CanManage)
+                return Forbid();
             if ((User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
             {
                 Exams = await _examService.GetAllExamsAsync();
@@ -47,7 +55,7 @@ namespace iD_Develops.Pages.Portal.Exams
                 if (string.IsNullOrWhiteSpace(userId))
                 {
                     Exams = Array.Empty<Exam>();
-                    return;
+                    return Forbid();
                 }
 
                 Exams = await _examService.GetExamsByTeacherAsync(userId);
@@ -72,6 +80,14 @@ namespace iD_Develops.Pages.Portal.Exams
                     AvailabilityByExamId = availability;
                 }
             }
+
+            if (Tab == "versions")
+                Versions = await _examVersionService.GetVersionHistoryAsync(Exams.Select(exam => exam.Id).ToArray());
+            else
+                Exams = Exams.Where(exam => Tab == "archived"
+                    ? exam.PublishStatus == ExamPublishStatus.Archived
+                    : exam.PublishStatus != ExamPublishStatus.Archived).ToList();
+            return Page();
         }
 
         public async Task<IActionResult> OnGetLaunchInfoAsync(int examId)

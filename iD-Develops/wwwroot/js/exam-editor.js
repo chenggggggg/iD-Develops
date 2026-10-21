@@ -1,4 +1,4 @@
-﻿// wwwroot/js/exam-editor.js
+// wwwroot/js/exam-editor.js
 (() => {
     "use strict";
 
@@ -2165,7 +2165,7 @@
     }
 
     async function publishExam() {
-        if (publishInProgress) return;
+        if (publishInProgress || unpublishInProgress) return;
 
         const examId = getExamId();
         if (!examId) {
@@ -2289,7 +2289,7 @@
     }
 
     async function unpublishExam() {
-        if (unpublishInProgress) return;
+        if (unpublishInProgress || publishInProgress) return;
 
         const examId = getExamId();
         if (!examId) {

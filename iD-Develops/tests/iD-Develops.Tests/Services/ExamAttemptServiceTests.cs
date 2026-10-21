@@ -43,7 +43,7 @@ public sealed class ExamAttemptServiceTests
     }
 
     [Fact]
-    public async Task GetStateAsync_UsesLatestVersionForAttemptCounting()
+    public async Task GetStateAsync_CountsAttemptsAcrossAllVersions()
     {
         var examVersionService = new StubExamVersionService(
             new PublishedExamDescriptor(
@@ -67,7 +67,7 @@ public sealed class ExamAttemptServiceTests
 
         var state = await service.GetStateAsync("student-1", 12);
 
-        Assert.Equal(7, recordService.LastExamVersionIdSeen);
+        Assert.Null(recordService.LastExamVersionIdSeen);
         Assert.Equal(3, state.MaxAttempts);
         Assert.Equal(1, state.AttemptsUsed);
         Assert.Equal(2, state.AttemptsLeft);
@@ -109,7 +109,7 @@ public sealed class ExamAttemptServiceTests
     }
 
     [Fact]
-    public async Task RestartAsync_CancelsAndRestartsWithinCurrentVersion()
+    public async Task RestartAsync_CancelsOldVersionAndStartsCurrentVersion()
     {
         var inProgressId = Guid.NewGuid();
         var restartedId = Guid.NewGuid();
@@ -144,7 +144,7 @@ public sealed class ExamAttemptServiceTests
         Assert.True(result.Success);
         Assert.Equal(restartedId, result.RecordId);
         Assert.Equal(inProgressId, recordService.LastCancelledRecordId);
-        Assert.Equal(5, recordService.LastCancelledExamVersionId);
+        Assert.Null(recordService.LastCancelledExamVersionId);
         Assert.Equal(5, recordService.LastStartedExamVersionId);
     }
 
@@ -187,6 +187,11 @@ public sealed class ExamAttemptServiceTests
         public Task<PublishedExamDescriptor?> GetPublishedDescriptorAsync(int examId, int? examVersionId = null)
             => Task.FromResult(_descriptor);
 
+        public Task<PublishedExamDescriptor?> GetOrCreateAttemptVersionAsync(int examId) => GetPublishedDescriptorAsync(examId);
+        public Task<ExamVersion?> GetVersionAsync(int examId, int versionId) => throw new NotSupportedException();
+        public Task<bool> IsMediaReferencedAsync(int examId, string reference) => throw new NotSupportedException();
+        public Task<IReadOnlyList<ExamVersionSummary>> GetVersionHistoryAsync(IReadOnlyCollection<int> examIds) => throw new NotSupportedException();
+
         public Task<List<QuestionMetadata>> GetQuestionMetadataAsync(int examId, int? examVersionId = null)
             => throw new NotSupportedException();
 
@@ -196,8 +201,6 @@ public sealed class ExamAttemptServiceTests
         public Task<Models.Exam?> GetExamForEvaluationAsync(int examId, int? examVersionId = null)
             => throw new NotSupportedException();
 
-        public Task<iD_Develops.Utilities.OperationResult> PublishVersionAsync(Models.Exam exam, IReadOnlyCollection<Models.Question> questions)
-            => throw new NotSupportedException();
     }
 
     private sealed class StubExamAccessService : IExamAccessService

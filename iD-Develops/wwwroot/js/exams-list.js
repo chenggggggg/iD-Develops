@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", function () {
+function initializeExamsList() {
     initializeExamActionPopovers();
 
     initializeExamActionConfirmation();
@@ -11,7 +11,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     displayDivMessage(successMessage, true);
     sessionStorage.removeItem("successMessage");
-});
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initializeExamsList, { once: true });
+} else {
+    initializeExamsList();
+}
 
 function initializeExamActionConfirmation() {
     const dialog = document.getElementById("examActionConfirmDialog");

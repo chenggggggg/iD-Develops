@@ -23,7 +23,7 @@
         <aside class="border-t border-[#071F3D] pt-6 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-10" aria-label="@Localizer["PracticalInformationLabel"]">
             <p class="m-0 text-xs font-medium uppercase tracking-[0.18em] text-[#6B6B6B] [font-family:var(--serif-label)]">@Localizer["DurationLabel"]</p>
             <p class="mt-3 mb-0 text-4xl font-semibold leading-none text-[#071F3D] [font-family:var(--serif-heading)]">@duration</p>
-            <p class="mt-5 mb-0 text-sm leading-6 text-[#6B6B6B]">@Localizer["TimerExplanation"]</p>
+            <p class="mt-5 mb-0 text-sm leading-6 text-[#6B6B6B]">@Localizer[Model.HasTimeLimit ? "TimerExplanation" : "UntimedExplanation"]</p>
             <a href="#start-level-test" class="mt-7 inline-flex items-center gap-3 text-sm font-semibold text-[#B23A48] underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-[#B23A48] focus-visible:outline-offset-4">
                 @Localizer["ReadOnButton"]
                 <i class="fa-solid fa-arrow-down-long" aria-hidden="true"></i>
@@ -45,7 +45,7 @@
         <aside class="border-t border-[#D8D3CC] pt-8 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-12">
             <h2 class="m-0 text-2xl font-semibold text-[#071F3D] [font-family:var(--serif-heading)]">@Localizer["BeforeHeading"]</h2>
             <ol class="mt-8 mb-0 grid list-none gap-7 p-0">
-                <li class="grid grid-cols-[2rem_1fr] gap-4"><span class="text-sm font-semibold text-[#B23A48]">01</span><div><h3 class="m-0 text-base font-semibold text-[#071F3D]">@Localizer["BeforeStep1Heading"]</h3><p class="mt-2 mb-0 leading-7 text-[#6B6B6B]">@Localizer["BeforeStep1Text", duration]</p></div></li>
+                <li class="grid grid-cols-[2rem_1fr] gap-4"><span class="text-sm font-semibold text-[#B23A48]">01</span><div><h3 class="m-0 text-base font-semibold text-[#071F3D]">@Localizer["BeforeStep1Heading"]</h3><p class="mt-2 mb-0 leading-7 text-[#6B6B6B]">@Localizer[Model.HasTimeLimit ? "BeforeStep1Text" : "UntimedBeforeStep1Text", duration]</p></div></li>
                 <li class="grid grid-cols-[2rem_1fr] gap-4"><span class="text-sm font-semibold text-[#B23A48]">02</span><div><h3 class="m-0 text-base font-semibold text-[#071F3D]">@Localizer["BeforeStep2Heading"]</h3><p class="mt-2 mb-0 leading-7 text-[#6B6B6B]">@Localizer["BeforeStep2Text"]</p></div></li>
                 <li class="grid grid-cols-[2rem_1fr] gap-4"><span class="text-sm font-semibold text-[#B23A48]">03</span><div><h3 class="m-0 text-base font-semibold text-[#071F3D]">@Localizer["BeforeStep3Heading"]</h3><p class="mt-2 mb-0 leading-7 text-[#6B6B6B]">@Localizer["BeforeStep3Text"]</p></div></li>
             </ol>
@@ -97,7 +97,7 @@
         <div>
             <p class="mb-4 text-xs font-medium uppercase tracking-[0.2em] text-[#F4C8CD] [font-family:var(--serif-label)]">@Localizer["StartEyebrow"]</p>
             <h2 class="m-0 max-w-[16ch] text-[clamp(2.5rem,5vw,4.5rem)] font-medium leading-[1.02] tracking-[-0.03em] text-white [font-family:var(--serif-heading)]">@Localizer["StartHeading"]</h2>
-            <p class="mt-6 mb-0 max-w-[39rem] text-lg leading-8 text-white/70">@Localizer["StartText", duration]</p>
+            <p class="mt-6 mb-0 max-w-[39rem] text-lg leading-8 text-white/70">@Localizer[Model.HasTimeLimit ? "StartText" : "UntimedStartText", duration]</p>
         </div>
 
         <div>

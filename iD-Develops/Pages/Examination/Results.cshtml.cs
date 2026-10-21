@@ -60,6 +60,8 @@ namespace iD_Develops.Pages.Examination
         public ResultSummaryViewModel? Summary { get; private set; }
         public IReadOnlyList<QuestionReviewItem> Questions { get; private set; } = Array.Empty<QuestionReviewItem>();
         public bool IsInvalidResult { get; private set; }
+        public int? ExamVersionNumber { get; private set; }
+        public int? TimeLimitSeconds { get; private set; }
 
         private readonly ApplicationDbContext _dbContext;
         private readonly IExamVersionService _examVersionService;
@@ -101,7 +103,7 @@ namespace iD_Develops.Pages.Examination
                 .Include(r => r.ExamVersion)
                 .FirstOrDefaultAsync(r => r.Id == RecordId && !r.IsDeleted, cancellationToken);
 
-            if (!IsDisplayableLevelTestRecord(record))
+            if (!await IsDisplayableLevelTestRecordAsync(record))
             {
                 IsInvalidResult = true;
                 return Page();
@@ -114,6 +116,8 @@ namespace iD_Develops.Pages.Examination
                 return Page();
             }
 
+            ExamVersionNumber = record.ExamVersion?.VersionNumber;
+            TimeLimitSeconds = exam.TimeLimitSeconds;
             var answers = await _participantAnswerService.GetParticipantAnswersByRecordIdAsync(RecordId) ?? new List<ParticipantAnswer>();
             var evaluation = _examEvaluationService.EvaluateExam(exam, answers);
             var answersByQuestionId = evaluation.ParticipantAnswers.ToDictionary(a => a.QuestionId);
@@ -192,11 +196,13 @@ namespace iD_Develops.Pages.Examination
             }
         }
 
-        private static bool IsDisplayableLevelTestRecord(iD_Develops.Models.Record? record)
+        private async Task<bool> IsDisplayableLevelTestRecordAsync(iD_Develops.Models.Record? record)
         {
             return record != null
                 && record.ExamStatus == ExamStatus.Completed
-                && string.Equals(record.ExamVersionId.HasValue ? record.ExamVersion?.PublicSlug : record.Exam?.PublicSlug,
+                && string.Equals(record.ExamVersion?.ChangesJson != null
+                        ? (await _examVersionService.GetPublishedDescriptorAsync(record.ExamId, record.ExamVersionId))?.PublicSlug
+                        : record.ExamVersionId.HasValue ? record.ExamVersion?.PublicSlug : record.Exam?.PublicSlug,
                     LevelTestPublicSlug, StringComparison.OrdinalIgnoreCase);
         }
 

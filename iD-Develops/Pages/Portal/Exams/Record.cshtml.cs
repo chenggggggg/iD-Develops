@@ -62,6 +62,7 @@ namespace iD_Develops.Pages.Portal.Exams
 
         public RecordSummaryViewModel? Summary { get; private set; }
         public IReadOnlyList<QuestionReviewItem> Questions { get; private set; } = Array.Empty<QuestionReviewItem>();
+        public int? TimeLimitSeconds { get; private set; }
         public int TotalPages { get; private set; }
         public int TotalQuestions { get; private set; }
 
@@ -110,6 +111,7 @@ namespace iD_Develops.Pages.Portal.Exams
             if (exam == null)
                 return NotFound();
 
+            TimeLimitSeconds = exam.TimeLimitSeconds;
             var answers = await _participantAnswerService.GetParticipantAnswersByRecordIdAsync(RecordId) ?? new List<ParticipantAnswer>();
             var evaluation = _examEvaluationService.EvaluateExam(exam, answers);
             var answersByQuestionId = evaluation.ParticipantAnswers.ToDictionary(a => a.QuestionId);
