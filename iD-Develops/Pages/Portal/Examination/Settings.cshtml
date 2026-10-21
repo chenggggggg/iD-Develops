@@ -33,6 +33,8 @@
             </div>
         }
 
+        <p class="mb-6 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600">Saved changes apply to new attempts. Existing attempts keep their original version, including its questions, answers and time limit. Publishing controls whether the exam is available.</p>
+
         <div class="portal-table-card py-6 lg:py-10">
             <form method="post" id="exam-settings-page-form">
                 @Html.AntiForgeryToken()
@@ -41,24 +43,24 @@
                 <div class="public-alert public-alert-danger exam-hidden" role="alert" data-settings-client-summary></div>
 
                 <div class="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                    <div class="grid gap-1.5">
+                    <div class="flex flex-col gap-1.5">
                         <label asp-for="Settings.Name" class="portal-info-label">Exam name</label>
-                        <input asp-for="Settings.Name" class="portal-field" placeholder="Exam name" />
+                        <input asp-for="Settings.Name" class="portal-field h-11" placeholder="Exam name" />
                         <span asp-validation-for="Settings.Name" class="portal-validation-message"></span>
                     </div>
-                    <div class="grid gap-1.5">
+                    <div class="flex flex-col gap-1.5">
                         <label asp-for="Settings.TimeLimitInput" class="portal-info-label">Time limit</label>
                         <input asp-for="Settings.TimeLimitInput"
                                type="text"
-                               inputmode="numeric"
-                               class="portal-field"
-                               placeholder="00:30:00" />
-                        <div class="exam-field-help">Use hh:mm:ss, or leave empty for no time limit.</div>
+                               class="portal-field h-11"
+                               placeholder="hh:mm:ss"
+                               aria-describedby="settings-time-limit-help" />
+                        <div class="exam-field-help" id="settings-time-limit-help">Use hh:mm:ss, or leave empty for no time limit.</div>
                         <span asp-validation-for="Settings.TimeLimitInput" class="portal-validation-message"></span>
                     </div>
-                    <div class="grid gap-1.5">
+                    <div class="flex flex-col gap-1.5">
                         <label asp-for="Settings.DifficultyValue" class="portal-info-label">Difficulty</label>
-                        <select asp-for="Settings.DifficultyValue" class="portal-field">
+                        <select asp-for="Settings.DifficultyValue" class="portal-field h-11">
                             <option value="" disabled>Choose level</option>
                             @foreach (var difficulty in Enum.GetValues(typeof(DifficultyLevel)).Cast<DifficultyLevel>())
                             {
@@ -67,11 +69,11 @@
                         </select>
                         <span asp-validation-for="Settings.DifficultyValue" class="portal-validation-message"></span>
                     </div>
-                    <div class="grid gap-1.5">
+                    <div class="flex flex-col gap-1.5">
                         <label asp-for="Settings.MaxAttempts" class="portal-info-label">Attempts</label>
                         <input asp-for="Settings.MaxAttempts"
                                type="number"
-                               class="portal-field"
+                               class="portal-field h-11"
                                placeholder="Unlimited"
                                min="1"
                                step="1"

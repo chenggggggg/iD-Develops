@@ -33,7 +33,6 @@ namespace iD_Develops.Pages.Portal.Examination
         private readonly IQuestionService _questionService;
 
         public double MaximumScore { get; private set; }
-
         public ExaminationHeaderModel Header { get; private set; } = new ExaminationHeaderModel
         {
             ExamTitle = "Exam Settings",
@@ -111,7 +110,7 @@ namespace iD_Develops.Pages.Portal.Examination
                 return StatusCode(result.StatusCode);
             }
 
-            StatusMessage = "Settings saved.";
+            StatusMessage = "Settings saved. New attempts use these settings. Existing attempts keep their original version and time limit.";
             return RedirectToPage(new { ExamId, ReturnCourseId });
         }
 

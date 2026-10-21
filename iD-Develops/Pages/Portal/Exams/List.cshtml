@@ -16,7 +16,7 @@
     var canManageExams = User.IsInRole("Teacher") || User.IsInRole("Admin") || User.IsInRole("SuperAdmin");
     var publishedExamCount = Model.Exams.Count(exam => exam.PublishStatus == iD_Develops.Models.ExamPublishStatus.Published);
     var draftExamCount = Model.Exams.Count(exam => exam.PublishStatus == iD_Develops.Models.ExamPublishStatus.Draft);
-    var timedExamCount = Model.Exams.Count(exam => exam.TimeLimitSeconds.HasValue);
+    var timedExamCount = Model.Exams.Count(exam => exam.TimeLimitSeconds is > 0);
     var difficultyCount = Model.Exams.Select(exam => exam.Difficulty).Distinct().Count();
 }
 
@@ -75,6 +75,44 @@
         </div>
     }
 
+    @if (Model.CanManage)
+    {
+        <nav class="mb-6 flex flex-wrap gap-2 border-b border-slate-200 pb-3" aria-label="Exam library">
+            @foreach (var tab in new[] { (Key: "active", Label: "Active"), (Key: "archived", Label: "Archived"), (Key: "versions", Label: "Snapshots / Old versions") })
+            {
+                <a asp-page="/Portal/Exams/List" asp-route-tab="@tab.Key" aria-current="@(Model.Tab == tab.Key ? "page" : null)"
+                   class="rounded-lg px-4 py-2 text-sm font-semibold no-underline @(Model.Tab == tab.Key ? "bg-[#005190] text-white" : "text-slate-600 hover:bg-slate-100")">@tab.Label</a>
+            }
+        </nav>
+    }
+
+    @if (Model.Tab == "versions")
+    {
+        <p class="mb-4 text-sm text-slate-600">Each attempt keeps the version it started with. Saved changes are preserved automatically for new attempts. Open a version to review its original settings, questions and answer key.</p>
+        <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+            <table class="w-full text-left text-sm" aria-label="Exam versions">
+                <thead class="bg-slate-50 text-slate-600"><tr><th class="p-4">Exam</th><th class="p-4">Version</th><th class="p-4">Preserved on (UTC)</th><th class="p-4">Time limit</th><th class="p-4">Questions</th><th class="p-4">Attempts</th><th class="p-4">Actions</th></tr></thead>
+                <tbody class="divide-y divide-slate-100">
+                @foreach (var version in Model.Versions)
+                {
+                    <tr>
+                        <td class="p-4 font-semibold">@version.ExamName</td><td class="p-4">v@(version.VersionNumber)</td>
+                        <td class="p-4">@version.CreatedAtUtc.ToString("dd MMM yyyy HH:mm")</td>
+                        <td class="p-4">@(version.TimeLimitSeconds is > 0 ? ExamDuration.Format(version.TimeLimitSeconds.Value) : "No time limit")</td>
+                        <td class="p-4">@version.QuestionCount</td><td class="p-4">@version.AttemptCount</td>
+                        <td class="p-4"><a class="font-semibold text-[#005190] underline underline-offset-2" asp-page="/Portal/Exams/Version" asp-route-examId="@version.ExamId" asp-route-versionId="@version.VersionId">View version</a></td>
+                    </tr>
+                }
+                @if (Model.Versions.Count == 0)
+                {
+                    <tr><td colspan="7" class="p-6 text-center text-slate-500">No exam versions have been preserved yet.</td></tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
     <div class="mb-4 grid flex-none gap-3 sm:grid-cols-3" aria-label="Exam overview">
         <article class="flex items-center gap-3 rounded-lg border border-[#dfe5ec] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(2,7,47,0.04)]">
             <span class="grid size-9 flex-none place-items-center rounded-md bg-[#eaf3fa] text-[#005190]" aria-hidden="true"><i class="fa-solid fa-file-lines"></i></span>
@@ -135,18 +173,9 @@
                         <td>
                             <span class="portal-table-pill">@exam.Difficulty</span>
                         </td>
-                        @if (exam.TimeLimitSeconds.HasValue)
-                        {
-                            <td>
-                                <span class="portal-table-meta">@ExamDuration.Format(exam.TimeLimitSeconds.Value)</span>
-                            </td>
-                        }
-                        else
-                        {
-                            <td>
-                                <span class="portal-table-meta">No time limit</span>
-                            </td>
-                        }
+                        <td>
+                            <span class="portal-table-meta" data-exam-duration>@(exam.TimeLimitSeconds is > 0 ? ExamDuration.Format(exam.TimeLimitSeconds.Value) : "No time limit")</span>
+                        </td>
                         @if ((User.IsInRole("Admin") || User.IsInRole("SuperAdmin")) || User.IsInRole("Teacher"))
                         {
                             <td>
@@ -156,7 +185,7 @@
                         <td class="portal-exams-table-actions portal-table-cell-end">
                             @{
                                 Model.AvailabilityByExamId.TryGetValue(exam.Id, out var rowAvailability);
-                                var examCanLaunch = canManageExams || rowAvailability == null || rowAvailability.CanTake;
+                                var examCanLaunch = exam.PublishStatus != iD_Develops.Models.ExamPublishStatus.Archived && (canManageExams || rowAvailability == null || rowAvailability.CanTake);
                                 var actionsPopoverId = $"exam-actions-{exam.Id}";
                             }
                             <div class="flex items-center justify-end gap-2">
@@ -228,6 +257,7 @@
         </table>
         </div>
     </div>
+    }
 </div>
 
 <div class="portal-dialog-backdrop" data-portal-dialog-backdrop="examActionConfirmDialog" hidden></div>

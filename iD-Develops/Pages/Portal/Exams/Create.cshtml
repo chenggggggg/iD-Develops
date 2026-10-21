@@ -122,7 +122,7 @@
 
             <aside class="exam-create-side">
                 <div>
-                    <label asp-for="Input.DifficultyValue" class="portal-info-label">Level test</label>
+                    <label asp-for="Input.DifficultyValue" for="examDifficultyDropdown" class="portal-info-label">Level test</label>
                     <select asp-for="Input.DifficultyValue"
                             class="portal-field"
                             id="examDifficultyDropdown">
@@ -139,10 +139,10 @@
                     <label asp-for="Input.TimeLimitInput" class="portal-info-label">Time limit</label>
                     <input asp-for="Input.TimeLimitInput"
                            type="text"
-                           inputmode="numeric"
-                           class="portal-field"
-                           placeholder="00:30:00" />
-                    <div class="exam-field-help">Use hh:mm:ss, or leave empty for no time limit.</div>
+                           class="portal-field h-11"
+                           placeholder="hh:mm:ss"
+                           aria-describedby="create-time-limit-help" />
+                    <div class="exam-field-help" id="create-time-limit-help">Use hh:mm:ss, or leave empty for no time limit.</div>
                     <span asp-validation-for="Input.TimeLimitInput" class="portal-validation-message"></span>
                 </div>
 

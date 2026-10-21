@@ -11,6 +11,11 @@ namespace iD_Develops.Models
         public int ExamId { get; set; }
         public Exam Exam { get; set; } = null!;
         public int VersionNumber { get; set; }
+        // Legacy versions contain full relational snapshots. New versions store
+        // an immutable JSON delta from their parent (or a full root document).
+        public int? ParentVersionId { get; set; }
+        public ExamVersion? ParentVersion { get; set; }
+        public string? ChangesJson { get; set; }
         [Required]
         public string Name { get; set; } = string.Empty;
         public int DifficultyValue { get; set; }

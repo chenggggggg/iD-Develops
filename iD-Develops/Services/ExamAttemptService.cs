@@ -1,4 +1,4 @@
-﻿using iD_Develops.Models;
+using iD_Develops.Models;
 
 using iD_Develops.Data;
 using Microsoft.EntityFrameworkCore;
@@ -61,7 +61,7 @@ namespace iD_Develops.Services
                 : descriptor.MaxAttempts + grantedAttempts; // -1 unlimited, 1..N fixed plus grants
 
             // Self-heal duplicates deterministically: keep latest InProgress, cancel others
-            var inProgress = await _recordService.GetInProgressRecordsAsync(userId, examId, descriptor.ExamVersionId);
+            var inProgress = await _recordService.GetInProgressRecordsAsync(userId, examId);
 
             Guid? inProgressRecordId = null;
 
@@ -74,12 +74,12 @@ namespace iD_Develops.Services
                 if (inProgress.Count > 1)
                 {
                     var dupIds = inProgress.Skip(1).Select(r => r.Id).ToList();
-                    await _recordService.CancelRecordsAsync(dupIds, userId, examId, descriptor.ExamVersionId);
+                    await _recordService.CancelRecordsAsync(dupIds, userId, examId);
                 }
             }
 
             // In-progress, completed, and cancelled attempts all count toward the limit.
-            var attemptsUsed = await _recordService.CountAttemptsAsync(userId, examId, descriptor.ExamVersionId);
+            var attemptsUsed = await _recordService.CountAttemptsAsync(userId, examId);
 
             var unlimited = maxAttempts == -1;
 
@@ -126,7 +126,7 @@ namespace iD_Develops.Services
                 return new AttemptActionResult(false, null, state.BlockReason ?? "Cannot start.");
 
             // Compute the exact deadline from the versioned exam duration.
-            var descriptor = await _examVersionService.GetPublishedDescriptorAsync(examId);
+            var descriptor = await _examVersionService.GetOrCreateAttemptVersionAsync(examId);
             if (descriptor == null)
                 return new AttemptActionResult(false, null, "Exam not found.");
 
@@ -167,11 +167,11 @@ namespace iD_Develops.Services
                 return new AttemptActionResult(false, null, state.BlockReason ?? "Cannot restart.");
 
             // Cancel current in-progress (this method exists)
-            var descriptor = await _examVersionService.GetPublishedDescriptorAsync(examId);
+            var descriptor = await _examVersionService.GetOrCreateAttemptVersionAsync(examId);
             if (descriptor == null)
                 return new AttemptActionResult(false, null, "Exam not found.");
 
-            var cancelled = await _recordService.CancelInProgressAsync(state.InProgressRecordId.Value, userId, examId, descriptor.ExamVersionId);
+            var cancelled = await _recordService.CancelInProgressAsync(state.InProgressRecordId.Value, userId, examId);
             if (!cancelled)
                 return new AttemptActionResult(false, null, "Failed to cancel in-progress attempt.");
 

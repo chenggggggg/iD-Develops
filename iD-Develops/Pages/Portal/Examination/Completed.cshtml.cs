@@ -107,7 +107,7 @@ namespace iD_Develops.Pages.Portal.Examination
             if (accessResult != null)
                 return accessResult;
 
-            ShowLevelTestCompletedPartial = IsFinishedLevelTestRecord(record);
+            ShowLevelTestCompletedPartial = await IsFinishedLevelTestRecordAsync(record);
             IsSignedInPortalUser = IsPortalUser();
 
             if (IsSignedInPortalUser)
@@ -131,7 +131,7 @@ namespace iD_Develops.Pages.Portal.Examination
             if (accessResult != null)
                 return accessResult;
 
-            if (!IsFinishedLevelTestRecord(record))
+            if (!await IsFinishedLevelTestRecordAsync(record))
                 return RedirectToPage(new { recordId = RecordId });
 
             ShowLevelTestCompletedPartial = true;
@@ -197,7 +197,7 @@ namespace iD_Develops.Pages.Portal.Examination
             if (accessResult != null)
                 return accessResult;
 
-            if (!IsFinishedLevelTestRecord(record))
+            if (!await IsFinishedLevelTestRecordAsync(record))
                 return RedirectToPage(new { recordId = RecordId });
 
             if (IsPortalUser())
@@ -340,7 +340,7 @@ namespace iD_Develops.Pages.Portal.Examination
             if (record == null)
                 return (null, NotFound());
 
-            var isLevelTest = IsFinishedLevelTestRecord(record);
+            var isLevelTest = await IsFinishedLevelTestRecordAsync(record);
             var isPortalRequest = IsPortalSurface;
             if (isLevelTest && isPortalRequest)
             {
@@ -378,11 +378,13 @@ namespace iD_Develops.Pages.Portal.Examination
                 .FirstOrDefaultAsync(r => r.Id == RecordId && !r.IsDeleted);
         }
 
-        private static bool IsFinishedLevelTestRecord(Record? record)
+        private async Task<bool> IsFinishedLevelTestRecordAsync(Record? record)
         {
             return record != null
                 && record.ExamStatus == ExamStatus.Completed
-                && string.Equals(record.ExamVersionId.HasValue ? record.ExamVersion?.PublicSlug : record.Exam?.PublicSlug,
+                && string.Equals(record.ExamVersion?.ChangesJson != null
+                        ? (await _examVersionService.GetPublishedDescriptorAsync(record.ExamId, record.ExamVersionId))?.PublicSlug
+                        : record.ExamVersionId.HasValue ? record.ExamVersion?.PublicSlug : record.Exam?.PublicSlug,
                     LevelTestPublicSlug, StringComparison.OrdinalIgnoreCase);
         }
 

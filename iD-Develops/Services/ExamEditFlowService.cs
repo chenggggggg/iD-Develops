@@ -71,7 +71,7 @@ namespace iD_Develops.Services
                         TimeLimitSeconds = exam.TimeLimitSeconds,
                         TimeLimitInput = ExamDuration.Format(exam.TimeLimitSeconds),
                         DifficultyValue = exam.DifficultyValue,
-                        MaxAttempts = exam.MaxAttempts == -1 ? 0 : exam.MaxAttempts,
+                        MaxAttempts = exam.MaxAttempts < 1 ? null : exam.MaxAttempts,
                         PublicSlug = exam.PublicSlug,
                         IsPublicLevelTest = string.Equals(exam.PublicSlug, "level-test", StringComparison.OrdinalIgnoreCase),
                         IntroductionPrimaryLanguage = exam.IntroductionPrimaryLanguage,

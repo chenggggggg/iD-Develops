@@ -47,6 +47,7 @@
                     <p class="portal-eyebrow">Exam Details</p>
                     <p class="portal-copy"><strong>Status:</strong> @Model.Summary.ExamStatus</p>
                     <p class="portal-copy"><strong>Version:</strong> @(Model.Summary.ExamVersionNumber.HasValue ? $"v{Model.Summary.ExamVersionNumber}" : "Legacy")</p>
+                    <p class="portal-copy"><strong>Time limit:</strong> @(Model.TimeLimitSeconds is > 0 ? iD_Develops.Utilities.ExamDuration.Format(Model.TimeLimitSeconds.Value) : "No time limit")</p>
                     <p class="portal-copy"><strong>Completed:</strong> @((Model.Summary.EndDateTime ?? Model.Summary.StartDateTime).ToLocalTime().ToString("dd MMM yyyy"))</p>
                 </div>
             </div>

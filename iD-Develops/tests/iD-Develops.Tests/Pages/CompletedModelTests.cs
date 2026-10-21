@@ -32,6 +32,36 @@ namespace iD_Develops.Tests.Pages;
 
 public sealed class CompletedModelTests
 {
+    [Fact]
+    public async Task IncrementalSnapshot_CompletionAndResultsUseHistoricalMetadataAfterExamIsArchived()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var exam = SeedLevelTestExam(db);
+        exam.TimeLimitSeconds = 3600;
+        await db.SaveChangesAsync();
+        var versions = new ExamVersionService(db);
+        var preserved = (await versions.GetOrCreateAttemptVersionAsync(exam.Id))!;
+        var record = SeedCompletedRecord(db, exam);
+        record.ExamVersionId = preserved.ExamVersionId;
+        exam.Name = "Renamed current exam";
+        exam.TimeLimitSeconds = 2400;
+        exam.PublicSlug = null;
+        exam.PublishStatus = ExamPublishStatus.Archived;
+        await db.SaveChangesAsync();
+        var harness = await TestHarness.CreateAsync(db);
+        var completion = harness.CreateModel(versionService: new ExamVersionService(db));
+        completion.RecordId = record.Id;
+        Assert.IsType<PageResult>(await completion.OnGetAsync());
+        Assert.True(completion.ShowLevelTestCompletedPartial);
+        var results = harness.CreateResultsModel(record.Id, new ExamVersionService(db));
+        Assert.IsType<PageResult>(await results.OnGetAsync(CancellationToken.None));
+        Assert.False(results.IsInvalidResult);
+        Assert.Equal("Level Test", results.Summary!.ExamName);
+        Assert.Equal(1, results.ExamVersionNumber);
+        Assert.Equal(3600, results.TimeLimitSeconds);
+    }
+
     [Theory]
     [InlineData("en-us", RecordStatusReason.ManualSubmit)]
     [InlineData("nl-nl", RecordStatusReason.ManualSubmit)]
@@ -461,14 +491,14 @@ public sealed class CompletedModelTests
                 serviceProvider);
         }
 
-        public CompletedModel CreateModel(ClaimsPrincipal? principal = null)
+        public CompletedModel CreateModel(ClaimsPrincipal? principal = null, IExamVersionService? versionService = null)
         {
             var httpContextAccessor = new HttpContextAccessor();
             var model = new CompletedModel(
                 _db,
                 _participantAnswerService,
                 _examEvaluationService,
-                _examVersionService,
+                versionService ?? _examVersionService,
                 httpContextAccessor,
                 MailService,
                 _mailOptions,
@@ -506,8 +536,8 @@ public sealed class CompletedModelTests
             return model;
         }
 
-        public ResultsModel CreateResultsModel(Guid recordId)
-            => new(_db, _examVersionService, _participantAnswerService, _examEvaluationService,
+        public ResultsModel CreateResultsModel(Guid recordId, IExamVersionService? versionService = null)
+            => new(_db, versionService ?? _examVersionService, _participantAnswerService, _examEvaluationService,
                 _dataProtectionProvider, new ResultsTestLocalizer())
             {
                 RecordId = recordId,
@@ -600,6 +630,11 @@ public sealed class CompletedModelTests
         public Task<PublishedExamDescriptor?> GetPublishedDescriptorAsync(int examId, int? examVersionId = null)
             => Task.FromResult<PublishedExamDescriptor?>(null);
 
+        public Task<PublishedExamDescriptor?> GetOrCreateAttemptVersionAsync(int examId) => GetPublishedDescriptorAsync(examId);
+        public Task<ExamVersion?> GetVersionAsync(int examId, int versionId) => throw new NotSupportedException();
+        public Task<bool> IsMediaReferencedAsync(int examId, string reference) => throw new NotSupportedException();
+        public Task<IReadOnlyList<ExamVersionSummary>> GetVersionHistoryAsync(IReadOnlyCollection<int> examIds) => throw new NotSupportedException();
+
         public Task<List<QuestionMetadata>> GetQuestionMetadataAsync(int examId, int? examVersionId = null)
             => Task.FromResult(new List<QuestionMetadata>());
 
@@ -609,8 +644,6 @@ public sealed class CompletedModelTests
         public Task<Exam?> GetExamForEvaluationAsync(int examId, int? examVersionId = null)
             => Task.FromResult<Exam?>(_exam.Id == examId ? _exam : null);
 
-        public Task<OperationResult> PublishVersionAsync(Exam exam, IReadOnlyCollection<Question> questions)
-            => throw new NotSupportedException();
     }
 
     private sealed class StubParticipantAnswerService : IParticipantAnswerService

@@ -148,6 +148,10 @@
                     else
                     {
                         <small class="exam-header-label">@(!string.IsNullOrWhiteSpace(Model.ExamTitle) ? Model.ExamTitle : "-")</small>
+                        @if (Model.VersionNumber.HasValue)
+                        {
+                            <span class="rounded bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600" data-exam-version>v@(Model.VersionNumber)</span>
+                        }
                     }
 
                     <div class="exam-header-value" id="editorCourseName">

@@ -1,0 +1,83 @@
+@page
+@using iD_Develops.Utilities
+@model iD_Develops.Pages.Portal.Exams.VersionModel
+@inject iD_Develops.Services.IStoragePublicUrlService StoragePublicUrlService
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = $"{Model.Snapshot.Name} · v{Model.Snapshot.VersionNumber}";
+    var version = Model.Snapshot;
+}
+<div class="portal-page-shell">
+    <div class="portal-page-header">
+        <div>
+            <p class="portal-eyebrow">Preserved exam version</p>
+            <h1 class="portal-title-sm">@version.Name · v@(version.VersionNumber)</h1>
+            <p class="portal-copy">Read-only content used by attempts on this version. Editing the current exam does not change this version.</p>
+        </div>
+        <a class="portal-btn portal-btn-outline" asp-page="/Portal/Exams/List" asp-route-tab="versions">Back to versions</a>
+    </div>
+    <section class="mb-6 rounded-xl border border-slate-200 bg-white p-6" aria-label="Version settings">
+        <dl class="grid gap-4 sm:grid-cols-3">
+            <div><dt class="text-sm text-slate-500">Time limit</dt><dd class="font-semibold">@(version.TimeLimitSeconds is > 0 ? ExamDuration.Format(version.TimeLimitSeconds.Value) : "No time limit")</dd></div>
+            <div><dt class="text-sm text-slate-500">Preserved on (UTC)</dt><dd>@version.PublishedAtUtc.ToString("dd MMM yyyy HH:mm")</dd></div>
+            <div><dt class="text-sm text-slate-500">Maximum attempts</dt><dd>@(version.MaxAttempts < 1 ? "Unlimited" : version.MaxAttempts.ToString())</dd></div>
+            <div><dt class="text-sm text-slate-500">Level</dt><dd>@((iD_Develops.Enums.DifficultyLevel)version.DifficultyValue)</dd></div>
+            <div><dt class="text-sm text-slate-500">Course</dt><dd>@(version.CourseName ?? "—")</dd></div>
+            <div><dt class="text-sm text-slate-500">Result display</dt><dd>@version.ResultGradeDisplayMode</dd></div>
+        </dl>
+        <h2 class="mt-6 text-base font-semibold">Introduction</h2>
+        <div class="prose max-w-none">@Html.Raw(version.IntroductionPrimaryLanguage)</div>
+        @if (!string.IsNullOrWhiteSpace(version.IntroductionSecondaryLanguage))
+        {
+            <div class="prose mt-3 max-w-none">@Html.Raw(version.IntroductionSecondaryLanguage)</div>
+        }
+        <h2 class="mt-6 text-base font-semibold">Completion message</h2>
+        <div class="prose max-w-none">@Html.Raw(version.CompletionTextPrimary)</div>
+        <div class="prose max-w-none">@Html.Raw(version.CompletionTextSecondary)</div>
+        <p class="mt-4 text-sm">@version.ResultGradeCustomTextPrimary @version.ResultGradeCustomTextSecondary</p>
+        @if (version.GradeBands.Count > 0)
+        {
+            <h2 class="mt-6 text-base font-semibold">Grade bands</h2>
+            <ul class="mt-2 list-inside list-disc text-sm">
+                @foreach (var band in version.GradeBands.OrderBy(b => b.MinimumScore))
+                {
+                    <li>@band.MinimumScore: @band.LabelPrimary @band.LabelSecondary</li>
+                }
+            </ul>
+        }
+    </section>
+    <h2 class="mb-4 text-xl font-semibold">Questions and answer key</h2>
+    @foreach (var question in version.Questions.OrderBy(q => q.QuestionNumber))
+    {
+        <article class="mb-4 rounded-xl border border-slate-200 bg-white p-6">
+            <h3 class="mb-3 font-semibold">Question @question.QuestionNumber · @question.QuestionType</h3>
+            <div class="prose max-w-none">@Html.Raw(question.MessageBeforeQuestion)</div>
+            <div class="prose max-w-none">@Html.Raw(question.Scenario)</div>
+            <div class="prose max-w-none">@Html.Raw(question.Text)</div>
+            @if (!string.IsNullOrWhiteSpace(question.ImageReference))
+            {
+                <img src="@StoragePublicUrlService.ResolvePublicUrl(question.ImageReference)" alt="Question @question.QuestionNumber" class="mt-3 max-h-72 max-w-full rounded-lg object-contain" />
+            }
+            @if (!string.IsNullOrWhiteSpace(question.AudioReference))
+            {
+                <audio controls src="@StoragePublicUrlService.ResolvePublicUrl(question.AudioReference)" class="mt-3 w-full"></audio>
+            }
+            @if (question.QuestionType == "MultipleChoice")
+            {
+                <ul class="mt-4 list-inside list-disc text-sm">
+                    <li>A: @question.AnswerA</li><li>B: @question.AnswerB</li><li>C: @question.AnswerC</li><li>D: @question.AnswerD</li>
+                </ul>
+            }
+            <p class="mt-4 text-sm font-semibold">Points: @(question.Score ?? 1)</p>
+            <p class="mt-4 text-sm font-semibold">Correct answers</p>
+            <ul class="mt-2 list-inside list-disc text-sm">
+                @foreach (var answer in question.CorrectAnswers)
+                {
+                    <li>@answer.Text · @(answer.Score?.ToString() ?? "Default points")</li>
+                }
+            </ul>
+            <div class="prose mt-4 max-w-none">@Html.Raw(question.Feedback)</div>
+            <div class="prose mt-4 max-w-none">@Html.Raw(question.FunFact)</div>
+        </article>
+    }
+</div>

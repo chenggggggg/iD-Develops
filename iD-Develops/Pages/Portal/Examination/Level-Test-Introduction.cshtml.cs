@@ -12,7 +12,6 @@ namespace iD_Develops.Pages.Portal.Examination
     public class LevelTestIntroductionModel : PageModel
     {
         private const string LevelTestSlug = "level-test";
-        private const int LevelTestDurationSeconds = 35 * 60;
 
         private readonly IExamService _examService;
         private readonly IExamVersionService _examVersionService;
@@ -21,7 +20,8 @@ namespace iD_Develops.Pages.Portal.Examination
 
         public bool IsLevelTestAvailable { get; private set; }
         public int? LevelTestExamId { get; private set; }
-        public string DurationDisplay { get; private set; } = ExamDuration.Format(LevelTestDurationSeconds);
+        public bool HasTimeLimit { get; private set; }
+        public string DurationDisplay { get; private set; } = "—";
 
         public LevelTestIntroductionModel(
             IExamService examService,
@@ -41,10 +41,10 @@ namespace iD_Develops.Pages.Portal.Examination
             var descriptor = exam == null ? null : await _examVersionService.GetPublishedDescriptorAsync(exam.Id);
             IsLevelTestAvailable = descriptor != null;
             LevelTestExamId = exam?.Id;
-            DurationDisplay = ExamDuration.Format(
-                descriptor?.DurationSeconds is > 0
-                    ? descriptor.DurationSeconds
-                    : LevelTestDurationSeconds);
+            HasTimeLimit = descriptor?.DurationSeconds is > 0;
+            DurationDisplay = descriptor == null
+                ? "—"
+                : HasTimeLimit ? ExamDuration.Format(descriptor.DurationSeconds) : _localizer["NoTimeLimit"].Value;
         }
 
         public async Task<IActionResult> OnPostCreateRecordAsync()
@@ -53,7 +53,7 @@ namespace iD_Develops.Pages.Portal.Examination
             if (exam == null)
                 return NotFound();
 
-            var descriptor = await _examVersionService.GetPublishedDescriptorAsync(exam.Id);
+            var descriptor = await _examVersionService.GetOrCreateAttemptVersionAsync(exam.Id);
             if (descriptor == null)
                 return NotFound();
 

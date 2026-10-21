@@ -300,7 +300,7 @@ namespace iD_Develops.Services
             {
                 await using var tx = await _dbContext.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
 
-                await MarkInvalidInProgressRecordsForUserExamAsync(userId, examId, examVersionId);
+                await MarkInvalidInProgressRecordsForUserExamAsync(userId, examId);
 
                 var inProgress = await ApplyExamVersionFilter(
                         _dbContext.Records
@@ -309,7 +309,7 @@ namespace iD_Develops.Services
                         r.UserId == userId &&
                         r.ExamId == examId &&
                         r.ExamStatus == ExamStatus.InProgress),
-                        examVersionId)
+                        null)
                     .OrderByDescending(r => r.StartDateTime)
                     .ToListAsync();
 
@@ -382,7 +382,7 @@ namespace iD_Develops.Services
                 summaries.Add(new UserExamRecordSummary(
                     record.Id,
                     record.ExamId,
-                    record.Exam.Name,
+                    (await _examVersionService.GetExamForEvaluationAsync(record.ExamId, record.ExamVersionId))?.Name ?? record.Exam.Name,
                     record.ExamVersion != null ? (int?)record.ExamVersion.VersionNumber : null,
                     record.StartDateTime,
                     record.EndDateTime,
@@ -472,7 +472,7 @@ namespace iD_Develops.Services
             if (examVersionId.HasValue)
                 return query.Where(r => r.ExamVersionId == examVersionId.Value);
 
-            return query.Where(r => r.ExamVersionId == null);
+            return query;
         }
 
         private IQueryable<Record> BuildRecordLookupQuery(Guid recordId, int? examId, bool trackChanges)

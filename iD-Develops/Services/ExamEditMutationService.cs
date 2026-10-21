@@ -213,7 +213,8 @@ namespace iD_Develops.Services
                 return new PresignedUploadResult { Success = false, StatusCode = StatusCodes.Status400BadRequest, ErrorMessage = "Unsupported content type." };
 
             var kind = ext is ".mp3" or ".m4a" or ".aac" or ".wav" or ".ogg" or ".webm" ? "audio" : "image";
-            var objectKey = BuildQuestionObjectKey(examId, questionId, kind);
+            // Replacements must not overwrite media used by an earlier attempt.
+            var objectKey = $"{BuildQuestionObjectKey(examId, questionId, kind)}/{Guid.NewGuid():N}";
 
             try
             {
@@ -258,7 +259,8 @@ namespace iD_Develops.Services
             {
                 foreach (var objectKey in BuildQuestionDeleteKeys(examId, question, kind))
                 {
-                    await _presignedUrlService.DeleteObjectAsync(objectKey);
+                    if (!await _examVersionService.IsMediaReferencedAsync(examId, objectKey))
+                        await _presignedUrlService.DeleteObjectAsync(objectKey);
                 }
             }
             catch (InvalidOperationException)
@@ -287,7 +289,8 @@ namespace iD_Develops.Services
                     .Concat(BuildQuestionDeleteKeys(examId, question, "audio"))
                     .Distinct(StringComparer.OrdinalIgnoreCase))
                 {
-                    await _presignedUrlService.DeleteObjectAsync(objectKey);
+                    if (!await _examVersionService.IsMediaReferencedAsync(examId, objectKey))
+                        await _presignedUrlService.DeleteObjectAsync(objectKey);
                 }
             }
             catch
@@ -429,9 +432,8 @@ namespace iD_Develops.Services
             if (exam == null)
                 return new PublishExamResult { Success = false, StatusCode = StatusCodes.Status404NotFound, ErrorMessage = "Exam not found." };
 
-            var publishResult = await _examVersionService.PublishVersionAsync(exam, questions);
-            if (!publishResult.Success)
-                return new PublishExamResult { Success = false, StatusCode = StatusCodes.Status400BadRequest, ErrorMessage = publishResult.ErrorMessage ?? "Failed to publish exam version." };
+            exam.PublishStatus = ExamPublishStatus.Published;
+            await _examService.SaveChangesAsync();
 
             return new PublishExamResult
             {
