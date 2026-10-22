@@ -541,6 +541,65 @@
     }
 
     let autosaveFailedForShellKey = null;
+    const mediaOperations = new WeakMap();
+    const questionSaveStatuses = new WeakMap();
+
+    function currentQuestionForm() {
+        return getQuestionHost()?.querySelector("form[data-question-edit-form]");
+    }
+
+    function pendingMedia(form = currentQuestionForm()) {
+        return [...(mediaOperations.get(form)?.values() || [])];
+    }
+
+    function refreshMediaFeedback(entry) {
+        const feedback = entry.container.querySelector("[data-media-feedback]");
+        const failed = entry.status === "failed";
+        const active = mediaOperations.get(entry.form)?.get(entry.kind) === entry;
+        entry.container.classList.toggle("ring-2", active && failed);
+        entry.container.classList.toggle("ring-[#B23A48]", active && failed);
+        entry.container.classList.toggle("rounded-lg", active && failed);
+        entry.container.querySelector('input[type="file"]')?.setAttribute("aria-invalid", String(active && failed));
+        entry.container.querySelectorAll('input[type="file"], #changeImageBtn, #changeAudioBtn, #removeImageBtn, #removeAudioBtn')
+            .forEach(control => { control.disabled = active && entry.removing; });
+        if (feedback) {
+            feedback.classList.toggle("exam-hidden", !active);
+            feedback.setAttribute("role", failed ? "alert" : "status");
+            feedback.setAttribute("aria-live", failed ? "assertive" : "polite");
+            for (const [errorClass, progressClass] of [
+                ["text-[#B23A48]", "text-[#005190]"],
+                ["bg-[#B23A48]/5", "bg-[#005190]/5"],
+                ["border-[#B23A48]/30", "border-[#005190]/30"]
+            ]) {
+                feedback.classList.toggle(errorClass, failed);
+                feedback.classList.toggle(progressClass, !failed);
+            }
+            const label = entry.kind === "image" ? "Image" : "Audio";
+            feedback.querySelector("[data-media-message]").textContent = failed
+                ? `${label}${entry.removing ? " removal" : ""} not saved. ${entry.error || "Retry or discard this upload."}`
+                : `${entry.status === "uploading" ? "Uploading" : "Saving"} ${entry.kind}...`;
+            feedback.querySelector("[data-media-warning]").classList.toggle("exam-hidden", !failed);
+            feedback.querySelector("[data-media-retry]").classList.toggle("exam-hidden", !failed);
+            feedback.querySelector("[data-media-discard]").classList.toggle("exam-hidden", !failed || entry.removing);
+        }
+        if (entry.form === currentQuestionForm()) {
+            showStatus(getQuestionHost(), questionSaveStatuses.get(entry.form) || "Up-to-date");
+        }
+    }
+
+    function completeMediaOperation(entry) {
+        if (mediaOperations.get(entry.form)?.get(entry.kind) !== entry) return;
+        mediaOperations.get(entry.form).delete(entry.kind);
+        refreshMediaFeedback(entry);
+    }
+
+    function reconcileSavedMedia(form, submitted) {
+        for (const entry of pendingMedia(form)) {
+            if (entry.objectKey !== null && submitted.get(entry.referenceName) === entry.objectKey) {
+                completeMediaOperation(entry);
+            }
+        }
+    }
 
     function markAutosaveFailedForCurrentShell() {
         autosaveFailedForShellKey = getActiveShellKey() || "unknown";
@@ -554,6 +613,25 @@
     }
 
     async function confirmExitWhenAutosaveFailed(actionLabel) {
+        const media = pendingMedia();
+        if (media.some(entry => entry.status !== "failed")) {
+            await showEditorModal({
+                title: "Media save in progress",
+                message: "Wait for the image or audio to finish saving before continuing.",
+                confirmText: "Stay on this question",
+                hideCancel: true
+            });
+            return false;
+        }
+        if (media.length) {
+            return await showEditorModal({
+                title: "Media not saved",
+                message: `The image or audio has not been saved. If you continue to ${actionLabel}, the selected upload may be lost. Retry or discard it to resolve the warning.`,
+                confirmText: "Continue anyway",
+                cancelText: "Stay on this question",
+                confirmVariant: "danger"
+            });
+        }
         if (!autosaveFailedForShellKey) return true;
 
         const currentShellKey = getActiveShellKey() || "unknown";
@@ -588,11 +666,11 @@
         let retryEnabled = false;
         let retryTitle = "";
 
-        if (msg.includes("save failed") || msg.includes("failed")) {
+        if (msg.includes("failed") || msg.includes("not saved")) {
             icon.classList.add("fa-rotate-right");
             retryEnabled = true;
-            retryTitle = "Retry save now";
-        } else if (msg.includes("saving")) {
+            retryTitle = "Retry unsaved changes";
+        } else if (msg.includes("saving") || msg.includes("uploading")) {
             icon.classList.add("fa-rotate", "fa-spin");
         } else if (msg.includes("unsaved")) {
             icon.classList.add("fa-pen");
@@ -612,7 +690,18 @@
         // If a token is provided, only apply if it matches the latest token.
         if (typeof token === "number" && token !== saveStatusToken) return;
 
-        const msg = text || "";
+        const questionStatus = text || "";
+        const form = currentQuestionForm();
+        if (form) questionSaveStatuses.set(form, questionStatus);
+        const t = questionStatus.toLowerCase();
+        if (t.includes("save failed")) markAutosaveFailedForCurrentShell();
+        else if (t === "saved" || t === "up-to-date") clearAutosaveFailureIfCurrentShell();
+
+        const media = pendingMedia(form);
+        const msg = t.includes("failed") ? questionStatus
+            : media.some(entry => entry.status === "failed") ? "Media not saved"
+                : media.length ? (media.some(entry => entry.status === "uploading") ? "Uploading media..." : "Saving media...")
+                    : questionStatus;
 
         // 1) Per-question status (keeps your existing behavior)
         const localEl = host?.querySelector?.("[data-save-status]");
@@ -627,18 +716,7 @@
 
         headerEl.classList.remove("exam-save-retry-danger");
 
-        const t = msg.toLowerCase();
-        if (t.includes("save failed")) {
-            markAutosaveFailedForCurrentShell();
-            headerEl.classList.add("exam-save-retry-danger");
-            return;
-        }
-
-        if (t === "saved" || t === "up-to-date") {
-            clearAutosaveFailureIfCurrentShell();
-        }
-
-        if (t.includes("failed")) headerEl.classList.add("exam-save-retry-danger");
+        if (msg.toLowerCase().includes("failed") || msg.includes("not saved")) headerEl.classList.add("exam-save-retry-danger");
     }
 
     let activeSavePromise = null;
@@ -693,12 +771,14 @@
         try { window.tinymce?.triggerSave?.(); } catch { /* ignore */ }
 
         // Skip-save check (payload fingerprint)
-        const fpBefore = computeFormFingerprint(form);
+        const submittedFields = new FormData(form);
+        const fpBefore = computePayloadFingerprint(submittedFields);
         const lastFp = getLastSavedFingerprint(shellKeyBefore);
-        if (fpBefore && lastFp && fpBefore === lastFp) {
+        if (fpBefore && lastFp && fpBefore === lastFp && Number(submittedFields.get("QuestionId")) > 0) {
             // Nothing changed since last save; don't flash "Saved"
 
             if (!silentStatus) showStatus(host, "Up-to-date", statusToken);
+            reconcileSavedMedia(form, submittedFields);
             return { success: true, skipped: true };
         }
 
@@ -772,6 +852,7 @@
         if (returnedId > 0) {
             const qidInput = form.querySelector('input[name="QuestionId"]');
             if (qidInput) qidInput.value = String(returnedId);
+            submittedFields.set("QuestionId", String(returnedId));
 
             const shell = host.querySelector("#question-shell");
             if (shell) {
@@ -806,7 +887,7 @@
 
         // Mark TinyMCE instances as clean after successful save
         try {
-            if (window.tinymce?.editors?.length) {
+            if (computeFormFingerprint(form) === computePayloadFingerprint(submittedFields) && window.tinymce?.editors?.length) {
                 window.tinymce.editors.forEach(ed => {
                     let was = null, now = null;
                     try { was = !!ed.isDirty(); } catch { }
@@ -820,7 +901,8 @@
         const shellKeyAfter = getActiveShellKey();
         try { window.tinymce?.triggerSave?.(); } catch { /* ignore */ }
 
-        const fpAfter = computeFormFingerprint(form);
+        // A response confirms only the submitted values, not edits made while it was in flight.
+        const fpAfter = computePayloadFingerprint(submittedFields);
 
         if (fpAfter) {
             // If key changed (draft -> real), store new key baseline
@@ -830,7 +912,11 @@
             setLastSavedFingerprint(shellKeyAfter || shellKeyBefore, fpAfter);
         }
 
-        if (!silentStatus) showSavedThenUpToDate(host, statusToken, 2000);
+        reconcileSavedMedia(form, submittedFields);
+        if (!silentStatus) {
+            if (computeFormFingerprint(form) === fpAfter) showSavedThenUpToDate(host, statusToken, 2000);
+            else showStatus(host, "Unsaved changes...", statusToken);
+        }
 
         // If edits came in while we were saving, only re-queue if we're still dirty
         if (saveRequestedWhileSaving) {
@@ -912,12 +998,15 @@
     /**
      * Creates a stable fingerprint for the current form payload.
      * - Sorts keys for determinism.
-     * - Includes file metadata if any (name/size/type/lastModified) instead of the file contents.
+     * - Files are tracked separately through their upload and reference-save operations.
      */
     function computeFormFingerprint(form) {
         if (!form) return null;
 
-        const fd = new FormData(form);
+        return computePayloadFingerprint(new FormData(form));
+    }
+
+    function computePayloadFingerprint(fd) {
         const pairs = [];
 
         for (const [key, val] of fd.entries()) {
@@ -1016,7 +1105,8 @@
         // - there are unsaved edits, OR
         // - a debounced autosave is waiting, OR
         // - a save is currently in-flight
-        return isCurrentShellDirtyComparedToBaseline() || debounceTimer !== null || hasInFlightSave();
+        return pendingMedia().length > 0 || autosaveFailedForShellKey === (getActiveShellKey() || "unknown") ||
+            isCurrentShellDirtyComparedToBaseline() || debounceTimer !== null || hasInFlightSave();
 
     }
 
@@ -1230,6 +1320,9 @@
         if (retryBtn) {
             e.preventDefault();
             if (retryBtn.disabled) return;
+            for (const entry of pendingMedia().filter(entry => entry.status === "failed")) {
+                await persistMediaOperation(entry);
+            }
             await saveExam();
             return;
         }
@@ -1244,6 +1337,7 @@
         // DELETE must be handled BEFORE the data-action early-return
         const delBtn = e.target.closest("#deleteQuestionBtn");
         if (delBtn) {
+            if (!await confirmExitWhenAutosaveFailed("delete this question")) return;
             const confirmedDelete = await showEditorModal({
                 title: "Delete question",
                 message: "Delete this question? This cannot be undone.",
@@ -1361,6 +1455,7 @@
 
         // TinyMCE changes are handled via editor events, so ignore textarea inputs
         // to avoid double-triggering.
+        if (e.target?.matches?.('input[type="file"]')) return;
         if (e.target && e.target.matches && e.target.matches("textarea.tinymce")) return;
 
         if (e.target.closest("form[data-question-edit-form]")) queueSave();
@@ -1509,14 +1604,14 @@
         return Number(form.querySelector('input[name="QuestionId"]')?.value || "0");
     }
 
-    async function ensureQuestionPersisted() {
+    async function ensureQuestionPersisted(statusToken) {
         const qid = getCurrentQuestionIdFromForm();
         if (qid > 0) return qid;
 
         // Create the question immediately, but don't let this overwrite a global "Saving..." status
-        const token = nextStatusToken(); // or reuse an existing operation token if you have one
+        const token = statusToken ?? nextStatusToken();
         const saved = await saveCurrentForm(token, { silentStatus: true });
-        const newId = Number(saved?.questionId || 0);
+        const newId = Number(saved?.questionId || getCurrentQuestionIdFromForm() || 0);
         if (newId <= 0) throw new Error("Could not create/save the question before upload.");
         return newId;
     }
@@ -1561,13 +1656,14 @@
         return json; // { putUrl, objectKey }
     }
 
-    async function putFileToPresignedUrl(putUrl, file) {
+    async function putFileToPresignedUrl(putUrl, file, signal) {
         const res = await fetch(putUrl, {
             method: "PUT",
             headers: {
                 "Content-Type": file.type || "application/octet-stream"
             },
-            body: file
+            body: file,
+            signal
         });
 
         if (!res.ok) {
@@ -1628,6 +1724,131 @@
     }
 
 
+    function mediaReferenceInput(form, kind) {
+        const name = kind === "image" ? "ImageReference" : "AudioReference";
+        return form.querySelector(`input[name="${name}"], input[name="${name[0].toLowerCase() + name.slice(1)}"]`);
+    }
+
+    function beginMediaOperation(kind, container, file, removing = false) {
+        const form = container.closest("form[data-question-edit-form]");
+        if (!form || !mediaReferenceInput(form, kind)) return null;
+        let operations = mediaOperations.get(form);
+        if (!operations) mediaOperations.set(form, operations = new Map());
+        const previous = operations.get(kind);
+        if (previous?.removing) return null;
+        previous?.controller?.abort();
+        const entry = {
+            kind, container, form, file, removing, objectKey: null, promise: null,
+            referenceName: mediaReferenceInput(form, kind).name,
+            previousReference: previous?.previousReference ?? mediaReferenceInput(form, kind).value,
+            previousPreview: previous?.previousPreview ?? container.querySelector(kind === "image" ? "#imagePreview" : "#audioPreview")?.getAttribute("src"),
+            status: removing ? "saving" : "uploading"
+        };
+        operations.set(kind, entry);
+        refreshMediaFeedback(entry);
+        return entry;
+    }
+
+    function isCurrentMediaOperation(entry) {
+        return entry.form === currentQuestionForm() && mediaOperations.get(entry.form)?.get(entry.kind) === entry;
+    }
+
+    async function persistMediaOperation(entry) {
+        if (!entry || !isCurrentMediaOperation(entry)) return false;
+        if (entry.promise) return entry.promise;
+        entry.controller = new AbortController();
+        entry.status = entry.removing || entry.objectKey !== null ? "saving" : "uploading";
+        refreshMediaFeedback(entry);
+        entry.promise = (async () => {
+            try {
+                const examId = getExamId();
+                const questionId = await ensureQuestionPersisted(nextStatusToken());
+                if (!isCurrentMediaOperation(entry)) return false;
+                if (entry.removing) {
+                    const fd = new FormData();
+                    fd.append("examId", String(examId));
+                    fd.append("questionId", String(questionId));
+                    fd.append("kind", entry.kind);
+                    const response = await postForm(`${pagePath()}?handler=DeleteQuestionFile`, fd, entry.controller.signal, entry.form);
+                    const result = await response.json().catch(() => null);
+                    if (!response.ok || !result?.success) throw new Error(result?.errorMessage || "Media removal failed. Retry the removal.");
+                    if (!isCurrentMediaOperation(entry)) return false;
+                    entry.objectKey = "";
+                    if (entry.kind === "image") clearAndHideImageUI();
+                    else clearAndHideAudioUI();
+                } else if (entry.objectKey === null) {
+                    const { putUrl, objectKey } = await requestPresignedUpload(examId, questionId, entry.file);
+                    if (!isCurrentMediaOperation(entry)) return false;
+                    await putFileToPresignedUrl(putUrl, entry.file, entry.controller.signal);
+                    if (!isCurrentMediaOperation(entry)) return false;
+                    entry.objectKey = objectKey;
+                }
+                entry.status = "saving";
+                mediaReferenceInput(entry.form, entry.kind).value = entry.objectKey;
+                entry.container.querySelector('input[type="file"]').value = "";
+                refreshMediaFeedback(entry);
+                const saved = await saveCurrentForm(nextStatusToken(), { silentStatus: true });
+                if (!saved?.success || isCurrentMediaOperation(entry)) {
+                    throw new Error("The file reference could not be saved. Retry to finish saving.");
+                }
+                if (entry.form === currentQuestionForm()) {
+                    const token = nextStatusToken();
+                    if (isCurrentShellDirtyComparedToBaseline()) showStatus(getQuestionHost(), "Unsaved changes...", token);
+                    else showSavedThenUpToDate(getQuestionHost(), token, 2000);
+                }
+                return true;
+            } catch (error) {
+                if (!isCurrentMediaOperation(entry) || error?.name === "AbortError") return false;
+                entry.status = "failed";
+                entry.error = entry.removing ? "Retry to finish removing this file."
+                    : entry.objectKey === null ? "The upload did not finish. Retry or discard it."
+                        : "The media change could not be saved. Retry to finish saving.";
+                refreshMediaFeedback(entry);
+                notify(entry.error, { type: "error", title: `${entry.kind === "image" ? "Image" : "Audio"} not saved` });
+                return false;
+            } finally {
+                entry.promise = null;
+            }
+        })();
+        return entry.promise;
+    }
+
+    document.addEventListener("click", async event => {
+        const retry = event.target.closest("[data-media-retry]");
+        const discard = event.target.closest("[data-media-discard]");
+        if (!retry && !discard) return;
+        const container = (retry || discard).closest("[data-image-ui], [data-audio-ui]");
+        const kind = container.hasAttribute("data-image-ui") ? "image" : "audio";
+        const entry = mediaOperations.get(currentQuestionForm())?.get(kind);
+        if (!entry || entry.status !== "failed") return;
+        if (retry) {
+            await persistMediaOperation(entry);
+            return;
+        }
+        if (entry.removing) return;
+        mediaReferenceInput(entry.form, kind).value = entry.previousReference;
+        if (kind === "image") clearAndHideImageUI();
+        else clearAndHideAudioUI();
+        if (entry.previousReference) {
+            const preview = container.querySelector(kind === "image" ? "#imagePreview" : "#audioPreview");
+            preview.src = entry.previousPreview;
+            toggleEl(preview, true);
+            toggleEl(container.querySelector(kind === "image" ? "#imageUploadBox" : "#audioUploadBox"), false);
+            toggleEl(container.querySelector(kind === "image" ? "#changeImageBtn" : "#changeAudioBtn"), true);
+            toggleEl(container.querySelector(kind === "image" ? "#removeImageBtn" : "#removeAudioBtn"), true);
+        }
+        if (entry.objectKey !== null) {
+            // A failed response may still have committed the replacement. Persist
+            // the original reference explicitly rather than trusting the old baseline.
+            entry.objectKey = entry.previousReference;
+            lastSavedFingerprintByShell.delete(getActiveShellKey());
+            await persistMediaOperation(entry);
+        } else {
+            completeMediaOperation(entry);
+            queueSave();
+        }
+    });
+
     // Click upload box => open picker
     document.addEventListener("click", (e) => {
         const uploadBox = e.target.closest("#imageUploadBox");
@@ -1666,155 +1887,32 @@
         if (!container) return;
 
         const file = input.files && input.files[0];
-
+        if (!file) return;
         const validationError = validateImageFile(file);
         if (validationError) {
-            resetImageUi(container);
+            input.value = "";
+            notify(validationError, { type: "warn", title: "Image not selected" });
             return;
         }
-
+        const entry = beginMediaOperation("image", container, file);
         showPreview(container, file);
-
-        let token = null;
-
-        try {
-            const host = getQuestionHost();
-            token = nextStatusToken();
-            showStatus(host, "Saving...", token);
-
-            const examId = getExamId();
-            if (!examId) throw new Error("Missing ExamId.");
-
-            // Ensure we have a real QuestionId (server handler requires it)
-            const questionId = await ensureQuestionPersisted();
-
-            // Ask server for presigned PUT URL
-            const { putUrl, objectKey } = await requestPresignedUpload(examId, questionId, file);
-
-            // Upload file directly to object storage
-            await putFileToPresignedUrl(putUrl, file);
-
-            // Store reference for SaveQuestion
-            if (!setHiddenReference("ImageReference", objectKey)) {
-                setHiddenReference("imageReference", objectKey);
-            }
-
-            // Clear file input so it does not keep affecting fingerprint/autosave
-            input.value = "";
-
-            // Persist reference NOW
-            await saveCurrentForm(token, { silentStatus: true });
-
-            showSavedThenUpToDate(host, token, 2000);
-        } catch (err) {
-            notify(
-                err?.message || "Image upload failed.",
-                { type: "error", title: "Upload failed" }
-            );
-
-            const host = getQuestionHost();
-            if (host) showStatus(host, "Save failed", token ?? nextStatusToken());
-        }
+        await persistMediaOperation(entry);
     });
 
-    document.addEventListener("click", async (e) => {
-        const imgBtn = e.target.closest("#removeImageBtn");
-        if (imgBtn) {
-            const confirmedRemoveImage = await showEditorModal({
-                title: "Remove image",
-                message: "Remove the image from this question?",
-                confirmText: "Remove image",
-                cancelText: "Cancel",
-                confirmVariant: "danger"
-            });
-            if (!confirmedRemoveImage) return;
-
-            const host = getQuestionHost?.() || document.getElementById("questionHost") || document;
-            const form = host.querySelector?.("form[data-question-edit-form]");
-            if (!form) return;
-
-            const examId = getExamId();
-            const questionId = getCurrentQuestionIdFromForm();
-            if (!examId || !(questionId > 0)) return;
-
-            const token = nextStatusToken();
-            showStatus(host, "Saving...", token);
-
-            try {
-                const fd = new FormData();
-                fd.append("examId", String(examId));
-                fd.append("questionId", String(questionId));
-                fd.append("kind", "image");
-
-                const res = await postForm(`${pagePath()}?handler=DeleteQuestionFile`, fd, undefined, form);
-
-                const json = await res.json().catch(async () => ({ success: false, errorMessage: await res.text() }));
-
-                if (!res.ok || !json?.success) throw new Error(json?.errorMessage || `Delete failed (${res.status}).`);
-
-                setHiddenReference("ImageReference", "");
-                clearAndHideImageUI();
-
-                await saveCurrentForm(token, { silentStatus: true });
-                showSavedThenUpToDate(host, token, 2000);
-            } catch (err) {
-                notify(
-                    err?.message || "Failed to remove the file.",
-                    { type: "error", title: "Remove failed" }
-                );
-                showStatus(host, "Save failed", token);
-            }
-
-            return;
-        }
-
-        const audBtn = e.target.closest("#removeAudioBtn");
-        if (audBtn) {
-            const confirmedRemoveAudio = await showEditorModal({
-                title: "Remove audio",
-                message: "Remove the audio from this question?",
-                confirmText: "Remove audio",
-                cancelText: "Cancel",
-                confirmVariant: "danger"
-            });
-            if (!confirmedRemoveAudio) return;
-
-            const host = getQuestionHost?.() || document.getElementById("questionHost") || document;
-            const form = host.querySelector?.("form[data-question-edit-form]");
-            if (!form) return;
-
-            const examId = getExamId();
-            const questionId = getCurrentQuestionIdFromForm();
-            if (!examId || !(questionId > 0)) return;
-
-            const token = nextStatusToken();
-            showStatus(host, "Saving...", token);
-
-            try {
-                const fd = new FormData();
-                fd.append("examId", String(examId));
-                fd.append("questionId", String(questionId));
-                fd.append("kind", "audio");
-
-                const res = await postForm(`${pagePath()}?handler=DeleteQuestionFile`, fd, undefined, form);
-
-                const json = await res.json().catch(async () => ({ success: false, errorMessage: await res.text() }));
-
-                if (!res.ok || !json?.success) throw new Error(json?.errorMessage || `Delete failed (${res.status}).`);
-
-                setHiddenReference("AudioReference", "");
-                clearAndHideAudioUI();
-
-                await saveCurrentForm(token, { silentStatus: true });
-                showSavedThenUpToDate(host, token, 2000);
-            } catch (err) {
-                notify(
-                    err?.message || "Failed to remove the file.",
-                    { type: "error", title: "Remove failed" }
-                );
-                showStatus(host, "Save failed", token);
-            }
-        }
+    document.addEventListener("click", async event => {
+        const button = event.target.closest("#removeImageBtn, #removeAudioBtn");
+        if (!button) return;
+        const kind = button.id === "removeImageBtn" ? "image" : "audio";
+        const confirmed = await showEditorModal({
+            title: `Remove ${kind}`,
+            message: `Remove the ${kind} from this question?`,
+            confirmText: `Remove ${kind}`,
+            cancelText: "Cancel",
+            confirmVariant: "danger"
+        });
+        if (!confirmed) return;
+        const container = button.closest("[data-image-ui], [data-audio-ui]");
+        await persistMediaOperation(beginMediaOperation(kind, container, null, true));
     });
 
 
@@ -1913,63 +2011,16 @@
         if (!container) return;
 
         const file = input.files && input.files[0];
-
+        if (!file) return;
         const validationError = validateAudioFile(file);
         if (validationError) {
-            resetAudioUi(container);
+            input.value = "";
+            notify(validationError, { type: "warn", title: "Audio not selected" });
             return;
         }
-
+        const entry = beginMediaOperation("audio", container, file);
         showAudioPreview(container, file);
-
-        (async () => {
-            let token = null;
-            let host = null;
-
-            try {
-                host = getQuestionHost();
-                if (!host) return;
-                const form = host?.querySelector("form[data-question-edit-form]");
-
-                token = nextStatusToken();
-                showStatus(host, "Saving...", token);
-
-                const examId = getExamId();
-                if (!examId) throw new Error("Missing ExamId.");
-
-                // Create question first if needed (server requires questionId > 0)
-                const questionId = await ensureQuestionPersisted();
-
-                // Get presigned PUT URL
-                const { putUrl, objectKey } = await requestPresignedUpload(examId, questionId, file);
-
-                // Upload directly to object storage
-                await putFileToPresignedUrl(putUrl, file);
-
-                // Write the reference into the hidden input so SaveQuestion persists it
-                if (!setHiddenReference("AudioReference", objectKey)) {
-                    setHiddenReference("audioReference", objectKey); // fallback
-                }
-
-                // Clear the file input so it doesn't keep influencing autosave/fingerprint
-                input.value = "";
-
-                // Persist reference NOW
-                await saveCurrentForm(token, { silentStatus: true });
-
-                showSavedThenUpToDate(host, token, 2000);
-            } catch (err) {
-                notify(
-                    err?.message || "Audio upload failed.",
-                    { type: "error", title: "Upload failed" }
-                );
-
-                host = host || getQuestionHost();
-                if (host) {
-                    showStatus(host, "Save failed", token ?? nextStatusToken());
-                }
-            }
-        })();
+        void persistMediaOperation(entry);
 
     });
 
@@ -2143,7 +2194,11 @@
 
         try {
             await saveCurrentForm(token);
-            notify("Current question saved.", { type: "success", title: "Saved" });
+            if (pendingMedia().length) {
+                notify("Question text saved. Image or audio changes still need attention.", { type: "warn", title: "Media not saved" });
+            } else if (!isCurrentShellDirtyComparedToBaseline()) {
+                notify("Current question saved.", { type: "success", title: "Saved" });
+            }
         } catch (err) {
             showStatus(host, "Save failed", token);
             notify(err?.message || "Failed to save current question.", { type: "error", title: "Save failed" });
