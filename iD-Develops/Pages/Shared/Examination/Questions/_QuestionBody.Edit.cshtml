@@ -109,6 +109,13 @@
                        name="ImageFile"
                        accept="image/*"
                        hidden />
+                <div class="exam-hidden mt-3 rounded-lg border border-[#B23A48]/30 bg-[#B23A48]/5 p-3 text-sm text-[#B23A48]" data-media-feedback role="status" aria-live="polite">
+                    <p class="m-0"><i class="fa-solid fa-triangle-exclamation mr-1" data-media-warning aria-hidden="true"></i><span data-media-message></span></p>
+                    <div class="mt-2 flex flex-wrap gap-3">
+                        <button type="button" class="question-link-button" data-media-retry aria-label="Retry image save">Retry</button>
+                        <button type="button" class="question-link-button question-link-button-danger" data-media-discard aria-label="Discard image upload">Discard upload</button>
+                    </div>
+                </div>
             </div>
 
             <div class="mb-4" data-audio-ui>
@@ -149,6 +156,13 @@
                        name="AudioFile"
                        accept="audio/mpeg,audio/mp3,audio/mp4,audio/x-m4a"
                        hidden />
+                <div class="exam-hidden mt-3 rounded-lg border border-[#B23A48]/30 bg-[#B23A48]/5 p-3 text-sm text-[#B23A48]" data-media-feedback role="status" aria-live="polite">
+                    <p class="m-0"><i class="fa-solid fa-triangle-exclamation mr-1" data-media-warning aria-hidden="true"></i><span data-media-message></span></p>
+                    <div class="mt-2 flex flex-wrap gap-3">
+                        <button type="button" class="question-link-button" data-media-retry aria-label="Retry audio save">Retry</button>
+                        <button type="button" class="question-link-button question-link-button-danger" data-media-discard aria-label="Discard audio upload">Discard upload</button>
+                    </div>
+                </div>
             </div>
 
         </div>
