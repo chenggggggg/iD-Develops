@@ -127,7 +127,7 @@
     <value>john.doe@example.com</value>
   </data>
   <data name="EmailSuccessMessage" xml:space="preserve">
-    <value>Email has been sent!</value>
+    <value>Your message has been sent to our team. We have also sent a confirmation email to your email address.</value>
   </data>
   <data name="HeroDescription" xml:space="preserve">
     <value>Have questions or need guidance? We are here to provide!</value>
@@ -167,4 +167,11 @@
   <data name="NameRequiredError" xml:space="preserve"><value>Name is required.</value></data>
   <data name="SubjectLengthError" xml:space="preserve"><value>Subject cannot exceed 100 characters.</value></data>
   <data name="SubjectRequiredError" xml:space="preserve"><value>Subject is required.</value></data>
+  <data name="ConfirmationFailureMessage" xml:space="preserve"><value>Your message has been sent to our team, but we could not send your confirmation email. You do not need to resend your message.</value></data>
+  <data name="AcknowledgementSubject" xml:space="preserve"><value>We have received your message | iD! Training &amp; Development</value></data>
+  <data name="AcknowledgementHeading" xml:space="preserve"><value>Thank you for getting in touch</value></data>
+  <data name="AcknowledgementGreeting" xml:space="preserve"><value>Hello {0},</value></data>
+  <data name="AcknowledgementBody" xml:space="preserve"><value>We have received your message through our contact form. Our team will review it and get back to you as soon as possible.</value></data>
+  <data name="AcknowledgementAutomaticNotice" xml:space="preserve"><value>This is an automatic confirmation. You do not need to send your message again.</value></data>
+  <data name="AcknowledgementSignOff" xml:space="preserve"><value>Kind regards,</value></data>
 </root>

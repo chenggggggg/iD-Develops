@@ -127,7 +127,7 @@
     <value>jan.jansen@example.com</value>
   </data>
   <data name="EmailSuccessMessage" xml:space="preserve">
-    <value>E-mail is verzonden!</value>
+    <value>Je bericht is naar ons team verzonden. We hebben ook een bevestiging naar je e-mailadres gestuurd.</value>
   </data>
   <data name="HeroDescription" xml:space="preserve">
     <value>Heb je vragen of heb je begeleiding nodig? We zijn er om te helpen!</value>
@@ -167,4 +167,11 @@
   <data name="NameRequiredError" xml:space="preserve"><value>Naam is verplicht.</value></data>
   <data name="SubjectLengthError" xml:space="preserve"><value>Het onderwerp mag maximaal 100 tekens bevatten.</value></data>
   <data name="SubjectRequiredError" xml:space="preserve"><value>Onderwerp is verplicht.</value></data>
+  <data name="ConfirmationFailureMessage" xml:space="preserve"><value>Je bericht is naar ons team verzonden, maar we konden de bevestigingsmail niet versturen. Je hoeft je bericht niet opnieuw te verzenden.</value></data>
+  <data name="AcknowledgementSubject" xml:space="preserve"><value>We hebben je bericht ontvangen | iD! Training &amp; Development</value></data>
+  <data name="AcknowledgementHeading" xml:space="preserve"><value>Bedankt voor je bericht</value></data>
+  <data name="AcknowledgementGreeting" xml:space="preserve"><value>Hallo {0},</value></data>
+  <data name="AcknowledgementBody" xml:space="preserve"><value>We hebben je bericht via ons contactformulier ontvangen. Ons team bekijkt je bericht en neemt zo snel mogelijk contact met je op.</value></data>
+  <data name="AcknowledgementAutomaticNotice" xml:space="preserve"><value>Dit is een automatische bevestiging. Je hoeft je bericht niet opnieuw te verzenden.</value></data>
+  <data name="AcknowledgementSignOff" xml:space="preserve"><value>Met vriendelijke groet,</value></data>
 </root>

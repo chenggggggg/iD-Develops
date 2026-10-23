@@ -42,18 +42,22 @@
                     <div class="public-form-actions">
                         <partial name="_Turnstile" />
                         <button type="submit" class="public-btn public-btn-primary">
-                            @localizer["SubmitButton"] <i class="fas fa-arrow-right"></i>
+                            @localizer["SubmitButton"] <i class="fas fa-arrow-right" aria-hidden="true"></i>
                         </button>
                     </div>
                 </form>
 
                 @if (Model.EmailIsSent == "success")
                 {
-                    <span class="public-status-success">@localizer["EmailSuccessMessage"]</span>
+                    <span role="status" class="public-status-success">@localizer["EmailSuccessMessage"]</span>
+                }
+                else if (Model.EmailIsSent == "confirmation-failed")
+                {
+                    <span role="status" class="public-status-success">@localizer["ConfirmationFailureMessage"]</span>
                 }
                 else if (Model.EmailIsSent == "failed")
                 {
-                    <span class="public-status-error">@localizer["EmailFailureMessage"]</span>
+                    <span role="alert" class="public-status-error">@localizer["EmailFailureMessage"]</span>
                 }
             </div>
         </div>
