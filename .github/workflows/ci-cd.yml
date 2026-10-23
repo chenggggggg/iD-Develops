@@ -155,6 +155,8 @@ jobs:
           ConnectionStrings__ApplicationDbContextConnection: Host=127.0.0.1;Port=5432;Database=iddevelops_ci;Username=postgres;Password=ci-postgres-password;
           Admin__Email: admin@example.test
           Admin__Password: CI-Admin-Password-123!
+          Mail__Provider: File
+          Mail__PickupDirectory: ${{ runner.temp }}/e2e-mail
         run: |
           dotnet run \
             --project "$PROJECT_DIRECTORY/iD-Develops.csproj" \
@@ -185,6 +187,7 @@ jobs:
           IDDEVELOPS_E2E_EMAIL: admin@example.test
           IDDEVELOPS_E2E_PASSWORD: CI-Admin-Password-123!
           IDDEVELOPS_E2E_DATABASE_CONNECTION: Host=127.0.0.1;Port=5432;Database=iddevelops_ci;Username=postgres;Password=ci-postgres-password;
+          IDDEVELOPS_E2E_FILE_MAIL_DIRECTORY: ${{ runner.temp }}/e2e-mail
         run: >-
           dotnet test "$E2E_TEST_PROJECT"
           --configuration Release

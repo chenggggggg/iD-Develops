@@ -11,7 +11,7 @@ public sealed partial class PublicLocalizationTests
     [
         (["Pages/About.cshtml"], "Resources/Pages/AboutModel"),
         (["Pages/Communication-Training.cshtml"], "Resources/Pages/Communication_TrainingModel"),
-        (["Pages/Contact.cshtml", "Pages/Contact.cshtml.cs"], "Resources/Pages/ContactModel"),
+        (["Pages/Contact.cshtml", "Pages/Contact.cshtml.cs", "wwwroot/templates/ContactAcknowledgementTemplate.cshtml"], "Resources/Pages/ContactModel"),
         (["Pages/Cookie-Policy.cshtml"], "Resources/Pages/Cookie_PolicyModel"),
         (["Pages/Disclaimer.cshtml"], "Resources/Pages/DisclaimerModel"),
         (["Pages/Enterprise.cshtml"], "Resources/Pages/EnterpriseModel"),

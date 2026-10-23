@@ -5,6 +5,7 @@ using iD_Develops.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Localization;
 using System.ComponentModel.DataAnnotations;
 
 namespace iD_Develops.Pages
@@ -28,15 +29,21 @@ namespace iD_Develops.Pages
         private readonly IMailService _mailService;
         private readonly IOptions<MailSettings> _mailSettings;
         private readonly ITurnstileService _turnstileService;
+        private readonly IStringLocalizer<ContactModel> _localizer;
+        private readonly ILogger<ContactModel> _logger;
 
         public ContactModel(
             IMailService mailService,
             IOptions<MailSettings> mailSettings,
-            ITurnstileService turnstileService)
+            ITurnstileService turnstileService,
+            IStringLocalizer<ContactModel> localizer,
+            ILogger<ContactModel> logger)
         {
             _mailService = mailService;
             _mailSettings = mailSettings;
             _turnstileService = turnstileService;
+            _localizer = localizer;
+            _logger = logger;
         }
 
         public async Task<IActionResult> OnPostAsync()
@@ -58,28 +65,33 @@ namespace iD_Develops.Pages
                     .Create($"{Request.Scheme}://{Request.Host}")
             };
 
-            // Get email settings from _mailSettings.Value
             var mailSettings = _mailSettings.Value;
             string subject = "Contact Form | " + Subject;
 
-            // Check if recipientEmail is not null
-            if (mailSettings != null && !string.IsNullOrWhiteSpace(mailSettings.To))
-            {
-                // Use the settings in your SendAsync method
-                OperationResult result = await _mailService.SendAsync("/wwwroot/templates/ContactFormTemplate.cshtml", contactFormData, mailSettings.To, subject, mailSettings.ContactEmail);
-
-                if (result.Success)
-                {
-                    EmailIsSent = "success";
-                }
-                else
-                {
-                    EmailIsSent = "failed";
-                }
-            }
-            else
+            if (string.IsNullOrWhiteSpace(mailSettings.To))
             {
                 EmailIsSent = "failed";
+                return Page();
+            }
+
+            OperationResult result = await _mailService.SendAsync("/wwwroot/templates/ContactFormTemplate.cshtml", contactFormData, mailSettings.To, subject, mailSettings.ContactEmail);
+            if (!result.Success)
+            {
+                EmailIsSent = "failed";
+                return Page();
+            }
+
+            var confirmation = await _mailService.SendAsync(
+                "/wwwroot/templates/ContactAcknowledgementTemplate.cshtml",
+                contactFormData,
+                From,
+                _localizer["AcknowledgementSubject"],
+                mailSettings.ContactEmail);
+
+            EmailIsSent = confirmation.Success ? "success" : "confirmation-failed";
+            if (!confirmation.Success)
+            {
+                _logger.LogWarning("Contact message was sent to the team, but its acknowledgement email failed.");
             }
 
             return Page();

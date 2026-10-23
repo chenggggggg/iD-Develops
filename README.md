@@ -36,6 +36,10 @@ dotnet test tests/iD-Develops.Tests/iD-Develops.Tests.csproj --configuration Rel
 
 Browser tests live in `tests/iD-Develops.E2ETests` and target an already-running isolated
 application. GitHub Actions provisions its own PostgreSQL service and application instance.
+Contact submission tests require `Mail:Provider=File`, disabled Turnstile, and
+`IDDEVELOPS_E2E_FILE_MAIL_DIRECTORY` set to the absolute path of that application's
+mail pickup directory (normally `iD-Develops/App_Data/Mail` from the repository root).
+The tests inspect generated emails and remove only their own uniquely marked messages.
 
 ## Delivery workflow
 
