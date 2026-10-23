@@ -5,8 +5,8 @@ namespace iD_Develops.E2ETests;
 public sealed class ContactSubmissionTests : Microsoft.Playwright.Xunit.PageTest
 {
     [Theory]
-    [InlineData("en-us", "Submit", "Your message has been sent to our team.", "We have received your message", "Hello")]
-    [InlineData("nl-nl", "Versturen", "Je bericht is naar ons team verzonden.", "We hebben je bericht ontvangen", "Hallo")]
+    [InlineData("en-us", "Submit", "Message sent!", "We have received your message", "Hello")]
+    [InlineData("nl-nl", "Versturen", "Bericht verzonden!", "We hebben je bericht ontvangen", "Hallo")]
     public async Task ValidSubmission_WritesTeamNotificationAndLocalizedReceipt(
         string culture, string button, string feedback, string subject, string greeting)
     {
@@ -23,7 +23,7 @@ public sealed class ContactSubmissionTests : Microsoft.Playwright.Xunit.PageTest
                 response => response.Request.Method == "POST");
 
             Assert.True(response.Ok, $"Contact submission returned HTTP {response.Status}.");
-            await Expect(Page.GetByRole(AriaRole.Status)).ToContainTextAsync(feedback);
+            await Expect(Page.GetByRole(AriaRole.Status)).ToHaveTextAsync(feedback);
             var mails = MatchingMails(directory, marker);
             Assert.Equal(2, mails.Count);
             var receipt = Assert.Single(mails, mail => mail.Body.StartsWith($"To: {recipient}", StringComparison.Ordinal));

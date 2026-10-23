@@ -127,7 +127,7 @@
     <value>jan.jansen@example.com</value>
   </data>
   <data name="EmailSuccessMessage" xml:space="preserve">
-    <value>Je bericht is naar ons team verzonden. We hebben ook een bevestiging naar je e-mailadres gestuurd.</value>
+    <value>Bericht verzonden!</value>
   </data>
   <data name="HeroDescription" xml:space="preserve">
     <value>Heb je vragen of heb je begeleiding nodig? We zijn er om te helpen!</value>

@@ -127,7 +127,7 @@
     <value>john.doe@example.com</value>
   </data>
   <data name="EmailSuccessMessage" xml:space="preserve">
-    <value>Your message has been sent to our team. We have also sent a confirmation email to your email address.</value>
+    <value>Message sent!</value>
   </data>
   <data name="HeroDescription" xml:space="preserve">
     <value>Have questions or need guidance? We are here to provide!</value>
