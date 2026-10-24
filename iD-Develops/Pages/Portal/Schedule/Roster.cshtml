@@ -43,7 +43,7 @@
                 <p class="roster-section-copy">These hours determine which staff appear when an administrator selects a teacher for a time slot.</p>
             </div>
         </div>
-        <form method="post" asp-page-handler="SaveAvailability" class="availability-form">
+        <form method="post" asp-page-handler="SaveAvailability" class="availability-form" data-submit-feedback>
             <div class="availability-controls">
                 @if (Model.IsAdmin)
                 {
@@ -89,8 +89,11 @@
                 }
             </div>
             <button class="portal-btn portal-btn-primary portal-btn-sm" type="submit">
-                <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
-                Save availability
+                <span data-submit-idle><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Save availability</span>
+                <span data-submit-pending hidden class="inline-flex items-center gap-2">
+                    <span aria-hidden="true" class="size-4 rounded-full border-2 border-current border-r-transparent motion-safe:animate-spin"></span>
+                    Saving availability...
+                </span>
             </button>
         </form>
     </section>
@@ -194,7 +197,7 @@
                     <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
                 </button>
             </div>
-            <form id="recurring-class" method="post" asp-page-handler="SaveRule" class="roster-form" data-roster-form>
+            <form id="recurring-class" method="post" asp-page-handler="SaveRule" class="roster-form" data-roster-form data-submit-feedback>
                 <input asp-for="RuleInput.Id" type="hidden" data-roster-field="Id" />
                 @if (Model.IsAdmin)
                 {
@@ -294,8 +297,11 @@
                     </div>
                 </details>
                 <button class="portal-btn portal-btn-primary roster-submit" type="submit">
-                    <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
-                    <span data-roster-submit-label>Save recurring class</span>
+                    <span data-submit-idle><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> <span data-roster-submit-label>Save recurring class</span></span>
+                    <span data-submit-pending hidden class="inline-flex items-center gap-2">
+                        <span aria-hidden="true" class="size-4 rounded-full border-2 border-current border-r-transparent motion-safe:animate-spin"></span>
+                        Saving recurring class...
+                    </span>
                 </button>
             </form>
         </aside>
@@ -308,7 +314,7 @@
                 <h2>Add a session</h2>
             </div>
         </div>
-        <form method="post" asp-page-handler="CreateManual" class="roster-form roster-manual-form">
+        <form method="post" asp-page-handler="CreateManual" class="roster-form roster-manual-form" data-submit-feedback>
             @if (Model.IsAdmin)
             {
                 <label class="roster-field">
@@ -392,8 +398,11 @@
                 <input asp-for="ManualInput.BookingCloseHoursBefore" type="number" min="0" max="8760" />
             </label>
             <button class="portal-btn portal-btn-primary roster-submit" type="submit">
-                <i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>
-                Schedule meeting
+                <span data-submit-idle><i class="fa-solid fa-calendar-plus" aria-hidden="true"></i> Schedule meeting</span>
+                <span data-submit-pending hidden class="inline-flex items-center gap-2">
+                    <span aria-hidden="true" class="size-4 rounded-full border-2 border-current border-r-transparent motion-safe:animate-spin"></span>
+                    Scheduling meeting...
+                </span>
             </button>
         </form>
     </section>
