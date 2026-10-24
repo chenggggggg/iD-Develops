@@ -42,7 +42,8 @@ public sealed partial class PublicLocalizationTests
         (["Pages/Shared/Examination/_Pagination.cshtml"], "Resources/Pages/Shared/Examination/PaginationModel"),
         (["Pages/Shared/Examination/Questions/_QuestionShell.cshtml", "Pages/Shared/Examination/Questions/_QuestionBody.Take.cshtml"], "Resources/Pages/Shared/Examination/Questions/QuestionShellModel"),
         (["Pages/Shared/_Layout.cshtml"], "Resources/Pages/Shared/_Layout"),
-        (["Pages/Shared/_LoginPartial.cshtml"], "Resources/Pages/Shared/_LoginPartial")
+        (["Pages/Shared/_LoginPartial.cshtml"], "Resources/Pages/Shared/_LoginPartial"),
+        (["Pages/Shared/_WorkflowFeedback.cshtml"], "Resources/Pages/Shared/_WorkflowFeedback")
     ];
 
     [Fact]
