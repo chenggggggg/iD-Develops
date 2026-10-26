@@ -111,4 +111,5 @@
 
     window.addEventListener("pagehide", reset);
     window.addEventListener("pageshow", reset);
+    progress.dataset.workflowFeedbackReady = "true";
 })();

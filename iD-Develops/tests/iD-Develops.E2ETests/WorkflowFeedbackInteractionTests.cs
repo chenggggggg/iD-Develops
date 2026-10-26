@@ -31,11 +31,12 @@ public sealed class WorkflowFeedbackInteractionTests : Microsoft.Playwright.Xuni
         """;
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task SlowNavigation_ShowsFeedbackForMouseAndKeyboardAndClearsOnBack(bool keyboard)
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public async Task SlowNavigation_ShowsFeedbackForMouseAndKeyboardAndClearsOnBack(bool keyboard, bool delayedScript)
     {
-        await InitializeFixtureAsync();
+        await InitializeFixtureAsync(loadWorkflow: !delayedScript);
         var release = new TaskCompletionSource();
         var started = new TaskCompletionSource();
         await Page.RouteAsync($"{Origin}/products", async route =>
@@ -45,7 +46,12 @@ public sealed class WorkflowFeedbackInteractionTests : Microsoft.Playwright.Xuni
             await route.FulfillAsync(new() { ContentType = "text/html", Body = "<main><h1>Products ready</h1></main>" });
         });
         var link = Page.GetByRole(AriaRole.Link, new() { Name = "Products", Exact = true });
-        var snapshot = await WorkflowFeedbackProbe.NavigationAsync(Page);
+        var observation = WorkflowFeedbackProbe.NavigationAsync(Page);
+        if (delayedScript)
+        {
+            await Page.AddScriptTagAsync(new() { Path = TestAssetPaths.JavaScript("workflow-feedback.js") });
+        }
+        var snapshot = await observation;
         var navigation = keyboard ? link.PressAsync("Enter") : link.ClickAsync();
         try
         {
@@ -127,10 +133,12 @@ public sealed class WorkflowFeedbackInteractionTests : Microsoft.Playwright.Xuni
         await Expect(Page.Locator("form")).Not.ToHaveAttributeAsync("aria-busy", "true");
     }
 
-    [Fact]
-    public async Task PendingSave_PreventsRepeatedPostsPreservesPayloadAndRecoversAfterErrorResponse()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PendingSave_PreventsRepeatedPostsPreservesPayloadAndRecoversAfterErrorResponse(bool probeBeforeFeedback)
     {
-        await InitializeFixtureAsync();
+        await InitializeFixtureAsync(loadWorkflow: !probeBeforeFeedback);
         var release = new TaskCompletionSource();
         var started = new TaskCompletionSource<IRequest>();
         var posts = 0;
@@ -141,7 +149,11 @@ public sealed class WorkflowFeedbackInteractionTests : Microsoft.Playwright.Xuni
             await release.Task;
             await route.FulfillAsync(new() { ContentType = "text/html", Body = Html.Replace("<h1>Workflow</h1>", "<p role='alert'>Please try again.</p>") });
         });
-        var snapshot = await WorkflowFeedbackProbe.SubmissionAsync(Page);
+        var snapshot = await WorkflowFeedbackProbe.SubmissionAsync(Page, waitForReady: !probeBeforeFeedback);
+        if (probeBeforeFeedback)
+        {
+            await Page.AddScriptTagAsync(new() { Path = TestAssetPaths.JavaScript("workflow-feedback.js") });
+        }
         var submission = Page.GetByRole(AriaRole.Button, new() { Name = "Save recurring class", Exact = true }).ClickAsync();
         try
         {
@@ -192,13 +204,14 @@ public sealed class WorkflowFeedbackInteractionTests : Microsoft.Playwright.Xuni
         Assert.Equal($"{Origin}/start", Page.Url);
     }
 
-    private async Task InitializeFixtureAsync()
+    private async Task InitializeFixtureAsync(bool loadWorkflow = true)
     {
+        var fixtureHtml = loadWorkflow ? Html : Html.Replace("<script src=\"/workflow-feedback.js\"></script>", "");
         await Context.RouteAsync($"{Origin}/**", route => route.FulfillAsync(new()
         {
             ContentType = route.Request.Url.EndsWith(".js", StringComparison.Ordinal) ? "text/javascript" : "text/html",
             Body = route.Request.Url.EndsWith(".js", StringComparison.Ordinal)
-                ? File.ReadAllText(TestAssetPaths.JavaScript("workflow-feedback.js")) : Html
+                ? File.ReadAllText(TestAssetPaths.JavaScript("workflow-feedback.js")) : fixtureHtml
         }));
         await Page.GotoAsync($"{Origin}/start");
     }
