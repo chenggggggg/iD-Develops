@@ -8,6 +8,45 @@ namespace iD_Develops.E2ETests;
 public sealed class WorkflowFeedbackLiveTests : Microsoft.Playwright.Xunit.PageTest
 {
     [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PublicLoginNavigation_DoesNotShowProgress(bool mobile)
+    {
+        await Page.SetViewportSizeAsync(mobile ? 390 : 1440, 900);
+        await Page.GotoAsync($"{LocalTestApplication.PublicBaseUrl}/en-us/contact");
+        if (mobile)
+        {
+            await Page.Locator("[data-public-menu-toggle]").ClickAsync();
+        }
+
+        var link = Page.GetByRole(AriaRole.Link, new() { Name = "Log In", Exact = true });
+        var target = await link.GetAttributeAsync("href");
+        Assert.NotNull(target);
+        var release = new TaskCompletionSource();
+        var started = new TaskCompletionSource();
+        await Page.RouteAsync(target, async route =>
+        {
+            started.TrySetResult();
+            await release.Task;
+            await route.FulfillAsync(new() { ContentType = "text/html", Body = "<main><h1>Login ready</h1></main>" });
+        });
+        var snapshot = await WorkflowFeedbackProbe.NavigationAsync(Page);
+        var navigation = link.ClickAsync();
+        try
+        {
+            await started.Task.WaitAsync(TimeSpan.FromSeconds(10));
+            var state = await snapshot.Task.WaitAsync(TimeSpan.FromSeconds(10));
+            Assert.True(state.GetProperty("hidden").GetBoolean());
+            Assert.NotEqual("true", state.GetProperty("busy").GetString());
+            release.TrySetResult();
+            await navigation;
+            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Login ready", Exact = true })).ToBeVisibleAsync();
+            Assert.Equal(target, Page.Url);
+        }
+        finally { release.TrySetResult(); await navigation; }
+    }
+
+    [Theory]
     [InlineData("en-us", "Pricing", "Loading Pricing...")]
     [InlineData("nl-nl", "Prijzen", "Prijzen laden...")]
     public async Task PublicProductsNavigation_ShowsLocalizedProgress(string culture, string name, string expected)
