@@ -485,6 +485,12 @@ namespace iD_Develops.Data.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
+                    b.Property<int>("DiscountType")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal?>("DiscountValue")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<bool>("EnableQuantity")
                         .HasColumnType("boolean");
 
@@ -872,6 +878,22 @@ namespace iD_Develops.Data.Migrations
                     b.HasIndex("CatalogProductInviteId");
 
                     b.ToTable("CatalogProductInviteUses");
+                });
+
+            modelBuilder.Entity("iD_Develops.Models.CatalogProductSlug", b =>
+                {
+                    b.Property<string>("Slug")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("CatalogProductId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Slug");
+
+                    b.HasIndex("CatalogProductId");
+
+                    b.ToTable("CatalogProductSlug");
                 });
 
             modelBuilder.Entity("iD_Develops.Models.CatalogProductTranslation", b =>
@@ -3175,6 +3197,17 @@ namespace iD_Develops.Data.Migrations
                     b.Navigation("CatalogProductInvite");
                 });
 
+            modelBuilder.Entity("iD_Develops.Models.CatalogProductSlug", b =>
+                {
+                    b.HasOne("iD_Develops.Models.CatalogProduct", "CatalogProduct")
+                        .WithMany("SlugHistory")
+                        .HasForeignKey("CatalogProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CatalogProduct");
+                });
+
             modelBuilder.Entity("iD_Develops.Models.CatalogProductTranslation", b =>
                 {
                     b.HasOne("iD_Develops.Models.CatalogProduct", "CatalogProduct")
@@ -3948,6 +3981,8 @@ namespace iD_Develops.Data.Migrations
                     b.Navigation("IncludedCreditProducts");
 
                     b.Navigation("Invites");
+
+                    b.Navigation("SlugHistory");
 
                     b.Navigation("Translations");
 

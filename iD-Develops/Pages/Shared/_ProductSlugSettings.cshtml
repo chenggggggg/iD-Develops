@@ -1,0 +1,17 @@
+@model iD_Develops.Pages.ProductModel
+
+<div class="my-5 grid gap-2" data-product-slug-settings>
+    <label for="EditInput_Slug" class="text-sm font-semibold text-slate-800">Product URL slug</label>
+    <input asp-for="EditInput.Slug" maxlength="200" autocomplete="off" spellcheck="false"
+           class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[#005190] focus:outline-none focus:ring-2 focus:ring-[#005190]/20"
+           aria-describedby="product-slug-help" />
+    <span asp-validation-for="EditInput.Slug" class="text-sm text-red-700"></span>
+    @if (Model.IsDefaultContentCulture)
+    {
+        <label class="flex items-center gap-2 text-sm text-slate-700">
+            <input asp-for="EditInput.UpdateSlugFromName" class="size-4 accent-[#005190]" disabled />
+            Update slug when the product name changes
+        </label>
+    }
+    <p id="product-slug-help" class="m-0 text-xs leading-5 text-slate-500">Use lowercase words separated by hyphens. Existing links keep working after a change. A number is added if the slug is already in use.</p>
+</div>

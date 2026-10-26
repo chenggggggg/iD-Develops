@@ -36,7 +36,7 @@
                             <p class="public-catalog-summary">@product.Summary</p>
 
                             <div class="public-catalog-footer">
-                                <strong>@(product.DisplayPrice.HasValue ? product.DisplayPrice.Value.ToString("C") : Localizer["CustomPrice"])</strong>
+                                <partial name="_CatalogPrice" model="product.Product" />
                                 <a class="public-btn public-btn-outline" asp-page="/Product" asp-route-culture="@CultureInfo.CurrentCulture.Name.ToLowerInvariant()" asp-route-slug="@product.Slug">
                                     @Localizer["ViewDetails"] <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                                 </a>

@@ -26,8 +26,7 @@ namespace iD_Develops.Pages
                 return RedirectToPage("/PaymentResult", new { status = "unknown" });
             }
 
-            if (string.Equals(details.SessionStatus, "complete", StringComparison.OrdinalIgnoreCase) &&
-                string.Equals(details.PaymentStatus, "paid", StringComparison.OrdinalIgnoreCase))
+            if (details.IsCompleted)
             {
                 return RedirectToPage("/PaymentResult", new { session_id = sessionId });
             }

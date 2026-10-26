@@ -69,8 +69,7 @@ namespace iD_Develops.Pages
 
         private static string ResolveStatus(CheckoutSessionDetails details, string fallback)
         {
-            if (string.Equals(details.SessionStatus, "complete", StringComparison.OrdinalIgnoreCase) &&
-                string.Equals(details.PaymentStatus, "paid", StringComparison.OrdinalIgnoreCase))
+            if (details.IsCompleted)
             {
                 return "success";
             }

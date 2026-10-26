@@ -35,6 +35,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const participantCount = document.getElementById("participantCount");
     const defaultUnitPrice = Number.parseFloat(form?.dataset.defaultUnitPrice || "0");
     const defaultCurrency = form?.dataset.defaultCurrency || "EUR";
+    const defaultOriginalPrice = Number.parseFloat(form?.dataset.originalUnitPrice || String(defaultUnitPrice));
+    const fees = ["registrationFee", "transactionFee", "serviceFee"].map(key => Number.parseFloat(form?.dataset[key] || "0"));
+    const vatRate = Number.parseFloat(form?.dataset.vatPercentage || "0") / 100;
+    const money = amount => Math.round((amount + Number.EPSILON) * 100) / 100;
 
     function clampQuantity(value) {
         if (!quantityInput) {
@@ -71,7 +75,18 @@ document.addEventListener("DOMContentLoaded", function () {
             ? (selectedVariant.dataset.currency || defaultCurrency)
             : defaultCurrency;
         const quantity = quantityInput ? clampQuantity(quantityInput.value) : 1;
-        const total = unitPrice * quantity;
+        const originalUnit = selectedVariant ? Number.parseFloat(selectedVariant.dataset.originalPrice || String(unitPrice)) : defaultOriginalPrice;
+        const feeTotal = fees.reduce((sum, fee) => sum + fee, 0);
+        const feeVat = fees.reduce((sum, fee) => sum + money(fee * vatRate), 0);
+        const total = unitPrice * quantity + feeTotal + money(unitPrice * quantity * vatRate) + feeVat;
+        const originalTotal = originalUnit * quantity + feeTotal + money(originalUnit * quantity * vatRate) + feeVat;
+        [["product-original-unit-price", originalUnit, unitPrice], ["product-original-total-price", originalTotal, total]].forEach(([id, original, discounted]) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.hidden = original <= discounted;
+                element.textContent = currency + " " + original.toFixed(2);
+            }
+        });
 
         if (quantityInput) {
             quantityInput.value = quantity;
@@ -83,6 +98,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         unitPriceElement.textContent = currency + " " + unitPrice.toFixed(2);
         totalPriceElement.textContent = currency + " " + total.toFixed(2);
+        const vatElement = document.getElementById("product-vat-price");
+        if (vatElement) vatElement.textContent = currency + " " + (money(unitPrice * quantity * vatRate) + feeVat).toFixed(2);
     }
 
     if (quantityInput) {

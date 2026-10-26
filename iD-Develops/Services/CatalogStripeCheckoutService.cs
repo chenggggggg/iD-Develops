@@ -1,5 +1,6 @@
 using System.Text.Json;
 using iD_Develops.Models;
+using iD_Develops.Utilities;
 using Stripe;
 using Stripe.Checkout;
 
@@ -70,7 +71,7 @@ namespace iD_Develops.Services
             return session.Url;
         }
 
-        private static List<SessionLineItemOptions> BuildLineItems(
+        public static List<SessionLineItemOptions> BuildLineItems(
             CatalogProduct product,
             CatalogProductVariant variant,
             string currency,
@@ -78,11 +79,10 @@ namespace iD_Develops.Services
             int quantity)
         {
             var lineItems = new List<SessionLineItemOptions>();
-            var productAmount = NormalizeMoney(product.BasePrice ?? variant.Price);
+            CatalogPricing.ValidateDiscount(product);
+            var productAmount = CatalogPricing.Calculate(product, quantity, variant.Price).UnitPrice;
 
-            if (productAmount > 0)
-            {
-                lineItems.Add(CreateLineItem(
+            lineItems.Add(CreateLineItem(
                     name: product.Name,
                     description: PlainText(product.Summary),
                     amount: productAmount,
@@ -97,30 +97,10 @@ namespace iD_Develops.Services
                         ["catalog_product_type"] = product.ProductType.ToString(),
                         ["catalog_variant_id"] = variant.Id.ToString()
                     }));
-            }
 
             AddFeeLineItem(lineItems, "Registration fee", product.RegistrationFee, currency, taxRateIds);
             AddFeeLineItem(lineItems, "Transaction fee", product.TransactionFee, currency, taxRateIds);
             AddFeeLineItem(lineItems, "Service fee", product.ServiceFee, currency, taxRateIds);
-
-            if (lineItems.Count == 0)
-            {
-                lineItems.Add(CreateLineItem(
-                    name: product.Name,
-                    description: PlainText(product.Summary),
-                    amount: NormalizeMoney(variant.Price),
-                    currency: currency,
-                    quantity: Math.Max(1, quantity),
-                    taxRateIds: taxRateIds,
-                    metadata: new Dictionary<string, string>
-                    {
-                        ["line_item_type"] = "product",
-                        ["catalog_product_id"] = product.Id.ToString(),
-                        ["catalog_product_slug"] = product.Slug,
-                        ["catalog_product_type"] = product.ProductType.ToString(),
-                        ["catalog_variant_id"] = variant.Id.ToString()
-                    }));
-            }
 
             return lineItems;
         }
