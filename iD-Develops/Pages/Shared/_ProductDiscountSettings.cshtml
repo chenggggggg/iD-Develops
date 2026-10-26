@@ -1,0 +1,26 @@
+@using iD_Develops.Enums
+@model iD_Develops.Pages.ProductModel
+
+<div class="my-4 grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4" data-product-discount>
+    <div class="grid gap-1.5 text-sm font-semibold text-slate-800">
+        <label for="EditInput_DiscountType">Discount type</label>
+        <select asp-for="EditInput.DiscountType" data-price-calculator="discount-type"
+                class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-900 focus:border-[#005190] focus:outline-none focus:ring-2 focus:ring-[#005190]/20">
+            <option value="@CatalogDiscountType.None">No discount</option>
+            <option value="@CatalogDiscountType.Percentage">Percentage (%)</option>
+            <option value="@CatalogDiscountType.FixedAmount">Fixed amount (@Model.Product!.Currency)</option>
+        </select>
+    </div>
+    <div class="grid gap-1.5 text-sm font-semibold text-slate-800">
+        <label for="EditInput_DiscountValue">Discount value</label>
+        <input asp-for="EditInput.DiscountValue" type="number" min="0.01" step="0.01" data-price-calculator="discount-value"
+               aria-describedby="product-discount-help"
+               class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-900 focus:border-[#005190] focus:outline-none focus:ring-2 focus:ring-[#005190]/20" />
+    </div>
+    <span asp-validation-for="EditInput.DiscountValue" class="text-sm text-red-700"></span>
+    <p id="product-discount-help" class="m-0 text-xs leading-5 text-slate-500">Applied to each unit before VAT. Registration, transaction and service fees stay unchanged.</p>
+    <div class="flex flex-wrap items-baseline gap-2" data-discount-preview hidden aria-live="polite">
+        <del data-discount-original class="text-sm text-slate-500"></del>
+        <strong data-discount-total class="text-xl font-semibold text-[#005190]"></strong>
+    </div>
+</div>

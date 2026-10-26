@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using iD_Develops.Enums;
+using iD_Develops.Utilities;
 
 namespace iD_Develops.Models
 {
@@ -40,6 +41,13 @@ namespace iD_Develops.Models
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal? BasePrice { get; set; }
+
+        public CatalogDiscountType DiscountType { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? DiscountValue { get; set; }
+
+        public ICollection<CatalogProductSlug> SlugHistory { get; set; } = new List<CatalogProductSlug>();
 
         [Column(TypeName = "decimal(5,2)")]
         public decimal? VatPercentage { get; set; }
@@ -139,11 +147,17 @@ namespace iD_Develops.Models
         public ICollection<CatalogProductIncludedCreditProduct> IncludedByProducts { get; set; } = new List<CatalogProductIncludedCreditProduct>();
 
         [NotMapped]
-        public decimal? DisplayPrice => Variants
-            .Where(v => v.IsActive)
-            .OrderBy(v => v.SortOrder)
-            .Select(v => (decimal?)v.Price)
-            .FirstOrDefault() ?? BasePrice;
+        public decimal? DisplayPrice => HasPrice ? CatalogPricing.Calculate(this, fallbackPrice: VariantPrice).Total : null;
+
+        [NotMapped]
+        public decimal? OriginalDisplayPrice => HasPrice ? CatalogPricing.Calculate(this, fallbackPrice: VariantPrice).OriginalTotal : null;
+
+        [NotMapped]
+        private decimal? VariantPrice => Variants.Where(v => v.IsActive).OrderBy(v => v.SortOrder)
+            .Select(v => (decimal?)v.Price).FirstOrDefault();
+
+        [NotMapped]
+        private bool HasPrice => BasePrice.HasValue || VariantPrice.HasValue;
 
         [NotMapped]
         public bool RequiresAuthenticatedAccount =>

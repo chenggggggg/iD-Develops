@@ -1249,6 +1249,12 @@ namespace iD_Develops.Data
             modelBuilder.Entity<CatalogProductTranslation>()
                 .HasKey(translation => new { translation.CatalogProductId, translation.Culture });
 
+            modelBuilder.Entity<CatalogProductSlug>()
+                .HasOne(history => history.CatalogProduct)
+                .WithMany(product => product.SlugHistory)
+                .HasForeignKey(history => history.CatalogProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<CatalogProductTranslation>()
                 .HasOne(translation => translation.CatalogProduct)
                 .WithMany(product => product.Translations)

@@ -191,7 +191,7 @@
                         }
                         <div class="mb-8 mt-8 flex items-end justify-start">
                             <span class="text-3xl font-semibold leading-none text-[#1A1A1A] [font-family:var(--serif-heading)]">
-                                @(product.DisplayPrice.HasValue ? product.DisplayPrice.Value.ToString("C") : Localizer["CustomPrice"])
+                                <partial name="_CatalogPrice" model="product" />
                             </span>
                         </div>
                         <a asp-page="/Product"

@@ -125,6 +125,9 @@ namespace iD_Develops.Pages
                     ct) ?? product;
             }
 
+            if (!string.Equals(slug, product.Slug, StringComparison.Ordinal))
+                return RedirectToPage(new { slug = product.Slug, access, inviteUseId, resumeCheckout, portalAccess, preview, contentCulture = ContentCulture });
+
             if (inviteUseId.HasValue)
             {
                 await _catalogProductAccessService.CancelInviteUseAsync(inviteUseId.Value, ct);
@@ -674,7 +677,7 @@ namespace iD_Develops.Pages
                 {
                     Id = product.Id,
                     Name = string.IsNullOrWhiteSpace(EditInput.Name) ? DraftProductName : EditInput.Name,
-                    Slug = product.Slug,
+                    Slug = EditInput.UpdateSlugFromName ? string.Empty : EditInput.Slug ?? product.Slug,
                     Summary = EditInput.Summary,
                     Description = EditInput.Description,
                     FullDescriptionHtml = EditInput.FullDescriptionHtml,
@@ -701,6 +704,8 @@ namespace iD_Develops.Pages
                     RequireAccessToken = product.RequireAccessToken,
                     Currency = product.Currency,
                     BasePrice = EditInput.BasePrice,
+                    DiscountType = EditInput.DiscountType,
+                    DiscountValue = EditInput.DiscountValue,
                     VatPercentage = EditInput.VatPercentage,
                     RegistrationFee = EditInput.RegistrationFee,
                     TransactionFee = EditInput.TransactionFee,
@@ -734,6 +739,7 @@ namespace iD_Develops.Pages
                 }, product.ProductType == CatalogProductType.Credit ? EditInput.CreditConfiguration : null,
                     EditInput.IncludedCreditProductIds, ct);
 
+                product = await _catalogProductService.GetProductByIdAsync(product.Id, ct) ?? product;
                 await SavePrimaryVariantSettingsAsync(product, ct);
                 await SaveFormFieldsAsync(product, ct);
                 if (translationInput != null)
@@ -776,6 +782,19 @@ namespace iD_Develops.Pages
 
         private void ValidateProductSave(CatalogProduct product, CatalogProductStatus requestedStatus)
         {
+            try
+            {
+                CatalogPricing.ValidateDiscount(new CatalogProduct
+                {
+                    BasePrice = EditInput.BasePrice,
+                    DiscountType = EditInput.DiscountType,
+                    DiscountValue = EditInput.DiscountValue
+                });
+            }
+            catch (ArgumentException error)
+            {
+                ModelState.AddModelError("EditInput.DiscountValue", error.Message);
+            }
             if (!HasAnyEditableContent(product))
             {
                 ModelState.AddModelError(string.Empty, "Add at least one product detail before saving.");
@@ -939,12 +958,7 @@ namespace iD_Develops.Pages
                 ? "Checkout"
                 : EditInput.PrimaryVariantName.Trim();
 
-            var price = CalculateCheckoutAmount(
-                EditInput.BasePrice ?? product.BasePrice,
-                EditInput.RegistrationFee ?? product.RegistrationFee,
-                EditInput.TransactionFee ?? product.TransactionFee,
-                EditInput.ServiceFee ?? product.ServiceFee,
-                EditInput.VatPercentage ?? product.VatPercentage);
+            var price = CatalogPricing.Calculate(product).Total;
 
             if (variant == null)
             {
@@ -974,24 +988,6 @@ namespace iD_Develops.Pages
                 SortOrder = variant.SortOrder
             }, ct);
         }
-
-        private static decimal CalculateCheckoutAmount(
-            decimal? basePrice,
-            decimal? registrationFee,
-            decimal? transactionFee,
-            decimal? serviceFee,
-            decimal? vatPercentage)
-        {
-            var subtotal = NormalizeMoney(basePrice) +
-                           NormalizeMoney(registrationFee) +
-                           NormalizeMoney(transactionFee) +
-                           NormalizeMoney(serviceFee);
-            var vat = Math.Clamp(NormalizeMoney(vatPercentage), 0m, 100m);
-            return Math.Round(subtotal + subtotal * (vat / 100m), 2, MidpointRounding.AwayFromZero);
-        }
-
-        private static decimal NormalizeMoney(decimal? value)
-            => value.HasValue ? Math.Max(0m, Math.Round(value.Value, 2, MidpointRounding.AwayFromZero)) : 0m;
 
         private async Task SaveFormFieldsAsync(CatalogProduct product, CancellationToken ct)
         {
@@ -1365,8 +1361,12 @@ namespace iD_Develops.Pages
                 HomepageButtonText = useTranslation ? productTranslation?.HomepageButtonText : product.HomepageButtonText,
                 HomepageHighlightText = useTranslation ? productTranslation?.HomepageHighlightText : product.HomepageHighlightText,
                 ImageObjectKey = product.ImageUrl,
+                Slug = product.Slug,
+                UpdateSlugFromName = product.Slug == CatalogProductService.Slugify(product.Name) || IsDraftPlaceholderName(product.Name),
                 AttachmentObjectKey = product.IncludedBookingBenefitUrl,
-                BasePrice = primaryVariant?.Price ?? product.BasePrice,
+                BasePrice = product.BasePrice ?? primaryVariant?.Price,
+                DiscountType = product.DiscountType,
+                DiscountValue = product.DiscountValue,
                 VatPercentage = product.VatPercentage,
                 RegistrationFee = product.RegistrationFee,
                 TransactionFee = product.TransactionFee,
@@ -1462,6 +1462,7 @@ namespace iD_Develops.Pages
         private static void ApplyCanonicalContentToEditInput(CatalogProduct product, ProductEditInput editInput)
         {
             var canonical = CreateEditInput(product, CatalogContentCulture.Default);
+            editInput.UpdateSlugFromName = false;
             editInput.Name = canonical.Name;
             editInput.Summary = canonical.Summary;
             editInput.Description = canonical.Description;
@@ -1548,6 +1549,16 @@ namespace iD_Develops.Pages
         public class ProductEditInput
         {
             [MaxLength(200)]
+            public string? Slug { get; set; }
+
+            public bool UpdateSlugFromName { get; set; }
+
+            [EnumDataType(typeof(CatalogDiscountType))]
+            public CatalogDiscountType DiscountType { get; set; }
+
+            public decimal? DiscountValue { get; set; }
+
+            [MaxLength(200)]
             public string? Name { get; set; }
 
             [MaxLength(150)]
@@ -1577,6 +1588,7 @@ namespace iD_Develops.Pages
             [MaxLength(500)]
             public string? AttachmentObjectKey { get; set; }
 
+            [Range(typeof(decimal), "0", "999999999999")]
             public decimal? BasePrice { get; set; }
 
             public decimal? VatPercentage { get; set; }

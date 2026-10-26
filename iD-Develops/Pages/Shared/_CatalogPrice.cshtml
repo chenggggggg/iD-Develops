@@ -1,0 +1,21 @@
+@model iD_Develops.Models.CatalogProduct
+@inject Microsoft.Extensions.Localization.IStringLocalizer<iD_Develops.Pages.ProductModel> PriceLocalizer
+
+<span class="inline-flex flex-wrap items-baseline gap-x-2 gap-y-1" data-catalog-price>
+    @if (Model.DisplayPrice < Model.OriginalDisplayPrice)
+    {
+        <del class="text-base font-normal text-[#6B6B6B]" aria-label="@PriceLocalizer["OriginalPriceLabel"]">@Model.Currency @Model.OriginalDisplayPrice.GetValueOrDefault().ToString("N2")</del>
+    }
+    @if (Model.DisplayPrice.HasValue)
+    {
+        <strong>@Model.Currency @Model.DisplayPrice.Value.ToString("N2")</strong>
+    }
+    else
+    {
+        <strong>@PriceLocalizer["CustomPrice"]</strong>
+    }
+    @if (Model.DisplayPrice < Model.OriginalDisplayPrice)
+    {
+        <span class="rounded bg-[#B23A48]/10 px-2 py-1 text-xs font-semibold text-[#B23A48]">@PriceLocalizer["SaleLabel"]</span>
+    }
+</span>

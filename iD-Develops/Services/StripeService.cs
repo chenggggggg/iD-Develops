@@ -47,7 +47,7 @@ namespace iD_Develops.Services
                 PaymentStatus = session.PaymentStatus,
                 ProductName = firstItem?.Description ?? "Unknown Product",
                 Quantity = firstItem?.Quantity ?? 1,
-                AmountTotal = (firstItem?.AmountTotal ?? 0) / 100m,
+                AmountTotal = (session.AmountTotal ?? 0) / 100m,
                 DateOfPurchase = ((DateTimeOffset)session.Created).ToString("dd-MM-yyyy"),
                 PaymentMethod = paymentMethodDetails
             };

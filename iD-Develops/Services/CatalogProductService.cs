@@ -135,12 +135,12 @@ namespace iD_Develops.Services
             => ReadQuery().FirstOrDefaultAsync(p => p.Id == id, ct);
 
         public Task<CatalogProduct?> GetProductBySlugAsync(string slug, CancellationToken ct = default)
-            => ReadQuery().FirstOrDefaultAsync(p => p.Slug == slug, ct);
+            => ReadQuery().FirstOrDefaultAsync(p => p.Slug == slug || p.SlugHistory.Any(history => history.Slug == slug), ct);
 
         public Task<CatalogProduct?> GetPublishedProductBySlugAsync(string slug, CancellationToken ct = default)
             => ReadQuery()
                 .FirstOrDefaultAsync(
-                    p => p.Slug == slug && p.Status == CatalogProductStatus.Published,
+                    p => (p.Slug == slug || p.SlugHistory.Any(history => history.Slug == slug)) && p.Status == CatalogProductStatus.Published,
                     ct);
 
         public async Task<CatalogProduct?> GetLocalizedProductBySlugAsync(
@@ -151,7 +151,7 @@ namespace iD_Develops.Services
         {
             var product = await ReadQuery()
                 .FirstOrDefaultAsync(
-                    candidate => candidate.Slug == slug &&
+                    candidate => (candidate.Slug == slug || candidate.SlugHistory.Any(history => history.Slug == slug)) &&
                                  (!requirePublished || candidate.Status == CatalogProductStatus.Published),
                     ct);
 
@@ -165,8 +165,11 @@ namespace iD_Develops.Services
 
         public async Task<CatalogProduct> CreateProductAsync(CatalogProduct product, CancellationToken ct = default)
         {
+            CatalogPricing.ValidateDiscount(product);
+            if (product.DiscountType == CatalogDiscountType.None) product.DiscountValue = null;
             await EnsureGrantedCourseExistsAsync(product.GrantedCourseId, ct);
             product.Slug = await GenerateUniqueSlugAsync(product.Name, product.Slug, null, ct);
+            product.SlugHistory.Add(new() { Slug = product.Slug });
             product.Currency = NormalizeCurrency(product.Currency);
             product.BasePrice = NormalizeMoney(product.BasePrice);
             product.VatPercentage = NormalizePercentage(product.VatPercentage);
@@ -209,8 +212,14 @@ namespace iD_Develops.Services
             var existing = await _dbContext.CatalogProducts.FirstOrDefaultAsync(p => p.Id == product.Id, ct)
                 ?? throw new InvalidOperationException("Product not found.");
 
+            CatalogPricing.ValidateDiscount(product);
             existing.Name = product.Name.Trim();
+            var previousSlug = _dbContext.Entry(existing).OriginalValues.GetValue<string>(nameof(CatalogProduct.Slug));
             existing.Slug = await GenerateUniqueSlugAsync(product.Name, product.Slug, product.Id, ct);
+            if (previousSlug != existing.Slug && !await _dbContext.Set<CatalogProductSlug>().AnyAsync(history => history.Slug == previousSlug, ct))
+                _dbContext.Set<CatalogProductSlug>().Add(new() { Slug = previousSlug, CatalogProductId = product.Id });
+            if (!await _dbContext.Set<CatalogProductSlug>().AnyAsync(history => history.Slug == existing.Slug, ct))
+                _dbContext.Set<CatalogProductSlug>().Add(new() { Slug = existing.Slug, CatalogProductId = product.Id });
             existing.Summary = product.Summary?.Trim();
             existing.Description = product.Description?.Trim();
             existing.FullDescriptionHtml = product.FullDescriptionHtml?.Trim();
@@ -228,6 +237,8 @@ namespace iD_Develops.Services
             existing.RequireAccessToken = product.RequireAccessToken;
             existing.Currency = NormalizeCurrency(product.Currency);
             existing.BasePrice = NormalizeMoney(product.BasePrice);
+            existing.DiscountType = product.DiscountType;
+            existing.DiscountValue = product.DiscountType == CatalogDiscountType.None ? null : product.DiscountValue;
             existing.VatPercentage = NormalizePercentage(product.VatPercentage);
             existing.RegistrationFee = NormalizeMoney(product.RegistrationFee);
             existing.TransactionFee = NormalizeMoney(product.TransactionFee);
@@ -641,19 +652,23 @@ namespace iD_Develops.Services
             var counter = 2;
 
             while (await _dbContext.CatalogProducts.AnyAsync(
-                p => p.Slug == slug && (!currentId.HasValue || p.Id != currentId.Value), ct))
+                p => p.Slug == slug && (!currentId.HasValue || p.Id != currentId.Value), ct) ||
+                await _dbContext.Set<CatalogProductSlug>().AnyAsync(history => history.Slug == slug &&
+                    (!currentId.HasValue || history.CatalogProductId != currentId.Value), ct))
             {
-                slug = $"{baseSlug}-{counter++}";
+                var suffix = $"-{counter++}";
+                slug = $"{baseSlug[..Math.Min(baseSlug.Length, 200 - suffix.Length)]}{suffix}";
             }
 
             return slug;
         }
 
-        private static string Slugify(string value)
+        public static string Slugify(string value)
         {
             var normalized = value.Trim().ToLowerInvariant();
             normalized = Regex.Replace(normalized, @"[^a-z0-9]+", "-");
-            return normalized.Trim('-');
+            normalized = normalized.Trim('-');
+            return normalized[..Math.Min(normalized.Length, 200)].TrimEnd('-');
         }
 
         private static string NormalizeFieldKey(string? key, string? label)

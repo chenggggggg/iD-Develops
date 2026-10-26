@@ -1,6 +1,7 @@
 @page
 @using iD_Develops.Enums
 @using iD_Develops.Models
+@using iD_Develops.Utilities
 @model iD_Develops.Pages.Portal.Admin.Products.EditModel
 @{
     Layout = Model.IsAdminEditMode ? "_PortalLayout" : "_Layout";
@@ -38,17 +39,18 @@
         ?? activeVariants.FirstOrDefault(v => !Model.SelectedVariantId.HasValue && v.IsDefault)
         ?? activeVariants.FirstOrDefault();
 
-    var unitPrice = initialVariant?.Price ?? Model.Product.BasePrice;
+    var unitPrice = Model.Product.BasePrice ?? initialVariant?.Price;
+    var pricing = CatalogPricing.Calculate(Model.Product, Model.OrderQuantity, initialVariant?.Price);
     var unitCurrency = initialVariant?.Currency ?? Model.Product.Currency ?? "EUR";
     var showPricing = unitPrice.HasValue;
-    var displayUnitPrice = unitPrice.GetValueOrDefault();
-    var totalPrice = displayUnitPrice * Model.OrderQuantity;
+    var displayUnitPrice = pricing.UnitPrice;
+    var totalPrice = pricing.Total;
     var hasFormFields = Model.Product.FormFields.Any();
     var showStandaloneBookingAction = Model.Product.WorkflowType == CatalogWorkflowType.ExternalBookingOnly && !hasFormFields;
     var standaloneActionUrl = Model.Product.ProductType == CatalogProductType.FreeDownload
         ? Model.ResolvedAttachmentUrl
         : Model.Product.ExternalBookingUrl;
-    var initialUnitPriceValue = (unitPrice ?? 0m).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+    var initialUnitPriceValue = pricing.UnitPrice.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
     var displayProductName = ProductModel.IsDraftPlaceholderName(Model.Product.Name) ? "Product Title" : Model.Product.Name;
     var isDraft = Model.Product.Status == CatalogProductStatus.Draft;
     var isArchived = Model.Product.Status == CatalogProductStatus.Archived;
@@ -172,6 +174,7 @@
                         <i class="fa-solid fa-pencil product-editable-icon" aria-hidden="true"></i>
                     </div>
                     <span class="product-validation-message" asp-validation-for="EditInput.Name"></span>
+                    <partial name="_ProductSlugSettings" model="Model" />
 
                     <div class="product-editable-field product-editable-summary product-subtitle-field">
                         <textarea class="product-editable-textarea"
@@ -385,6 +388,7 @@
                                 <i class="fa-solid fa-pencil product-editable-icon" aria-hidden="true"></i>
                             </div>
 
+                            <partial name="_ProductDiscountSettings" model="Model" />
                             <div class="product-fee-grid">
                                 <div class="product-fee-editable-field">
                                     <label class="public-label product-admin-label" asp-for="EditInput.VatPercentage">VAT %</label>
@@ -826,6 +830,11 @@
                     <form method="post"
                           id="product-submit-form"
                           data-default-unit-price="@initialUnitPriceValue"
+                          data-original-unit-price="@pricing.OriginalUnitPrice.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                          data-registration-fee="@Model.Product.RegistrationFee?.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                          data-transaction-fee="@Model.Product.TransactionFee?.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                          data-service-fee="@Model.Product.ServiceFee?.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                          data-vat-percentage="@Model.Product.VatPercentage?.ToString(System.Globalization.CultureInfo.InvariantCulture)"
                           data-default-currency="@unitCurrency">
                         @Html.AntiForgeryToken()
                         @if (!string.IsNullOrWhiteSpace(Model.AccessToken))
@@ -844,7 +853,8 @@
                                             <input type="radio"
                                                    name="selectedVariantId"
                                                    value="@variant.Id"
-                                                   data-price="@variant.Price.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)"
+                                                   data-price="@CatalogPricing.DiscountedUnitPrice(Model.Product, Model.Product.BasePrice ?? variant.Price).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)"
+                                                   data-original-price="@((Model.Product.BasePrice ?? variant.Price).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture))"
                                                    data-currency="@variant.Currency"
                                                    @(selected ? "checked" : null) />
                                             <span>
@@ -862,11 +872,17 @@
                             <div class="product-price-board">
                                 <div class="product-price-row">
                                     <span>Price</span>
-                                    <strong id="product-unit-price">@unitCurrency @displayUnitPrice.ToString("0.00")</strong>
+                                    <span class="inline-flex flex-wrap items-baseline justify-end gap-2">
+                                        <del id="product-original-unit-price" hidden="@(pricing.UnitPrice >= pricing.OriginalUnitPrice)" class="text-sm text-[#6B6B6B]">@unitCurrency @pricing.OriginalUnitPrice.ToString("0.00")</del>
+                                        <strong id="product-unit-price">@unitCurrency @displayUnitPrice.ToString("0.00")</strong>
+                                    </span>
                                 </div>
                                 <div class="product-price-row total">
                                     <span>Total</span>
-                                    <strong id="product-total-price">@unitCurrency @totalPrice.ToString("0.00")</strong>
+                                    <span class="inline-flex flex-wrap items-baseline justify-end gap-2">
+                                        <del id="product-original-total-price" hidden="@(pricing.Total >= pricing.OriginalTotal)" class="text-sm font-normal text-[#6B6B6B]">@unitCurrency @pricing.OriginalTotal.ToString("0.00")</del>
+                                        <strong id="product-total-price">@unitCurrency @totalPrice.ToString("0.00")</strong>
+                                    </span>
                                 </div>
                             </div>
                         }
@@ -1134,9 +1150,23 @@
                     const transactionFee = parseMoneyInput('[data-price-calculator="transaction"]');
                     const serviceFee = parseMoneyInput('[data-price-calculator="service"]');
                     const fees = registrationFee + transactionFee + serviceFee;
-                    const subtotal = basePrice + fees;
-                    const vatAmount = subtotal * (vatPercentage / 100);
+                    const money = amount => Math.round((amount + Number.EPSILON) * 100) / 100;
+                    const discountType = form?.querySelector('[name="EditInput.DiscountType"]')?.value;
+                    const discountValue = parseMoneyInput('[data-price-calculator="discount-value"]');
+                    const discount = discountType === "Percentage" ? money(basePrice * Math.min(100, discountValue) / 100)
+                        : discountType === "FixedAmount" ? discountValue : 0;
+                    const discountedPrice = Math.max(0, money(basePrice - discount));
+                    const subtotal = discountedPrice + fees;
+                    const feeVat = [registrationFee, transactionFee, serviceFee].reduce((sum, fee) => sum + money(fee * vatPercentage / 100), 0);
+                    const vatAmount = money(discountedPrice * vatPercentage / 100) + feeVat;
                     const total = subtotal + vatAmount;
+                    const originalTotal = basePrice + fees + money(basePrice * vatPercentage / 100) + feeVat;
+                    const preview = form?.querySelector("[data-discount-preview]");
+                    if (preview) {
+                        preview.hidden = total >= originalTotal;
+                        preview.querySelector("[data-discount-original]").textContent = formatMoney(originalTotal);
+                        preview.querySelector("[data-discount-total]").textContent = formatMoney(total);
+                    }
 
                     const values = {
                         subtotal,
@@ -1154,7 +1184,7 @@
                 }
 
                 function updatePriceInputWidth(input) {
-                    if (!input) {
+                    if (!input || input.tagName !== "INPUT" || input.closest("[data-product-discount]")) {
                         return;
                     }
 
@@ -1822,5 +1852,6 @@
         </script>
     }
     <script src="~/js/product-credit-grants.js" asp-append-version="true"></script>
+    <script src="~/js/product-pricing-settings.js" asp-append-version="true" data-cookieconsent="ignore"></script>
     <script src="~/js/product-page.js" asp-append-version="true"></script>
 }

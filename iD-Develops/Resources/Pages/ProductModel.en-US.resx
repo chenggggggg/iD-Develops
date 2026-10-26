@@ -26,4 +26,9 @@
   <data name="SpecifyPlaceholder" xml:space="preserve"><value>Please specify</value></data>
   <data name="SubmissionReceivedMessage" xml:space="preserve"><value>Your submission has been received.</value></data>
   <data name="TotalLabel" xml:space="preserve"><value>Total</value></data>
+  <data name="OriginalPriceLabel" xml:space="preserve"><value>Original price</value></data>
+  <data name="SaleLabel" xml:space="preserve"><value>On sale</value></data>
+  <data name="CustomPrice" xml:space="preserve"><value>Custom price</value></data>
+  <data name="FeesLabel" xml:space="preserve"><value>Fees</value></data>
+  <data name="VatLabel" xml:space="preserve"><value>VAT</value></data>
 </root>
