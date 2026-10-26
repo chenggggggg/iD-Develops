@@ -12,6 +12,7 @@
 
 <li class="public-nav-item">
     <a class="public-nav-link public-nav-login"
+       data-no-navigation-progress="@(!hasPortalSession ? "true" : null)"
        href="@portalUrl">
         <span>@(hasPortalSession ? Localizer["Nav_Portal"] : Localizer["Nav_SignIn"])</span>
     </a>
