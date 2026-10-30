@@ -43,6 +43,7 @@ namespace iD_Develops.Services
             return new CheckoutSessionDetails
             {
                 IsSessionValid = true,
+                CatalogProductId = int.TryParse(session.Metadata.GetValueOrDefault("catalog_product_id"), out var productId) ? productId : null,
                 SessionStatus = session.Status,
                 PaymentStatus = session.PaymentStatus,
                 ProductName = firstItem?.Description ?? "Unknown Product",

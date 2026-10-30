@@ -9,7 +9,7 @@ namespace iD_Develops.Services
 {
     public class CatalogProductAccessService
     {
-        private static readonly TimeSpan ReservationLifetime = TimeSpan.FromMinutes(30);
+        private static readonly TimeSpan ReservationLifetime = TimeSpan.FromHours(1);
         private readonly ApplicationDbContext _dbContext;
 
         public CatalogProductAccessService(ApplicationDbContext dbContext)
@@ -17,7 +17,7 @@ namespace iD_Develops.Services
             _dbContext = dbContext;
         }
 
-        public async Task<CatalogProductInvite?> ValidateInviteAsync(CatalogProduct product, string? token, string? customerEmail, CancellationToken ct = default)
+        public async Task<CatalogProductInvite?> ValidateInviteAsync(CatalogProduct product, string? token, string? customerEmail, CancellationToken ct = default, bool ignoreReservations = false)
         {
             if (!product.RequireAccessToken)
             {
@@ -55,7 +55,7 @@ namespace iD_Develops.Services
 
             var usedCount = invite.Uses.Count(u => u.Status == CatalogInviteUseStatus.Completed);
             var reservedCount = invite.Uses.Count(u => u.Status == CatalogInviteUseStatus.Pending && (!u.ExpiresAtUtc.HasValue || u.ExpiresAtUtc.Value > DateTime.UtcNow));
-            if (usedCount + reservedCount >= Math.Max(1, invite.MaxUses))
+            if (usedCount + (ignoreReservations ? 0 : reservedCount) >= Math.Max(1, invite.MaxUses))
             {
                 return null;
             }

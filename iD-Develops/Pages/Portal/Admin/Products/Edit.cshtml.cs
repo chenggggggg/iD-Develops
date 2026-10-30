@@ -11,7 +11,7 @@ namespace iD_Develops.Pages.Portal.Admin.Products
             ICatalogProductService catalogProductService,
             ICreditConfigurationService creditConfigurationService,
             CatalogProductSubmissionService catalogProductSubmissionService,
-            ICatalogCheckoutService catalogCheckoutService,
+            CatalogCheckoutCoordinator catalogCheckoutService,
             CatalogProductAccessService catalogProductAccessService,
             CatalogProductFileStorageService catalogProductFileStorageService,
             IWebHostEnvironment environment,

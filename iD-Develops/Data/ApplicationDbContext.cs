@@ -64,6 +64,9 @@ namespace iD_Develops.Data
         public DbSet<ExamVersionGradeBand> ExamVersionGradeBands { get; set; }
         public DbSet<ExamVersionQuestion> ExamVersionQuestions { get; set; }
         public DbSet<ExamVersionCorrectAnswer> ExamVersionCorrectAnswers { get; set; }
+        public DbSet<CatalogCheckoutAttempt> CatalogCheckoutAttempts { get; set; }
+        public DbSet<CatalogCheckoutReceipt> CatalogCheckoutReceipts { get; set; }
+        public DbSet<CatalogCheckoutMail> CatalogCheckoutMails { get; set; }
         public DbSet<ProductFormSubmission> ProductFormSubmissions { get; set; }
         public DbSet<CatalogProduct> CatalogProducts { get; set; }
         public DbSet<CatalogProductTranslation> CatalogProductTranslations { get; set; }
@@ -377,6 +380,12 @@ namespace iD_Develops.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<CatalogCheckoutAttempt>().HasIndex(a => a.RequestKey).IsUnique();
+            modelBuilder.Entity<CatalogCheckoutAttempt>().HasIndex(a => a.StripeSessionId).IsUnique();
+            modelBuilder.Entity<CatalogCheckoutAttempt>().HasIndex(a => a.ExpiresAtUtc);
+            modelBuilder.Entity<CatalogCheckoutAttempt>().HasOne(a => a.CatalogProduct).WithMany()
+                .HasForeignKey(a => a.CatalogProductId).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<CatalogCheckoutMail>().HasIndex(m => new { m.SentAtUtc, m.NextAttemptAtUtc });
 
             modelBuilder.Entity<ApplicationAuditEvent>()
                 .Property(auditEvent => auditEvent.Category)

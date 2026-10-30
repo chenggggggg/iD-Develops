@@ -829,6 +829,7 @@
                     {
                     <form method="post"
                           id="product-submit-form"
+                          data-checkout-product-id="@(Model.Product.WorkflowType == CatalogWorkflowType.FormThenStripeCheckout && !Model.IsPreviewMode && !Model.IsAdminEditMode ? Model.Product.Id : (int?)null)"
                           data-default-unit-price="@initialUnitPriceValue"
                           data-original-unit-price="@pricing.OriginalUnitPrice.ToString(System.Globalization.CultureInfo.InvariantCulture)"
                           data-registration-fee="@Model.Product.RegistrationFee?.ToString(System.Globalization.CultureInfo.InvariantCulture)"
@@ -837,6 +838,7 @@
                           data-vat-percentage="@Model.Product.VatPercentage?.ToString(System.Globalization.CultureInfo.InvariantCulture)"
                           data-default-currency="@unitCurrency">
                         @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="CheckoutRequestId" />
                         @if (!string.IsNullOrWhiteSpace(Model.AccessToken))
                         {
                             <input type="hidden" name="access" value="@Model.AccessToken" />
@@ -1004,7 +1006,10 @@
 
                         @if (Model.CanTakeAction)
                         {
-                            <partial name="_Turnstile" />
+                            @if (Model.Product.WorkflowType != CatalogWorkflowType.FormThenStripeCheckout)
+                            {
+                                <partial name="_Turnstile" />
+                            }
                             <button type="submit" class="public-btn public-btn-primary product-cta">
                                 <i class="@submitIconClass"></i>
                                 @submitText
@@ -1045,7 +1050,10 @@
                                 {
                                     <input type="hidden" name="access" value="@Model.AccessToken" />
                                 }
+                                @if (Model.Product.WorkflowType != CatalogWorkflowType.FormThenStripeCheckout)
+                            {
                                 <partial name="_Turnstile" />
+                            }
                                 <button type="submit" class="public-btn public-btn-primary product-cta">
                                     <i class="@submitIconClass"></i>
                                     @submitText
@@ -1853,5 +1861,6 @@
     }
     <script src="~/js/product-credit-grants.js" asp-append-version="true"></script>
     <script src="~/js/product-pricing-settings.js" asp-append-version="true" data-cookieconsent="ignore"></script>
+    <script src="~/js/product-checkout-draft.js" asp-append-version="true" data-cookieconsent="ignore"></script>
     <script src="~/js/product-page.js" asp-append-version="true"></script>
 }
