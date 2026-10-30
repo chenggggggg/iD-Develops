@@ -6,6 +6,7 @@ namespace iD_Develops.Models
     public class CheckoutSessionDetails
     {
         public bool IsSessionValid { get; set; }
+        public int? CatalogProductId { get; set; }
         public string SessionStatus { get; set; } = string.Empty;
         public string PaymentStatus { get; set; } = string.Empty;
         public string ProductName { get; set; } = string.Empty;

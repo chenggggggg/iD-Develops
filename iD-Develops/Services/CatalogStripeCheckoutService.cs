@@ -1,4 +1,3 @@
-using System.Text.Json;
 using iD_Develops.Models;
 using iD_Develops.Utilities;
 using Stripe;
@@ -6,7 +5,7 @@ using Stripe.Checkout;
 
 namespace iD_Develops.Services
 {
-    public class CatalogStripeCheckoutService : ICatalogCheckoutService
+    public class CatalogStripeCheckoutService(IStripeCheckoutClient client) : ICatalogCheckoutService
     {
         public async Task<string> CreateCheckoutSessionAsync(
             HttpContext httpContext,
@@ -21,29 +20,26 @@ namespace iD_Develops.Services
             string? authenticatedUserId,
             CancellationToken ct = default)
         {
+            var attempt = (CatalogCheckoutAttempt)httpContext.Items[typeof(CatalogCheckoutAttempt)]!;
             var baseUrl = $"{httpContext.Request.Scheme}://{httpContext.Request.Host}";
             var cancelQuery = new List<string>();
-            if (inviteUseId.HasValue)
-            {
-                cancelQuery.Add($"inviteUseId={inviteUseId.Value}");
-            }
 
             if (!string.IsNullOrWhiteSpace(accessToken))
             {
                 cancelQuery.Add($"access={Uri.EscapeDataString(accessToken)}");
             }
 
-            var cancelUrl = $"{baseUrl}/product/{product.Slug}";
+            var cancelUrl = $"{baseUrl}/products/{product.Slug}";
             if (cancelQuery.Count > 0)
             {
                 cancelUrl += "?" + string.Join("&", cancelQuery);
             }
 
             var normalizedCurrency = NormalizeCurrency(variant.Currency);
-            var taxRateIds = await CreateVatTaxRateIdsAsync(product, ct);
+            var taxRateIds = await CreateVatTaxRateIdsAsync(product, attempt.Id, ct);
             var lineItems = BuildLineItems(product, variant, normalizedCurrency, taxRateIds, quantity);
 
-            var session = await new SessionService().CreateAsync(new SessionCreateOptions
+            var session = await client.CreateAsync(new SessionCreateOptions
             {
                 Mode = "payment",
                 CustomerEmail = customerEmail,
@@ -63,10 +59,13 @@ namespace iD_Develops.Services
                     ["participant_count"] = participantCount.ToString(),
                     ["invite_use_id"] = inviteUseId?.ToString() ?? string.Empty,
                     ["authenticated_user_id"] = authenticatedUserId ?? string.Empty,
-                    ["form_data"] = JsonSerializer.Serialize(formValues),
+                    ["checkout_attempt_id"] = attempt.Id.ToString(),
                     ["email"] = customerEmail ?? string.Empty
-                }
-            }, cancellationToken: ct);
+                },
+                ExpiresAt = attempt.ExpiresAtUtc
+            }, $"catalog:{attempt.Id:N}", ct);
+
+            attempt.StripeSessionId = session.Id;
 
             return session.Url;
         }
@@ -166,7 +165,7 @@ namespace iD_Develops.Services
             return lineItem;
         }
 
-        private static async Task<List<string>?> CreateVatTaxRateIdsAsync(CatalogProduct product, CancellationToken ct)
+        private static async Task<List<string>?> CreateVatTaxRateIdsAsync(CatalogProduct product, Guid attemptId, CancellationToken ct)
         {
             var vatPercentage = NormalizeMoney(product.VatPercentage);
             if (vatPercentage <= 0)
@@ -185,7 +184,7 @@ namespace iD_Develops.Services
                     ["source"] = "id-develops-checkout",
                     ["catalog_product_id"] = product.Id.ToString()
                 }
-            }, cancellationToken: ct);
+            }, new RequestOptions { IdempotencyKey = $"catalog-vat:{attemptId:N}" }, ct);
 
             return [taxRate.Id];
         }

@@ -31,14 +31,16 @@ namespace iD_Develops.Pages
             [FromQuery(Name = "session_id")] string? sessionId,
             [FromQuery] bool local = false,
             [FromQuery] string? product = null,
-            [FromQuery] string? status = null)
+            [FromQuery] string? status = null,
+            [FromQuery] int? checkoutProductId = null)
         {
-            if (local)
+            if (local && HttpContext.RequestServices.GetRequiredService<IWebHostEnvironment>().IsEnvironment("Local"))
             {
                 IsLocalSuccess = true;
                 SessionDetails = new CheckoutSessionDetails
                 {
                     IsSessionValid = true,
+                    CatalogProductId = checkoutProductId,
                     SessionStatus = "complete",
                     PaymentStatus = "local",
                     ProductName = string.IsNullOrWhiteSpace(product) ? _localizer["LocalCheckout"] : product,

@@ -33,20 +33,37 @@ namespace iD_Develops.Services
             string? baseUrl = null,
             CancellationToken ct = default)
         {
+            await SaveSubmissionAsync(product, submittedValues, customerEmail, orderQuantity, participantCount);
+            foreach (var notification in CreateCheckoutNotifications(product, submittedValues, customerEmail, orderQuantity, participantCount, baseUrl, string.Empty))
+            {
+                var model = System.Text.Json.JsonSerializer.Deserialize<CatalogProductSubmissionEmailModel>(notification.ModelJson)!;
+                await _mailService.SendAsync("/wwwroot/templates/ProductEmailTemplate.cshtml", model,
+                    notification.Recipient, notification.Subject, _mailSettings.Value.BillingEmail, ct: ct);
+            }
+        }
+
+        public Task SaveSubmissionAsync(CatalogProduct product, IDictionary<string, string> submittedValues,
+            string? customerEmail, int orderQuantity, int participantCount)
+        {
             var savePayload = submittedValues.ToDictionary(kvp => kvp.Key, kvp => (object)kvp.Value);
             savePayload["order_quantity"] = orderQuantity;
             savePayload["participant_count"] = participantCount;
             savePayload["product_slug"] = product.Slug;
             savePayload["workflow_type"] = product.WorkflowType.ToString();
 
-            await _productFormSubmissionService.SaveFormSubmissionAsync(
+            return _productFormSubmissionService.SaveFormSubmissionAsync(
                 product.Name,
                 savePayload,
                 string.IsNullOrWhiteSpace(customerEmail) ? "unknown@local" : customerEmail);
+        }
 
+        public IEnumerable<CatalogCheckoutMail> CreateCheckoutNotifications(CatalogProduct product,
+            IDictionary<string, string> submittedValues, string? customerEmail, int orderQuantity,
+            int participantCount, string? baseUrl, string sessionId)
+        {
             var model = new CatalogProductSubmissionEmailModel
             {
-                Product = product,
+                Product = new CatalogProduct { Name = product.Name },
                 SubmittedValues = new Dictionary<string, string>(submittedValues),
                 OrderQuantity = orderQuantity,
                 ParticipantCount = participantCount,
@@ -60,30 +77,24 @@ namespace iD_Develops.Services
             var ownerRecipient = _mailSettings.Value.To;
             if (!string.IsNullOrWhiteSpace(ownerRecipient))
             {
-                await _mailService.SendAsync(
-                    "/wwwroot/templates/ProductEmailTemplate.cshtml",
-                    model,
-                    ownerRecipient,
-                    string.IsNullOrWhiteSpace(product.OwnerNotificationSubject)
-                        ? emailDefaults.OwnerSubject
-                        : product.OwnerNotificationSubject,
-                    _mailSettings.Value.BillingEmail,
-                    ct: ct);
+                yield return Notification(ownerRecipient, string.IsNullOrWhiteSpace(product.OwnerNotificationSubject)
+                    ? emailDefaults.OwnerSubject : product.OwnerNotificationSubject);
             }
 
             if (!string.IsNullOrWhiteSpace(customerEmail))
             {
                 model.IntroHtml = product.ConfirmationEmailBodyHtml ?? BuildDefaultCustomerIntro(product);
-                await _mailService.SendAsync(
-                    "/wwwroot/templates/ProductEmailTemplate.cshtml",
-                    model,
-                    customerEmail,
-                    string.IsNullOrWhiteSpace(product.ConfirmationEmailSubject)
-                        ? emailDefaults.CustomerSubject
-                        : product.ConfirmationEmailSubject,
-                    _mailSettings.Value.BillingEmail,
-                    ct: ct);
+                yield return Notification(customerEmail, string.IsNullOrWhiteSpace(product.ConfirmationEmailSubject)
+                    ? emailDefaults.CustomerSubject : product.ConfirmationEmailSubject);
             }
+
+            CatalogCheckoutMail Notification(string recipient, string subject) => new()
+            {
+                StripeSessionId = sessionId,
+                Recipient = recipient,
+                Subject = subject,
+                ModelJson = System.Text.Json.JsonSerializer.Serialize(model)
+            };
         }
 
         private static string BuildDefaultCustomerIntro(CatalogProduct product)

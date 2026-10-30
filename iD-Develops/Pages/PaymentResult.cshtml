@@ -6,7 +6,7 @@
     var hasDetails = Model.SessionDetails.IsSessionValid || Model.IsLocalSuccess;
 }
 
-<section class="payment-result-page">
+<section class="payment-result-page" data-completed-checkout-product-id="@(Model.ResultStatus == "success" ? Model.SessionDetails.CatalogProductId : null)">
     <div class="payment-result-panel">
         <div class="payment-result-icon payment-result-@Model.ResultTone">
             <i class="fa-solid @Model.ResultIcon" aria-hidden="true"></i>
@@ -192,3 +192,7 @@
         margin-top: 1.5rem;
     }
 </style>
+
+@section Scripts {
+    <script src="~/js/product-checkout-draft.js" asp-append-version="true" data-cookieconsent="ignore"></script>
+}

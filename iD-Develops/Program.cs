@@ -413,6 +413,21 @@ builder.Services.AddScoped<ICatalogProductTemplateService, CatalogProductTemplat
 builder.Services.AddScoped<CatalogProductFileStorageService>();
 builder.Services.AddHttpClient<ICourseMediaService, CourseMediaService>();
 builder.Services.AddScoped<CatalogProductSubmissionService>();
+builder.Services.AddScoped<IStripeCheckoutClient, StripeCheckoutClient>();
+builder.Services.AddScoped<CatalogCheckoutCoordinator>();
+builder.Services.AddScoped<CatalogCheckoutFulfillmentService>();
+builder.Services.AddScoped<CatalogCheckoutMailDispatcher>();
+builder.Services.AddHostedService<CatalogCheckoutMaintenanceService>();
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddPolicy(ProductCheckoutRateLimit.Policy, ProductCheckoutRateLimit.Partition);
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = async (context, ct) =>
+    {
+        context.HttpContext.Response.Headers.RetryAfter = "60";
+        await context.HttpContext.Response.WriteAsync("Too many checkout attempts. Please wait a minute and try again.", ct);
+    };
+});
 builder.Services.AddScoped<CatalogProductAccessService>();
 builder.Services.AddScoped<EmailBrandingFactory>();
 
@@ -561,6 +576,7 @@ app.Use(async (context, next) =>
 
     await next();
 });
+app.UseRateLimiter();
 app.UseAuthorization();
 app.UseSession();
 

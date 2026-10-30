@@ -13,6 +13,7 @@ using Microsoft.Extensions.Localization;
 namespace iD_Develops.Pages
 {
     [ValidateAntiForgeryToken]
+    [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting(ProductCheckoutRateLimit.Policy)]
     public class ProductModel : PageModel
     {
         public const string DraftProductName = "Untitled product";
@@ -21,7 +22,7 @@ namespace iD_Develops.Pages
         private readonly ICatalogProductService _catalogProductService;
         private readonly ICreditConfigurationService _creditConfigurationService;
         private readonly CatalogProductSubmissionService _catalogProductSubmissionService;
-        private readonly ICatalogCheckoutService _catalogCheckoutService;
+        private readonly CatalogCheckoutCoordinator _catalogCheckoutService;
         private readonly CatalogProductAccessService _catalogProductAccessService;
         private readonly CatalogProductFileStorageService _catalogProductFileStorageService;
         private readonly IWebHostEnvironment _environment;
@@ -35,7 +36,7 @@ namespace iD_Develops.Pages
             ICatalogProductService catalogProductService,
             ICreditConfigurationService creditConfigurationService,
             CatalogProductSubmissionService catalogProductSubmissionService,
-            ICatalogCheckoutService catalogCheckoutService,
+            CatalogCheckoutCoordinator catalogCheckoutService,
             CatalogProductAccessService catalogProductAccessService,
             CatalogProductFileStorageService catalogProductFileStorageService,
             IWebHostEnvironment environment,
@@ -58,6 +59,9 @@ namespace iD_Develops.Pages
             _auditService = auditService;
             _localizer = localizer;
         }
+
+        [BindProperty]
+        public Guid CheckoutRequestId { get; set; } = Guid.NewGuid();
 
         public CatalogProduct Product { get; private set; } = null!;
         public int OrderQuantity { get; private set; } = 1;
@@ -135,13 +139,15 @@ namespace iD_Develops.Pages
             }
 
             Product = product;
+            if (product.WorkflowType == CatalogWorkflowType.FormThenStripeCheckout && !isEditorRequest)
+                CatalogCheckoutCoordinator.GetOwner(HttpContext);
             IsPreviewMode = isEditorRequest && (preview || product.Status != CatalogProductStatus.Published);
             IsAdminEditMode = isEditorRequest && !preview;
             AccessToken = access;
 
             if (!IsPreviewMode && product.RequireAccessToken)
             {
-                var invite = await _catalogProductAccessService.ValidateInviteAsync(product, access, null, ct);
+                var invite = await _catalogProductAccessService.ValidateInviteAsync(product, access, null, ct, ignoreReservations: product.WorkflowType == CatalogWorkflowType.FormThenStripeCheckout);
                 if (invite == null)
                 {
                     return NotFound();
@@ -202,7 +208,7 @@ namespace iD_Develops.Pages
             var customerEmail = ResolveCustomerEmail(product, submittedValues);
             CatalogProductInvite? invite = null;
 
-            if (!IsPreviewMode && product.RequireAccessToken)
+            if (!IsPreviewMode && product.RequireAccessToken && product.WorkflowType != CatalogWorkflowType.FormThenStripeCheckout)
             {
                 invite = await _catalogProductAccessService.ValidateInviteAsync(product, access, customerEmail, ct);
                 if (invite == null)
@@ -217,7 +223,7 @@ namespace iD_Develops.Pages
                 return Page();
             }
 
-            if (!IsPreviewMode)
+            if (!IsPreviewMode && product.WorkflowType != CatalogWorkflowType.FormThenStripeCheckout)
             {
                 await _turnstileService.ValidateAsync(HttpContext, ModelState, ct);
             }
@@ -269,97 +275,18 @@ namespace iD_Develops.Pages
                 }
 
                 submittedValues["selected_variant"] = selectedVariant.Name;
-                CatalogProductInviteUse? inviteUse = null;
-                if (invite != null)
-                {
-                    try
-                    {
-                        inviteUse = await _catalogProductAccessService.ReserveInviteAsync(invite, customerEmail, ct);
-                    }
-                    catch (InvalidOperationException ex)
-                    {
-                        ModelState.AddModelError(string.Empty, ex.Message);
-                        return Page();
-                    }
-                }
-
-                if (_environment.IsEnvironment("Local"))
-                {
-                    var localBaseUrl = $"{Request.Scheme}://{Request.Host}";
-                    if (inviteUse != null)
-                    {
-                        await _catalogProductAccessService.CompleteInviteUseAsync(inviteUse.Id, customerEmail, "local_checkout", ct);
-                    }
-
-                    await _catalogProductSubmissionService.SubmitAsync(
-                        product,
-                        submittedValues,
-                        customerEmail,
-                        OrderQuantity,
-                        ParticipantCount,
-                        localBaseUrl,
-                        ct);
-
-                    await _auditService.RecordAsync(new ApplicationAuditEntry(
-                        ApplicationAuditEventTypes.PurchaseCompleted,
-                        AuditEventCategory.Commerce,
-                        AuditEventOutcome.Success,
-                        "Local checkout completed.",
-                        SubjectUserId: authenticatedUserId,
-                        EntityType: nameof(CatalogProduct),
-                        EntityId: product.Id.ToString(),
-                        Metadata: new Dictionary<string, object?>
-                        {
-                            ["checkoutProvider"] = "local",
-                            ["quantity"] = OrderQuantity,
-                            ["participantCount"] = ParticipantCount,
-                            ["inviteUseId"] = inviteUse?.Id
-                        }), ct);
-
-                    return RedirectToPage("/PaymentResult", new { local = true, product = product.Name });
-                }
-
                 try
                 {
-                    var checkoutUrl = await _catalogCheckoutService.CreateCheckoutSessionAsync(
-                        HttpContext,
-                        product,
-                        selectedVariant,
-                        OrderQuantity,
-                        submittedValues,
-                        customerEmail,
-                        inviteUse?.Id,
-                        access,
-                        ParticipantCount,
-                        authenticatedUserId,
-                        ct);
-
-                    return Redirect(checkoutUrl);
+                    return Redirect(await _catalogCheckoutService.StartAsync(HttpContext, product, selectedVariant,
+                        CheckoutRequestId, submittedValues, customerEmail, OrderQuantity, ParticipantCount, access,
+                        authenticatedUserId, ct));
                 }
-                catch (Exception exception)
+                catch (InvalidOperationException exception)
                 {
-                    if (inviteUse != null)
-                    {
-                        await _catalogProductAccessService.CancelInviteUseAsync(inviteUse.Id, ct);
-                    }
-
-                    await _auditService.RecordAsync(new ApplicationAuditEntry(
-                        ApplicationAuditEventTypes.CheckoutSessionCreationFailed,
-                        AuditEventCategory.Commerce,
-                        AuditEventOutcome.Failure,
-                        "Checkout session could not be created.",
-                        SubjectUserId: authenticatedUserId,
-                        EntityType: nameof(CatalogProduct),
-                        EntityId: product.Id.ToString(),
-                        Metadata: new Dictionary<string, object?>
-                        {
-                            ["checkoutProvider"] = "stripe",
-                            ["variantId"] = selectedVariant.Id,
-                            ["inviteUseId"] = inviteUse?.Id,
-                            ["exceptionType"] = exception.GetType().Name
-                        }), ct);
-
-                    throw;
+                    CheckoutRequestId = Guid.NewGuid();
+                    ModelState.Remove(nameof(CheckoutRequestId));
+                    ModelState.AddModelError(string.Empty, exception.Message);
+                    return Page();
                 }
             }
 
@@ -415,7 +342,7 @@ namespace iD_Develops.Pages
             AccessToken = pending.AccessToken;
 
             CatalogProductInvite? invite = null;
-            if (product.RequireAccessToken)
+            if (product.RequireAccessToken && product.WorkflowType != CatalogWorkflowType.FormThenStripeCheckout)
             {
                 invite = await _catalogProductAccessService.ValidateInviteAsync(
                     product,
@@ -430,7 +357,7 @@ namespace iD_Develops.Pages
                 }
             }
 
-            HttpContext.Session.Remove(PendingCheckoutSessionKey);
+            CheckoutRequestId = pending.CheckoutRequestId == Guid.Empty ? Guid.NewGuid() : pending.CheckoutRequestId;
             return await ExecuteProductActionAsync(
                 product,
                 pending.SubmittedValues,
@@ -453,6 +380,7 @@ namespace iD_Develops.Pages
                 OrderQuantity,
                 ParticipantCount,
                 SelectedVariantId,
+                CheckoutRequestId,
                 new Dictionary<string, string>(submittedValues, StringComparer.OrdinalIgnoreCase),
                 customerEmail,
                 access);
@@ -506,6 +434,7 @@ namespace iD_Develops.Pages
             int OrderQuantity,
             int ParticipantCount,
             int? SelectedVariantId,
+            Guid CheckoutRequestId,
             Dictionary<string, string> SubmittedValues,
             string? CustomerEmail,
             string? AccessToken);
