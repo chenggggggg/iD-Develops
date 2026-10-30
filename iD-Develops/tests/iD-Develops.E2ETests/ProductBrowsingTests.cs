@@ -56,13 +56,14 @@ public sealed class ProductBrowsingTests : Microsoft.Playwright.Xunit.PageTest
         await Page.Locator("[name='items_0']").FillAsync("Speak confidently");
 
         // Leave the required email empty so validation returns the form without sending email or starting checkout.
+        await PublicProductSubmissionPacing.ReserveAsync();
         var response = await Page.RunAndWaitForResponseAsync(
             () => Page.Locator("#product-submit-form").GetByRole(AriaRole.Button).ClickAsync(),
             response => response.Request.Method == "POST" && response.Url == productUrl);
 
         Assert.Equal(200, response.Status);
         var validationMessage = culture == "nl-nl" ? "Your email is verplicht." : "Your email is required.";
-        await Expect(Page.GetByText(validationMessage, new() { Exact = true })).ToBeVisibleAsync();
+        await Expect(Page.Locator("#product-submit-form").GetByText(validationMessage, new() { Exact = true })).ToBeVisibleAsync();
         await Expect(Page.GetByLabel("Your name", new() { Exact = true })).ToHaveValueAsync("Client <&> Name");
         await Expect(Page.GetByLabel("Telephone", new() { Exact = true })).ToHaveValueAsync("0123456789");
         await Expect(Page.GetByLabel("Your message", new() { Exact = true })).ToHaveValueAsync("First line\nSecond line <&>");

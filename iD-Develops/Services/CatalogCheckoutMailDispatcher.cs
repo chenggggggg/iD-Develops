@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 namespace iD_Develops.Services;
 
 public sealed class CatalogCheckoutMailDispatcher(ApplicationDbContext db, IMailService mail,
-    IOptions<MailSettings> settings)
+    IOptions<MailSettings> settings, ILogger<CatalogCheckoutMailDispatcher> logger)
 {
     public async Task DispatchAsync(CancellationToken ct)
     {
@@ -28,16 +28,19 @@ public sealed class CatalogCheckoutMailDispatcher(ApplicationDbContext db, IMail
             try
             {
                 var model = JsonSerializer.Deserialize<CatalogProductSubmissionEmailModel>(notification.ModelJson)!;
+                using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                timeout.CancelAfter(TimeSpan.FromSeconds(30));
                 var result = await mail.SendAsync("/wwwroot/templates/ProductEmailTemplate.cshtml", model,
-                    notification.Recipient, notification.Subject, settings.Value.BillingEmail, ct: ct);
+                    notification.Recipient, notification.Subject, settings.Value.BillingEmail, ct: timeout.Token);
                 if (!result.Success) throw new InvalidOperationException("Checkout notification delivery failed.");
                 await db.CatalogCheckoutMails.Where(row => row.Id == id && row.LeaseId == lease).ExecuteUpdateAsync(update => update
                     .SetProperty(row => row.SentAtUtc, DateTime.UtcNow)
                     .SetProperty(row => row.ModelJson, string.Empty)
                     .SetProperty(row => row.LeaseUntilUtc, (DateTime?)null), ct);
             }
-            catch (Exception) when (!ct.IsCancellationRequested)
+            catch (Exception exception) when (!ct.IsCancellationRequested)
             {
+                logger.LogWarning(exception, "Queued product notification {NotificationId} failed; delivery will be retried.", id);
                 await db.CatalogCheckoutMails.Where(row => row.Id == id && row.LeaseId == lease).ExecuteUpdateAsync(update => update
                     .SetProperty(row => row.Attempts, row => row.Attempts + 1)
                     .SetProperty(row => row.NextAttemptAtUtc, DateTime.UtcNow.AddMinutes(Math.Min(60, notification.Attempts + 1)))
@@ -63,8 +66,7 @@ public sealed class CatalogCheckoutMaintenanceService(IServiceScopeFactory scope
                 var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 var cutoff = DateTime.UtcNow.AddDays(-30);
                 await db.CatalogCheckoutAttempts.Where(row => row.ExpiresAtUtc < cutoff).ExecuteDeleteAsync(stoppingToken);
-                await db.CatalogCheckoutMails.Where(row => row.SentAtUtc < cutoff ||
-                    db.CatalogCheckoutReceipts.Any(receipt => receipt.StripeSessionId == row.StripeSessionId && receipt.CompletedAtUtc < cutoff))
+                await db.CatalogCheckoutMails.Where(row => row.SentAtUtc < cutoff || row.CreatedAtUtc < cutoff)
                     .ExecuteDeleteAsync(stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }

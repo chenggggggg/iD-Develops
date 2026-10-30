@@ -537,6 +537,11 @@ namespace iD_Develops.Data.Migrations
                     b.Property<int>("Attempts")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
                     b.Property<Guid?>("LeaseId")
                         .HasColumnType("uuid");
 
@@ -2326,6 +2331,10 @@ namespace iD_Develops.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("RequestKey")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<string>("SubmissionDataJson")
                         .IsRequired()
                         .HasColumnType("text");
@@ -2338,6 +2347,9 @@ namespace iD_Develops.Data.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("RequestKey")
+                        .IsUnique();
 
                     b.ToTable("ProductFormSubmissions");
                 });

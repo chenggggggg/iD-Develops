@@ -1,14 +1,29 @@
 @using iD_Develops.Configuration
 @inject Microsoft.Extensions.Options.IOptions<TurnstileSettings> TurnstileOptions
+@inject Microsoft.Extensions.Localization.IStringLocalizer<iD_Develops.Services.TurnstileService> TurnstileLocalizer
 @{
-    var turnstile = TurnstileOptions.Value;
-    var isEnabled = turnstile.Enabled && !string.IsNullOrWhiteSpace(turnstile.SiteKey);
+    var settings = TurnstileOptions.Value;
+    var configured = !string.IsNullOrWhiteSpace(settings.SiteKey) && !string.IsNullOrWhiteSpace(settings.SecretKey);
 }
-
-@if (isEnabled)
+@if (settings.Enabled)
 {
-    <div class="turnstile-field">
-        <div class="cf-turnstile" data-sitekey="@turnstile.SiteKey"></div>
+    <div class="turnstile-field" data-turnstile-field data-sitekey="@(configured ? settings.SiteKey : null)"
+         data-loading-message="@TurnstileLocalizer["Loading"]"
+         data-expired-message="@TurnstileLocalizer["Expired"]"
+         data-failed-message="@TurnstileLocalizer["Failed"]"
+         data-unavailable-message="@TurnstileLocalizer["Unavailable"]">
+        @if (ViewData.ModelState[iD_Develops.Services.TurnstileService.ResponseFieldName]?.Errors is { Count: > 0 } errors)
+        {
+            <p class="mb-2 text-sm text-red-700" role="alert" tabindex="-1" data-turnstile-server-error>
+                @string.Join(" ", errors.Select(error => error.ErrorMessage))
+            </p>
+        }
+        <div data-turnstile-widget></div>
+        <input type="hidden" name="cf-turnstile-response" value="" data-turnstile-token autocomplete="off" />
+        <p class="mt-2 text-sm text-slate-600" data-turnstile-status role="status" tabindex="-1" hidden></p>
+        <button type="button" class="public-btn public-btn-outline public-btn-sm mt-2" data-turnstile-retry hidden>
+            @TurnstileLocalizer["Retry"]
+        </button>
     </div>
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <script src="~/js/turnstile-form.js" asp-append-version="true" data-cookieconsent="ignore" defer></script>
 }

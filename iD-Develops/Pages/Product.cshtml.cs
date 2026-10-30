@@ -139,7 +139,7 @@ namespace iD_Develops.Pages
             }
 
             Product = product;
-            if (product.WorkflowType == CatalogWorkflowType.FormThenStripeCheckout && !isEditorRequest)
+            if (!isEditorRequest)
                 CatalogCheckoutCoordinator.GetOwner(HttpContext);
             IsPreviewMode = isEditorRequest && (preview || product.Status != CatalogProductStatus.Published);
             IsAdminEditMode = isEditorRequest && !preview;
@@ -223,21 +223,11 @@ namespace iD_Develops.Pages
                 return Page();
             }
 
-            if (!IsPreviewMode && product.WorkflowType != CatalogWorkflowType.FormThenStripeCheckout)
-            {
-                await _turnstileService.ValidateAsync(HttpContext, ModelState, ct);
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return Page();
-            }
-
             ValidateFormBuilder(EditInput.FormFields);
-            if (!ModelState.IsValid)
-            {
-                return Page();
-            }
+            if (!ModelState.IsValid) return Page();
+            if (!IsPreviewMode && product.WorkflowType != CatalogWorkflowType.FormThenStripeCheckout)
+                await _turnstileService.ValidateAsync(HttpContext, ModelState, ct);
+            if (!ModelState.IsValid) return Page();
 
             if (!IsPreviewMode && RequiresAuthentication(product) && !(User.Identity?.IsAuthenticated ?? false))
             {
@@ -304,7 +294,16 @@ namespace iD_Develops.Pages
             }
 
             var baseUrl = $"{Request.Scheme}://{Request.Host}";
-            await _catalogProductSubmissionService.SubmitAsync(product, submittedValues, customerEmail, OrderQuantity, ParticipantCount, baseUrl, ct);
+            var submissionKey = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
+                System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new
+                {
+                    owner = CatalogCheckoutCoordinator.GetOwner(HttpContext),
+                    productId = product.Id,
+                    CheckoutRequestId,
+                    values = submittedValues.OrderBy(value => value.Key, StringComparer.Ordinal)
+                }))));
+            await _catalogProductSubmissionService.SubmitAsync(product, submittedValues, customerEmail, OrderQuantity,
+                ParticipantCount, baseUrl, ct, submissionKey);
 
             if (product.WorkflowType is CatalogWorkflowType.FormThenExternalBooking or CatalogWorkflowType.ExternalBookingOnly &&
                 !string.IsNullOrWhiteSpace(product.ExternalBookingUrl))
@@ -1156,7 +1155,7 @@ namespace iD_Develops.Pages
                 var message = participantIndex.HasValue
                     ? _localizer["ParticipantRequiredFieldError", participantIndex.Value, field.Label]
                     : _localizer["RequiredFieldError", field.Label];
-                ModelState.AddModelError(string.Empty, message);
+                ModelState.AddModelError(GetFieldName(field, participantIndex), message);
             }
         }
 

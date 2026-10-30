@@ -16,6 +16,7 @@ public sealed class ProductCheckoutProtectionTests : Microsoft.Playwright.Xunit.
         {
             await OpenAsync(fixture);
             await Page.GetByLabel("Your email", new() { Exact = true }).FillAsync(fixture.User.Email!);
+            await PublicProductSubmissionPacing.ReserveAsync(2);
             var statuses = await Page.EvaluateAsync<int[]>("""
                 async () => {
                     const body = new URLSearchParams(new FormData(document.getElementById('product-submit-form')));
@@ -75,6 +76,7 @@ public sealed class ProductCheckoutProtectionTests : Microsoft.Playwright.Xunit.
             await Page.GetByLabel("Your name", new() { Exact = true }).FillAsync("Checkout customer");
             await Page.GetByLabel("Your email", new() { Exact = true }).FillAsync(fixture.User.Email!);
             await Page.GetByLabel("Your message", new() { Exact = true }).FillAsync(new string('x', 1500));
+            await PublicProductSubmissionPacing.ReserveAsync();
             await Page.Locator("#product-submit-form button[type=submit]").ClickAsync();
             await Expect(Page).ToHaveURLAsync(new Regex("/payment-result\\?.*local=true"));
             await Expect(Page.Locator($"[data-completed-checkout-product-id='{fixture.Standard.Id}']")).ToBeVisibleAsync();
