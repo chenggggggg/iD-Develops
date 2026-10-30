@@ -156,11 +156,11 @@ public sealed class ContactModelTests
         public List<SentMail> Sent { get; } = new();
 
         public Task<OperationResult> SendAsync<TModel>(string templatePath, TModel model, string recipientEmail, string subject,
-            byte[]? attachment = null, string? attachmentFileName = null, CancellationToken ct = default)
+            byte[]? attachment = null, string? attachmentFileName = null, CancellationToken ct = default, string? idempotencyKey = null)
             => SendAsync(templatePath, model, recipientEmail, subject, null, attachment, attachmentFileName, ct);
 
         public Task<OperationResult> SendAsync<TModel>(string templatePath, TModel model, string recipientEmail, string subject,
-            string? fromEmail, byte[]? attachment = null, string? attachmentFileName = null, CancellationToken ct = default)
+            string? fromEmail, byte[]? attachment = null, string? attachmentFileName = null, CancellationToken ct = default, string? idempotencyKey = null)
         {
             var success = Sent.Count >= results.Length || results[Sent.Count];
             Sent.Add(new SentMail(templatePath, Assert.IsType<ContactFormData>(model), recipientEmail, subject, fromEmail));

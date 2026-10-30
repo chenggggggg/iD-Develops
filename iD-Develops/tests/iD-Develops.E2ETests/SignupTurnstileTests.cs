@@ -8,8 +8,9 @@ namespace iD_Develops.E2ETests;
 public sealed class SignupTurnstileTests : Microsoft.Playwright.Xunit.PageTest
 {
     [Fact]
-    public async Task SignupReturnsSuccessOnFirstClickAndQueuesBothNotifications()
+    public async Task SignupReturnsSuccessAndDeliversBothQueuedNotifications()
     {
+        _ = FileMailDirectory();
         await using var data = await SignupAsync();
         try
         {
@@ -18,6 +19,7 @@ public sealed class SignupTurnstileTests : Microsoft.Playwright.Xunit.PageTest
             await Page.RunAndWaitForResponseAsync(() => Page.Locator("#product-submit-form button[type=submit]").ClickAsync(), IsSignupPost);
             await Expect(Page.GetByText("Your submission has been received.", new() { Exact = true })).ToBeVisibleAsync();
             await AssertSavedOnceAsync(data);
+            await AssertQueuedDeliveryAsync(data);
         }
         finally { await CleanupAsync(data); }
     }
@@ -174,11 +176,46 @@ public sealed class SignupTurnstileTests : Microsoft.Playwright.Xunit.PageTest
         catch { await data.DisposeAsync(); throw; }
     }
 
+    private static string FileMailDirectory()
+    {
+        var directory = Environment.GetEnvironmentVariable("IDDEVELOPS_E2E_FILE_MAIL_DIRECTORY");
+        if (string.IsNullOrWhiteSpace(directory) || !Path.IsPathRooted(directory))
+            throw new InvalidOperationException("Set IDDEVELOPS_E2E_FILE_MAIL_DIRECTORY to the local File mail provider's absolute pickup directory.");
+        return directory;
+    }
+
+    private static async Task AssertQueuedDeliveryAsync(CatalogBrowsingFixture data)
+    {
+        var deadline = DateTime.UtcNow.AddSeconds(30);
+        await using var db = LocalTestApplication.CreateDbContext();
+        var key = await db.ProductFormSubmissions.Where(row => row.FormName == data.Standard.Name).Select(row => row.RequestKey).SingleAsync();
+        while (DateTime.UtcNow < deadline)
+        {
+            var sent = await db.CatalogCheckoutMails.AsNoTracking()
+                .Where(row => row.StripeSessionId == "signup:" + key && row.SentAtUtc != null).CountAsync();
+            if (sent == 2) break;
+            await Task.Delay(250);
+        }
+        var notifications = await db.CatalogCheckoutMails.AsNoTracking().Where(row => row.StripeSessionId == "signup:" + key).ToListAsync();
+        Assert.Equal(2, notifications.Count);
+        Assert.All(notifications, notification => Assert.NotNull(notification.SentAtUtc));
+        var messages = Directory.EnumerateFiles(FileMailDirectory(), "*.html").Select(File.ReadAllText)
+            .Where(body => body.Contains(data.Standard.Name, StringComparison.Ordinal)).ToList();
+        Assert.Equal(2, messages.Count);
+        foreach (var notification in notifications)
+            Assert.Contains(messages, body => body.StartsWith("To: " + notification.Recipient, StringComparison.Ordinal));
+        Assert.Contains(messages, body => body.StartsWith("To: " + data.User.Email, StringComparison.Ordinal));
+    }
+
     private static async Task CleanupAsync(CatalogBrowsingFixture data)
     {
         await using var db = LocalTestApplication.CreateDbContext();
         var keys = await db.ProductFormSubmissions.Where(row => row.FormName == data.Standard.Name).Select(row => "signup:" + row.RequestKey).ToListAsync();
         await db.CatalogCheckoutMails.Where(row => keys.Contains(row.StripeSessionId)).ExecuteDeleteAsync();
         await db.ProductFormSubmissions.Where(row => row.FormName == data.Standard.Name).ExecuteDeleteAsync();
+        var directory = Environment.GetEnvironmentVariable("IDDEVELOPS_E2E_FILE_MAIL_DIRECTORY");
+        if (directory != null && Directory.Exists(directory))
+            foreach (var path in Directory.EnumerateFiles(directory, "*.html").Where(path => File.ReadAllText(path).Contains(data.Standard.Name, StringComparison.Ordinal)))
+                File.Delete(path);
     }
 }

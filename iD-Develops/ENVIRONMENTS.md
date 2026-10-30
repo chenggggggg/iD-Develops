@@ -48,7 +48,7 @@ Behavior:
 - Uses a local PostgreSQL container
 - Disables file uploads intentionally
 - Uses file-based local mail
-- Does not use real Stripe, SMTP mail, or Cloudflare R2 credentials
+- Does not use real Stripe, Resend mail, or Cloudflare R2 credentials
 - Uses `LOCAL_DB_NAME`, `LOCAL_POSTGRES_USER`, and `LOCAL_POSTGRES_PASSWORD` from `.env`
 
 ### Development
@@ -172,11 +172,7 @@ public checkout without sharing the portal cookie with the public hostname.
 - `Mail__Provider`
 - `Mail__From`
 - `Mail__To`
-- `Mail__Host`
-- `Mail__Port`
-- `Mail__Username`
-- `Mail__Password`
-- `Mail__SecureSocketOptions`
+- `Mail__ResendApiKey` (secret; required when `Mail__Provider=Resend`)
 - `Mail__ContactEmail`
 - `Mail__BillingEmail`
 - `Mail__NoReplyEmail`
@@ -190,6 +186,89 @@ public checkout without sharing the portal cookie with the public hostname.
 - `SuperAdmin__Email` and `SuperAdmin__Password` when a separate SuperAdmin account is required
 
 `Stripe__SecretKey` and `Stripe__WebhookSecret` are optional only in the `Local` environment. `Development`, `Staging`, and `Production` require both because payment fulfillment depends on signed Stripe webhooks.
+
+## Transactional email with Resend
+
+`Local` and CI use `Mail__Provider=File`, which renders messages under
+`App_Data/Mail` without contacting an external provider. Development, staging,
+and production default to `Resend`. MailKit/MimeKit and SMTP delivery have been
+removed; `Mail__Provider=MailKit` is no longer a supported setting.
+
+### Resend and DNS setup
+
+1. In [Resend Domains](https://resend.com/domains), add `id-develops.com` to preserve
+   the application's existing sender addresses. Enable sending and add the exact
+   DKIM and SPF/return-path DNS records shown by Resend at your DNS provider.
+2. Keep Hostnet's existing root-domain MX records for your normal inboxes. Leave
+   Resend receiving disabled. Any MX record Resend requires for its sending
+   return-path belongs at the hostname shown in its dashboard, not at the root.
+   Do not create a second SPF TXT record at an existing SPF hostname. Preserve
+   the existing DMARC record while verifying authentication.
+3. Wait until Resend marks the sending domain verified. Once verified, addresses
+   such as `info@id-develops.com`, `billing@id-develops.com`, and
+   `no-reply@id-develops.com` can send without separate SMTP mailbox credentials.
+4. In [Resend API Keys](https://resend.com/api-keys), create distinct keys named
+   `id-develops-staging` and `id-develops-production`. Use sending-only permissions
+   restricted to the verified domain. Store each key privately in the matching
+   environment. Keep open/click tracking disabled for transactional messages.
+
+If you instead verify a sending subdomain, change every configured sender to an
+address on that verified subdomain. A verified subdomain alone does not verify
+sender addresses on the root domain.
+
+### DigitalOcean App Platform
+
+On the web component, open **Settings > Environment Variables** and configure
+runtime variables separately for staging and production:
+
+| Variable | Value |
+| --- | --- |
+| `Mail__Provider` | `Resend` |
+| `Mail__ResendApiKey` | The environment's Resend API key; mark it encrypted/secret |
+| `Mail__From` | `info@id-develops.com` |
+| `Mail__To` | `info@id-develops.com` (company notification recipient) |
+| `Mail__ContactEmail` | `info@id-develops.com` |
+| `Mail__BillingEmail` | `billing@id-develops.com` |
+| `Mail__NoReplyEmail` | `no-reply@id-develops.com` |
+| `Mail__ComplianceEmail` | `compliance@id-develops.com` |
+
+Existing sender values can remain if they belong to the verified domain. Update
+any explicit `Mail__Provider=MailKit` override together with this deployment;
+otherwise startup rejects the obsolete provider. Remove unused SMTP variables:
+`Mail__Host`, `Mail__Port`, `Mail__Username`, `Mail__Password`,
+`Mail__SecureSocketOptions`, and `Mail__UseSsl`. No SMTP port or password is needed.
+Do not change the running older deployment's provider before deploying the new
+code. Prepare domain verification and keys first, then activate the new runtime
+configuration with the new image. Test staging before deploying production.
+
+### Delivery, retries, and verification
+
+- All existing Razor templates, attachments, and application mail call sites use
+  the same `IMailService` interface. No database migration is required.
+- Contact notifications and acknowledgements are sent during the request. Product
+  notifications use the existing database queue. Pending notifications retry
+  automatically after deployment when their scheduled retry becomes due.
+- Each Resend request has an idempotency key reused for transient retries. Product
+  notifications derive it from the existing queue ID, preserving it between worker
+  runs and restarts. Resend retains keys for **24 hours**; this is not an unlimited
+  exactly-once guarantee. The application also tracks successful queue sends.
+- Only temporary transport, rate-limit, concurrent-request, and server failures
+  are retried immediately. Authentication, validation, and quota failures return
+  failure; queued jobs remain pending for a later attempt after correction.
+- Runtime logs include Resend's email ID when its API accepts a message. Acceptance
+  does not prove inbox placement. Use Resend's email detail/events to investigate
+  delivery, bounces, or suppression, and inspect SPF/DKIM/DMARC results on received
+  messages. No Resend webhook is required for this sending integration; the legacy
+  custom `/bouncewebhook` endpoint is not a Resend-compatible webhook receiver.
+- After deployment, submit a staging contact message and signup once. Confirm the
+  company and user messages in Resend, then check the receiving inboxes and junk
+  folders. Exercise a password-reset email and any attachment-bearing exam email.
+  Automated local tests use a fake HTTP transport and file mail, never real sends.
+
+References: [Sending API](https://resend.com/docs/api-reference/emails/send-email),
+[domain verification](https://resend.com/docs/dashboard/domains/introduction),
+[API keys](https://resend.com/docs/dashboard/api-keys/introduction), and
+[idempotency](https://resend.com/docs/dashboard/emails/idempotency-keys).
 
 ## Browser Regression Tests
 

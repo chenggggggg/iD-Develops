@@ -616,13 +616,13 @@ public sealed class CompletedModelTests
     {
         public List<SentMail> SentMessages { get; } = new();
 
-        public Task<OperationResult> SendAsync<TModel>(string templatePath, TModel model, string recipientEmail, string subject, byte[]? attachment = null, string? attachmentFileName = null, CancellationToken ct = default)
+        public Task<OperationResult> SendAsync<TModel>(string templatePath, TModel model, string recipientEmail, string subject, byte[]? attachment = null, string? attachmentFileName = null, CancellationToken ct = default, string? idempotencyKey = null)
         {
             SentMessages.Add(new SentMail(templatePath, model!, recipientEmail, subject));
             return Task.FromResult(new OperationResult { Success = true });
         }
 
-        public Task<OperationResult> SendAsync<TModel>(string templatePath, TModel model, string recipientEmail, string subject, string? fromEmail, byte[]? attachment = null, string? attachmentFileName = null, CancellationToken ct = default)
+        public Task<OperationResult> SendAsync<TModel>(string templatePath, TModel model, string recipientEmail, string subject, string? fromEmail, byte[]? attachment = null, string? attachmentFileName = null, CancellationToken ct = default, string? idempotencyKey = null)
             => SendAsync(templatePath, model, recipientEmail, subject, attachment, attachmentFileName, ct);
     }
 
