@@ -48,6 +48,7 @@ namespace iD_Develops.Pages
 
         public async Task<IActionResult> OnPostAsync()
         {
+            if (!ModelState.IsValid) return Page();
             await _turnstileService.ValidateAsync(HttpContext, ModelState);
 
             if (!ModelState.IsValid)

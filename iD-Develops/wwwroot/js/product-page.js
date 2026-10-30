@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
+    document.querySelector("[data-product-errors]")?.focus();
     function activateProductTab(tab) {
         const targetId = tab?.dataset.productTabTarget;
         if (!targetId) {

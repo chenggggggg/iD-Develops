@@ -9,6 +9,9 @@ namespace iD_Develops.Models
         [Key]
         public int Id { get; set; }
 
+        [MaxLength(64)]
+        public string? RequestKey { get; set; }
+
         [Required]
         public string FormName { get; set; } // Identifier for the form type
 

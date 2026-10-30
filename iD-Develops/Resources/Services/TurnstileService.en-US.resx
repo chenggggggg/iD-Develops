@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <data name="Loading" xml:space="preserve"><value>Completing the security check?</value></data>
+  <data name="Expired" xml:space="preserve"><value>The security check expired. Please complete it again.</value></data>
+  <data name="Failed" xml:space="preserve"><value>The security check failed. Please try again.</value></data>
+  <data name="Unavailable" xml:space="preserve"><value>The security check is unavailable. Please retry or check whether your browser blocks Cloudflare.</value></data>
+  <data name="Retry" xml:space="preserve"><value>Retry security check</value></data>
+</root>

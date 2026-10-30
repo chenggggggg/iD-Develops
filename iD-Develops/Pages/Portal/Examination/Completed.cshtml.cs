@@ -140,12 +140,13 @@ namespace iD_Develops.Pages.Portal.Examination
             Name = Name?.Trim() ?? string.Empty;
             Email = Email?.Trim() ?? string.Empty;
 
+            if (!ValidateLevelTestSubmission()) return Page();
             if (!IsSignedInPortalUser)
             {
                 await _turnstileService.ValidateAsync(HttpContext, ModelState);
             }
 
-            if (!ValidateLevelTestSubmission())
+            if (!ModelState.IsValid)
                 return Page();
 
             var identityResult = await ResolveIdentityFlowAsync(record!);

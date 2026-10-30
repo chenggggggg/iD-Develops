@@ -28,6 +28,19 @@ namespace iD_Develops.Tests.Services;
 public sealed class CatalogCheckoutProtectionTests
 {
     [Fact]
+    public async Task InvalidSignupFieldsDoNotConsumeTheSecurityToken()
+    {
+        using var data = new TestCheckout();
+        var product = await data.ProductAsync();
+        product.ProductType = CatalogProductType.Signup;
+        product.WorkflowType = CatalogWorkflowType.FormSubmission;
+        product.FormFields.Add(new() { Key = "name", Label = "Name", IsRequired = true });
+        await data.Db.SaveChangesAsync();
+        var turnstile = new RejectingTurnstile();
+        Assert.IsType<PageResult>(await data.Page(turnstile).OnPostAsync(product.Slug));
+        Assert.Equal(0, turnstile.Calls);
+    }
+    [Fact]
     public async Task LegacyOrderAlreadyRecordedInAuditIsNotFulfilledAgain()
     {
         using var data = new TestCheckout();
@@ -304,7 +317,7 @@ public sealed class CatalogCheckoutProtectionTests
         data.Stripe.Session.PaymentStatus = "paid";
         await data.Fulfillment.CompleteAsync(data.Stripe.Session);
         data.Mail.FailNext = true;
-        var dispatcher = new CatalogCheckoutMailDispatcher(data.Db, data.Mail, data.MailSettings);
+        var dispatcher = new CatalogCheckoutMailDispatcher(data.Db, data.Mail, data.MailSettings, NullLogger<CatalogCheckoutMailDispatcher>.Instance);
         await dispatcher.DispatchAsync(default);
         Assert.Single(await data.Db.ProductFormSubmissions.ToListAsync());
         Assert.Equal(1, await data.Db.CatalogCheckoutMails.CountAsync(row => row.SentAtUtc != null));
@@ -337,7 +350,7 @@ public sealed class CatalogCheckoutProtectionTests
                 PortalBaseUrl = "https://portal.example.test"
             }));
             Access = new(Db);
-            var submission = new CatalogProductSubmissionService(new ProductFormSubmissionService(Db), Mail, MailSettings, new(MailSettings));
+            var submission = new CatalogProductSubmissionService(new ProductFormSubmissionService(Db), MailSettings, new(MailSettings));
             var services = new ServiceCollection();
             services.AddLogging();
             services.AddLocalization(options => options.ResourcesPath = "Resources");

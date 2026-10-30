@@ -90,6 +90,12 @@ public sealed class CompletedModelTests
             .AddApplicationPart(typeof(CompletedModel).Assembly)
             .AddRazorPagesOptions(options => options.Conventions.Add(
                 new ApplicationHostPageRouteModelConvention("localhost", "portal.localhost")));
+        builder.Services.Configure<iD_Develops.Configuration.TurnstileSettings>(settings =>
+        {
+            settings.Enabled = true;
+            settings.SiteKey = "test-site";
+            settings.SecretKey = "test-secret";
+        });
         builder.Services.AddSingleton<ITurnstileService, NoOpTurnstileService>();
         builder.Services.AddSingleton<IApplicationUrlService>(new ApplicationUrlService(
             Options.Create(new ApplicationUrlOptions
@@ -132,9 +138,21 @@ public sealed class CompletedModelTests
         var razorPage = Assert.IsAssignableFrom<Page>(((RazorView)view.View).RazorPage);
         razorPage.PageContext = model.PageContext;
 
-        await view.View.RenderAsync(context);
-
-        var html = writer.ToString();
+        var previousCulture = System.Globalization.CultureInfo.CurrentUICulture;
+        string html;
+        try
+        {
+            System.Globalization.CultureInfo.CurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(culture);
+            await view.View.RenderAsync(context);
+            html = writer.ToString();
+        }
+        finally
+        {
+            System.Globalization.CultureInfo.CurrentUICulture = previousCulture;
+        }
+        Assert.Contains("data-turnstile-field", html);
+        Assert.Contains("/js/turnstile-form.js", html);
+        Assert.Contains(culture == "nl-nl" ? "De beveiligingscontrole wordt uitgevoerd" : "Completing the security check", html);
         Assert.Contains("handler=SubmitForm", html, StringComparison.Ordinal);
         Assert.Contains("name=\"Name\"", html, StringComparison.Ordinal);
         Assert.Contains("name=\"Email\"", html, StringComparison.Ordinal);

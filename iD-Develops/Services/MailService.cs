@@ -58,9 +58,10 @@ namespace iD_Develops.Services
         {
             try
             {
+                ct.ThrowIfCancellationRequested();
                 var message = await BuildMessageAsync(templatePath, model, recipientEmail, subject, fromEmail, attachment, attachmentFileName);
 
-                return await _retryPolicy.ExecuteAsync(async () =>
+                return await _retryPolicy.ExecuteAsync(async cancellationToken =>
                 {
                     _logger.LogDebug("Sending email.");
 
@@ -68,20 +69,24 @@ namespace iD_Develops.Services
                     var host = RequireSetting(_settings.Host, "Mail:Host");
                     var port = _settings.Port is > 0 ? _settings.Port.Value : 587;
 
-                    await client.ConnectAsync(host, port, ResolveSecureSocketOptions(), ct);
+                    await client.ConnectAsync(host, port, ResolveSecureSocketOptions(), cancellationToken);
 
                     if (!string.IsNullOrWhiteSpace(_settings.Username))
                     {
                         var password = RequireSetting(_settings.Password, "Mail:Password");
-                        await client.AuthenticateAsync(_settings.Username, password, ct);
+                        await client.AuthenticateAsync(_settings.Username, password, cancellationToken);
                     }
 
-                    await client.SendAsync(message, ct);
-                    await client.DisconnectAsync(true, ct);
+                    await client.SendAsync(message, cancellationToken);
+                    await client.DisconnectAsync(true, cancellationToken);
 
                     _logger.LogDebug("Email sent successfully.");
                     return new OperationResult { Success = true, ErrorMessage = "Email sent successfully" };
-                });
+                }, ct);
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception ex)
             {

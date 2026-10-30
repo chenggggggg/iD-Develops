@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <data name="Loading" xml:space="preserve"><value>De beveiligingscontrole wordt uitgevoerd?</value></data>
+  <data name="Expired" xml:space="preserve"><value>De beveiligingscontrole is verlopen. Voer de controle opnieuw uit.</value></data>
+  <data name="Failed" xml:space="preserve"><value>De beveiligingscontrole is mislukt. Probeer het opnieuw.</value></data>
+  <data name="Unavailable" xml:space="preserve"><value>De beveiligingscontrole is niet beschikbaar. Probeer het opnieuw of controleer of je browser Cloudflare blokkeert.</value></data>
+  <data name="Retry" xml:space="preserve"><value>Beveiligingscontrole opnieuw proberen</value></data>
+</root>

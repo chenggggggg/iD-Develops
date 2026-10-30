@@ -380,6 +380,8 @@ namespace iD_Develops.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<ProductFormSubmission>().HasIndex(submission => submission.RequestKey).IsUnique();
+            modelBuilder.Entity<CatalogCheckoutMail>().Property(mail => mail.CreatedAtUtc).HasDefaultValueSql("CURRENT_TIMESTAMP");
             modelBuilder.Entity<CatalogCheckoutAttempt>().HasIndex(a => a.RequestKey).IsUnique();
             modelBuilder.Entity<CatalogCheckoutAttempt>().HasIndex(a => a.StripeSessionId).IsUnique();
             modelBuilder.Entity<CatalogCheckoutAttempt>().HasIndex(a => a.ExpiresAtUtc);

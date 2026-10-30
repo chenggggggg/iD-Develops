@@ -73,7 +73,7 @@
 
     @if (!ViewData.ModelState.IsValid)
     {
-        <div class="public-alert public-alert-danger product-page-alert">
+        <div class="public-alert public-alert-danger product-page-alert" role="alert" tabindex="-1" data-product-errors>
             @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
             {
                 <div>@error.ErrorMessage</div>
@@ -1001,6 +1001,7 @@
                                                placeholder="@field.Placeholder" />
                                         break;
                                 }
+                                @Html.ValidationMessage(ProductModel.GetFieldName(field, null), null, new { @class = "mt-1 block text-sm text-red-700" })
                             </div>
                         }
 
