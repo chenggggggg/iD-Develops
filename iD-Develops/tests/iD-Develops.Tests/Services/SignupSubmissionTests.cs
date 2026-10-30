@@ -11,7 +11,7 @@ namespace iD_Develops.Tests.Services;
 public sealed class SignupSubmissionTests
 {
     [Fact]
-    public async Task SignupSavesOnceAndQueuesBothEmailsWithoutConnectingToSmtp()
+    public async Task SignupSavesOnceAndQueuesBothEmailsWithoutContactingTheMailProvider()
     {
         using var factory = new SqliteTestDbFactory();
         await using var db = factory.CreateDbContext();
@@ -45,7 +45,10 @@ public sealed class SignupSubmissionTests
     [Fact]
     public async Task CancelledMailDoesNotRenderTemplatesOrEnterRetryDelays()
     {
-        var service = new MailService(Options.Create(new MailSettings()), NullLogger<MailService>.Instance);
+        using var http = new HttpClient();
+        var settings = Options.Create(new MailSettings());
+        var client = new ResendMailClient(http, settings, NullLogger<ResendMailClient>.Instance);
+        var service = new MailService(client, settings, NullLogger<MailService>.Instance);
         using var cancellation = new CancellationTokenSource();
         cancellation.Cancel();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => service.SendAsync("missing-template", new object(),

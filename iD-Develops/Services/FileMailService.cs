@@ -29,8 +29,8 @@ namespace iD_Develops.Services
             string subject,
             byte[]? attachment = null,
             string? attachmentFileName = null,
-            CancellationToken ct = default)
-            => await SendAsync(templatePath, model, recipientEmail, subject, null, attachment, attachmentFileName, ct);
+            CancellationToken ct = default, string? idempotencyKey = null)
+            => await SendAsync(templatePath, model, recipientEmail, subject, null, attachment, attachmentFileName, ct, idempotencyKey);
 
         public async Task<OperationResult> SendAsync<TModel>(
             string templatePath,
@@ -40,7 +40,7 @@ namespace iD_Develops.Services
             string? fromEmail,
             byte[]? attachment = null,
             string? attachmentFileName = null,
-            CancellationToken ct = default)
+            CancellationToken ct = default, string? idempotencyKey = null)
         {
             try
             {

@@ -31,7 +31,8 @@ public sealed class CatalogCheckoutMailDispatcher(ApplicationDbContext db, IMail
                 using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
                 timeout.CancelAfter(TimeSpan.FromSeconds(30));
                 var result = await mail.SendAsync("/wwwroot/templates/ProductEmailTemplate.cshtml", model,
-                    notification.Recipient, notification.Subject, settings.Value.BillingEmail, ct: timeout.Token);
+                    notification.Recipient, notification.Subject, settings.Value.ContactEmail, ct: timeout.Token,
+                    idempotencyKey: $"product-notification/{notification.Id:N}");
                 if (!result.Success) throw new InvalidOperationException("Checkout notification delivery failed.");
                 await db.CatalogCheckoutMails.Where(row => row.Id == id && row.LeaseId == lease).ExecuteUpdateAsync(update => update
                     .SetProperty(row => row.SentAtUtc, DateTime.UtcNow)

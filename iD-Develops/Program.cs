@@ -446,14 +446,19 @@ builder.Services.AddHostedService<CatalogInviteReservationCleanupService>();
 builder.Services.AddHostedService<ScheduleOccurrenceGeneratorService>();
 builder.Services.AddHostedService<ZoomAttendanceReconciliationWorker>();
 
-var mailProvider = builder.Configuration["Mail:Provider"] ?? "MailKit";
+var mailProvider = builder.Configuration["Mail:Provider"] ?? "Resend";
 if (mailProvider.Equals("File", StringComparison.OrdinalIgnoreCase))
 {
     builder.Services.AddTransient<IMailService, FileMailService>();
 }
+else if (mailProvider.Equals("Resend", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddHttpClient<ResendMailClient>();
+    builder.Services.AddTransient<IMailService, MailService>();
+}
 else
 {
-    builder.Services.AddTransient<IMailService, MailService>();
+    throw new InvalidOperationException("Mail:Provider must be File or Resend. SMTP is no longer supported.");
 }
 
 builder.Services.AddHttpContextAccessor();
