@@ -116,6 +116,7 @@
     function initialize() {
         document.querySelector("[data-product-errors]")?.focus();
         document.querySelectorAll("[data-turnstile-field]").forEach(element => {
+            if (element.closest("[data-signup-step][hidden]")) return;
             const form = element.closest("form");
             if (!form || fields.some(state => state.element === element)) return;
             const state = { element, form, token: element.querySelector("[data-turnstile-token]"),
@@ -160,6 +161,7 @@
     window.addEventListener("pageshow", event => {
         if (event.persisted) fields.forEach(state => { state.posting = false; state.waiting = false; busy(state, false); refresh(state); });
     });
+    document.addEventListener("turnstile:initialize", initialize);
     if (document.querySelector("[data-turnstile-field]")) initialize();
     else document.addEventListener("DOMContentLoaded", initialize);
 })();

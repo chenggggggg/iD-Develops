@@ -15,11 +15,22 @@ public sealed class SignupTurnstileTests : Microsoft.Playwright.Xunit.PageTest
         try
         {
             await OpenAsync(data);
+            await Page.GetByRole(AriaRole.Button, new() { Name = "Back", Exact = true }).ClickAsync();
+            await Page.GetByLabel("Phone number", new() { Exact = false }).FillAsync("+31 20 123 4567");
+            await Page.GetByLabel("Street address", new() { Exact = false }).FillAsync("Example Street 10");
+            await Page.GetByLabel("Postal code", new() { Exact = false }).FillAsync("1234 AB");
+            await Page.GetByLabel("City", new() { Exact = false }).FillAsync("Amsterdam");
+            await Page.GetByLabel("Country", new() { Exact = false }).FillAsync("Netherlands");
+            await Page.GetByRole(AriaRole.Button, new() { Name = "Continue", Exact = true }).ClickAsync();
             await PublicProductSubmissionPacing.ReserveAsync();
             await Page.RunAndWaitForResponseAsync(() => Page.Locator("#product-submit-form button[type=submit]").ClickAsync(), IsSignupPost);
-            await Expect(Page.GetByText("Your submission has been received.", new() { Exact = true })).ToBeVisibleAsync();
+            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "You're signed up!", Exact = true })).ToBeVisibleAsync();
             await AssertSavedOnceAsync(data);
             await AssertQueuedDeliveryAsync(data);
+            await Page.ReloadAsync();
+            await Expect(Page.Locator("[data-signup-confirmation]")).ToBeVisibleAsync();
+            await Expect(Page.Locator("#product-submit-form")).ToHaveCountAsync(0);
+            await AssertSavedOnceAsync(data);
         }
         finally { await CleanupAsync(data); }
     }
@@ -42,7 +53,7 @@ public sealed class SignupTurnstileTests : Microsoft.Playwright.Xunit.PageTest
             Assert.Equal(0, posts);
             await PublicProductSubmissionPacing.ReserveAsync();
             await Page.RunAndWaitForResponseAsync(() => Page.EvaluateAsync("() => window.testChallenge.callback('fresh-token')"), IsSignupPost);
-            await Expect(Page.GetByText("Your submission has been received.", new() { Exact = true })).ToBeVisibleAsync();
+            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "You're signed up!", Exact = true })).ToBeVisibleAsync();
             Assert.Equal(1, posts);
             await AssertSavedOnceAsync(data);
         }
@@ -65,7 +76,7 @@ public sealed class SignupTurnstileTests : Microsoft.Playwright.Xunit.PageTest
             await PublicProductSubmissionPacing.ReserveAsync();
             var response = await Page.RunAndWaitForResponseAsync(() => Page.EvaluateAsync("() => window.testChallenge.callback('renewed-token')"), IsSignupPost);
             Assert.Contains("cf-turnstile-response=renewed-token", response.Request.PostData!);
-            await Expect(Page.GetByText("Your submission has been received.", new() { Exact = true })).ToBeVisibleAsync();
+            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "You're signed up!", Exact = true })).ToBeVisibleAsync();
             await AssertSavedOnceAsync(data);
         }
         finally { await CleanupAsync(data); }
@@ -112,9 +123,163 @@ public sealed class SignupTurnstileTests : Microsoft.Playwright.Xunit.PageTest
         finally { await CleanupAsync(data); }
     }
 
+    [Fact]
+    public async Task StepsRequirePersonalDetailsPreserveAnswersAndNeverSaveBeforeFinalSubmit()
+    {
+        await using var data = await SignupAsync();
+        try
+        {
+            await Page.SetViewportSizeAsync(1280, 900);
+            await Page.GotoAsync($"{LocalTestApplication.PublicBaseUrl}/en-us/products/{data.Standard.Slug}?signupReceipt=forged");
+            await Expect(Page.Locator("[data-signup-confirmation]")).ToHaveCountAsync(0);
+            await Page.ScreenshotAsync(new() { Path = Path.Combine(AppContext.BaseDirectory, "signup-product-desktop.png"), FullPage = true });
+            await Page.SetViewportSizeAsync(390, 844);
+            await Page.GetByRole(AriaRole.Button, new() { Name = "Sign up", Exact = true }).ClickAsync();
+            await Page.GetByRole(AriaRole.Button, new() { Name = "Continue", Exact = true }).ClickAsync();
+            await Expect(Page.Locator("[data-signup-step='1']")).ToBeVisibleAsync();
+            await Expect(Page.GetByLabel("Full name", new() { Exact = true })).ToBeFocusedAsync();
+            await Page.GetByLabel("Full name", new() { Exact = true }).FillAsync("Signup customer");
+            await Page.GetByLabel("Email address", new() { Exact = true }).FillAsync("invalid");
+            await Page.GetByRole(AriaRole.Button, new() { Name = "Continue", Exact = true }).ClickAsync();
+            await Expect(Page.GetByLabel("Email address", new() { Exact = true })).ToBeFocusedAsync();
+            await Page.GetByLabel("Email address", new() { Exact = true }).FillAsync(data.User.Email!);
+            await Page.GetByRole(AriaRole.Button, new() { Name = "Continue", Exact = true }).ClickAsync();
+            await Page.ScreenshotAsync(new() { Path = Path.Combine(AppContext.BaseDirectory, "signup-questions-mobile.png"), FullPage = true });
+            await Expect(Page.GetByLabel("Your email", new() { Exact = true })).ToHaveCountAsync(0);
+            await Page.GetByLabel("Learning goals", new() { Exact = true }).FillAsync("Keep this answer");
+            await Page.GetByRole(AriaRole.Button, new() { Name = "Back", Exact = true }).ClickAsync();
+            await Expect(Page.GetByLabel("Full name", new() { Exact = true })).ToHaveValueAsync("Signup customer");
+            await Page.GetByRole(AriaRole.Button, new() { Name = "Continue", Exact = true }).ClickAsync();
+            await Expect(Page.GetByLabel("Learning goals", new() { Exact = true })).ToHaveValueAsync("Keep this answer");
+            Assert.True(await Page.EvaluateAsync<bool>("() => document.documentElement.scrollWidth <= window.innerWidth"));
+            await using var db = LocalTestApplication.CreateDbContext();
+            Assert.False(await db.ProductFormSubmissions.AnyAsync(row => row.FormName == data.Standard.Name));
+        }
+        finally { await CleanupAsync(data); }
+    }
+
+    [Fact]
+    public async Task ServerValidationRejectsMissingPersonalDetailsAndReturnsToTheirStep()
+    {
+        await using var data = await SignupAsync();
+        try
+        {
+            await OpenAsync(data);
+            await Page.GetByRole(AriaRole.Button, new() { Name = "Back", Exact = true }).ClickAsync();
+            await Page.GetByLabel("Email address", new() { Exact = true }).FillAsync("");
+            await PublicProductSubmissionPacing.ReserveAsync();
+            await Page.RunAndWaitForNavigationAsync(() => Page.EvaluateAsync("() => HTMLFormElement.prototype.submit.call(document.getElementById('product-submit-form'))"));
+            await Expect(Page.Locator("[data-signup-step='1']")).ToBeVisibleAsync();
+            await Expect(Page.Locator("[data-product-errors]")).ToContainTextAsync("Enter a valid email address.");
+            await Expect(Page.GetByLabel("Full name", new() { Exact = true })).ToHaveValueAsync("Signup customer");
+            await using var db = LocalTestApplication.CreateDbContext();
+            Assert.False(await db.ProductFormSubmissions.AnyAsync(row => row.FormName == data.Standard.Name));
+        }
+        finally { await CleanupAsync(data); }
+    }
+
+    [Fact]
+    public async Task PersonalDetailsOnlySignupStillQueuesBothEmails()
+    {
+        await using var data = await SignupAsync();
+        try
+        {
+            await using (var db = LocalTestApplication.CreateDbContext())
+            {
+                await db.CatalogProductFormFields.Where(field => field.CatalogProductId == data.Standard.Id).ExecuteDeleteAsync();
+            }
+            await Page.GotoAsync($"{LocalTestApplication.PublicBaseUrl}/en-us/products/{data.Standard.Slug}");
+            await Page.GetByRole(AriaRole.Button, new() { Name = "Sign up", Exact = true }).ClickAsync();
+            await Page.GetByLabel("Full name", new() { Exact = true }).FillAsync("Signup customer");
+            await Page.GetByLabel("Email address", new() { Exact = true }).FillAsync(data.User.Email!);
+            await Page.GetByRole(AriaRole.Button, new() { Name = "Continue", Exact = true }).ClickAsync();
+            await Expect(Page.GetByText("No additional questions. You can complete your signup now.")).ToBeVisibleAsync();
+            await PublicProductSubmissionPacing.ReserveAsync();
+            await Page.RunAndWaitForResponseAsync(() => Page.Locator("#product-submit-form button[type=submit]").ClickAsync(), IsSignupPost);
+            await Expect(Page.Locator("[data-signup-confirmation]")).ToBeVisibleAsync();
+            await AssertSavedOnceAsync(data);
+        }
+        finally { await CleanupAsync(data); }
+    }
+
+    [Fact]
+    public async Task InvalidCustomAnswersReturnToQuestionStepWithPersonalDetailsPreserved()
+    {
+        await using var data = await SignupAsync();
+        try
+        {
+            await OpenAsync(data);
+            await Page.GetByLabel("Learning goals", new() { Exact = true }).FillAsync("");
+            await PublicProductSubmissionPacing.ReserveAsync();
+            await Page.RunAndWaitForNavigationAsync(() => Page.EvaluateAsync("() => HTMLFormElement.prototype.submit.call(document.getElementById('product-submit-form'))"));
+            await Expect(Page.Locator("[data-signup-step='2']")).ToBeVisibleAsync();
+            await Expect(Page.Locator("[data-product-errors]")).ToContainTextAsync("Learning goals");
+            await Page.GetByRole(AriaRole.Button, new() { Name = "Back", Exact = true }).ClickAsync();
+            await Expect(Page.GetByLabel("Email address", new() { Exact = true })).ToHaveValueAsync(data.User.Email!);
+            await using var db = LocalTestApplication.CreateDbContext();
+            Assert.False(await db.ProductFormSubmissions.AnyAsync(row => row.FormName == data.Standard.Name));
+        }
+        finally { await CleanupAsync(data); }
+    }
+
+    [Fact]
+    public async Task EditorSeparatesFixedPersonalDetailsAndKeepsLegacyFieldsWhenSaving()
+    {
+        await using var data = await SignupAsync(administrator: true);
+        try
+        {
+            var path = $"/products/{data.Standard.Slug}/edit";
+            await Page.GotoAsync($"{LocalTestApplication.PortalBaseUrl}/login?returnUrl={Uri.EscapeDataString(path)}");
+            await Page.GetByLabel("E-mail").FillAsync(data.User.Email!);
+            await Page.GetByLabel("Password", new() { Exact = true }).FillAsync(data.Password);
+            await Page.GetByRole(AriaRole.Button, new() { Name = "Log in", Exact = true }).ClickAsync();
+            await Page.WaitForURLAsync($"{LocalTestApplication.PortalBaseUrl}{path}");
+            await Expect(Page.GetByText("Full name and email address are always required.", new() { Exact = false })).ToBeVisibleAsync();
+            await Expect(Page.Locator("[data-form-field-item]")).ToHaveCountAsync(1);
+            await Expect(Page.Locator("#EditInput_FormFields_0__Label")).ToHaveValueAsync("Learning goals");
+            await Page.RunAndWaitForResponseAsync(() => Page.GetByRole(AriaRole.Button, new() { Name = "Save", Exact = true }).ClickAsync(),
+                response => response.Request.Method == "POST" && response.Url.Contains("handler=SaveContent"));
+            await Expect(Page.GetByText("Product published.", new() { Exact = true })).ToBeVisibleAsync();
+            await using var db = LocalTestApplication.CreateDbContext();
+            var fields = await db.CatalogProductFormFields.Where(field => field.CatalogProductId == data.Standard.Id).ToListAsync();
+            Assert.Equal(5, fields.Count);
+            Assert.Contains(fields, field => field.Key == "name");
+            Assert.Contains(fields, field => field.Key == "email");
+            Assert.Contains(fields, field => field.Key == "phone");
+            Assert.Contains(fields, field => field.Key == "address");
+            await Page.GotoAsync($"{LocalTestApplication.PortalBaseUrl}{path}?preview=true");
+            await Expect(Page.Locator("[data-signup-step='0']")).ToBeVisibleAsync();
+            await Page.GetByRole(AriaRole.Button, new() { Name = "Sign up", Exact = true }).ClickAsync();
+            await Page.GetByLabel("Full name", new() { Exact = true }).FillAsync("Preview visitor");
+            await Page.GetByLabel("Email address", new() { Exact = true }).FillAsync(data.User.Email!);
+            await Page.GetByRole(AriaRole.Button, new() { Name = "Continue", Exact = true }).ClickAsync();
+            await Expect(Page.GetByLabel("Learning goals", new() { Exact = true })).ToBeVisibleAsync();
+            await Expect(Page.Locator("#product-submit-form button[type=submit]")).ToBeDisabledAsync();
+            Assert.False(await db.ProductFormSubmissions.AnyAsync(row => row.FormName == data.Standard.Name));
+        }
+        finally { await CleanupAsync(data); }
+    }
+
+    [Fact]
+    public async Task SecurityChallengeStartsOnlyWhenQuestionStepIsShown()
+    {
+        await using var data = await SignupAsync();
+        try
+        {
+            await OpenAsync(data);
+            await Page.GetByRole(AriaRole.Button, new() { Name = "Back", Exact = true }).ClickAsync();
+            await InstallWidgetAsync(waitForReady: false);
+            await Expect(Page.Locator("[data-turnstile-ready=true]")).ToHaveCountAsync(0);
+            await Page.GetByRole(AriaRole.Button, new() { Name = "Continue", Exact = true }).ClickAsync();
+            await Expect(Page.Locator("[data-turnstile-ready=true]")).ToBeVisibleAsync();
+            Assert.True(await Page.EvaluateAsync<bool>("() => !!window.testChallenge"));
+        }
+        finally { await CleanupAsync(data); }
+    }
+
     private static bool IsSignupPost(IResponse response) => response.Request.Method == "POST" && response.Url.Contains("/products/");
 
-    private async Task InstallWidgetAsync(bool blockApi = false)
+    private async Task InstallWidgetAsync(bool blockApi = false, bool waitForReady = true)
     {
         // The local server keeps Turnstile disabled. Exercise its real browser manager with
         // a controlled challenge provider; server-side verification has dedicated HTTP tests.
@@ -128,7 +293,7 @@ public sealed class SignupTurnstileTests : Microsoft.Playwright.Xunit.PageTest
                 element.dataset.failedMessage = 'Security check failed.';
                 element.dataset.unavailableMessage = 'Security check unavailable.';
                 element.innerHTML = '<div data-turnstile-widget></div><input type="hidden" name="cf-turnstile-response" data-turnstile-token><p data-turnstile-status tabindex="-1" hidden></p><button type="button" data-turnstile-retry hidden>Retry security check</button>';
-                document.getElementById('product-submit-form').append(element);
+                document.querySelector('[data-signup-step="2"]').append(element);
                 window.challengeResets = 0;
                 if (!blockApi) window.turnstile = {
                     render: (element, options) => { window.testChallenge = options; return 'widget-1'; },
@@ -137,15 +302,21 @@ public sealed class SignupTurnstileTests : Microsoft.Playwright.Xunit.PageTest
             }
             """, blockApi);
         await Page.AddScriptTagAsync(new() { Url = LocalTestApplication.PublicBaseUrl + "/js/turnstile-form.js" });
-        await Expect(Page.Locator("[data-turnstile-ready=true]")).ToBeVisibleAsync();
+        if (waitForReady) await Expect(Page.Locator("[data-turnstile-ready=true]")).ToBeVisibleAsync();
     }
 
     private async Task OpenAsync(CatalogBrowsingFixture data)
     {
         var response = await Page.GotoAsync($"{LocalTestApplication.PublicBaseUrl}/en-us/products/{data.Standard.Slug}");
         Assert.Equal(200, response!.Status);
-        await Page.GetByLabel("Your name", new() { Exact = true }).FillAsync("Signup customer");
-        await Page.GetByLabel("Your email", new() { Exact = true }).FillAsync(data.User.Email!);
+        await Expect(Page.Locator("[data-signup-step='0']")).ToBeVisibleAsync();
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Sign up", Exact = true }).ClickAsync();
+        await Expect(Page.Locator("[data-signup-step='0']")).ToBeHiddenAsync();
+        await Page.GetByLabel("Full name", new() { Exact = true }).FillAsync("Signup customer");
+        await Page.GetByLabel("Email address", new() { Exact = true }).FillAsync(data.User.Email!);
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Continue", Exact = true }).ClickAsync();
+        await Expect(Page.Locator("[data-signup-step='1']")).ToBeHiddenAsync();
+        await Page.GetByLabel("Learning goals", new() { Exact = true }).FillAsync("Practise conversation");
     }
 
     private static async Task AssertSavedOnceAsync(CatalogBrowsingFixture data)
@@ -157,9 +328,9 @@ public sealed class SignupTurnstileTests : Microsoft.Playwright.Xunit.PageTest
         Assert.Equal(2, await db.CatalogCheckoutMails.CountAsync(row => row.StripeSessionId == "signup:" + saved.RequestKey));
     }
 
-    private static async Task<CatalogBrowsingFixture> SignupAsync()
+    private static async Task<CatalogBrowsingFixture> SignupAsync(bool administrator = false)
     {
-        var data = await CatalogBrowsingFixture.CreateAsync();
+        var data = await CatalogBrowsingFixture.CreateAsync(administrator);
         try
         {
             await using var db = LocalTestApplication.CreateDbContext();
@@ -168,7 +339,10 @@ public sealed class SignupTurnstileTests : Microsoft.Playwright.Xunit.PageTest
             product.FormFields =
             [
                 new() { Key = "name", Label = "Your name", FieldType = CatalogFormFieldType.Text, IsRequired = true },
-                new() { Key = "email", Label = "Your email", FieldType = CatalogFormFieldType.Email, IsRequired = true }
+                new() { Key = "email", Label = "Your email", FieldType = CatalogFormFieldType.Email, IsRequired = true },
+                new() { Key = "goals", Label = "Learning goals", FieldType = CatalogFormFieldType.Textarea, IsRequired = true },
+                new() { Key = "phone", Label = "Phone number", FieldType = CatalogFormFieldType.Tel, IsRequired = true },
+                new() { Key = "address", Label = "Street address", FieldType = CatalogFormFieldType.Text, IsRequired = true }
             ];
             await db.SaveChangesAsync();
             return data;
@@ -205,6 +379,17 @@ public sealed class SignupTurnstileTests : Microsoft.Playwright.Xunit.PageTest
         foreach (var notification in notifications)
             Assert.Contains(messages, body => body.StartsWith("To: " + notification.Recipient, StringComparison.Ordinal));
         Assert.Contains(messages, body => body.StartsWith("To: " + data.User.Email, StringComparison.Ordinal));
+        Assert.All(messages, body =>
+        {
+            Assert.Contains("Signup customer", body);
+            Assert.Contains("mailto:" + data.User.Email, body);
+            Assert.Contains("Practise conversation", body);
+            Assert.Contains("+31 20 123 4567", System.Net.WebUtility.HtmlDecode(body));
+            Assert.Contains("Example Street 10", body);
+            Assert.Contains("1234 AB", body);
+            Assert.Contains("Amsterdam", body);
+            Assert.Contains("Netherlands", body);
+        });
     }
 
     private static async Task CleanupAsync(CatalogBrowsingFixture data)

@@ -3,6 +3,7 @@
 @using iD_Develops.Models
 @using iD_Develops.Utilities
 @model iD_Develops.Pages.Portal.Admin.Products.EditModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<iD_Develops.Pages.ProductModel> Localizer
 @{
     Layout = Model.IsAdminEditMode ? "_PortalLayout" : "_Layout";
     ViewData["Title"] = Model.Product?.Name ?? "Product";
@@ -253,7 +254,11 @@
                                 <div class="product-section-label">Signup form</div>
                                 @if (Model.Product.ProductType == CatalogProductType.Signup)
                                 {
-                                    <p>Build the form users will complete on this signup product.</p>
+                                    <p>@Localizer["SignupEditorHelp"]</p>
+                                    <div class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+                                        <strong>@Localizer["SignupPersonalDetailsTitle"]</strong>
+                                        <p class="mt-1">@Localizer["SignupFixedFieldsHelp"]</p>
+                                    </div>
                                 }
                                 else
                                 {
@@ -735,6 +740,10 @@
                 </div>
             </div>
         </form>
+    }
+    else if (Model.Product.ProductType == CatalogProductType.Signup)
+    {
+        <partial name="_ProductSignupFlow" model="Model" />
     }
     else
     {
@@ -1863,5 +1872,6 @@
     <script src="~/js/product-credit-grants.js" asp-append-version="true"></script>
     <script src="~/js/product-pricing-settings.js" asp-append-version="true" data-cookieconsent="ignore"></script>
     <script src="~/js/product-checkout-draft.js" asp-append-version="true" data-cookieconsent="ignore"></script>
+    <script src="~/js/product-signup.js" asp-append-version="true" data-cookieconsent="ignore"></script>
     <script src="~/js/product-page.js" asp-append-version="true"></script>
 }
