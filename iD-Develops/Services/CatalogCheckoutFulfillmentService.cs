@@ -11,14 +11,28 @@ namespace iD_Develops.Services;
 public sealed class CatalogCheckoutFulfillmentService(ApplicationDbContext db, ICatalogProductService products,
     CatalogProductSubmissionService submissions, CatalogProductAccessService accessService,
     IPurchasedCreditService credits, IApplicationAuditService audit, IApplicationUrlService urls,
+    CatalogCheckoutAuditService checkoutAudit,
     ILogger<CatalogCheckoutFulfillmentService> logger)
 {
-    public async Task<bool> CompleteAsync(Session session, CancellationToken ct = default)
+    public async Task<bool> CompleteAsync(Session session, CancellationToken ct = default, string? stripeEventId = null)
     {
-        if (session.Status != "complete" ||
-            !(session.PaymentStatus == "paid" || session.PaymentStatus == "no_payment_required" && session.AmountTotal == 0))
-            return false;
         if (string.IsNullOrWhiteSpace(session.Id)) throw new InvalidOperationException("Missing checkout session.");
+        await checkoutAudit.ObservePaymentAsync(session, stripeEventId, null, ct);
+        if (!CatalogCheckoutAuditService.IsPaid(session)) return false;
+        try { return await FulfillAsync(session, stripeEventId, ct); }
+        catch (Exception error) when (!ct.IsCancellationRequested)
+        {
+            db.ChangeTracker.Clear();
+            await checkoutAudit.FulfillmentFailedAsync(session, error, stripeEventId, ct);
+            throw;
+        }
+    }
+
+    private async Task<bool> FulfillAsync(Session session, string? stripeEventId, CancellationToken ct)
+    {
+        var metadata = await checkoutAudit.MetadataAsync(session, stripeEventId, ct);
+        metadata["stage"] = "Fulfillment";
+        metadata["fulfillmentStatus"] = "Completed";
         return await db.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
         {
             // Each retry must reload state after a rollback, including generated submission IDs.
@@ -27,7 +41,7 @@ public sealed class CatalogCheckoutFulfillmentService(ApplicationDbContext db, I
             await CheckoutDatabaseLock.AcquireTransactionAsync(db, "fulfill:" + session.Id, ct);
             if (await db.CatalogCheckoutReceipts.AnyAsync(row => row.StripeSessionId == session.Id, ct)) return true;
             if (!session.Metadata.TryGetValue("catalog_product_id", out var productRaw) || !int.TryParse(productRaw, out var productId))
-                return false;
+                throw new CatalogFulfillmentException("product_reference_invalid", "The paid checkout has no valid product reference. Reconcile its Stripe metadata before retrying delivery.");
             if (!session.Metadata.ContainsKey("checkout_attempt_id") && await WasPreviouslyCompletedAsync(session.Id, ct))
             {
                 db.CatalogCheckoutReceipts.Add(new() { StripeSessionId = session.Id });
@@ -36,7 +50,7 @@ public sealed class CatalogCheckoutFulfillmentService(ApplicationDbContext db, I
                 return true;
             }
             var product = await products.GetProductByIdAsync(productId, ct)
-                ?? throw new InvalidOperationException("The checkout product could not be found.");
+                ?? throw new CatalogFulfillmentException("product_missing", "The purchased product could not be found. Restore it before retrying delivery.");
             CatalogCheckoutAttempt? attempt = null;
             Dictionary<string, string> values;
             string? userId;
@@ -47,12 +61,12 @@ public sealed class CatalogCheckoutFulfillmentService(ApplicationDbContext db, I
             {
                 if (!Guid.TryParse(attemptRaw, out var attemptId)) throw new InvalidOperationException("Invalid checkout reference.");
                 attempt = await db.CatalogCheckoutAttempts.SingleOrDefaultAsync(row => row.Id == attemptId, ct)
-                    ?? throw new InvalidOperationException("The pending checkout could not be found.");
+                    ?? throw new CatalogFulfillmentException("checkout_missing", "The saved checkout could not be found. Reconcile the Stripe session with its order before retrying.");
                 if (attempt.CatalogProductId != productId ||
                     attempt.StripeSessionId != null && attempt.StripeSessionId != session.Id ||
                     session.AmountTotal != attempt.AmountTotalMinorUnits ||
                     !string.Equals(session.Currency, attempt.Currency, StringComparison.OrdinalIgnoreCase))
-                    throw new InvalidOperationException("Checkout payment does not match the pending order.");
+                    throw new CatalogFulfillmentException("payment_mismatch", "The payment amount, currency, or checkout reference does not match the saved order. Reconcile the Stripe session before retrying.");
                 attempt.StripeSessionId = session.Id;
                 values = JsonSerializer.Deserialize<Dictionary<string, string>>(attempt.FormDataJson)!;
                 userId = attempt.AuthenticatedUserId;
@@ -86,11 +100,12 @@ public sealed class CatalogCheckoutFulfillmentService(ApplicationDbContext db, I
             }
             db.CatalogCheckoutReceipts.Add(new() { StripeSessionId = session.Id });
             await db.SaveChangesAsync(ct);
-            await audit.RecordAsync(new ApplicationAuditEntry(ApplicationAuditEventTypes.PurchaseCompleted,
-                AuditEventCategory.Commerce, AuditEventOutcome.Success, "Product purchase completed and entitlements were processed.",
+            audit.Queue(new ApplicationAuditEntry(ApplicationAuditEventTypes.PurchaseCompleted,
+                AuditEventCategory.Commerce, AuditEventOutcome.Success, "Product delivered; confirmation emails are queued separately.",
                 SubjectUserId: userId, EntityType: nameof(CatalogProduct), EntityId: product.Id.ToString(),
-                Metadata: new Dictionary<string, object?> { ["stripeSessionId"] = session.Id, ["quantity"] = quantity },
-                DeduplicationKey: $"stripe-session:{session.Id}:purchase-completed"), ct);
+                Metadata: metadata,
+                DeduplicationKey: $"stripe-session:{session.Id}:purchase-completed"));
+            await db.SaveChangesAsync(ct);
             await transaction.CommitAsync(ct);
             return true;
 
@@ -125,7 +140,7 @@ public sealed class CatalogCheckoutFulfillmentService(ApplicationDbContext db, I
         ApplicationUser? user;
         if (!string.IsNullOrWhiteSpace(authenticatedUserId))
         {
-            user = await db.Users.FirstOrDefaultAsync(u => u.Id == authenticatedUserId);
+            user = await db.Users.FirstOrDefaultAsync(u => u.Id == authenticatedUserId && !u.IsDeleted);
             if (user == null)
             {
                 logger.LogWarning(
@@ -133,18 +148,18 @@ public sealed class CatalogCheckoutFulfillmentService(ApplicationDbContext db, I
                     product.GrantedCourseId.Value,
                     product.Id,
                     authenticatedUserId);
-                return;
+                throw new CatalogFulfillmentException("purchaser_missing", "The purchaser account no longer exists. Restore or reconcile the account before retrying delivery.");
             }
         }
         else if (!string.IsNullOrWhiteSpace(customerEmail))
         {
             var normalizedEmail = customerEmail.Trim().ToUpperInvariant();
             user = await db.Users
-                .FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail);
+                .FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail && !u.IsDeleted);
         }
         else
         {
-            return;
+            throw new CatalogFulfillmentException("purchaser_missing", "The course purchase has no purchaser account. Reconcile the account before retrying delivery.");
         }
 
         if (user == null)
@@ -154,7 +169,7 @@ public sealed class CatalogCheckoutFulfillmentService(ApplicationDbContext db, I
                 product.GrantedCourseId.Value,
                 product.Id,
                 customerEmail);
-            return;
+            throw new CatalogFulfillmentException("purchaser_missing", "No purchaser account matched the course purchase. Reconcile the account before retrying delivery.");
         }
 
         var purchaseTime = DateTime.UtcNow;

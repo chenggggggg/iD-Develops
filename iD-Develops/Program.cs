@@ -416,6 +416,7 @@ builder.Services.AddScoped<CatalogProductSubmissionService>();
 builder.Services.AddScoped<IStripeCheckoutClient, StripeCheckoutClient>();
 builder.Services.AddScoped<CatalogCheckoutCoordinator>();
 builder.Services.AddScoped<CatalogCheckoutFulfillmentService>();
+builder.Services.AddScoped<CatalogCheckoutAuditService>();
 builder.Services.AddScoped<CatalogCheckoutMailDispatcher>();
 builder.Services.AddHostedService<CatalogCheckoutMaintenanceService>();
 builder.Services.AddRateLimiter(options =>

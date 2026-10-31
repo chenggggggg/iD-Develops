@@ -211,6 +211,7 @@ public sealed class SignupTurnstileTests : Microsoft.Playwright.Xunit.PageTest
     {
         await using var db = LocalTestApplication.CreateDbContext();
         var keys = await db.ProductFormSubmissions.Where(row => row.FormName == data.Standard.Name).Select(row => "signup:" + row.RequestKey).ToListAsync();
+        await db.ApplicationAuditEvents.Where(row => row.EntityType == "CheckoutSession" && row.EntityId != null && keys.Contains(row.EntityId)).ExecuteDeleteAsync();
         await db.CatalogCheckoutMails.Where(row => keys.Contains(row.StripeSessionId)).ExecuteDeleteAsync();
         await db.ProductFormSubmissions.Where(row => row.FormName == data.Standard.Name).ExecuteDeleteAsync();
         var directory = Environment.GetEnvironmentVariable("IDDEVELOPS_E2E_FILE_MAIL_DIRECTORY");
