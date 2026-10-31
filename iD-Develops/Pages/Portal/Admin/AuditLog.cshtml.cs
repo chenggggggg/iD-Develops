@@ -69,6 +69,12 @@ public sealed class AuditLogModel : PageModel
         if (!string.IsNullOrWhiteSpace(SearchQuery))
         {
             var pattern = $"%{SearchQuery}%";
+            var attemptRef = JsonSerializer.Serialize(new { checkoutAttemptId = SearchQuery });
+            var sessionRef = JsonSerializer.Serialize(new { stripeSessionId = SearchQuery });
+            var paymentRef = JsonSerializer.Serialize(new { stripePaymentIntentId = SearchQuery });
+            var eventRef = JsonSerializer.Serialize(new { stripeEventId = SearchQuery });
+            var customerRef = JsonSerializer.Serialize(new { customerEmail = SearchQuery });
+            var recipientRef = JsonSerializer.Serialize(new { recipientEmail = SearchQuery });
             query = query.Where(auditEvent =>
                 EF.Functions.ILike(auditEvent.Summary, pattern) ||
                 EF.Functions.ILike(auditEvent.EventType, pattern) ||
@@ -76,7 +82,14 @@ public sealed class AuditLogModel : PageModel
                 (auditEvent.SubjectUserId != null && EF.Functions.ILike(auditEvent.SubjectUserId, pattern)) ||
                 (auditEvent.EntityId != null && EF.Functions.ILike(auditEvent.EntityId, pattern)) ||
                 (auditEvent.CorrelationId != null && EF.Functions.ILike(auditEvent.CorrelationId, pattern)) ||
-                (auditEvent.DeduplicationKey != null && EF.Functions.ILike(auditEvent.DeduplicationKey, pattern)));
+                (auditEvent.DeduplicationKey != null && EF.Functions.ILike(auditEvent.DeduplicationKey, pattern)) ||
+                (auditEvent.MetadataJson != null &&
+                    (EF.Functions.JsonContains(auditEvent.MetadataJson, attemptRef) ||
+                     EF.Functions.JsonContains(auditEvent.MetadataJson, sessionRef) ||
+                     EF.Functions.JsonContains(auditEvent.MetadataJson, paymentRef) ||
+                     EF.Functions.JsonContains(auditEvent.MetadataJson, eventRef) ||
+                     EF.Functions.JsonContains(auditEvent.MetadataJson, customerRef) ||
+                     EF.Functions.JsonContains(auditEvent.MetadataJson, recipientRef))));
         }
 
         TotalCount = await query.CountAsync(cancellationToken);
@@ -119,7 +132,7 @@ public sealed class AuditLogModel : PageModel
             auditEvent.RequestPath,
             auditEvent.IpAddress,
             auditEvent.UserAgent,
-            PrettyJson(auditEvent.MetadataJson))).ToList();
+            PrettyJson(auditEvent.MetadataJson), ReadCommerceDetails(auditEvent.MetadataJson))).ToList();
     }
 
     private static string ResolveUser(
@@ -135,6 +148,29 @@ public sealed class AuditLogModel : PageModel
         return users.TryGetValue(userId, out var displayName)
             ? $"{displayName} ({userId})"
             : userId;
+    }
+
+    private static IReadOnlyList<KeyValuePair<string, string>> ReadCommerceDetails(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return [];
+        try
+        {
+            using var document = JsonDocument.Parse(json);
+            if (document.RootElement.ValueKind != JsonValueKind.Object) return [];
+            var labels = new (string Key, string Label)[]
+            {
+                ("stage", "Stage"), ("checkoutStatus", "Checkout status"), ("checkoutAttemptId", "Checkout attempt"),
+                ("expectedAmountMinorUnits", "Expected total (minor units)"), ("stripeEventType", "Stripe callback type"), ("paymentStatus", "Payment status"), ("fulfillmentStatus", "Delivery status at this event"), ("productName", "Product"),
+                ("productId", "Product ID"), ("customerEmail", "Purchaser email"), ("userId", "Purchaser account"),
+                ("amountTotalMinorUnits", "Amount total (minor units)"), ("currency", "Currency"), ("quantity", "Quantity"),
+                ("stripeSessionId", "Checkout session"), ("stripePaymentIntentId", "Stripe payment"), ("stripeEventId", "Stripe event"),
+                ("environment", "Payment environment"), ("failureCode", "Failure code"), ("actionRequired", "Action required"),
+                ("notificationId", "Notification ID"), ("recipientEmail", "Notification recipient"), ("notificationAttempt", "Notification attempt")
+            };
+            return labels.Where(item => document.RootElement.TryGetProperty(item.Key, out var value) && value.ValueKind != JsonValueKind.Null)
+                .Select(item => KeyValuePair.Create(item.Label, document.RootElement.GetProperty(item.Key).ToString())).ToList();
+        }
+        catch (JsonException) { return []; }
     }
 
     private static string? PrettyJson(string? json)
@@ -170,5 +206,10 @@ public sealed class AuditLogModel : PageModel
         string? RequestPath,
         string? IpAddress,
         string? UserAgent,
-        string? Metadata);
+        string? Metadata,
+        IReadOnlyList<KeyValuePair<string, string>> CommerceDetails)
+    {
+        public string? CheckoutReference => CommerceDetails.FirstOrDefault(item => item.Key == "Checkout attempt").Value ?? CheckoutSessionId;
+        public string? CheckoutSessionId => CommerceDetails.FirstOrDefault(item => item.Key == "Checkout session").Value;
+    }
 }

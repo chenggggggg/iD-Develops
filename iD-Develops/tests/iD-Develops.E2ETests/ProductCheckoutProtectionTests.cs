@@ -29,6 +29,9 @@ public sealed class ProductCheckoutProtectionTests : Microsoft.Playwright.Xunit.
             var attempt = await db.CatalogCheckoutAttempts.SingleAsync(row => row.CatalogProductId == fixture.Standard.Id);
             Assert.NotNull(attempt.CompletedAtUtc);
             Assert.Equal(1, await db.ProductFormSubmissions.CountAsync(row => row.FormName == fixture.Standard.Name));
+            Assert.Equal(1, await db.ApplicationAuditEvents.CountAsync(row => row.EventType == iD_Develops.Services.ApplicationAuditEventTypes.PaymentConfirmed && row.EntityId == attempt.StripeSessionId));
+            Assert.Equal(1, await db.ApplicationAuditEvents.CountAsync(row => row.EventType == iD_Develops.Services.ApplicationAuditEventTypes.PurchaseCompleted &&
+                EF.Functions.JsonContains(row.MetadataJson!, System.Text.Json.JsonSerializer.Serialize(new { stripeSessionId = attempt.StripeSessionId }))));
             Assert.Equal(2, await db.CatalogCheckoutMails.CountAsync(row => row.StripeSessionId == attempt.StripeSessionId));
         }
         finally { await CleanupAsync(fixture); }
@@ -94,11 +97,64 @@ public sealed class ProductCheckoutProtectionTests : Microsoft.Playwright.Xunit.
         }
     }
 
+    [Fact]
+    public async Task SuperAdminCanFindAndInspectPaymentAndDeliveryFromCheckout()
+    {
+        await using var fixture = await PaidProductAsync();
+        try
+        {
+            await OpenAsync(fixture);
+            await Page.GetByLabel("Your email", new() { Exact = true }).FillAsync(fixture.User.Email!);
+            await PublicProductSubmissionPacing.ReserveAsync();
+            await Page.Locator("#product-submit-form button[type=submit]").ClickAsync();
+            await Expect(Page).ToHaveURLAsync(new Regex("/payment-result[?].*local=true"));
+            await using var db = LocalTestApplication.CreateDbContext();
+            var attempt = await db.CatalogCheckoutAttempts.SingleAsync(row => row.CatalogProductId == fixture.Standard.Id);
+            var role = await db.Roles.SingleAsync(row => row.NormalizedName == "SUPERADMIN");
+            db.UserRoles.Add(new Microsoft.AspNetCore.Identity.IdentityUserRole<string> { UserId = fixture.User.Id, RoleId = role.Id });
+            await db.SaveChangesAsync();
+            var path = "/admin/audit-log";
+            await Page.GotoAsync($"{LocalTestApplication.PortalBaseUrl}/login?returnUrl={Uri.EscapeDataString(path)}");
+            await Page.GetByLabel("E-mail").FillAsync(fixture.User.Email!);
+            await Page.GetByLabel("Password", new() { Exact = true }).FillAsync(fixture.Password);
+            await Page.GetByRole(AriaRole.Button, new() { Name = "Log in", Exact = true }).ClickAsync();
+            await Page.WaitForURLAsync($"{LocalTestApplication.PortalBaseUrl}{path}");
+            await Page.GetByLabel("Search", new() { Exact = true }).FillAsync(attempt.StripeSessionId!);
+            await Page.GetByRole(AriaRole.Button, new() { Name = "Filter", Exact = true }).ClickAsync();
+            Assert.Equal(attempt.StripeSessionId, Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(new Uri(Page.Url).Query)["q"].ToString());
+            await Expect(Page.GetByText("Payment confirmed; product delivery is tracked separately.", new() { Exact = true })).ToBeVisibleAsync();
+            var delivered = Page.Locator("details").Filter(new() { HasText = "Product delivered; confirmation emails are queued separately." });
+            await Expect(delivered).ToHaveCountAsync(1);
+            await delivered.Locator("summary").ClickAsync();
+            var details = delivered.GetByRole(AriaRole.Region, new() { Name = "Payment and delivery details" });
+            await Expect(details).ToBeVisibleAsync();
+            await Expect(details.GetByText(fixture.Standard.Name, new() { Exact = true })).ToBeVisibleAsync();
+            await Expect(details.GetByText("Completed", new() { Exact = true })).ToBeVisibleAsync();
+            await Expect(details.GetByText("Local simulation", new() { Exact = true })).ToBeVisibleAsync();
+            await Expect(details.GetByText(attempt.StripeSessionId!, new() { Exact = true })).ToBeVisibleAsync();
+            await details.GetByRole(AriaRole.Link, new() { Name = "View related checkout events" }).ClickAsync();
+            await Expect(Page.GetByRole(AriaRole.Combobox, new() { Name = "Category", Exact = true })).ToHaveValueAsync("Commerce");
+            await Expect(Page.GetByLabel("Search", new() { Exact = true })).ToHaveValueAsync(attempt.Id.ToString());
+            await Expect(Page.GetByText("Application requested checkout; payment is not confirmed.", new() { Exact = true })).ToBeVisibleAsync();
+            await Expect(Page.GetByText("Application received a checkout response; payment is not confirmed.", new() { Exact = true })).ToBeVisibleAsync();
+            // Searching by payer email also finds the fulfillment record via JSON metadata.
+            await Page.GetByLabel("Search", new() { Exact = true }).FillAsync(fixture.User.Email!);
+            await Page.GetByRole(AriaRole.Button, new() { Name = "Filter", Exact = true }).ClickAsync();
+            Assert.Equal(fixture.User.Email, Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(new Uri(Page.Url).Query)["q"].ToString());
+            await Expect(Page.GetByText("Product delivered; confirmation emails are queued separately.", new() { Exact = true })).ToBeVisibleAsync();
+        }
+        finally { await CleanupAsync(fixture); }
+    }
+
     private static async Task CleanupAsync(CatalogBrowsingFixture fixture)
     {
         await using var cleanup = LocalTestApplication.CreateDbContext();
         var sessions = await cleanup.CatalogCheckoutAttempts.Where(row => row.CatalogProductId == fixture.Standard.Id)
             .Select(row => row.StripeSessionId).ToListAsync();
+        var productId = fixture.Standard.Id.ToString();
+        var attemptId = await cleanup.CatalogCheckoutAttempts.Where(row => row.CatalogProductId == fixture.Standard.Id).Select(row => row.Id.ToString()).FirstOrDefaultAsync();
+        await cleanup.ApplicationAuditEvents.Where(row => row.EntityType == "CheckoutSession" && (sessions.Contains(row.EntityId) || row.EntityId == "attempt:" + attemptId) ||
+            row.EntityType == nameof(CatalogProduct) && row.EntityId == productId || row.SubjectUserId == fixture.User.Id).ExecuteDeleteAsync();
         await cleanup.CatalogCheckoutMails.Where(row => sessions.Contains(row.StripeSessionId)).ExecuteDeleteAsync();
         await cleanup.CatalogCheckoutReceipts.Where(row => sessions.Contains(row.StripeSessionId)).ExecuteDeleteAsync();
         await cleanup.ProductFormSubmissions.Where(row => row.FormName == fixture.Standard.Name).ExecuteDeleteAsync();

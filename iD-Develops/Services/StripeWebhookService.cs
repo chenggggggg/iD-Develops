@@ -11,7 +11,7 @@ namespace iD_Develops.Services;
 
 public sealed class StripeWebhookService(ILogger<StripeWebhookService> logger, IOptions<StripeSettings> settings,
     CatalogCheckoutFulfillmentService fulfillment, CatalogProductAccessService accessService,
-    ApplicationDbContext db, IApplicationAuditService audit) : IStripeWebhookService
+    ApplicationDbContext db, CatalogCheckoutAuditService checkoutAudit) : IStripeWebhookService
 {
     public async Task<IResult> CheckoutCompletedAsync(HttpRequest request)
     {
@@ -39,12 +39,14 @@ public sealed class StripeWebhookService(ILogger<StripeWebhookService> logger, I
         {
             if (stripeEvent.Type is EventTypes.CheckoutSessionCompleted or EventTypes.CheckoutSessionAsyncPaymentSucceeded)
             {
-                var complete = await fulfillment.CompleteAsync(session, request.HttpContext.RequestAborted);
+                await checkoutAudit.CallbackReceivedAsync(session, stripeEvent.Id, stripeEvent.Type, request.HttpContext.RequestAborted);
+                var complete = await fulfillment.CompleteAsync(session, request.HttpContext.RequestAborted, stripeEvent.Id);
                 return Results.Json(new { status = complete ? "success" : "payment_pending" });
             }
             if (stripeEvent.Type is EventTypes.CheckoutSessionAsyncPaymentFailed or EventTypes.CheckoutSessionExpired)
             {
-                if (await db.CatalogCheckoutReceipts.AnyAsync(row => row.StripeSessionId == session.Id))
+                await checkoutAudit.CallbackReceivedAsync(session, stripeEvent.Id, stripeEvent.Type, request.HttpContext.RequestAborted);
+                if (!await checkoutAudit.ObservePaymentAsync(session, stripeEvent.Id, stripeEvent.Type, request.HttpContext.RequestAborted))
                     return Results.Json(new { status = "already_completed" });
                 int? inviteUseId = null;
                 if (session.Metadata.TryGetValue("checkout_attempt_id", out var raw) && Guid.TryParse(raw, out var id))
@@ -60,13 +62,6 @@ public sealed class StripeWebhookService(ILogger<StripeWebhookService> logger, I
                 else if (int.TryParse(session.Metadata.GetValueOrDefault("invite_use_id"), out var legacyId))
                     inviteUseId = legacyId;
                 if (inviteUseId.HasValue) await accessService.CancelInviteUseAsync(inviteUseId.Value);
-                await audit.RecordAsync(new ApplicationAuditEntry(ApplicationAuditEventTypes.PurchaseFailed,
-                    AuditEventCategory.Commerce, AuditEventOutcome.Failure,
-                    stripeEvent.Type == EventTypes.CheckoutSessionExpired
-                        ? "Checkout session expired before payment completed." : "Checkout payment failed.",
-                    EntityType: nameof(CatalogProduct), EntityId: session.Metadata.GetValueOrDefault("catalog_product_id"),
-                    Metadata: new Dictionary<string, object?> { ["stripeEventId"] = stripeEvent.Id, ["stripeSessionId"] = session.Id },
-                    DeduplicationKey: $"stripe:{stripeEvent.Id}:purchase-failed"), request.HttpContext.RequestAborted);
                 return Results.Json(new { status = "payment_not_completed" });
             }
             return Results.Json(new { status = "ignored" });

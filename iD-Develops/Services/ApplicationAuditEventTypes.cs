@@ -5,6 +5,15 @@ public static class ApplicationAuditEventTypes
     public const string LoginSucceeded = "authentication.login.succeeded";
     public const string LoginFailed = "authentication.login.failed";
     public const string Logout = "authentication.logout";
+    public const string CheckoutRequested = "commerce.checkout.requested";
+    public const string CheckoutResponseReceived = "commerce.checkout.response_received";
+    public const string CheckoutBrowserReturned = "commerce.checkout.browser_returned";
+    public const string CheckoutCallbackReceived = "commerce.checkout.callback_received";
+    public const string PaymentConfirmed = "commerce.payment.confirmed";
+    public const string PaymentPending = "commerce.payment.pending";
+    public const string FulfillmentFailed = "commerce.fulfillment.failed";
+    public const string NotificationAccepted = "commerce.notification.accepted";
+    public const string NotificationFailed = "commerce.notification.failed";
     public const string PurchaseCompleted = "commerce.purchase.completed";
     public const string PurchaseFailed = "commerce.purchase.failed";
     public const string CheckoutSessionCreationFailed = "commerce.checkout.session_creation_failed";

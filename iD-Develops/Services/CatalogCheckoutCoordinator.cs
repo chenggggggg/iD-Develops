@@ -11,7 +11,7 @@ namespace iD_Develops.Services;
 
 public sealed class CatalogCheckoutCoordinator(ApplicationDbContext db, ICatalogCheckoutService checkout,
     IStripeCheckoutClient stripe, CatalogProductAccessService accessService, IWebHostEnvironment environment,
-    CatalogCheckoutFulfillmentService fulfillment, IApplicationUrlService urls, IApplicationAuditService audit)
+    CatalogCheckoutFulfillmentService fulfillment, IApplicationUrlService urls, CatalogCheckoutAuditService checkoutAudit)
 {
     public async Task<string> StartAsync(HttpContext context, CatalogProduct product, CatalogProductVariant variant,
         Guid requestId, Dictionary<string, string> values, string? email, int quantity, int participants,
@@ -54,7 +54,11 @@ public sealed class CatalogCheckoutCoordinator(ApplicationDbContext db, ICatalog
         if (!string.IsNullOrEmpty(attempt?.StripeSessionId))
         {
             var session = await stripe.GetAsync(attempt.StripeSessionId, ct);
-            if (session.Status == "open" && !string.IsNullOrEmpty(session.Url)) return session.Url;
+            if (session.Status == "open" && !string.IsNullOrEmpty(session.Url))
+            {
+                await checkoutAudit.CheckoutAsync(attempt, product.Name, "Response received", false, ct);
+                return session.Url;
+            }
             if (session.Status == "complete")
                 return $"{urls.PublicBaseUrl}/payment-processing?session_id={Uri.EscapeDataString(session.Id)}";
             throw new InvalidOperationException("This checkout has expired. Please submit the form again to start a new checkout.");
@@ -90,11 +94,13 @@ public sealed class CatalogCheckoutCoordinator(ApplicationDbContext db, ICatalog
             db.CatalogCheckoutAttempts.Add(attempt);
             await db.SaveChangesAsync(ct);
         }
+        await checkoutAudit.CheckoutAsync(attempt, product.Name, "Requested", environment.IsEnvironment("Local"), ct);
         context.Items[typeof(CatalogCheckoutAttempt)] = attempt;
         if (environment.IsEnvironment("Local"))
         {
             attempt.StripeSessionId = "local_" + attempt.Id.ToString("N");
             await db.SaveChangesAsync(ct);
+            await checkoutAudit.CheckoutAsync(attempt, product.Name, "Response received", true, ct);
             await fulfillment.CompleteAsync(new Session
             {
                 Id = attempt.StripeSessionId,
@@ -115,15 +121,12 @@ public sealed class CatalogCheckoutCoordinator(ApplicationDbContext db, ICatalog
         catch (Exception exception)
         {
             // Keep the attempt and its reservation: Stripe may have created the session before a connection failure.
-            await audit.RecordAsync(new ApplicationAuditEntry(ApplicationAuditEventTypes.CheckoutSessionCreationFailed,
-                iD_Develops.Enums.AuditEventCategory.Commerce, iD_Develops.Enums.AuditEventOutcome.Failure,
-                "Checkout session could not be created.", SubjectUserId: userId,
-                EntityType: nameof(CatalogProduct), EntityId: product.Id.ToString(),
-                Metadata: new Dictionary<string, object?> { ["exceptionType"] = exception.GetType().Name }), ct);
+            await checkoutAudit.CheckoutAsync(attempt, product.Name, "Request failed", false, ct, exception);
             throw;
         }
         attempt.CheckoutUrl = result;
         await db.SaveChangesAsync(ct);
+        await checkoutAudit.CheckoutAsync(attempt, product.Name, "Response received", false, ct);
         return result;
     }
 

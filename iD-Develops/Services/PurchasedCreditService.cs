@@ -29,15 +29,6 @@ namespace iD_Develops.Services
             if (string.IsNullOrWhiteSpace(externalReference))
                 return;
 
-            var user = await FindUserAsync(authenticatedUserId, customerEmail, cancellationToken);
-            if (user == null)
-            {
-                _logger.LogWarning(
-                    "Credits for product {ProductId} were not granted because the purchaser account could not be found.",
-                    catalogProductId);
-                return;
-            }
-
             var includedCreditProductIds = await _dbContext.CatalogProductIncludedCreditProducts
                 .AsNoTracking()
                 .Where(inclusion => inclusion.CatalogProductId == catalogProductId)
@@ -51,6 +42,13 @@ namespace iD_Develops.Services
                 .ToListAsync(cancellationToken);
             if (grants.Count == 0)
                 return;
+
+            var user = await FindUserAsync(authenticatedUserId, customerEmail, cancellationToken);
+            if (user == null)
+            {
+                _logger.LogWarning("Credit purchase {ExternalReference} has no eligible purchaser account.", externalReference);
+                throw new CatalogFulfillmentException("purchaser_missing", "No purchaser account matched the credit purchase. Reconcile the account before retrying delivery.");
+            }
 
             var existingGrantIds = await _dbContext.UserCreditLots
                 .AsNoTracking()

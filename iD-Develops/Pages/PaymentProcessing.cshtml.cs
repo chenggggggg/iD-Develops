@@ -7,10 +7,12 @@ namespace iD_Develops.Pages
     public class PaymentProcessingModel : PageModel
     {
         private readonly IStripeService _stripeService;
+        private readonly CatalogCheckoutAuditService _audit;
 
-        public PaymentProcessingModel(IStripeService stripeService)
+        public PaymentProcessingModel(IStripeService stripeService, CatalogCheckoutAuditService audit)
         {
             _stripeService = stripeService;
+            _audit = audit;
         }
 
         public async Task<IActionResult> OnGetAsync([FromQuery(Name = "session_id")] string? sessionId)
@@ -20,6 +22,7 @@ namespace iD_Develops.Pages
                 return RedirectToPage("/PaymentResult", new { status = "cancelled" });
             }
 
+            await _audit.BrowserReturnedAsync(sessionId, HttpContext.RequestAborted);
             var details = await _stripeService.GetCheckoutSessionDetailsAsync(sessionId);
             if (details == null || !details.IsSessionValid)
             {
