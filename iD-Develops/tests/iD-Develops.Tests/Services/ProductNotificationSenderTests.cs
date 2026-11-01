@@ -33,7 +33,8 @@ public sealed class ProductNotificationSenderTests
         await db.CatalogCheckoutMails.ExecuteUpdateAsync(update => update
             .SetProperty(mail => mail.Attempts, 2).SetProperty(mail => mail.NextAttemptAtUtc, DateTime.UtcNow.AddMinutes(-1)));
         var transport = new SenderCheckingTransport(settings.Value.From!, expectedSender);
-        var dispatcher = new CatalogCheckoutMailDispatcher(db, transport, settings, NullLogger<CatalogCheckoutMailDispatcher>.Instance);
+        var dispatcher = new CatalogCheckoutMailDispatcher(db, transport, settings, NullLogger<CatalogCheckoutMailDispatcher>.Instance,
+            new CatalogCheckoutAuditService(factory.Options, new Microsoft.AspNetCore.Http.HttpContextAccessor()));
         await dispatcher.DispatchAsync(default);
         await dispatcher.DispatchAsync(default);
         Assert.Equal(2, transport.Deliveries.Count);

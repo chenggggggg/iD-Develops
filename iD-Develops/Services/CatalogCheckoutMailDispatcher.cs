@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 namespace iD_Develops.Services;
 
 public sealed class CatalogCheckoutMailDispatcher(ApplicationDbContext db, IMailService mail,
-    IOptions<MailSettings> settings, ILogger<CatalogCheckoutMailDispatcher> logger)
+    IOptions<MailSettings> settings, ILogger<CatalogCheckoutMailDispatcher> logger, CatalogCheckoutAuditService checkoutAudit)
 {
     public async Task DispatchAsync(CancellationToken ct)
     {
@@ -34,6 +34,7 @@ public sealed class CatalogCheckoutMailDispatcher(ApplicationDbContext db, IMail
                     notification.Recipient, notification.Subject, settings.Value.ContactEmail, ct: timeout.Token,
                     idempotencyKey: $"product-notification/{notification.Id:N}");
                 if (!result.Success) throw new InvalidOperationException("Checkout notification delivery failed.");
+                await checkoutAudit.NotificationAsync(notification, true, null, ct);
                 await db.CatalogCheckoutMails.Where(row => row.Id == id && row.LeaseId == lease).ExecuteUpdateAsync(update => update
                     .SetProperty(row => row.SentAtUtc, DateTime.UtcNow)
                     .SetProperty(row => row.ModelJson, string.Empty)
@@ -41,6 +42,7 @@ public sealed class CatalogCheckoutMailDispatcher(ApplicationDbContext db, IMail
             }
             catch (Exception exception) when (!ct.IsCancellationRequested)
             {
+                await checkoutAudit.NotificationAsync(notification, false, exception, ct);
                 logger.LogWarning(exception, "Queued product notification {NotificationId} failed; delivery will be retried.", id);
                 await db.CatalogCheckoutMails.Where(row => row.Id == id && row.LeaseId == lease).ExecuteUpdateAsync(update => update
                     .SetProperty(row => row.Attempts, row => row.Attempts + 1)

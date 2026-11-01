@@ -9,14 +9,16 @@ namespace iD_Develops.Pages
     public class PaymentResultModel : PageModel
     {
         private readonly IStripeService _stripeService;
+        private readonly CatalogCheckoutAuditService _audit;
         private readonly IStringLocalizer<PaymentResultModel> _localizer;
 
         public PaymentResultModel(
             IStripeService stripeService,
-            IStringLocalizer<PaymentResultModel> localizer)
+            IStringLocalizer<PaymentResultModel> localizer, CatalogCheckoutAuditService audit)
         {
             _stripeService = stripeService;
             _localizer = localizer;
+            _audit = audit;
         }
 
         public CheckoutSessionDetails SessionDetails { get; private set; } = new();
@@ -56,6 +58,7 @@ namespace iD_Develops.Pages
 
             if (!string.IsNullOrWhiteSpace(sessionId))
             {
+                await _audit.BrowserReturnedAsync(sessionId, HttpContext.RequestAborted);
                 var details = await _stripeService.GetCheckoutSessionDetailsAsync(sessionId);
                 if (details?.IsSessionValid == true)
                 {

@@ -270,6 +270,54 @@ References: [Sending API](https://resend.com/docs/api-reference/emails/send-emai
 [API keys](https://resend.com/docs/dashboard/api-keys/introduction), and
 [idempotency](https://resend.com/docs/dashboard/emails/idempotency-keys).
 
+## Payment auditing and reconciliation
+
+The SuperAdmin audit log at the portal's /admin/audit-log records payment confirmation,
+product fulfillment, and notification outcomes separately. Application-side checkout
+requests, received checkout responses, browser returns, and verified callbacks are also
+recorded and correlated by checkout attempt. These are observations made by this app,
+not a copy of Stripe internal logs. A missing return means no return was observed; it
+does not establish whether the customer left, the network failed, or Stripe failed. Select Commerce or search by
+an exact Stripe Checkout Session, PaymentIntent, event reference, or purchaser email.
+Expand an event for product/purchaser details, amount in currency minor units, environment,
+and delivery failure guidance. 'View related checkout events' groups that session's history.
+Historical event statuses describe the state at their timestamps, not a replacement for
+checking the latest successful delivery event and Stripe's own payment record.
+
+- A verified payment observation commits independently before product delivery starts.
+  A rollback cannot erase that evidence. Failure to persist the observation fails the
+  webhook with HTTP 500 so Stripe can retry before application grants are made.
+- Product delivery success and its audit record commit with the order, course/credit
+  grants, and queued confirmations. Missing purchaser accounts do not count as delivery.
+- Delivery failures remain visible beside the confirmed payment. Correct the underlying
+  issue, then resend the corresponding event in Stripe; receipt/session deduplication
+  prevents duplicate grants and submissions.
+- Pending payments, failed payments, and expired checkouts are separate from delivery
+  failures. A late negative event cannot overwrite already recorded payment confirmation.
+- Notification acceptance/failure is tracked independently. Provider acceptance is not
+  proof of inbox placement, and an email failure does not undo product access.
+- Local checkout simulations and Stripe test-mode events are labeled. Zero-total
+  checkouts explicitly state that no payment was required.
+- Audit metadata includes reconciliation references, not checkout form answers, card
+  details, API secrets, or webhook bodies. Access remains SuperAdmin-only.
+
+Use the existing Stripe endpoint at the configured public app's /api/stripe-webhook
+(for staging: https://staging.id-develops.com/api/stripe-webhook). Confirm the destination's
+signing secret matches Stripe__WebhookSecret and that these existing supported event
+subscriptions are enabled: checkout.session.completed,
+checkout.session.async_payment_succeeded, checkout.session.async_payment_failed, and
+checkout.session.expired. Inspect the destination delivery status when expected records
+are missing. Endpoint configuration or a failed/missing delivery cannot be diagnosed from
+an empty application audit table alone.
+
+No new environment variables or database migration are required for this audit update.
+It does not backfill pre-deployment payments or repair orders previously marked completed
+without their expected access. Reconcile those against Stripe and the existing order/access
+records before taking a recovery action; do not create a second purchase to repair one.
+
+Reference: [Stripe fulfillment](https://docs.stripe.com/checkout/fulfillment) and
+[webhook delivery behavior](https://docs.stripe.com/webhooks).
+
 ## Browser Regression Tests
 
 Run Playwright against the existing local application on `id.localhost:5000` and

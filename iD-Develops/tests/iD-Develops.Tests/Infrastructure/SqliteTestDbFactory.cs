@@ -14,6 +14,8 @@ internal sealed class SqliteTestDbFactory : IDisposable
         _connection.Open();
     }
 
+    public DbContextOptions<ApplicationDbContext> Options => new DbContextOptionsBuilder<ApplicationDbContext>().UseSqlite(_connection).Options;
+
     public ApplicationDbContext CreateDbContext(Action<DbContextOptionsBuilder<ApplicationDbContext>>? configure = null)
     {
         var builder = new DbContextOptionsBuilder<ApplicationDbContext>()
