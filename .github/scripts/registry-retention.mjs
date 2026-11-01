@@ -58,20 +58,47 @@ export function readConfig(env) {
 
 function normalizeManifests(manifests) {
   const digests = new Set();
-  const tags = new Set();
-  return manifests.map(manifest => {
-    const imageTags = manifest.tags ?? [];
-    if (!digestPattern.test(manifest.digest) || digests.has(manifest.digest) ||
-        !Array.isArray(imageTags) || imageTags.some(tag => typeof tag !== 'string' || !tagPattern.test(tag)) ||
-        !Number.isFinite(Date.parse(manifest.updated_at))) {
-      throw new Error('Registry returned invalid or duplicate manifest metadata; cleanup stopped.');
+  const tagOwners = new Map();
+  return manifests.map((manifest, index) => {
+    const entry = `Registry manifest entry ${index + 1}`;
+    if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest)) {
+      throw new Error(`${entry} is not an object; cleanup stopped.`);
+    }
+    if (typeof manifest.digest !== 'string' || !digestPattern.test(manifest.digest)) {
+      throw new Error(`${entry} has an invalid digest (expected sha256 and 64 lowercase hexadecimal characters); cleanup stopped.`);
+    }
+    const image = `${entry} (${manifest.digest})`;
+    if (digests.has(manifest.digest)) {
+      throw new Error(`${image} repeats a manifest digest; inventory may have changed during pagination; cleanup stopped.`);
+    }
+    const rawTags = manifest.tags ?? [];
+    if (!Array.isArray(rawTags)) {
+      throw new Error(`${image} has invalid tags (expected an array); cleanup stopped.`);
+    }
+    // DOCR can return [""] for an untagged image. Mixed empty/nonempty tags
+    // remain invalid: dropping an unknown tag could hide a retention pin.
+    const imageTags = rawTags.every(tag => tag === '') ? [] : rawTags;
+    const invalidTag = imageTags.findIndex(tag => typeof tag !== 'string' || !tagPattern.test(tag));
+    if (invalidTag !== -1) {
+      throw new Error(`${image} has an invalid tag at position ${invalidTag + 1}; cleanup stopped.`);
+    }
+    // The API documents updated_at as optional. Unknown age can never authorize deletion.
+    const missingUpdateTime = manifest.updated_at === undefined || manifest.updated_at === null || manifest.updated_at === '';
+    if (!missingUpdateTime && (typeof manifest.updated_at !== 'string' || !Number.isFinite(Date.parse(manifest.updated_at)))) {
+      throw new Error(`${image} has invalid updated_at (expected a date-time string); cleanup stopped.`);
     }
     digests.add(manifest.digest);
     for (const tag of imageTags) {
-      if (tags.has(tag)) throw new Error('Registry tags changed during pagination; cleanup stopped.');
-      tags.add(tag);
+      const owner = tagOwners.get(tag);
+      if (owner === manifest.digest) {
+        throw new Error(`${image} repeats a tag within its tags array; cleanup stopped.`);
+      }
+      if (owner) {
+        throw new Error(`Registry tags changed during pagination: a tag belongs to both ${owner} and ${manifest.digest}; cleanup stopped.`);
+      }
+      tagOwners.set(tag, manifest.digest);
     }
-    return { digest: manifest.digest, tags: [...imageTags].sort(), updatedAt: manifest.updated_at };
+    return { digest: manifest.digest, tags: [...imageTags].sort(), updatedAt: missingUpdateTime ? null : manifest.updated_at };
   });
 }
 
@@ -94,13 +121,18 @@ export function buildPlan(manifests, { currentSha, deployedVersions, successfulV
   }
 
   let candidates = 0;
-  return images.sort((a, b) => Date.parse(a.updatedAt) - Date.parse(b.updatedAt)).map(image => {
+  return images.sort((a, b) => {
+    if (a.updatedAt === null) return b.updatedAt === null ? 0 : 1;
+    if (b.updatedAt === null) return -1;
+    return Date.parse(a.updatedAt) - Date.parse(b.updatedAt);
+  }).map(image => {
     const reasons = [];
     if (protectedDigests.has(image.digest)) reasons.push('currently deployed');
     if (rollbackDigests.has(image.digest)) reasons.push('successful rollback version');
     if (image.tags.some(tag => !shaPattern.test(tag))) reasons.push('named tag (environment, release, or manual pin)');
     if (image.tags.length === 0) reasons.push('untagged image: ownership unknown');
-    if (Date.parse(image.updatedAt) >= now.getTime() - graceDays * day) reasons.push('within seven-day grace period');
+    if (image.updatedAt === null) reasons.push('update time unavailable: age unknown');
+    else if (Date.parse(image.updatedAt) >= now.getTime() - graceDays * day) reasons.push('within seven-day grace period');
     if (reasons.length) return { ...image, action: 'keep', reasons };
     candidates += 1;
     return { ...image, action: candidates <= batchSize ? 'delete' : 'defer', reasons: ['obsolete commit image', ...(candidates > batchSize ? ['twenty-image batch limit'] : [])] };
@@ -129,7 +161,7 @@ async function listManifests(config, fetchImpl) {
   const manifests = [];
   for (let page = 1; page <= 100; page += 1) {
     const data = await request(fetchImpl, `${manifestsUrl(config)}?per_page=100&page=${page}`, config.digitalOceanToken);
-    if (!Array.isArray(data.manifests)) throw new Error('Registry manifest response is incomplete.');
+    if (!data || !Array.isArray(data.manifests)) throw new Error('Registry manifest response is incomplete.');
     manifests.push(...data.manifests);
     if (!data.links?.pages?.next && data.manifests.length < 100) {
       if (data.meta?.total !== undefined && data.meta.total !== manifests.length) {
@@ -184,7 +216,7 @@ function fingerprint(manifests, versions) {
 export function renderReport(report) {
   const lines = [
     '## Container image retention', '',
-    `Mode: **${report.mode}**. Keep deployed images, three available successful rollback versions, named tags, and images updated within seven days. Delete at most twenty obsolete commit images per run.`, '',
+    `Mode: **${report.mode}**. Keep deployed images, three available successful rollback versions, named tags, images updated within seven days, and images with an unknown update time. Delete at most twenty obsolete commit images per run.`, '',
   ];
   if (!report.inventoryConfigured) {
     lines.push('Report uses staging only. Before enabling deletion, configure REGISTRY_RETENTION_VERSION_URLS with every environment using this repository.', '');
@@ -193,7 +225,7 @@ export function renderReport(report) {
   lines.push('| Digest | Tags | Updated (UTC) | Decision | Reason |', '| --- | --- | --- | --- | --- |');
   for (const image of report.images) {
     const decision = image.action === 'delete' ? (report.mode === 'report' ? 'Would delete' : 'Not deleted') : image.action;
-    lines.push(`| ${image.digest} | ${image.tags.join(', ') || '(none)'} | ${image.updatedAt} | ${decision} | ${image.reasons.join('; ')} |`);
+    lines.push(`| ${image.digest} | ${image.tags.join(', ') || '(none)'} | ${image.updatedAt ?? '(unknown)'} | ${decision} | ${image.reasons.join('; ')} |`);
   }
   lines.push('', 'Deleting a manifest makes only its unreferenced layers eligible for garbage collection; shared layers remain. This workflow does not run registry-wide garbage collection.', '');
   return lines.join('\n');

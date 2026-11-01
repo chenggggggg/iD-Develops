@@ -31,7 +31,11 @@ examined. A manifest is retained if any of these conditions apply:
 - It has any non-commit tag, including `staging`, `production`, a release name,
   or a manual pin such as `keep-2026-10`. All tags on a digest protect that image.
 - It was updated within the last seven days, including the exact boundary.
+- Its update timestamp is absent, null, or empty. Its age is unknown, so it is
+  retained and reported with an unknown update time.
 - It is untagged. Its ownership is unknown, so this policy leaves it alone.
+  DigitalOcean's all-empty tag placeholders (for example, `[""]`) are treated as
+  an empty tag list and retained as untagged images.
 
 Only old manifests whose tags are **all full 40-character lowercase Git hashes**
 can be removed. Each run selects at most twenty, oldest first. Additional
@@ -79,6 +83,36 @@ All workflows or operators that push, roll back, or deploy from this repository
 must coordinate with the same `staging` concurrency group (or pause apply during
 external changes). The recheck reduces races but is not a lock on external
 DigitalOcean operations. Do not run manual registry changes during apply.
+
+## Metadata validation failures
+
+DigitalOcean can return `tags: [""]` for an untagged image. All-empty tag lists
+are normalized to untagged images and retained. Mixed empty/nonempty tags,
+whitespace tags, null tag entries, and other malformed tags still stop cleanup;
+ignoring an incomplete tag could hide a manual retention pin.
+
+The registry API documents `updated_at` as optional. Missing timestamps are
+reported as unknown and always retained; no image age is inferred from its tag,
+list position, or another image's timestamp. Invalid nonempty timestamps still
+stop cleanup, as do invalid digests/tags and duplicate digests or tags.
+
+Validation errors identify the inventory entry, the field, and the digest when
+it is valid. Invalid field values and raw provider responses are not logged.
+For example, a duplicate-digest error means the inventory contains the same image
+more than once, possibly because it changed during pagination. It does not mean
+the registry is full or that the application deployment failed.
+
+Inspect the workflow error and retention report before deleting any images. With
+an authenticated local `doctl`, a read-only inventory can be obtained using:
+
+```bash
+doctl registry repository list-manifests <repository> --registry <registry> --output json
+```
+
+Do not enable `apply` to troubleshoot metadata. Report mode uses the same
+validation and makes no deletion requests. A persistent error includes enough
+context to investigate the affected entry without dumping credentials or
+disabling inventory checks.
 
 ## Garbage collection
 
