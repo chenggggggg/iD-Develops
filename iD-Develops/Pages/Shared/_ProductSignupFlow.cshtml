@@ -1,0 +1,142 @@
+@using iD_Develops.Models
+@using iD_Develops.Pages
+@model ProductModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<ProductModel> Localizer
+@{
+    var posted = Context.Request.HasFormContentType;
+    var personalErrors = ViewData.ModelState.Any(entry => entry.Key.StartsWith("Signup.") && entry.Value?.Errors.Count > 0);
+    var initialStep = !posted ? 0 : personalErrors ? 1 : 2;
+}
+@if (Model.SignupCompleted)
+{
+    <div class="mx-auto max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm sm:p-10" data-signup-confirmation>
+        <i class="fa-solid fa-circle-check text-4xl text-emerald-600" aria-hidden="true"></i>
+        <h1 class="mt-5 text-3xl font-bold">@Localizer["SignupConfirmationTitle"]</h1>
+        <p class="mt-3 text-lg">@Localizer["SignupConfirmationMessage"]</p>
+        <p class="mt-2 break-words font-semibold">@Model.Product.Name</p>
+        <a class="public-btn public-btn-outline mt-6" asp-page="/Product" asp-route-culture="@System.Globalization.CultureInfo.CurrentCulture.Name.ToLowerInvariant()" asp-route-slug="@Model.Product.Slug" asp-route-access="@Model.AccessToken">@Localizer["SignupReturnAction"]</a>
+    </div>
+}
+else
+{
+    <div data-signup-flow data-initial-step="@initialStep">
+        <nav class="mx-auto mb-8 max-w-3xl" aria-label="@Localizer["SignupProgressLabel"]">
+            <ol class="m-0 grid list-none grid-cols-3 gap-2 p-0 text-center text-sm sm:gap-4">
+                @for (var step = 0; step < 3; step++)
+                {
+                    <li class="min-w-0 border-b-2 border-slate-200 px-1 pb-3" data-signup-progress="@step" aria-current="@(initialStep == step ? "step" : null)">
+                        <span class="block font-bold">@(step + 1)</span>
+                        <span>@Localizer[step == 0 ? "SignupProductStep" : step == 1 ? "SignupPersonalDetailsTitle" : "SignupQuestionsTitle"]</span>
+                    </li>
+                }
+            </ol>
+        </nav>
+        <section data-signup-step="0" hidden="@(initialStep != 0)" aria-labelledby="signup-product-title">
+            <div class="grid items-start gap-8 lg:grid-cols-2">
+                <div class="min-w-0">
+                    <h1 id="signup-product-title" class="product-page-title break-words" tabindex="-1">@Model.Product.Name</h1>
+                    @if (!string.IsNullOrWhiteSpace(Model.Product.Summary))
+                    {
+                        <div class="product-page-summary mt-4">@Html.Raw(Model.Product.Summary)</div>
+                    }
+                    <div class="product-inline-description mt-6">
+                        @Html.Raw(Model.Product.Description)
+                        @Html.Raw(Model.Product.FullDescriptionHtml)
+                    </div>
+                </div>
+                <div class="min-w-0 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                    @if (!string.IsNullOrWhiteSpace(Model.ResolvedImageUrl))
+                    {
+                        <img src="@Model.ResolvedImageUrl" alt="@Model.Product.Name" class="mb-6 max-h-96 w-full rounded-xl object-cover" />
+                    }
+                    <partial name="_CatalogPrice" model="Model.Product" />
+                    <button type="button" class="public-btn public-btn-primary mt-4 w-full active:scale-[0.98]" data-signup-go="1" disabled="@(!Model.CanTakeAction)">
+                        @Localizer["SignupAction"] <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+        <form method="post" id="product-submit-form" class="mx-auto max-w-3xl" novalidate hidden="@(initialStep == 0)">
+            <input type="hidden" asp-for="CheckoutRequestId" />
+            <input type="hidden" name="access" value="@Model.AccessToken" />
+            <section data-signup-step="1" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8" hidden="@(initialStep != 1)" aria-labelledby="signup-details-title">
+                <h1 id="signup-details-title" class="text-3xl font-bold" tabindex="-1">@Localizer["SignupPersonalDetailsTitle"]</h1>
+                <p class="mt-2 text-slate-600">@Localizer["SignupRequiredHelp"]</p>
+                <div class="mt-6 space-y-5">
+                    <div>
+                        <label class="public-label" asp-for="Signup.FullName">@Localizer["SignupFullNameLabel"]</label>
+                        <input class="public-field" asp-for="Signup.FullName" autocomplete="name" maxlength="200" required />
+                        <span asp-validation-for="Signup.FullName" class="mt-1 block text-sm text-red-700"></span>
+                    </div>
+                    <div>
+                        <label class="public-label" asp-for="Signup.Email">@Localizer["SignupEmailLabel"]</label>
+                        <input class="public-field" asp-for="Signup.Email" type="email" autocomplete="email" maxlength="254" required />
+                        <span asp-validation-for="Signup.Email" class="mt-1 block text-sm text-red-700"></span>
+                    </div>
+                </div>
+                <div class="mt-5 grid gap-5 sm:grid-cols-2">
+                    <div>
+                        <label class="public-label" asp-for="Signup.Phone">@Localizer["SignupPhoneLabel"] <span class="font-normal text-slate-500">(@Localizer["SignupOptionalLabel"])</span></label>
+                        <input class="public-field" asp-for="Signup.Phone" type="tel" autocomplete="tel" maxlength="50" />
+                        <span asp-validation-for="Signup.Phone" class="mt-1 block text-sm text-red-700"></span>
+                    </div>
+                    <div>
+                        <label class="public-label" asp-for="Signup.StreetAddress">@Localizer["SignupStreetAddressLabel"] <span class="font-normal text-slate-500">(@Localizer["SignupOptionalLabel"])</span></label>
+                        <input class="public-field" asp-for="Signup.StreetAddress" type="text" autocomplete="street-address" maxlength="200" />
+                        <span asp-validation-for="Signup.StreetAddress" class="mt-1 block text-sm text-red-700"></span>
+                    </div>
+                    <div>
+                        <label class="public-label" asp-for="Signup.PostalCode">@Localizer["SignupPostalCodeLabel"] <span class="font-normal text-slate-500">(@Localizer["SignupOptionalLabel"])</span></label>
+                        <input class="public-field" asp-for="Signup.PostalCode" type="text" autocomplete="postal-code" maxlength="20" />
+                        <span asp-validation-for="Signup.PostalCode" class="mt-1 block text-sm text-red-700"></span>
+                    </div>
+                    <div>
+                        <label class="public-label" asp-for="Signup.City">@Localizer["SignupCityLabel"] <span class="font-normal text-slate-500">(@Localizer["SignupOptionalLabel"])</span></label>
+                        <input class="public-field" asp-for="Signup.City" type="text" autocomplete="address-level2" maxlength="100" />
+                        <span asp-validation-for="Signup.City" class="mt-1 block text-sm text-red-700"></span>
+                    </div>
+                    <div>
+                        <label class="public-label" asp-for="Signup.Country">@Localizer["SignupCountryLabel"] <span class="font-normal text-slate-500">(@Localizer["SignupOptionalLabel"])</span></label>
+                        <input class="public-field" asp-for="Signup.Country" type="text" autocomplete="country-name" maxlength="100" />
+                        <span asp-validation-for="Signup.Country" class="mt-1 block text-sm text-red-700"></span>
+                    </div>
+                </div>
+                <div class="mt-8 flex flex-wrap items-center justify-between gap-3">
+                    <button type="button" class="public-btn public-btn-outline" data-signup-go="0">@Localizer["SignupBackAction"]</button>
+                    <button type="button" class="public-btn public-btn-primary active:scale-[0.98]" data-signup-continue>@Localizer["SignupContinueAction"] <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+                </div>
+            </section>
+            <section data-signup-step="2" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8" hidden="@(initialStep != 2)" aria-labelledby="signup-questions-title">
+                <h1 id="signup-questions-title" class="text-3xl font-bold" tabindex="-1">@Localizer["SignupQuestionsTitle"]</h1>
+                <p class="mt-2 text-slate-600">@Localizer["SignupQuestionsHelp"]</p>
+                <div class="mt-6 space-y-5">
+                    @if (Model.SignupQuestions.Any(field => field.FieldType != iD_Develops.Enums.CatalogFormFieldType.Note))
+                    {
+                        ViewData["SignupQuestions"] = true;
+                        <partial name="_ProductQuestions" model="Model.SignupQuestions" />
+                    }
+                    else
+                    {
+                        @if (Model.SignupQuestions.Count > 0)
+                        {
+                            <partial name="_ProductQuestions" model="Model.SignupQuestions" />
+                        }
+                        <p>@Localizer["SignupNoQuestions"]</p>
+                    }
+                    @if (!Model.IsPreviewMode && Model.CanTakeAction)
+                    {
+                        <partial name="_Turnstile" />
+                    }
+                </div>
+                <div class="mt-8 flex flex-wrap items-center justify-between gap-3">
+                    <button type="button" class="public-btn public-btn-outline" data-signup-go="1">@Localizer["SignupBackAction"]</button>
+                    <button type="submit" class="public-btn public-btn-primary active:scale-[0.98]" disabled="@(Model.IsPreviewMode || !Model.CanTakeAction)">
+                        <span data-signup-spinner class="hidden h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent motion-reduce:animate-none" aria-hidden="true"></span>
+                        @Localizer["SignupAction"] <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </section>
+        </form>
+        <noscript><p class="public-alert public-alert-warning mt-4">@Localizer["SignupJavascriptRequired"]</p></noscript>
+    </div>
+}

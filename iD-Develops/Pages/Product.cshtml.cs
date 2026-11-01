@@ -63,6 +63,15 @@ namespace iD_Develops.Pages
         [BindProperty]
         public Guid CheckoutRequestId { get; set; } = Guid.NewGuid();
 
+        [BindProperty]
+        [Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ValidateNever]
+        public SignupPersonalDetails Signup { get; set; } = new();
+
+        public bool SignupCompleted { get; private set; }
+        public IReadOnlyList<CatalogProductFormField> SignupQuestions => Product.FormFields
+            .Where(question => !SignupPersonalDetails.IsPersonalField(question))
+            .OrderBy(question => question.SortOrder).ThenBy(question => question.Label).ToList();
+
         public CatalogProduct Product { get; private set; } = null!;
         public int OrderQuantity { get; private set; } = 1;
         public int ParticipantCount { get; private set; } = 1;
@@ -105,6 +114,7 @@ namespace iD_Develops.Pages
             bool resumeCheckout = false,
             string? portalAccess = null,
             bool preview = false,
+            string? signupReceipt = null,
             CancellationToken ct = default)
         {
             ContentCulture = CatalogContentCulture.Normalize(ContentCulture);
@@ -177,6 +187,10 @@ namespace iD_Develops.Pages
                 return await ResumePendingCheckoutAsync(product, access, handoff.UserId, ct);
             }
 
+            SignupCompleted = product.ProductType == CatalogProductType.Signup &&
+                !string.IsNullOrEmpty(signupReceipt) &&
+                string.Equals(TempData.Peek($"Catalog.SignupConfirmation.{product.Id}") as string,
+                    signupReceipt, StringComparison.Ordinal);
             return Page();
         }
 
@@ -205,6 +219,22 @@ namespace iD_Develops.Pages
 
             var submittedValues = CollectSubmittedValues(product, ParticipantCount);
             submittedValues["order_quantity"] = OrderQuantity.ToString();
+            if (product.ProductType == CatalogProductType.Signup)
+            {
+                Signup.Normalize();
+                if (!SignupPersonalDetails.IsValidName(Signup.FullName))
+                    ModelState.AddModelError("Signup.FullName", _localizer["SignupNameError"]);
+                if (!SignupPersonalDetails.IsValidEmail(Signup.Email))
+                    ModelState.AddModelError("Signup.Email", _localizer["SignupEmailError"]);
+                var personalValues = Signup.ToValues();
+                foreach (var optionalField in SignupPersonalDetails.OptionalFields)
+                {
+                    if (!SignupPersonalDetails.IsValidOptionalValue(personalValues[optionalField.Key], optionalField.MaxLength))
+                        ModelState.AddModelError("Signup." + optionalField.Property,
+                            _localizer["SignupOptionalFieldError", _localizer[optionalField.LabelKey], optionalField.MaxLength]);
+                }
+                foreach (var value in personalValues) submittedValues[value.Key] = value.Value;
+            }
             var customerEmail = ResolveCustomerEmail(product, submittedValues);
             CatalogProductInvite? invite = null;
 
@@ -225,6 +255,11 @@ namespace iD_Develops.Pages
 
             ValidateFormBuilder(EditInput.FormFields);
             if (!ModelState.IsValid) return Page();
+            if (product.ProductType == CatalogProductType.Signup && !_catalogProductSubmissionService.SignupNotificationsConfigured)
+            {
+                ModelState.AddModelError(string.Empty, _localizer["SignupUnavailableError"]);
+                return Page();
+            }
             if (!IsPreviewMode && product.WorkflowType != CatalogWorkflowType.FormThenStripeCheckout)
                 await _turnstileService.ValidateAsync(HttpContext, ModelState, ct);
             if (!ModelState.IsValid) return Page();
@@ -311,6 +346,12 @@ namespace iD_Develops.Pages
                 return Redirect(product.ExternalBookingUrl);
             }
 
+            if (product.ProductType == CatalogProductType.Signup)
+            {
+                var receipt = Guid.NewGuid().ToString("N");
+                TempData[$"Catalog.SignupConfirmation.{product.Id}"] = receipt;
+                return RedirectToPage(new { slug = product.Slug, access, signupReceipt = receipt });
+            }
             TempData["StatusMessage"] = _localizer["SubmissionReceivedMessage"].Value;
             return RedirectToPage(new { slug = product.Slug, access });
         }
@@ -710,6 +751,15 @@ namespace iD_Develops.Pages
 
         private void ValidateProductSave(CatalogProduct product, CatalogProductStatus requestedStatus)
         {
+            if (product.ProductType == CatalogProductType.Signup && EditInput.FormFields.Any(question =>
+                    SignupPersonalDetails.IsPersonalField(new CatalogProductFormField
+                    {
+                        Key = question.Key,
+                        Label = question.Label ?? string.Empty,
+                        FieldType = question.FieldType
+                    })))
+                ModelState.AddModelError(string.Empty, _localizer["SignupFixedFieldsHelp"]);
+
             try
             {
                 CatalogPricing.ValidateDiscount(new CatalogProduct
@@ -749,11 +799,6 @@ namespace iD_Develops.Pages
                 ModelState.AddModelError(nameof(EditInput.ExternalBookingUrl), "Add a valid Koalendar URL before publishing.");
             }
 
-            if (product.ProductType == CatalogProductType.Signup &&
-                !EditInput.FormFields.Any(IsRealSignupInput))
-            {
-                ModelState.AddModelError(string.Empty, "Add at least one signup form input before publishing.");
-            }
 
         }
 
@@ -801,10 +846,6 @@ namespace iD_Develops.Pages
                                              !string.IsNullOrWhiteSpace(f.HelpText) ||
                                              !string.IsNullOrWhiteSpace(f.OptionsText));
 
-        private static bool IsRealSignupInput(ProductFormFieldInput field)
-            => field.FieldType != CatalogFormFieldType.Note &&
-               !string.IsNullOrWhiteSpace(field.Label);
-
         private static bool IsValidKoalendarUrl(string? value)
             => Uri.TryCreate(value, UriKind.Absolute, out var uri) &&
                (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps) &&
@@ -823,11 +864,6 @@ namespace iD_Develops.Pages
                 ModelState.AddModelError(string.Empty, "Add a valid Koalendar URL before publishing.");
             }
 
-            if (product.ProductType == CatalogProductType.Signup &&
-                !product.FormFields.Any(f => f.FieldType != CatalogFormFieldType.Note && !string.IsNullOrWhiteSpace(f.Label)))
-            {
-                ModelState.AddModelError(string.Empty, "Add at least one signup form input before publishing.");
-            }
         }
 
         public async Task<IActionResult> OnPostCreateImageUploadAsync(string slug, string fileName, string? contentType, long fileSize, CancellationToken ct)
@@ -933,7 +969,8 @@ namespace iD_Develops.Pages
                 .Select(f => f.Id)
                 .ToHashSet();
 
-            foreach (var existing in product.FormFields.Where(f => !submittedIds.Contains(f.Id)).ToList())
+            foreach (var existing in product.FormFields.Where(f => !submittedIds.Contains(f.Id) &&
+                         (product.ProductType != CatalogProductType.Signup || !SignupPersonalDetails.IsPersonalField(f))).ToList())
             {
                 await _catalogProductService.DeleteFieldAsync(product.Id, existing.Id, ct);
             }
@@ -1127,7 +1164,9 @@ namespace iD_Develops.Pages
         {
             var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-            foreach (var field in product.FormFields.OrderBy(f => f.SortOrder).ThenBy(f => f.Label))
+            foreach (var field in product.FormFields
+                         .Where(field => product.ProductType != CatalogProductType.Signup || !SignupPersonalDetails.IsPersonalField(field))
+                         .OrderBy(f => f.SortOrder).ThenBy(f => f.Label))
             {
                 var requestKey = GetFieldName(field, null);
                 var value = ReadFieldValue(field, requestKey);
@@ -1210,6 +1249,8 @@ namespace iD_Develops.Pages
 
         private string? ResolveCustomerEmail(CatalogProduct product, IDictionary<string, string> submittedValues)
         {
+            if (product.ProductType == CatalogProductType.Signup)
+                return submittedValues.TryGetValue(SignupPersonalDetails.EmailKey, out var signupEmail) ? signupEmail : null;
             var emailField = product.FormFields
                 .OrderBy(f => f.SortOrder)
                 .FirstOrDefault(f => f.FieldType == CatalogFormFieldType.Email);
@@ -1317,6 +1358,7 @@ namespace iD_Develops.Pages
                     .Select(inclusion => inclusion.IncludedCreditProductId)
                     .ToList(),
                 FormFields = product.FormFields
+                    .Where(field => product.ProductType != CatalogProductType.Signup || !SignupPersonalDetails.IsPersonalField(field))
                     .OrderBy(f => f.SortOrder)
                     .ThenBy(f => f.Label)
                     .Select(f => new ProductFormFieldInput
