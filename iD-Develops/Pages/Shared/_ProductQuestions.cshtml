@@ -1,0 +1,110 @@
+@using iD_Develops.Enums
+@using iD_Develops.Models
+@using iD_Develops.Pages
+@model IReadOnlyList<CatalogProductFormField>
+@inject Microsoft.Extensions.Localization.IStringLocalizer<ProductModel> Localizer
+@{
+    var submittedForm = Context.Request.HasFormContentType ? Context.Request.Form : Microsoft.AspNetCore.Http.FormCollection.Empty;
+}
+@foreach (var field in Model)
+{
+    <div class="public-form-row product-customer-field" data-required-question="@((ViewData["SignupQuestions"] is true && field.IsRequired).ToString().ToLowerInvariant())" data-required-message="@Localizer["RequiredFieldError", field.Label]">
+        <label class="public-label" for="@ProductModel.GetFieldName(field, null)">@field.Label</label>
+        @if (!string.IsNullOrWhiteSpace(field.HelpText))
+        {
+            <div class="product-help-text">@field.HelpText</div>
+        }
+        @switch (field.FieldType)
+        {
+            case CatalogFormFieldType.Note:
+                <div class="product-form-note">
+                    @if (!string.IsNullOrWhiteSpace(field.HelpText))
+                    {
+                        @field.HelpText
+                    }
+                    else
+                    {
+                        @field.Label
+                    }
+                </div>
+                break;
+            case CatalogFormFieldType.Textarea:
+                <textarea class="public-field"
+                          id="@ProductModel.GetFieldName(field, null)"
+                          name="@ProductModel.GetFieldName(field, null)"
+                          placeholder="@field.Placeholder"
+                          maxlength="@field.CharacterLimit"
+                          rows="4">@submittedForm[ProductModel.GetFieldName(field, null)]</textarea>
+                break;
+            case CatalogFormFieldType.Select:
+                <select class="public-field" id="@ProductModel.GetFieldName(field, null)" name="@ProductModel.GetFieldName(field, null)">
+                    <option value="">@Localizer["SelectOption"]</option>
+                    @foreach (var option in field.Options)
+                    {
+                        if (submittedForm[ProductModel.GetFieldName(field, null)] == option)
+                        {
+                            <option value="@option" selected>@option</option>
+                        }
+                        else
+                        {
+                            <option value="@option">@option</option>
+                        }
+                    }
+                </select>
+                break;
+            case CatalogFormFieldType.Checkbox:
+                <div class="product-checkbox-option-group">
+                    @for (var optionIndex = 0; optionIndex < field.Options.Count; optionIndex++)
+                    {
+                        var parts = field.Options[optionIndex].Split('\t');
+                        var optionKind = parts.Length > 0 ? parts[0] : "plain";
+                        var optionLabel = parts.Length > 1 ? parts[1] : field.Options[optionIndex];
+                        var optionLimit = parts.Length > 2 ? parts[2] : null;
+                        var optionName = field.AllowMultipleOptions ? $"{ProductModel.GetFieldName(field, null)}_{optionIndex}" : ProductModel.GetFieldName(field, null);
+                        var optionId = $"{ProductModel.GetFieldName(field, null)}_{optionIndex}";
+                        var optionInputType = field.AllowMultipleOptions ? "checkbox" : "radio";
+                        var optionChecked = submittedForm[optionName] == optionLabel || submittedForm[optionName] == "on";
+                        <div class="product-checkbox-with-text">
+                            <label class="product-check">
+                                <input class="product-check-input" type="@optionInputType" id="@optionId" name="@optionName" value="@optionLabel" @(optionChecked ? "checked" : null) />
+                                <span>@optionLabel</span>
+                            </label>
+                            @if (optionKind == "text")
+                            {
+                                <input class="public-field" type="text" name="@(optionId)_text" value="@submittedForm[$"{optionId}_text"]" maxlength="@optionLimit" placeholder="@Localizer["SpecifyPlaceholder"]" />
+                            }
+                        </div>
+                    }
+                </div>
+                break;
+            case CatalogFormFieldType.NumberedList:
+                <ol class="product-numbered-input-list">
+                    @for (var optionIndex = 0; optionIndex < Math.Max(2, field.ListItemCount ?? 2); optionIndex++)
+                    {
+                        var optionLabel = Localizer["ItemFormat", optionIndex + 1];
+                        var optionName = $"{ProductModel.GetFieldName(field, null)}_{optionIndex}";
+                        <li>
+                            <label class="product-visually-hidden" for="@optionName">@optionLabel</label>
+                            <input class="public-field" id="@optionName" name="@optionName" value="@submittedForm[optionName]" placeholder="@optionLabel" />
+                        </li>
+                    }
+                </ol>
+                break;
+            default:
+                var inputType = field.FieldType switch
+                {
+                    CatalogFormFieldType.Email => "email",
+                    CatalogFormFieldType.Tel => "tel",
+                    _ => "text"
+                };
+                <input class="public-field"
+                       type="@inputType"
+                       id="@ProductModel.GetFieldName(field, null)"
+                       name="@ProductModel.GetFieldName(field, null)"
+                       value="@submittedForm[ProductModel.GetFieldName(field, null)]"
+                       placeholder="@field.Placeholder" />
+                break;
+        }
+        @Html.ValidationMessage(ProductModel.GetFieldName(field, null), null, new { @class = "mt-1 block text-sm text-red-700" })
+    </div>
+}

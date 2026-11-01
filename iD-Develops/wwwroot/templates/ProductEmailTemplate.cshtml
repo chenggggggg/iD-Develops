@@ -23,6 +23,39 @@
         <div class="content-container" style="padding: 20px;">
             @Html.Raw(Model.IntroHtml)
 
+            @if (!string.IsNullOrWhiteSpace(Model.CustomerName))
+            {
+                <p><strong>Name:</strong> @Model.CustomerName</p>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.CustomerEmail))
+            {
+                <p><strong>Email:</strong> <a href="mailto:@Model.CustomerEmail">@Model.CustomerEmail</a></p>
+            }
+
+            @if (Model.PersonalDetails is { } details)
+            {
+                @if (!string.IsNullOrWhiteSpace(details.Phone))
+                {
+                    <p><strong>Phone:</strong> @details.Phone</p>
+                }
+                @if (!string.IsNullOrWhiteSpace(details.StreetAddress))
+                {
+                    <p><strong>Street address:</strong> @details.StreetAddress</p>
+                }
+                @if (!string.IsNullOrWhiteSpace(details.PostalCode))
+                {
+                    <p><strong>Postal code:</strong> @details.PostalCode</p>
+                }
+                @if (!string.IsNullOrWhiteSpace(details.City))
+                {
+                    <p><strong>City:</strong> @details.City</p>
+                }
+                @if (!string.IsNullOrWhiteSpace(details.Country))
+                {
+                    <p><strong>Country:</strong> @details.Country</p>
+                }
+            }
+
             <p style="text-align: left;"><strong>Quantity:</strong> @Model.OrderQuantity</p>
             <p style="text-align: left;"><strong>Participants:</strong> @Model.ParticipantCount</p>
 

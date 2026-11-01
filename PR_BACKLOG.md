@@ -1,6 +1,6 @@
 ﻿# Planned PR backlog
 
-Updated: 2026-10-31
+Updated: 2026-11-01
 
 This is the combined planning backlog from the staging review and owner meeting.
 B01-B20 are planning IDs, not GitHub PR numbers. Priorities are proposed implementation
@@ -35,7 +35,7 @@ work without changing its size. Estimates may change after a focused investigati
 | B06 | Large | Product configuration and checkout requirements, versioned exam entitlements, payment fulfillment retries, assignment visibility, and end-to-end coverage. |
 | B07 | Medium | Date/timezone queries, filtering, bounded result loading, table details, and browser regressions on an existing page. |
 | B08 | Medium | Shared progress components/scripts, portal navigation behavior, public navigation cleanup, and duplicate-submit/retry browser checks. |
-| B09 | Medium | Separate public form step, navigation/data preservation, localization, accessibility, and protected signup/checkout regressions. |
+| B09 | Large | Separate product/contact/question steps, required contact identity, optional phone/address details, atomic notification queuing, and protected public/editor/preview regressions. |
 | B10 | Medium | Results layout/data presentation plus completion imagery and responsive checks; reuse the existing immutable exam data. |
 | B11 | Large | Restructure several calendar management workflows across roles and screen sizes while preserving complex scheduling behavior. |
 | B12 | Large | Application-wide theme/semantic discovery and shared-component standardization; deliver implementation as smaller coherent PRs rather than one broad rewrite. |
@@ -238,19 +238,21 @@ Previously saved loading-UI PR, expanded for all scheduling actions.
 
 Dependencies: coordinate shared component conventions with B12 without blocking urgent fixes.
 
-## B09 - P1 - Product signup as a separate form step
+## B09 - P1 - Signup steps and contact notifications
 
-**Estimated size: Medium.** Separate public form step, navigation/data preservation, localization, accessibility, and protected signup/checkout regressions.
+**Estimated size: Large.** Expanded signup workflow with built-in personal details and mandatory notifications.
 
-Previously saved product flow PR.
+Status: completed and merged in [PR #40](https://github.com/chenggggggg/iD-Develops/pull/40).
 
-- Initial public CTA is 'Sign up'; it opens a dedicated form step/page.
-- Form submission uses a clear action such as 'Submit application'.
-- Preserve validated data while moving between steps and keep existing anti-abuse,
-  consent, checkout draft, and submission deduplication behavior appropriate to product type.
-- Apply existing localized public styling and accessible navigation/focus handling.
+- Product details -> required full name/email -> custom questions -> confirmation screen.
+- Phone, street address, postal code, city, and country are optional built-in fields.
+- Save the submission and queue both customer and company notifications atomically;
+  include contact information explicitly in the company notification.
+- Preserve legacy submission data, protect against duplicate submissions, and share the
+  signup flow with Portal previews while disabling preview submission.
+- Preserve localized public styling and accessible validation, navigation, and focus.
 
-Dependencies: existing checkout/signup protection; coordinate B14's editable labels.
+B14's editable product button labels remain a separate planned PR.
 
 ## B10 - P1 - Exam results and completion-page refresh
 

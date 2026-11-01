@@ -31,4 +31,32 @@
   <data name="CustomPrice" xml:space="preserve"><value>Prijs op maat</value></data>
   <data name="FeesLabel" xml:space="preserve"><value>Kosten</value></data>
   <data name="VatLabel" xml:space="preserve"><value>Btw</value></data>
+  <data name="SignupAction" xml:space="preserve"><value>Aanmelden</value></data>
+  <data name="SignupPersonalDetailsTitle" xml:space="preserve"><value>Persoonlijke gegevens</value></data>
+  <data name="SignupQuestionsTitle" xml:space="preserve"><value>Aanmeldformulier</value></data>
+  <data name="SignupProductStep" xml:space="preserve"><value>Product</value></data>
+  <data name="SignupContinueAction" xml:space="preserve"><value>Doorgaan</value></data>
+  <data name="SignupBackAction" xml:space="preserve"><value>Terug</value></data>
+  <data name="SignupFullNameLabel" xml:space="preserve"><value>Volledige naam</value></data>
+  <data name="SignupEmailLabel" xml:space="preserve"><value>E-mailadres</value></data>
+  <data name="SignupRequiredHelp" xml:space="preserve"><value>Volledige naam en e-mailadres zijn verplicht zodat we contact met je kunnen opnemen. Telefoonnummer en adres zijn optioneel.</value></data>
+  <data name="SignupQuestionsHelp" xml:space="preserve"><value>Beantwoord de vragen hieronder om je aanmelding af te ronden.</value></data>
+  <data name="SignupNoQuestions" xml:space="preserve"><value>Geen aanvullende vragen. Je kunt je aanmelding nu afronden.</value></data>
+  <data name="SignupConfirmationTitle" xml:space="preserve"><value>Je bent aangemeld!</value></data>
+  <data name="SignupConfirmationMessage" xml:space="preserve"><value>Bedankt. We hebben je gegevens ontvangen.</value></data>
+  <data name="SignupReturnAction" xml:space="preserve"><value>Terug naar product</value></data>
+  <data name="SignupNameError" xml:space="preserve"><value>Vul je volledige naam in (maximaal 200 tekens).</value></data>
+  <data name="SignupEmailError" xml:space="preserve"><value>Vul een geldig e-mailadres in.</value></data>
+  <data name="SignupUnavailableError" xml:space="preserve"><value>Aanmelden is tijdelijk niet beschikbaar. Probeer het later opnieuw.</value></data>
+  <data name="SignupEditorHelp" xml:space="preserve"><value>Voeg de vragen toe die gebruikers na hun persoonlijke gegevens beantwoorden.</value></data>
+  <data name="SignupFixedFieldsHelp" xml:space="preserve"><value>Volledige naam en e-mailadres zijn altijd verplicht. Telefoonnummer en adres zijn inbegrepen als optionele velden. Voeg hieronder alleen aanvullende vragen toe; bestaande inzendingen blijven bewaard.</value></data>
+  <data name="SignupJavascriptRequired" xml:space="preserve"><value>Schakel JavaScript in om je aanmelding af te ronden.</value></data>
+  <data name="SignupProgressLabel" xml:space="preserve"><value>Voortgang aanmelding</value></data>
+  <data name="SignupPhoneLabel" xml:space="preserve"><value>Telefoonnummer</value></data>
+  <data name="SignupStreetAddressLabel" xml:space="preserve"><value>Straat en huisnummer</value></data>
+  <data name="SignupPostalCodeLabel" xml:space="preserve"><value>Postcode</value></data>
+  <data name="SignupCityLabel" xml:space="preserve"><value>Woonplaats</value></data>
+  <data name="SignupCountryLabel" xml:space="preserve"><value>Land</value></data>
+  <data name="SignupOptionalLabel" xml:space="preserve"><value>optioneel</value></data>
+  <data name="SignupOptionalFieldError" xml:space="preserve"><value>{0}: gebruik maximaal {1} tekens en een enkele regel.</value></data>
 </root>

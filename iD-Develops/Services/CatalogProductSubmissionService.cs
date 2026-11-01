@@ -1,3 +1,4 @@
+using iD_Develops.Enums;
 using iD_Develops.Configuration;
 using iD_Develops.Models;
 using iD_Develops.Utilities;
@@ -21,6 +22,8 @@ namespace iD_Develops.Services
             _emailBrandingFactory = emailBrandingFactory;
         }
 
+        public bool SignupNotificationsConfigured => SignupPersonalDetails.IsValidEmail(_mailSettings.Value.To?.Trim());
+
         public async Task SubmitAsync(
             CatalogProduct product,
             IDictionary<string, string> submittedValues,
@@ -31,6 +34,18 @@ namespace iD_Develops.Services
             CancellationToken ct = default,
             string? requestKey = null)
         {
+            if (product.ProductType == CatalogProductType.Signup)
+            {
+                if (!submittedValues.TryGetValue(SignupPersonalDetails.FullNameKey, out var name) ||
+                    !SignupPersonalDetails.IsValidName(name) || !SignupPersonalDetails.IsValidEmail(customerEmail) ||
+                    !submittedValues.TryGetValue(SignupPersonalDetails.EmailKey, out var email) || email != customerEmail)
+                    throw new ArgumentException("Signup requires a valid full name and email address.");
+                if (SignupPersonalDetails.OptionalFields.Any(item =>
+                        submittedValues.TryGetValue(item.Key, out var value) && !SignupPersonalDetails.IsValidOptionalValue(value, item.MaxLength)))
+                    throw new ArgumentException("Signup personal details contain an invalid value.");
+                if (!SignupNotificationsConfigured)
+                    throw new InvalidOperationException("Signup requires a configured company notification recipient.");
+            }
             requestKey ??= Guid.NewGuid().ToString("N");
             var notifications = CreateCheckoutNotifications(product, submittedValues, customerEmail, orderQuantity,
                 participantCount, baseUrl, "signup:" + requestKey).ToArray();
@@ -65,7 +80,12 @@ namespace iD_Develops.Services
             var model = new CatalogProductSubmissionEmailModel
             {
                 Product = new CatalogProduct { Name = product.Name },
-                SubmittedValues = new Dictionary<string, string>(submittedValues),
+                SubmittedValues = submittedValues.Where(value => product.ProductType != CatalogProductType.Signup ||
+                        !SignupPersonalDetails.IsPersonalKey(value.Key))
+                    .ToDictionary(value => value.Key, value => value.Value),
+                CustomerEmail = customerEmail,
+                PersonalDetails = product.ProductType == CatalogProductType.Signup ? SignupPersonalDetails.FromValues(submittedValues) : null,
+                CustomerName = submittedValues.TryGetValue(SignupPersonalDetails.FullNameKey, out var fullName) ? fullName : null,
                 OrderQuantity = orderQuantity,
                 ParticipantCount = participantCount,
                 IntroHtml = string.IsNullOrWhiteSpace(product.OwnerNotificationBodyHtml)
@@ -75,7 +95,7 @@ namespace iD_Develops.Services
             };
             var emailDefaults = CatalogProductEditorOptions.GetDefaultEmailDefaults(product.ProductType);
 
-            var ownerRecipient = _mailSettings.Value.To;
+            var ownerRecipient = _mailSettings.Value.To?.Trim();
             if (!string.IsNullOrWhiteSpace(ownerRecipient))
             {
                 yield return Notification(ownerRecipient, string.IsNullOrWhiteSpace(product.OwnerNotificationSubject)
@@ -84,7 +104,8 @@ namespace iD_Develops.Services
 
             if (!string.IsNullOrWhiteSpace(customerEmail))
             {
-                model.IntroHtml = product.ConfirmationEmailBodyHtml ?? BuildDefaultCustomerIntro(product);
+                model.IntroHtml = string.IsNullOrWhiteSpace(product.ConfirmationEmailBodyHtml)
+                    ? BuildDefaultCustomerIntro(product) : product.ConfirmationEmailBodyHtml;
                 yield return Notification(customerEmail, string.IsNullOrWhiteSpace(product.ConfirmationEmailSubject)
                     ? emailDefaults.CustomerSubject : product.ConfirmationEmailSubject);
             }
@@ -100,13 +121,13 @@ namespace iD_Develops.Services
 
         private static string BuildDefaultCustomerIntro(CatalogProduct product)
         {
-            return $"<p>Thank you for your submission for <strong>{product.Name}</strong>.</p>" +
+            return $"<p>Thank you for your submission for <strong>{System.Net.WebUtility.HtmlEncode(product.Name)}</strong>.</p>" +
                    "<p>We have received your details and will get back to you shortly.</p>";
         }
 
         private static string BuildDefaultOwnerIntro(CatalogProduct product)
         {
-            return $"<p>A new submission was received for <strong>{product.Name}</strong>.</p>" +
+            return $"<p>A new submission was received for <strong>{System.Net.WebUtility.HtmlEncode(product.Name)}</strong>.</p>" +
                    "<p>The details are included below.</p>";
         }
     }
