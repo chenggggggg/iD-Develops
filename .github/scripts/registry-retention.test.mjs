@@ -103,6 +103,23 @@ test('retains named release tags, unknown tags, and untagged images even when ol
   assert.equal(plan.every(image => image.action === 'keep'), true);
 });
 
+test('DigitalOcean empty-string tag placeholders are retained as untagged images', () => {
+  const plan = buildPlan([manifest(10), manifest(1, ['']), manifest(2, ['', ''])], options());
+  for (const number of [1, 2]) {
+    const image = plan.find(row => row.digest === digest(number));
+    assert.deepEqual(image.tags, []);
+    assert.equal(image.action, 'keep');
+    assert.ok(image.reasons.includes('untagged image: ownership unknown'));
+  }
+  assert.match(renderReport({ mode: 'report', inventoryConfigured: true, images: plan }), /\(none\)/);
+});
+
+test('mixed empty/nonempty tags, whitespace and null tag entries remain invalid', () => {
+  for (const tags of [['', sha(1)], [sha(1), ''], [' '], [null]]) {
+    assert.throws(() => buildPlan([manifest(10), manifest(1, tags)], options()), /invalid tag at position/);
+  }
+});
+
 test('grace period includes its boundary and future timestamps', () => {
   const input = [manifest(10), manifest(1, [sha(1)], '2026-10-13T10:00:00Z'),
     manifest(2, [sha(2)], '2026-10-13T09:59:59Z'), manifest(3, [sha(3)], '2026-10-21T00:00:00Z')];
@@ -125,6 +142,62 @@ test('unknown deployed versions and incomplete, malformed or duplicate inventory
   ]) assert.throws(() => buildPlan([...images(), invalid], options()));
 });
 
+for (const [name, updatedAt] of [['omitted', undefined], ['null', null], ['empty', '']]) {
+  test(`retains manifests with ${name} update times without guessing their age`, () => {
+    const plan = buildPlan([
+      { ...manifest(10), updated_at: updatedAt },
+      { ...manifest(1), updated_at: updatedAt }, manifest(2),
+    ], options());
+    const unknown = plan.find(image => image.digest === digest(1));
+    assert.equal(unknown.action, 'keep');
+    assert.equal(unknown.updatedAt, null);
+    assert.ok(unknown.reasons.includes('update time unavailable: age unknown'));
+    assert.equal(plan.find(image => image.digest === digest(10)).action, 'keep');
+    assert.deepEqual(plan.filter(image => image.action === 'delete').map(image => image.digest), [digest(2)]);
+    const report = renderReport({ mode: 'report', inventoryConfigured: true, images: plan });
+    assert.match(report, /\(unknown\)/);
+    assert.match(report, /age unknown/);
+  });
+}
+
+test('metadata errors identify the entry, valid digest and field without echoing invalid provider values', () => {
+  const privateValue = 'private-provider-value\nnot-for-logs';
+  const invalid = [
+    [null, /entry 2 is not an object/],
+    [{ ...manifest(1), digest: privateValue }, /entry 2 has an invalid digest/],
+    [{ ...manifest(1), tags: privateValue }, /entry 2 .* has invalid tags/],
+    [{ ...manifest(1), tags: [privateValue] }, /entry 2 .* invalid tag at position 1/],
+    [{ ...manifest(1), tags: [42] }, /invalid tag at position 1/],
+    [{ ...manifest(1), updated_at: privateValue }, /entry 2 .* invalid updated_at/],
+    [{ ...manifest(1), updated_at: 0 }, /invalid updated_at/],
+    [{ ...manifest(1), updated_at: true }, /invalid updated_at/],
+    [{ ...manifest(1), updated_at: [] }, /invalid updated_at/],
+  ];
+  for (const [image, expected] of invalid) {
+    assert.throws(() => buildPlan([manifest(10), image], options()), error => {
+      assert.match(error.message, expected);
+      if (image?.digest === digest(1)) assert.ok(error.message.includes(digest(1)));
+      assert.equal(error.message.includes(privateValue), false);
+      return true;
+    });
+  }
+});
+
+test('duplicate digests and tags remain fatal and identify the affected manifests', () => {
+  assert.throws(() => buildPlan([manifest(10), manifest(10)], options()), error => {
+    assert.match(error.message, /entry 2 .* repeats a manifest digest/);
+    assert.ok(error.message.includes(digest(10)));
+    return true;
+  });
+  assert.throws(() => buildPlan([manifest(10), manifest(1, [sha(1), sha(1)])], options()), /repeats a tag within its tags array/);
+  assert.throws(() => buildPlan([manifest(10), manifest(1, [currentSha])], options()), error => {
+    assert.match(error.message, /tags changed during pagination/);
+    assert.ok(error.message.includes(digest(10)));
+    assert.ok(error.message.includes(digest(1)));
+    return true;
+  });
+});
+
 test('report mode makes only GET requests and lists deletion candidates without changing inventory', async () => {
   const provider = fakeProvider();
   const report = await runRetention(config(), { ...provider, now });
@@ -142,6 +215,63 @@ test('apply deletes only obsolete commit manifests in the selected repository, w
   assert.equal(provider.images.length, 4);
   assert.equal(report.images.filter(image => image.action === 'deleted').length, 2);
   assert.equal(provider.calls.some(call => call.method === 'POST'), false);
+});
+
+test('unknown-age commit images survive apply and do not block deletion of known obsolete images', async () => {
+  const input = images();
+  delete input.find(image => image.digest === digest(5)).updated_at;
+  const provider = fakeProvider(input);
+  const report = await runRetention(applyConfig(), { ...provider, now });
+  assert.deepEqual(provider.calls.filter(call => call.method === 'DELETE').map(call => decodeURIComponent(new URL(call.url).pathname.split('/').at(-1))), [digest(6)]);
+  assert.ok(provider.images.some(image => image.digest === digest(5)));
+  assert.equal(report.images.find(image => image.digest === digest(5)).action, 'keep');
+});
+
+test('apply preserves empty-tag manifests while removing only eligible commit images', async () => {
+  const provider = fakeProvider([...images(), manifest(1, [''])]);
+  const report = await runRetention(applyConfig(), { ...provider, now });
+  assert.deepEqual(provider.calls.filter(call => call.method === 'DELETE').map(call => decodeURIComponent(new URL(call.url).pathname.split('/').at(-1))), [digest(6), digest(5)]);
+  assert.ok(provider.images.some(image => image.digest === digest(1)));
+  assert.equal(report.images.find(image => image.digest === digest(1)).action, 'keep');
+});
+
+test('apply makes no deletion requests when every image has unknown age', async () => {
+  const provider = fakeProvider(images().map(image => ({ ...image, updated_at: null })));
+  const report = await runRetention(applyConfig(), { ...provider, now });
+  assert.equal(report.images.every(image => image.action === 'keep'), true);
+  assert.equal(provider.calls.some(call => call.method === 'DELETE'), false);
+});
+
+test('malformed metadata stops apply before any deletion and saves a specific diagnostic', async () => {
+  const privateValue = 'private-provider-value\nnot-for-logs';
+  for (const bad of [
+    { ...manifest(5), digest: privateValue },
+    { ...manifest(5), tags: [privateValue] },
+    { ...manifest(5), updated_at: privateValue },
+    manifest(10),
+  ]) {
+    const provider = fakeProvider([...images(), bad]);
+    let lastReport;
+    await assert.rejects(runRetention(applyConfig(), {
+      ...provider, now, saveReport: report => { lastReport = structuredClone(report); },
+    }), /cleanup stopped/);
+    assert.equal(provider.calls.some(call => call.method === 'DELETE'), false);
+    assert.match(lastReport.error, /Registry manifest entry 7/);
+    assert.equal(JSON.stringify(lastReport).includes(privateValue), false);
+    assert.equal(renderReport(lastReport).includes(privateValue), false);
+  }
+});
+
+test('a timestamp disappearing after planning invalidates the plan before any deletion', async () => {
+  const provider = fakeProvider();
+  let inventories = 0;
+  provider.beforeRequest = (url, init) => {
+    if (url.startsWith('https://api.digitalocean.com/') && init.method === 'GET' && ++inventories === 2) {
+      provider.images.find(image => image.digest === digest(5)).updated_at = null;
+    }
+  };
+  await assert.rejects(runRetention(applyConfig(), { ...provider, now }), /changed after planning/);
+  assert.equal(provider.calls.some(call => call.method === 'DELETE'), false);
 });
 
 test('an unreachable protected environment prevents all deletion and records the failure', async () => {
@@ -201,7 +331,7 @@ test('registry pagination is exhausted before planning; continuation URLs never 
 });
 
 test('incomplete pagination and provider errors prevent deletion', async () => {
-  for (const body of [{ manifests: images(), meta: { total: 7 } }, { error: 'missing inventory' }]) {
+  for (const body of [{ manifests: images(), meta: { total: 7 } }, { error: 'missing inventory' }, null]) {
     const provider = fakeProvider();
     const fetchImpl = (url, init) => url.startsWith('https://api.digitalocean.com/') ? new Response(JSON.stringify(body)) : provider.fetchImpl(url, init);
     await assert.rejects(runRetention(applyConfig(), { fetchImpl, now }), /incomplete/);
