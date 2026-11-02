@@ -48,7 +48,14 @@ namespace iD_Develops.Services
         int GenerateWeeksAhead,
         bool IsVisibleForStudentBooking,
         bool IsActive,
-        int UpcomingEventCount);
+        int UpcomingEventCount,
+        ScheduleRosterProvisioningStatus ProvisioningStatus = ScheduleRosterProvisioningStatus.Ready,
+        string? ProvisioningError = null);
+
+    public sealed class ScheduleRosterSaveResult : OperationResult
+    {
+        public string? PendingSetupMessage { get; init; }
+    }
 
     public sealed record ScheduleRosterPageData(
         IReadOnlyList<ScheduleRosterListItem> Rules,
@@ -166,5 +173,7 @@ namespace iD_Develops.Services
         Task<OperationResult> MoveEventAsync(ScheduleActor actor, int scheduledEventId, DateTime startUtc, DateTime endUtc, CancellationToken cancellationToken = default);
         Task<OperationResult> CancelEventAsync(ScheduleActor actor, int scheduledEventId, string? reason, CancellationToken cancellationToken = default);
         Task GenerateUpcomingEventsAsync(int? ruleId = null, CancellationToken cancellationToken = default);
+        Task GeneratePendingEventsAsync(CancellationToken cancellationToken = default);
+        Task<OperationResult> RetryRosterRuleAsync(ScheduleActor actor, int ruleId, CancellationToken cancellationToken = default);
     }
 }

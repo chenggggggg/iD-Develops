@@ -2556,6 +2556,16 @@ namespace iD_Develops.Data.Migrations
                         .HasMaxLength(1024)
                         .HasColumnType("character varying(1024)");
 
+                    b.Property<string>("ProvisioningError")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("ProvisioningStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("Ready");
+
                     b.Property<string>("TeacherUserId")
                         .IsRequired()
                         .HasColumnType("text");

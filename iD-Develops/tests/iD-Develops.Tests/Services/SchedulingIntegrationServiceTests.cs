@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -479,6 +480,90 @@ public sealed class SchedulingIntegrationServiceTests
         Assert.False(result.Success);
         Assert.Contains("busy", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
         Assert.Single(handler.Requests);
+    }
+
+
+    [Theory]
+    [InlineData(ZoomReadinessState.Disabled)]
+    [InlineData(ZoomReadinessState.NotConfigured)]
+    [InlineData(ZoomReadinessState.NotConnected)]
+    [InlineData(ZoomReadinessState.ReconnectRequired)]
+    [InlineData(ZoomReadinessState.ConnectionError)]
+    [InlineData(ZoomReadinessState.Ready)]
+    public async Task GetZoomReadinessAsync_IsReadOnlyAndIdentifiesSelectedTeacher(ZoomReadinessState expected)
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var protection = new EphemeralDataProtectionProvider();
+        var teacher = CreateTeacher();
+        db.Users.Add(teacher);
+        var settings = new Dictionary<string, string?>();
+        if (expected == ZoomReadinessState.Disabled) settings["SchedulingProviders:Zoom:Enabled"] = "false";
+        if (expected == ZoomReadinessState.NotConfigured) settings["SchedulingProviders:Zoom:ClientSecret"] = "";
+        SchedulingProviderConnection? connection = null;
+        if (expected is ZoomReadinessState.Ready or ZoomReadinessState.ConnectionError or ZoomReadinessState.ReconnectRequired)
+        {
+            connection = CreateConnection(teacher.Id, SchedulingProvider.Zoom, protection.CreateProtector("iD-Develops.SchedulingProviderTokens.v1"));
+            if (expected == ZoomReadinessState.ReconnectRequired)
+            {
+                connection.AccessTokenExpiresAtUtc = DateTime.UtcNow.AddMinutes(-1);
+                connection.ProtectedRefreshToken = null;
+            }
+            if (expected == ZoomReadinessState.ConnectionError) connection.LastError = "previous error";
+            db.SchedulingProviderConnections.Add(connection);
+        }
+        await db.SaveChangesAsync();
+        var handler = new QueueHttpMessageHandler();
+        var service = CreateService(db, protection, handler, settings);
+
+        var readiness = await service.GetZoomReadinessAsync(teacher.Id);
+
+        Assert.Equal(expected, readiness.State);
+        Assert.Equal(expected is ZoomReadinessState.Ready or ZoomReadinessState.ConnectionError, readiness.CanAttemptProvisioning);
+        if (expected is not (ZoomReadinessState.Disabled or ZoomReadinessState.NotConfigured))
+            Assert.Contains("Taylor Teacher", readiness.Message);
+        Assert.Empty(handler.Requests);
+        Assert.False(db.ChangeTracker.HasChanges());
+        if (connection != null)
+        {
+            var stored = await db.SchedulingProviderConnections.AsNoTracking().SingleAsync();
+            Assert.Equal(connection.ProtectedAccessToken, stored.ProtectedAccessToken);
+            Assert.Equal(connection.LastError, stored.LastError);
+        }
+    }
+
+    [Fact]
+    public async Task GetZoomReadinessAsync_ExpiredTokenWithRefresh_CanAttemptProvisioningWithoutRefreshingOnGet()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var protection = new EphemeralDataProtectionProvider();
+        var teacher = CreateTeacher();
+        var connection = CreateConnection(teacher.Id, SchedulingProvider.Zoom, protection.CreateProtector("iD-Develops.SchedulingProviderTokens.v1"));
+        connection.AccessTokenExpiresAtUtc = DateTime.UtcNow.AddMinutes(-1);
+        db.Users.Add(teacher);
+        db.SchedulingProviderConnections.Add(connection);
+        await db.SaveChangesAsync();
+        var handler = new QueueHttpMessageHandler();
+        var readiness = await CreateService(db, protection, handler).GetZoomReadinessAsync(teacher.Id);
+        Assert.True(readiness.CanAttemptProvisioning);
+        Assert.Empty(handler.Requests);
+        Assert.False(db.ChangeTracker.HasChanges());
+    }
+
+    [Fact]
+    public async Task ValidateTeacherConnectionsAsync_MissingZoomConnection_NamesTheTeacherAndSettings()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var teacher = CreateTeacher();
+        db.Users.Add(teacher);
+        await db.SaveChangesAsync();
+        var result = await CreateService(db, new EphemeralDataProtectionProvider(), new QueueHttpMessageHandler())
+            .ValidateTeacherConnectionsAsync(teacher.Id, ScheduleDeliveryType.Zoom, true);
+        Assert.False(result.Success);
+        Assert.Contains("Taylor Teacher", result.ErrorMessage);
+        Assert.Contains("Portal Settings", result.ErrorMessage);
     }
 
     private static SchedulingIntegrationService CreateService(

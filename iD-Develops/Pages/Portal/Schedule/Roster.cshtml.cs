@@ -12,10 +12,12 @@ namespace iD_Develops.Pages.Portal.Schedule
     public class RosterModel : PageModel
     {
         private readonly ISchedulingService _schedulingService;
+        private readonly ISchedulingIntegrationService _integrationService;
 
-        public RosterModel(ISchedulingService schedulingService)
+        public RosterModel(ISchedulingService schedulingService, ISchedulingIntegrationService integrationService)
         {
             _schedulingService = schedulingService;
+            _integrationService = integrationService;
         }
 
         public ScheduleRosterPageData Data { get; private set; } =
@@ -63,6 +65,20 @@ namespace iD_Develops.Pages.Portal.Schedule
                 cancellationToken);
             return new JsonResult(teachers);
         }
+
+        public async Task<IActionResult> OnGetZoomReadinessAsync(string teacherUserId, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(teacherUserId)) return BadRequest();
+            var actor = GetActor();
+            if (!IsAdmin && teacherUserId != actor.UserId) return Forbid();
+            var teachers = await _schedulingService.GetTeacherOptionsAsync(actor, cancellationToken);
+            if (!teachers.Any(teacher => teacher.Id == teacherUserId)) return NotFound();
+            var readiness = await _integrationService.GetZoomReadinessAsync(teacherUserId, cancellationToken);
+            return new JsonResult(new { state = readiness.State.ToString(), message = readiness.Message, canProvision = readiness.CanAttemptProvisioning });
+        }
+
+        public async Task<IActionResult> OnPostRetryRuleAsync(int ruleId, CancellationToken cancellationToken)
+            => Complete(await _schedulingService.RetryRosterRuleAsync(GetActor(), ruleId, cancellationToken), "Meeting setup completed.");
 
         public async Task<IActionResult> OnPostSaveRuleAsync(CancellationToken cancellationToken)
         {
@@ -169,8 +185,10 @@ namespace iD_Develops.Pages.Portal.Schedule
 
         private IActionResult Complete(iD_Develops.Utilities.OperationResult result, string successMessage)
         {
-            TempData[result.Success ? "StatusMessage" : "ErrorMessage"] =
-                result.Success ? successMessage : result.ErrorMessage;
+            if (result.Success && result is ScheduleRosterSaveResult { PendingSetupMessage: { Length: > 0 } warning })
+                TempData["WarningMessage"] = warning;
+            else
+                TempData[result.Success ? "StatusMessage" : "ErrorMessage"] = result.Success ? successMessage : result.ErrorMessage;
             return RedirectToPage();
         }
 

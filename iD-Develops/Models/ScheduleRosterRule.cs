@@ -56,6 +56,11 @@ namespace iD_Develops.Models
 
         public bool IsActive { get; set; } = true;
 
+        public ScheduleRosterProvisioningStatus ProvisioningStatus { get; set; } = ScheduleRosterProvisioningStatus.Ready;
+
+        [MaxLength(2000)]
+        public string? ProvisioningError { get; set; }
+
         public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 
         public DateTime UpdatedAtUtc { get; set; } = DateTime.UtcNow;

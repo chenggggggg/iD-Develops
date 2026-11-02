@@ -967,6 +967,11 @@ namespace iD_Develops.Data
                 .HasConversion<string>();
 
             modelBuilder.Entity<ScheduleRosterRule>()
+                .Property(rule => rule.ProvisioningStatus)
+                .HasConversion<string>()
+                .HasDefaultValue(ScheduleRosterProvisioningStatus.Ready);
+
+            modelBuilder.Entity<ScheduleRosterRule>()
                 .HasIndex(rule => new { rule.TeacherUserId, rule.CourseClassId, rule.DayOfWeek, rule.LocalStartTime });
 
             modelBuilder.Entity<AppointmentType>()
