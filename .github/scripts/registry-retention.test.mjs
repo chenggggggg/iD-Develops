@@ -398,12 +398,18 @@ test('a release pin added between deletions stops the remaining batch', async ()
   assert.ok(provider.images.some(image => image.digest === digest(5)));
 });
 
-test('workflow runs retention only after health verification, inside the deployment lock, in report mode by default', () => {
+test('staging deploys by image push and health verification without registry cleanup', () => {
   const workflow = readFileSync(new URL('../workflows/ci-cd.yml', import.meta.url), 'utf8');
   const deploy = workflow.slice(workflow.indexOf('  deploy-staging:'));
-  assert.ok(deploy.indexOf('- name: Report or apply image retention') > deploy.indexOf('- name: Wait for the deployed commit'));
   assert.match(deploy, /group: staging/);
-  assert.match(deploy, /REGISTRY_RETENTION_MODE: \$\{\{ vars.REGISTRY_RETENTION_MODE \|\| 'report' \}\}/);
-  assert.match(deploy, /actions: read/);
+  assert.match(deploy, /--tag "\$IMAGE:\$GITHUB_SHA"/);
+  assert.match(deploy, /--tag "\$IMAGE:staging"/);
+  assert.match(deploy, /docker push "\$IMAGE:\$GITHUB_SHA"/);
+  assert.match(deploy, /docker push "\$IMAGE:staging"/);
+  assert.ok(deploy.indexOf('- name: Wait for the deployed commit') > deploy.indexOf('- name: Trigger App Platform Autodeploy'));
+  assert.match(deploy, /health\/version/);
+  assert.match(deploy, /health\/db/);
+  assert.doesNotMatch(deploy, /registry-retention\.mjs|REGISTRY_RETENTION_|garbage-collection/);
+  assert.doesNotMatch(deploy, /actions: read/);
   assert.match(deploy, /if: always\(\)/);
 });
