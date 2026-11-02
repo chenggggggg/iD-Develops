@@ -1,149 +1,65 @@
-# Container image retention
+# Deployment and manual registry cleanup
 
-The staging workflow pushes both an immutable Git commit tag and the moving
-`staging` tag. After the deployed version matches the commit and `/health/db`
-passes, it runs `.github/scripts/registry-retention.mjs` under the existing
-`staging` concurrency lock. Pull requests run its offline regression tests.
+## Staging deployment
 
-## Initial rollout: report only
+GitHub Actions runs formatting, builds, and tests, then builds the container image
+and pushes its immutable commit tag and moving `staging` tag to DigitalOcean
+Container Registry. App Platform's configured Autodeploy handles the rollout when
+`staging` is pushed. A small version/database health check confirms the expected
+commit is responding before the deployment job finishes.
 
-The default mode is `report`. It makes GET requests only: no images, tags, layers,
-or GitHub settings are changed. Open the successful deployment's GitHub Actions
-summary, or download the `registry-retention-report` artifact (Markdown and JSON),
-to see each digest, its tags, timestamp, decision, and retention reasons.
+Registry retention and garbage collection do not run in the deployment job.
+Registry cleanup cannot turn a successful application rollout into a failed
+`Deploy staging` job. `REGISTRY_RETENTION_MODE` and
+`REGISTRY_RETENTION_VERSION_URLS` no longer enable automatic cleanup in CI;
+existing values can be removed from GitHub settings if no other workflow uses them.
+No DigitalOcean environment-variable change is needed for this workflow change.
 
-Until an environment inventory is configured, the report checks staging only and
-states that limitation. Its deletion candidates must not be treated as approved
-for deletion from a repository also used by other environments.
+## Why old images are not garbage
 
-## Policy
+An old image can still have a commit tag and a manifest referencing its layers.
+Age does not make it unreferenced. Deleting only a tag can also leave an untagged
+manifest referencing the same layers. Empty garbage collects unreferenced data;
+it does not choose which old application versions you want to retire.
 
-Only this workflow's configured `DO_REGISTRY_NAME` / `DO_IMAGE_REPOSITORY` is
-examined. A manifest is retained if any of these conditions apply:
+A build may appear as three entries: the tagged image index, the runnable image,
+and a small provenance attestation. These are related artifacts from one build.
+The `staging` and commit tags can both point to the same index. Untagged child
+manifests can belong to retained builds; do not bulk-delete them just for lacking tags.
 
-- Its immutable commit tag matches the current workflow commit or a version
-  returned by one of the protected environment endpoints.
-- It is one of three distinct available previous successful staging images.
-  These are selected from successful `main` push/manual runs of `ci-cd.yml`, in
-  GitHub's newest-run-first order. Repeated runs, shared digests, failed runs,
-  and images already removed from the registry do not consume rollback slots.
-  Fewer than three are retained when fewer are available in the history.
-- It has any non-commit tag, including `staging`, `production`, a release name,
-  or a manual pin such as `keep-2026-10`. All tags on a digest protect that image.
-- It was updated within the last seven days, including the exact boundary.
-- Its update timestamp is absent, null, or empty. Its age is unknown, so it is
-  retained and reported with an unknown update time.
-- It is untagged. Its ownership is unknown, so this policy leaves it alone.
-  DigitalOcean's all-empty tag placeholders (for example, `[""]`) are treated as
-  an empty tag list and retained as untagged images.
+## Manual cleanup in DigitalOcean
 
-Only old manifests whose tags are **all full 40-character lowercase Git hashes**
-can be removed. Each run selects at most twenty, oldest first. Additional
-candidates are marked `defer` until a later successful deployment.
+1. Check the current deployed commit at the staging app's `/health/version`
+   endpoint. Check every other environment using this repository too. Keep their
+   image versions, and retain a few known working versions for rollback.
+2. In Container Registry, expand the repository and select genuinely obsolete
+   versions. Use **Delete image(s)** / **Delete Digest** to remove their manifests
+   and associated tags. Removing only a tag may leave its image data referenced.
+3. Once unused data is available, click **Empty garbage** to reclaim it. Shared
+   layers needed by retained images stay stored, so displayed image sizes do not
+   directly predict the space recovered.
 
-## Enable deletion after reviewing reports
+DigitalOcean also offers **Delete untagged manifests** during collection. Inspect
+untagged entries and retained build references before using it; an untagged entry
+is not proof that an artifact is obsolete. Standard garbage collection temporarily
+makes the registry read-only, so run it outside deployment/image-push windows.
 
-Set these **GitHub staging environment variables**, without changing source:
+No registry images or garbage are deleted automatically by this workflow.
 
-| Variable | Value |
-| --- | --- |
-| `REGISTRY_RETENTION_VERSION_URLS` | A JSON array of `/health/version` URLs for **every environment consuming this image repository**, including staging. |
-| `REGISTRY_RETENTION_MODE` | `apply` (default/unset is `report`). |
+## Optional existing retention utility
 
-For example, if both staging and production consume this registry repository:
+`.github/scripts/registry-retention.mjs` remains available for separately operated
+diagnostics. Its default mode is a read-only report, and its existing deletion
+safeguards remain unchanged. It is not invoked by the deployment workflow. There
+is no need to configure or run it for the manual cleanup process above.
 
-```json
-["https://staging.id-develops.com/health/version", "https://id-develops.com/health/version"]
-```
-
-List one URL per deployed environment, not both public and portal aliases of the
-same application. Include older environments even if their images have only
-commit tags. Do not add environments that use a different image repository.
-Whenever another consumer is introduced, update this inventory before deploying
-it. Consumers outside App Platform also need a version endpoint in the inventory.
-
-All URLs must use HTTPS, have no credentials or query string, and return
-`{"version":"<full Git commit hash>"}`. Every reported version must have a
-matching immutable tag in this repository. Unknown versions, unreachable
-endpoints, missing tags, incomplete API pagination, and provider errors stop
-cleanup before deletion. Staging must still match the workflow commit.
-
-The existing `DIGITALOCEAN_ACCESS_TOKEN` needs `registry:read` for reports and
-`registry:delete` for apply, in addition to its existing push permissions.
-`GITHUB_TOKEN` uses the deployment job's `actions: read` permission for history.
-Neither token is sent to public version endpoints or written to reports.
-
-Apply is allowed only on a `main` push or manual deployment. It rechecks the
-registry inventory and every environment before each deletion. Changes stop the
-remaining batch. Completed deletions remain recorded if a later operation fails;
-cleanup failure fails the job but does not undo the already healthy deployment.
-Change the mode back to `report` to disable further deletion.
-
-All workflows or operators that push, roll back, or deploy from this repository
-must coordinate with the same `staging` concurrency group (or pause apply during
-external changes). The recheck reduces races but is not a lock on external
-DigitalOcean operations. Do not run manual registry changes during apply.
-
-## Metadata validation failures
-
-DigitalOcean can return `tags: [""]` for an untagged image. All-empty tag lists
-are normalized to untagged images and retained. Mixed empty/nonempty tags,
-whitespace tags, null tag entries, and other malformed tags still stop cleanup;
-ignoring an incomplete tag could hide a manual retention pin.
-
-The registry API documents `updated_at` as optional. Missing timestamps are
-reported as unknown and always retained; no image age is inferred from its tag,
-list position, or another image's timestamp. Invalid nonempty timestamps still
-stop cleanup, as do invalid digests/tags and duplicate digests or tags.
-
-Validation errors identify the inventory entry, the field, and the digest when
-it is valid. Invalid field values and raw provider responses are not logged.
-For example, a duplicate-digest error means the inventory contains the same image
-more than once, possibly because it changed during pagination. It does not mean
-the registry is full or that the application deployment failed.
-
-Inspect the workflow error and retention report before deleting any images. With
-an authenticated local `doctl`, a read-only inventory can be obtained using:
-
-```bash
-doctl registry repository list-manifests <repository> --registry <registry> --output json
-```
-
-Do not enable `apply` to troubleshoot metadata. Report mode uses the same
-validation and makes no deletion requests. A persistent error includes enough
-context to investigate the affected entry without dumping credentials or
-disabling inventory checks.
-
-## Garbage collection
-
-Deleting a manifest makes its **unreferenced** layers eligible for garbage
-collection. Layers shared by retained images stay stored, so summing image sizes
-does not predict the space recovered.
-
-The workflow deliberately does not initiate registry-wide garbage collection or
-delete unrelated untagged manifests. In DigitalOcean, either:
-
-- Enable automatic garbage collection in its public preview, if available for
-  this registry. It collects unreferenced layers without read-only downtime.
-- Run **Empty garbage** during a quiet period. Standard collection temporarily
-  makes the registry read-only, so avoid deployment/image-push windows.
-
-No registry cleanup is performed locally while developing or testing this PR.
-The first live report runs after this workflow is merged and successfully
-deploys. Review that report before setting `apply`.
-
-References: [DigitalOcean cleanup](https://docs.digitalocean.com/products/container-registry/how-to/clean-up-container-registry/),
-[registry API](https://docs.digitalocean.com/reference/api/reference/container-registries/),
-[GitHub workflow history API](https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-workflow).
-
-## Local verification
-
-Node.js 22 is sufficient; there are no npm dependencies or registry credentials:
+Its offline tests need Node.js 22 and no provider credentials:
 
 ```bash
 node --test .github/scripts/registry-retention.test.mjs
 ```
 
-Tests use in-memory registry, deployment-history, and environment responses. They
-cover retention decisions, report-only behavior, targeted deletion, pagination,
-credential boundaries, concurrent changes, and partial failures.
+References:
+- [DigitalOcean container-image autodeploy](https://docs.digitalocean.com/products/app-platform/how-to/deploy-from-container-images/)
+- [DigitalOcean image deletion and garbage collection](https://docs.digitalocean.com/products/container-registry/how-to/clean-up-container-registry/)
+- [Docker image attestation storage](https://docs.docker.com/build/metadata/attestations/attestation-storage/)
