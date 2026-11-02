@@ -766,6 +766,259 @@ public sealed class SchedulingServiceTests
         Assert.True(available.Success);
     }
 
+
+    [Theory]
+    [InlineData(ZoomReadinessState.NotConnected)]
+    [InlineData(ZoomReadinessState.ReconnectRequired)]
+    [InlineData(ZoomReadinessState.Disabled)]
+    [InlineData(ZoomReadinessState.NotConfigured)]
+    public async Task SaveRosterRuleAsync_WhenZoomIsUnavailable_SavesPendingWithoutPublishing(ZoomReadinessState state)
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var seed = await SeedCourseAsync(db);
+        var integration = new FakeSchedulingIntegrationService
+        {
+            ZoomReadiness = new(state, "Taylor Teacher must connect Zoom in Portal Settings.")
+        };
+        var service = new SchedulingService(db, integration, NullLogger<SchedulingService>.Instance);
+
+        var result = await service.SaveRosterRuleAsync(new(seed.Teacher.Id, false, true), RosterInput(seed));
+
+        Assert.True(result.Success, result.ErrorMessage);
+        var saved = Assert.IsType<ScheduleRosterSaveResult>(result);
+        Assert.Contains("Taylor Teacher", saved.PendingSetupMessage);
+        Assert.Contains("saved", saved.PendingSetupMessage);
+        var rule = await db.ScheduleRosterRules.SingleAsync();
+        Assert.Equal(ScheduleRosterProvisioningStatus.PendingZoomSetup, rule.ProvisioningStatus);
+        Assert.Equal(0, integration.ProvisioningCalls);
+        Assert.False(await db.ScheduledEvents.AnyAsync(item => item.Source == ScheduleEventSource.Roster));
+    }
+
+    [Fact]
+    public async Task GeneratePendingEventsAsync_AfterZoomConnection_PublishesOnceAndAllowsBooking()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var seed = await SeedCourseAsync(db);
+        var integration = new FakeSchedulingIntegrationService { ZoomReadiness = new(ZoomReadinessState.NotConnected, "Taylor Teacher has not connected Zoom.") };
+        var service = new SchedulingService(db, integration, NullLogger<SchedulingService>.Instance);
+        await service.SaveRosterRuleAsync(new(seed.Teacher.Id, false, true), RosterInput(seed));
+        var student = new ScheduleActor(seed.Student.Id, false, false);
+        Assert.DoesNotContain(await service.GetCalendarItemsAsync(student, DateTime.UtcNow, DateTime.UtcNow.AddDays(30)), item => item.Id != seed.Event.Id);
+
+        integration.ZoomReadiness = new(ZoomReadinessState.Ready, "Taylor Teacher is connected.");
+        await service.GeneratePendingEventsAsync();
+        await service.GeneratePendingEventsAsync();
+        await service.GenerateUpcomingEventsAsync();
+
+        var rule = await db.ScheduleRosterRules.SingleAsync();
+        Assert.Equal(ScheduleRosterProvisioningStatus.Ready, rule.ProvisioningStatus);
+        Assert.Null(rule.ProvisioningError);
+        var events = await db.ScheduledEvents.Where(item => item.Source == ScheduleEventSource.Roster).ToListAsync();
+        Assert.Equal(2, events.Count);
+        Assert.Equal(events.Count, integration.ProvisioningCalls);
+        Assert.All(events, item => Assert.False(string.IsNullOrWhiteSpace(item.ZoomMeetingId)));
+        Assert.All(events, item => Assert.False(string.IsNullOrWhiteSpace(item.MeetingUrl)));
+        var calendar = await service.GetCalendarItemsAsync(student, DateTime.UtcNow, DateTime.UtcNow.AddDays(30));
+        Assert.All(events, item => Assert.True(Assert.Single(calendar, entry => entry.Id == item.Id).CanBook));
+        Assert.True((await service.BookAsync(student, events[0].Id)).Success);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task SaveRosterRuleAsync_ProviderFails_SavesFailedSetupAndRetryRecovers(bool incompleteDetails)
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var seed = await SeedCourseAsync(db);
+        var integration = new FakeSchedulingIntegrationService
+        {
+            ProvisioningSucceeds = incompleteDetails,
+            ReturnMeetingDetails = !incompleteDetails
+        };
+        var service = new SchedulingService(db, integration, NullLogger<SchedulingService>.Instance);
+        var actor = new ScheduleActor(seed.Teacher.Id, false, true);
+
+        var result = await service.SaveRosterRuleAsync(actor, RosterInput(seed));
+
+        Assert.True(result.Success, result.ErrorMessage);
+        var rule = await db.ScheduleRosterRules.SingleAsync();
+        Assert.Equal(ScheduleRosterProvisioningStatus.ProvisioningFailed, rule.ProvisioningStatus);
+        Assert.Contains("Taylor Teacher", rule.ProvisioningError);
+        Assert.False(await db.ScheduledEvents.AnyAsync(item => item.Source == ScheduleEventSource.Roster));
+        Assert.Equal(1, integration.ProvisioningCalls);
+        integration.ProvisioningSucceeds = true;
+        integration.ReturnMeetingDetails = true;
+        var retry = await service.RetryRosterRuleAsync(actor, rule.Id);
+        Assert.True(retry.Success, retry.ErrorMessage);
+        Assert.Equal(ScheduleRosterProvisioningStatus.Ready, rule.ProvisioningStatus);
+        Assert.Equal(2, await db.ScheduledEvents.CountAsync(item => item.Source == ScheduleEventSource.Roster));
+    }
+
+    [Fact]
+    public async Task SaveRosterRuleAsync_ProviderTimesOut_ScheduleRemainsSavedForRetry()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var seed = await SeedCourseAsync(db);
+        var integration = new FakeSchedulingIntegrationService { ProvisioningException = new TaskCanceledException("Provider timed out.") };
+        var service = new SchedulingService(db, integration, NullLogger<SchedulingService>.Instance);
+
+        var result = await service.SaveRosterRuleAsync(new(seed.Teacher.Id, false, true), RosterInput(seed));
+
+        Assert.True(result.Success, result.ErrorMessage);
+        Assert.Contains("retry", Assert.IsType<ScheduleRosterSaveResult>(result).PendingSetupMessage);
+        Assert.Equal(ScheduleRosterProvisioningStatus.ProvisioningFailed, (await db.ScheduleRosterRules.SingleAsync()).ProvisioningStatus);
+        Assert.False(await db.ScheduledEvents.AnyAsync(item => item.Source == ScheduleEventSource.Roster));
+        integration.ProvisioningException = null;
+        await service.GeneratePendingEventsAsync();
+        Assert.Equal(2, await db.ScheduledEvents.CountAsync(item => item.Source == ScheduleEventSource.Roster));
+    }
+
+    [Fact]
+    public async Task SaveRosterRuleAsync_InPerson_DoesNotRequireZoom()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var seed = await SeedCourseAsync(db);
+        var integration = new FakeSchedulingIntegrationService { ZoomReadiness = new(ZoomReadinessState.NotConnected, "Not connected.") };
+        var service = new SchedulingService(db, integration, NullLogger<SchedulingService>.Instance);
+        var input = RosterInput(seed);
+        input.DeliveryType = ScheduleDeliveryType.InPerson;
+        input.Location = "Classroom 1";
+
+        Assert.True((await service.SaveRosterRuleAsync(new(seed.Teacher.Id, false, true), input)).Success);
+        Assert.Equal(ScheduleRosterProvisioningStatus.Ready, (await db.ScheduleRosterRules.SingleAsync()).ProvisioningStatus);
+        Assert.Equal(2, await db.ScheduledEvents.CountAsync(item => item.Source == ScheduleEventSource.Roster));
+    }
+
+    [Fact]
+    public async Task RetryRosterRuleAsync_EnforcesOwnershipAndActivation()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var seed = await SeedCourseAsync(db);
+        var integration = new FakeSchedulingIntegrationService { ZoomReadiness = new(ZoomReadinessState.NotConnected, "Not connected.") };
+        var service = new SchedulingService(db, integration, NullLogger<SchedulingService>.Instance);
+        await service.SaveRosterRuleAsync(new(seed.Teacher.Id, false, true), RosterInput(seed));
+        var rule = await db.ScheduleRosterRules.SingleAsync();
+        Assert.False((await service.RetryRosterRuleAsync(new(seed.Student.Id, false, false), rule.Id)).Success);
+        Assert.False((await service.RetryRosterRuleAsync(new("another-teacher", false, true), rule.Id)).Success);
+        rule.IsActive = false;
+        await db.SaveChangesAsync();
+        Assert.False((await service.RetryRosterRuleAsync(new(seed.Teacher.Id, false, true), rule.Id)).Success);
+        Assert.Equal(0, integration.ProvisioningCalls);
+    }
+
+    [Fact]
+    public async Task SaveRosterRuleAsync_PendingRulesStillPreventRecurringOverlaps()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var seed = await SeedCourseAsync(db);
+        var integration = new FakeSchedulingIntegrationService { ZoomReadiness = new(ZoomReadinessState.NotConnected, "Not connected.") };
+        var service = new SchedulingService(db, integration, NullLogger<SchedulingService>.Instance);
+        var actor = new ScheduleActor(seed.Teacher.Id, false, true);
+        Assert.True((await service.SaveRosterRuleAsync(actor, RosterInput(seed))).Success);
+        var duplicate = await service.SaveRosterRuleAsync(actor, RosterInput(seed));
+        Assert.False(duplicate.Success);
+        Assert.Contains("overlaps", duplicate.ErrorMessage);
+        Assert.Single(await db.ScheduleRosterRules.ToListAsync());
+    }
+
+    [Fact]
+    public async Task UnprovisionedLegacyRosterOccurrence_IsHiddenAndCannotBeBooked()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var seed = await SeedCourseAsync(db);
+        seed.Event.Source = ScheduleEventSource.Roster;
+        seed.Event.ZoomMeetingId = null;
+        await db.SaveChangesAsync();
+        var service = CreateService(db);
+        var student = new ScheduleActor(seed.Student.Id, false, false);
+
+        Assert.Empty(await service.GetCalendarItemsAsync(student, DateTime.UtcNow, DateTime.UtcNow.AddDays(30)));
+        var booking = await service.BookAsync(student, seed.Event.Id);
+        Assert.False(booking.Success);
+        Assert.Contains("not ready", booking.ErrorMessage);
+        Assert.Empty(await db.EventBookings.ToListAsync());
+        Assert.Empty(await db.UserCreditTransactions.ToListAsync());
+        Assert.Single(await service.GetCalendarItemsAsync(new(seed.Teacher.Id, false, true), DateTime.UtcNow, DateTime.UtcNow.AddDays(30)));
+    }
+
+
+    [Fact]
+    public async Task SaveRosterRuleAsync_AdminCanSavePendingForAnotherTeacher()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var seed = await SeedCourseAsync(db);
+        var role = new IdentityRole("Teacher");
+        db.Roles.Add(role);
+        db.UserRoles.Add(new IdentityUserRole<string> { UserId = seed.Teacher.Id, RoleId = role.Id });
+        await db.SaveChangesAsync();
+        var integration = new FakeSchedulingIntegrationService { ZoomReadiness = new(ZoomReadinessState.NotConnected, "Taylor Teacher has not connected Zoom in Portal Settings.") };
+        var service = new SchedulingService(db, integration, NullLogger<SchedulingService>.Instance);
+
+        var result = await service.SaveRosterRuleAsync(new("admin", true, false), RosterInput(seed));
+
+        Assert.True(result.Success, result.ErrorMessage);
+        var rule = await db.ScheduleRosterRules.SingleAsync();
+        Assert.Equal(seed.Teacher.Id, rule.TeacherUserId);
+        Assert.Equal(ScheduleRosterProvisioningStatus.PendingZoomSetup, rule.ProvisioningStatus);
+        Assert.Contains("Taylor Teacher", rule.ProvisioningError);
+    }
+
+    [Fact]
+    public async Task GeneratePendingEventsAsync_ConflictLeavesPartialSetupPending_ThenRetriesMissingOccurrenceOnly()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var seed = await SeedCourseAsync(db);
+        var input = RosterInput(seed);
+        var start = TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(input.ActiveFromDate.ToDateTime(input.LocalStartTime), DateTimeKind.Unspecified), TimeZoneInfo.FindSystemTimeZoneById(SchedulingService.AmsterdamTimeZoneId));
+        seed.Event.StartAtUtc = start;
+        seed.Event.EndAtUtc = start.AddHours(1);
+        await db.SaveChangesAsync();
+        var integration = new FakeSchedulingIntegrationService();
+        var service = new SchedulingService(db, integration, NullLogger<SchedulingService>.Instance);
+        var result = await service.SaveRosterRuleAsync(new(seed.Teacher.Id, false, true), input);
+
+        Assert.True(result.Success);
+        var rule = await db.ScheduleRosterRules.SingleAsync();
+        Assert.Equal(ScheduleRosterProvisioningStatus.PendingProvisioning, rule.ProvisioningStatus);
+        Assert.Contains("overlap", rule.ProvisioningError);
+        var readyOccurrence = await db.ScheduledEvents.SingleAsync(item => item.Source == ScheduleEventSource.Roster);
+        db.ScheduledEvents.Remove(seed.Event);
+        await db.SaveChangesAsync();
+        await service.GeneratePendingEventsAsync();
+        await service.GeneratePendingEventsAsync();
+
+        Assert.Equal(ScheduleRosterProvisioningStatus.Ready, rule.ProvisioningStatus);
+        Assert.Equal(2, integration.ProvisioningCalls);
+        Assert.Equal(2, await db.ScheduledEvents.CountAsync(item => item.Source == ScheduleEventSource.Roster));
+        Assert.True(await db.ScheduledEvents.AnyAsync(item => item.Id == readyOccurrence.Id && item.ZoomMeetingId == readyOccurrence.ZoomMeetingId));
+    }
+
+    private static ScheduleRosterRuleInput RosterInput(ScheduleSeed seed)
+    {
+        var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
+        return new()
+        {
+            TeacherUserId = seed.Teacher.Id,
+            CourseClassId = seed.CourseClass.Id,
+            DayOfWeek = tomorrow.DayOfWeek,
+            LocalStartTime = new TimeOnly(12, 0),
+            ActiveFromDate = tomorrow,
+            ActiveUntilDate = tomorrow.AddDays(7),
+            DeliveryType = ScheduleDeliveryType.Zoom,
+            GenerateWeeksAhead = 4
+        };
+    }
+
     private static SchedulingService CreateService(iD_Develops.Data.ApplicationDbContext db)
         => new(db, new FakeSchedulingIntegrationService(), NullLogger<SchedulingService>.Instance);
 

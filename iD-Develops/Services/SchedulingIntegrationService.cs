@@ -42,6 +42,33 @@ namespace iD_Develops.Services
             _logger = logger;
         }
 
+        public async Task<TeacherZoomReadiness> GetZoomReadinessAsync(string teacherUserId, CancellationToken cancellationToken = default)
+        {
+            var name = await TeacherNameAsync(teacherUserId, cancellationToken);
+            if (!IsEnabled(SchedulingProvider.Zoom))
+                return new(ZoomReadinessState.Disabled, "Zoom synchronization is disabled on this environment. Recurring classes will remain pending until Zoom is enabled and connected.");
+            if (!IsConfigured(SchedulingProvider.Zoom))
+                return new(ZoomReadinessState.NotConfigured, "Zoom is not configured on the server. Recurring classes will remain pending until setup is complete.");
+            var connection = await _dbContext.SchedulingProviderConnections.AsNoTracking()
+                .FirstOrDefaultAsync(item => item.UserId == teacherUserId && item.Provider == SchedulingProvider.Zoom && item.IsActive, cancellationToken);
+            if (connection == null)
+                return new(ZoomReadinessState.NotConnected, $"{name} has not connected Zoom in Portal Settings. Their recurring classes will remain pending until they connect.");
+            if (string.IsNullOrWhiteSpace(connection.ProtectedAccessToken) ||
+                connection.AccessTokenExpiresAtUtc <= DateTime.UtcNow.AddMinutes(2) && string.IsNullOrWhiteSpace(connection.ProtectedRefreshToken))
+                return new(ZoomReadinessState.ReconnectRequired, $"{name}'s Zoom connection must be renewed in Portal Settings before new meetings can be created.");
+            if (!string.IsNullOrWhiteSpace(connection.LastError))
+                return new(ZoomReadinessState.ConnectionError, $"{name}'s last Zoom connection check failed. Meeting setup will retry; they may need to reconnect in Portal Settings.");
+            return new(ZoomReadinessState.Ready, $"{name} has connected Zoom. The connection will be verified when meetings are created.");
+        }
+
+        private async Task<string> TeacherNameAsync(string userId, CancellationToken cancellationToken)
+        {
+            var user = await _dbContext.Users.AsNoTracking().Where(item => item.Id == userId)
+                .Select(item => new { item.FirstName, item.LastName, item.Email, item.UserName }).FirstOrDefaultAsync(cancellationToken);
+            var name = string.Join(" ", new[] { user?.FirstName, user?.LastName }.Where(value => !string.IsNullOrWhiteSpace(value))).Trim();
+            return !string.IsNullOrEmpty(name) ? name : user?.Email ?? user?.UserName ?? "The selected teacher";
+        }
+
         public async Task<IReadOnlyList<SchedulingProviderStatus>> GetStatusesAsync(
             string userId,
             CancellationToken cancellationToken = default)
@@ -891,14 +918,14 @@ namespace iD_Develops.Services
                 item => item.UserId == userId && item.Provider == provider && item.IsActive,
                 cancellationToken);
             if (connection == null)
-                return new(false, null, null, $"The teacher must connect {ProviderName(provider)} in Portal Settings first.");
+                return new(false, null, null, $"{await TeacherNameAsync(userId, cancellationToken)} has not connected {ProviderName(provider)} in Portal Settings. Meetings cannot be created until they connect.");
 
             try
             {
                 if (connection.AccessTokenExpiresAtUtc > DateTime.UtcNow.AddMinutes(2))
                     return new(true, _tokenProtector.Unprotect(connection.ProtectedAccessToken), connection, null);
                 if (string.IsNullOrWhiteSpace(connection.ProtectedRefreshToken))
-                    return new(false, null, connection, $"The {ProviderName(provider)} connection must be renewed in Portal Settings.");
+                    return new(false, null, connection, $"{await TeacherNameAsync(userId, cancellationToken)} must renew their {ProviderName(provider)} connection in Portal Settings.");
 
                 var refreshToken = _tokenProtector.Unprotect(connection.ProtectedRefreshToken);
                 var refreshed = provider == SchedulingProvider.Zoom
@@ -922,7 +949,7 @@ namespace iD_Develops.Services
             catch (CryptographicException exception)
             {
                 _logger.LogWarning(exception, "Stored {Provider} token could not be decrypted for user {UserId}.", provider, userId);
-                return new(false, null, connection, $"The {ProviderName(provider)} connection must be renewed in Portal Settings.");
+                return new(false, null, connection, $"{await TeacherNameAsync(userId, cancellationToken)} must renew their {ProviderName(provider)} connection in Portal Settings.");
             }
         }
 

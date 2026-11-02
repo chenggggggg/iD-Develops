@@ -26,6 +26,10 @@
     {
         <div class="schedule-notice is-success" role="status">@statusMessage</div>
     }
+    @if (TempData["WarningMessage"] is string warningMessage)
+    {
+        <div class="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950" role="status" data-roster-warning>@warningMessage</div>
+    }
     @if (TempData["ErrorMessage"] is string errorMessage)
     {
         <div class="schedule-notice is-error" role="alert">@errorMessage</div>
@@ -152,7 +156,7 @@
                         rule.IsVisibleForStudentBooking,
                         rule.IsActive
                     });
-                    <article class="roster-rule @(rule.IsActive ? null : "is-inactive")">
+                    <article class="roster-rule @(rule.IsActive ? null : "is-inactive")" data-roster-rule-id="@rule.Id">
                         <span class="roster-rule-day">
                             <strong>@rule.DayOfWeek.ToString()[..3]</strong>
                             <small>@rule.LocalStartTime.ToString("HH:mm")</small>
@@ -160,9 +164,29 @@
                         <span class="roster-rule-copy">
                             <strong>@rule.ClassTitle</strong>
                             <small>@rule.CourseName &middot; @rule.TeacherName</small>
+                            @if (rule.IsActive && rule.ProvisioningStatus != ScheduleRosterProvisioningStatus.Ready)
+                            {
+                                <span class="mt-2 inline-flex w-fit rounded-md bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-950" data-roster-provisioning-status="@rule.ProvisioningStatus">
+                                    @(rule.ProvisioningStatus == ScheduleRosterProvisioningStatus.PendingZoomSetup ? "Pending Zoom setup" : rule.ProvisioningStatus == ScheduleRosterProvisioningStatus.ProvisioningFailed ? "Meeting setup failed" : "Meeting setup pending")
+                                </span>
+                                @if (!string.IsNullOrWhiteSpace(rule.ProvisioningError))
+                                {
+                                    <small class="break-words text-amber-950">@rule.ProvisioningError</small>
+                                }
+                            }
                             <span>@rule.DurationMinutes min &middot; @rule.Capacity seat@(rule.Capacity == 1 ? string.Empty : "s") &middot; @rule.UpcomingEventCount upcoming</span>
                         </span>
                         <span class="roster-rule-actions">
+                            @if (rule.IsActive && rule.ProvisioningStatus != ScheduleRosterProvisioningStatus.Ready)
+                            {
+                                <form method="post" asp-page-handler="RetryRule" data-submit-feedback>
+                                    <input type="hidden" name="ruleId" value="@rule.Id" />
+                                    <button type="submit" class="hover:bg-slate-100 hover:text-slate-700 focus-visible:bg-slate-100 focus-visible:text-slate-700" aria-label="Retry meeting setup for @rule.ClassTitle" title="Retry meeting setup">
+                                        <span data-submit-idle><i class="fa-solid fa-rotate-right" aria-hidden="true"></i></span>
+                                        <span data-submit-pending hidden class="inline-flex"><span aria-hidden="true" class="size-4 rounded-full border-2 border-current border-r-transparent motion-safe:animate-spin"></span></span>
+                                    </button>
+                                </form>
+                            }
                             <button type="button"
                                     data-roster-edit
                                     data-roster-rule="@ruleJson"
@@ -199,6 +223,11 @@
             </div>
             <form id="recurring-class" method="post" asp-page-handler="SaveRule" class="roster-form" data-roster-form data-submit-feedback>
                 <input asp-for="RuleInput.Id" type="hidden" data-roster-field="Id" />
+                <div class="col-span-full rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700" data-zoom-readiness data-readiness-url="@Url.Page(null, "ZoomReadiness")" role="status" aria-live="polite">
+                    <strong class="inline-flex items-center gap-2">Zoom setup <span hidden data-zoom-readiness-spinner class="size-4 rounded-full border-2 border-current border-r-transparent motion-safe:animate-spin" aria-hidden="true"></span></strong>
+                    <p class="mt-1" data-zoom-readiness-message>Select a teacher to check their Zoom connection.</p>
+                    <p class="mt-2">You can save the schedule before Zoom is connected. New occurrences become bookable only after their meetings are created. Pending setup retries automatically, normally within a minute.</p>
+                </div>
                 @if (Model.IsAdmin)
                 {
                     <label class="roster-field is-wide">
@@ -410,4 +439,5 @@
 
 @section Scripts {
     <script src="~/js/schedule-roster.js" asp-append-version="true"></script>
+    <script src="~/js/schedule-roster-zoom.js" asp-append-version="true"></script>
 }

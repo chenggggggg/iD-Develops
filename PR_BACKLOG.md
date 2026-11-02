@@ -1,6 +1,6 @@
 ﻿# Planned PR backlog
 
-Updated: 2026-11-01
+Updated: 2026-11-02
 
 This is the combined planning backlog from the staging review and owner meeting.
 B01-B20 are planning IDs, not GitHub PR numbers. Priorities are proposed implementation
@@ -81,7 +81,7 @@ Resend deployment was discussed separately; merge status does not establish live
 
 ## B01 - P0 - Durable payment and fulfillment audit trail
 
-Status: implemented on fix/payment-fulfillment-audit for PR review.
+Status: completed and merged in [PR #39](https://github.com/chenggggggg/iD-Develops/pull/39).
 App-side request/response/return/callback auditing is included.
 
 **Estimated size: Large.** Payment/webhook/audit persistence across transaction boundaries, reconciliation details, and failure/retry integration tests.
@@ -112,21 +112,26 @@ Dependencies: existing checkout/audit foundation. Separate from B07 table UX.
 
 **Estimated size: Large.** The message-only correction is Small; the proposed pending-setup lifecycle needs scheduling, provider provisioning, visibility, and retry changes.
 
-New scheduling fix PR.
+Status: implemented and verified on `fix/recurring-class-zoom-readiness`; ready for PR review.
+Verification: Release build, formatting, 398 unit/integration tests, and 34 relevant
+Playwright tests passed. Local Zoom is disabled; provider recovery uses simulated
+provider tests rather than creating real Zoom meetings.
 
 - Name the selected teacher in connection errors, for example:
   '<teacher name> has not connected Zoom in Portal Settings. Therefore the recurring
   class could not be created.' Distinguish missing, expired, and failed connections.
 - Show integration readiness when a teacher is selected, before submission.
-- Recommended behavior: permit authorized staff to save the schedule as pending Zoom
+- Approved behavior: permit authorized staff to save the schedule as pending Zoom
   setup, then generate the meeting after a valid connection is available.
 - Clearly distinguish 'schedule saved; Zoom setup required' from 'meeting ready'.
   Pending setup must not be advertised to students as a ready online booking or send
   misleading join links. Retry provisioning without duplicating meetings/occurrences.
 - Continue allowing applicable non-Zoom/manual-link delivery paths with clear validation.
 
-Decision before implementing the pending-state workflow: confirm its visibility and
-activation behavior. The selected-teacher wording can be delivered independently.
+Approved on 2026-11-01: save as staff-only pending; provision after connection. Retry
+pending setup automatically, normally within a minute, with an explicit staff retry
+action. Publish only occurrences with complete meeting details. Preserve existing
+bookings/history and keep individual teacher hosting; company-managed Zoom is B03.
 
 ## B03 - P1 - Company-managed Zoom integration and teacher host mapping
 

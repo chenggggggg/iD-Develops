@@ -8,6 +8,14 @@ namespace iD_Develops.Tests.Infrastructure;
 internal sealed class FakeSchedulingIntegrationService : ISchedulingIntegrationService
 {
     private int _sequence;
+    public TeacherZoomReadiness ZoomReadiness { get; set; } = new(ZoomReadinessState.Ready, "Test teacher is connected.");
+    public bool ProvisioningSucceeds { get; set; } = true;
+    public bool ReturnMeetingDetails { get; set; } = true;
+    public Exception? ProvisioningException { get; set; }
+    public int ProvisioningCalls { get; private set; }
+    public Task<TeacherZoomReadiness> GetZoomReadinessAsync(string teacherUserId, CancellationToken cancellationToken = default)
+        => Task.FromResult(ZoomReadiness);
+
 
     public Task<IReadOnlyList<SchedulingProviderStatus>> GetStatusesAsync(string userId, CancellationToken cancellationToken = default)
         => Task.FromResult<IReadOnlyList<SchedulingProviderStatus>>(Array.Empty<SchedulingProviderStatus>());
@@ -50,8 +58,11 @@ internal sealed class FakeSchedulingIntegrationService : ISchedulingIntegrationS
 
     public Task<OperationResult> ProvisionEventAsync(ScheduledEvent scheduleEvent, CancellationToken cancellationToken = default)
     {
+        ProvisioningCalls++;
+        if (ProvisioningException != null) throw ProvisioningException;
+        if (!ProvisioningSucceeds) return Task.FromResult(new OperationResult { Success = false, ErrorMessage = "Test provider unavailable." });
         var sequence = Interlocked.Increment(ref _sequence);
-        if (scheduleEvent.DeliveryType == ScheduleDeliveryType.Zoom && string.IsNullOrWhiteSpace(scheduleEvent.MeetingUrl))
+        if (ReturnMeetingDetails && scheduleEvent.DeliveryType == ScheduleDeliveryType.Zoom && string.IsNullOrWhiteSpace(scheduleEvent.MeetingUrl))
         {
             scheduleEvent.ZoomMeetingId = $"zoom-{sequence}";
             scheduleEvent.MeetingUrl = $"https://zoom.example.test/j/{sequence}";

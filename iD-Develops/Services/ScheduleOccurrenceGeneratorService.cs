@@ -20,15 +20,24 @@ namespace iD_Develops.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            var nextFullGeneration = DateTime.MinValue;
             while (!stoppingToken.IsCancellationRequested)
             {
-                var delay = TimeSpan.FromHours(6);
+                var delay = TimeSpan.FromMinutes(1);
                 try
                 {
                     await _dependencyStatus.WaitForDatabaseAsync(stoppingToken);
                     using var scope = _scopeFactory.CreateScope();
                     var schedulingService = scope.ServiceProvider.GetRequiredService<ISchedulingService>();
-                    await schedulingService.GenerateUpcomingEventsAsync(cancellationToken: stoppingToken);
+                    if (DateTime.UtcNow >= nextFullGeneration)
+                    {
+                        await schedulingService.GenerateUpcomingEventsAsync(cancellationToken: stoppingToken);
+                        nextFullGeneration = DateTime.UtcNow.AddHours(6);
+                    }
+                    else
+                    {
+                        await schedulingService.GeneratePendingEventsAsync(stoppingToken);
+                    }
                 }
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
                 {

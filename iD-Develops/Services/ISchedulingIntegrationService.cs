@@ -4,6 +4,11 @@ using iD_Develops.Utilities;
 
 namespace iD_Develops.Services
 {
+    public sealed record TeacherZoomReadiness(ZoomReadinessState State, string Message)
+    {
+        public bool CanAttemptProvisioning => State is ZoomReadinessState.Ready or ZoomReadinessState.ConnectionError;
+    }
+
     public sealed record SchedulingProviderStatus(
         SchedulingProvider Provider,
         string DisplayName,
@@ -47,6 +52,7 @@ namespace iD_Develops.Services
 
     public interface ISchedulingIntegrationService
     {
+        Task<TeacherZoomReadiness> GetZoomReadinessAsync(string teacherUserId, CancellationToken cancellationToken = default);
         Task<IReadOnlyList<SchedulingProviderStatus>> GetStatusesAsync(string userId, CancellationToken cancellationToken = default);
         SchedulingAuthorizationResult CreateAuthorizationUrl(SchedulingProvider provider, string userId, string redirectUri);
         Task<OperationResult> CompleteAuthorizationAsync(SchedulingProvider provider, string userId, string code, string state, string redirectUri, CancellationToken cancellationToken = default);

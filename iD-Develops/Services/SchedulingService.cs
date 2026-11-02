@@ -1,4 +1,5 @@
 using System.Data;
+using System.Text.Json;
 using iD_Develops.Data;
 using iD_Develops.Enums;
 using iD_Develops.Models;
@@ -77,6 +78,8 @@ namespace iD_Develops.Services
                     rule.GenerateWeeksAhead,
                     rule.IsVisibleForStudentBooking,
                     rule.IsActive,
+                    rule.ProvisioningStatus,
+                    rule.ProvisioningError,
                     UpcomingEventCount = rule.ScheduledEvents.Count(scheduleEvent =>
                         scheduleEvent.StartAtUtc >= now &&
                         scheduleEvent.Status == ScheduleEventStatus.Scheduled)
@@ -105,7 +108,9 @@ namespace iD_Develops.Services
                 rule.GenerateWeeksAhead,
                 rule.IsVisibleForStudentBooking,
                 rule.IsActive,
-                rule.UpcomingEventCount)).ToList();
+                rule.UpcomingEventCount,
+                rule.ProvisioningStatus,
+                rule.ProvisioningError)).ToList();
 
             var classQuery = _dbContext.CourseClasses.AsNoTracking();
             if (!actor.IsAdmin)
@@ -443,14 +448,6 @@ namespace iD_Develops.Services
             input.DurationMinutes = Math.Clamp(classDefaults.DurationMinutes, 5, 1440);
             input.Capacity = Math.Clamp(classDefaults.Capacity, 1, 10000);
 
-            var connectionValidation = await _schedulingIntegrationService.ValidateTeacherConnectionsAsync(
-                teacherUserId,
-                input.DeliveryType,
-                input.DeliveryType == ScheduleDeliveryType.Zoom,
-                cancellationToken);
-            if (!connectionValidation.Success)
-                return connectionValidation;
-
             var canonicalTimeZoneId = CanonicalTimeZoneId(input.TimeZoneId);
             ScheduleRosterRule? rule = null;
             if (input.Id > 0)
@@ -478,6 +475,12 @@ namespace iD_Develops.Services
                 return Failure("This roster overlaps another recurring meeting for the teacher.");
             }
 
+            string? pendingError = null;
+            if (input.DeliveryType == ScheduleDeliveryType.Zoom)
+            {
+                var readiness = await _schedulingIntegrationService.GetZoomReadinessAsync(teacherUserId, cancellationToken);
+                if (!readiness.CanAttemptProvisioning) pendingError = readiness.Message;
+            }
             var now = DateTime.UtcNow;
             if (rule == null)
             {
@@ -521,11 +524,13 @@ namespace iD_Develops.Services
             rule.GenerateWeeksAhead = input.GenerateWeeksAhead;
             rule.IsVisibleForStudentBooking = input.IsVisibleForStudentBooking;
             rule.IsActive = input.IsActive;
+            rule.ProvisioningStatus = pendingError == null ? ScheduleRosterProvisioningStatus.PendingProvisioning : ScheduleRosterProvisioningStatus.PendingZoomSetup;
+            rule.ProvisioningError = pendingError == null ? null : NormalizeText(pendingError, 2000);
             rule.UpdatedAtUtc = now;
 
             await _dbContext.SaveChangesAsync(cancellationToken);
             await GenerateUpcomingEventsAsync(rule.Id, cancellationToken);
-            return Success();
+            return await RosterSaveResultAsync(rule.Id, cancellationToken);
         }
 
         public async Task<OperationResult> DeleteRosterRuleAsync(
@@ -1029,6 +1034,8 @@ namespace iD_Develops.Services
                     return Failure("This meeting no longer exists.");
                 if (scheduleEvent.Status != ScheduleEventStatus.Scheduled)
                     return Failure("This meeting is not available for booking.");
+                if (HasPendingRosterZoomMeeting(scheduleEvent))
+                    return Failure("The Zoom meeting is not ready for booking.");
                 if (!scheduleEvent.IsVisibleForStudentBooking)
                     return Failure("This meeting is not available for student self-booking.");
 
@@ -1387,9 +1394,13 @@ namespace iD_Develops.Services
             return Success();
         }
 
-        public async Task GenerateUpcomingEventsAsync(
-            int? ruleId = null,
-            CancellationToken cancellationToken = default)
+        public Task GenerateUpcomingEventsAsync(int? ruleId = null, CancellationToken cancellationToken = default)
+            => GenerateEventsCoreAsync(ruleId, false, cancellationToken);
+
+        public Task GeneratePendingEventsAsync(CancellationToken cancellationToken = default)
+            => GenerateEventsCoreAsync(null, true, cancellationToken);
+
+        private async Task GenerateEventsCoreAsync(int? ruleId, bool pendingOnly, CancellationToken cancellationToken)
         {
             var rules = await _dbContext.ScheduleRosterRules
                 .AsNoTracking()
@@ -1398,113 +1409,205 @@ namespace iD_Develops.Services
                     .ThenInclude(courseClass => courseClass.CourseSection)
                         .ThenInclude(section => section.Course)
                 .Include(rule => rule.TeacherUser)
-                .Where(rule => rule.IsActive && (!ruleId.HasValue || rule.Id == ruleId.Value))
+                .Where(rule => rule.IsActive && (!ruleId.HasValue || rule.Id == ruleId.Value) &&
+                    (!pendingOnly || rule.ProvisioningStatus != ScheduleRosterProvisioningStatus.Ready))
                 .ToListAsync(cancellationToken);
             var now = DateTime.UtcNow;
 
             foreach (var rule in rules)
             {
-                var connectionValidation = await _schedulingIntegrationService.ValidateTeacherConnectionsAsync(
-                    rule.TeacherUserId,
-                    rule.DeliveryType,
-                    rule.DeliveryType == ScheduleDeliveryType.Zoom,
-                    cancellationToken);
-                if (!connectionValidation.Success)
+                var teacherName = FormatName(rule.TeacherUser.FirstName, rule.TeacherUser.LastName, rule.TeacherUser.UserName, rule.TeacherUser.Email);
+                try
                 {
-                    _logger.LogWarning(
-                        "Roster rule {RuleId} could not generate meetings: {Error}",
-                        rule.Id,
-                        connectionValidation.ErrorMessage);
-                    continue;
-                }
-
-                var timeZone = FindTimeZone(AmsterdamTimeZoneId);
-                if (timeZone == null)
-                {
-                    _logger.LogWarning("Roster rule {RuleId} has unknown time zone {TimeZoneId}.", rule.Id, rule.TimeZoneId);
-                    continue;
-                }
-
-                var localToday = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(now, timeZone));
-                var fromDate = rule.ActiveFromDate > localToday ? rule.ActiveFromDate : localToday;
-                var horizon = localToday.AddDays(rule.GenerateWeeksAhead * 7);
-                var untilDate = rule.ActiveUntilDate.HasValue && rule.ActiveUntilDate.Value < horizon
-                    ? rule.ActiveUntilDate.Value
-                    : horizon;
-                var offset = ((int)rule.DayOfWeek - (int)fromDate.DayOfWeek + 7) % 7;
-                var occurrenceDate = fromDate.AddDays(offset);
-
-                while (occurrenceDate <= untilDate)
-                {
-                    var localStart = DateTime.SpecifyKind(
-                        occurrenceDate.ToDateTime(rule.LocalStartTime),
-                        DateTimeKind.Unspecified);
-                    if (!timeZone.IsInvalidTime(localStart))
+                    var timeZone = FindTimeZone(AmsterdamTimeZoneId);
+                    if (timeZone == null)
                     {
-                        var startUtc = TimeZoneInfo.ConvertTimeToUtc(localStart, timeZone);
-                        var endUtc = startUtc.AddMinutes(rule.DurationMinutes);
-                        var exists = await _dbContext.ScheduledEvents.AsNoTracking().AnyAsync(
-                            scheduleEvent =>
-                                scheduleEvent.ScheduleRosterRuleId == rule.Id &&
-                                scheduleEvent.StartAtUtc == startUtc,
-                            cancellationToken);
-                        var conflict = !exists && await HasTeacherConflictAsync(
-                            rule.TeacherUserId,
-                            startUtc,
-                            endUtc,
-                            null,
-                            cancellationToken);
-                        if (!exists && !conflict && startUtc > now)
+                        await SetProvisioningStateAsync(rule, ScheduleRosterProvisioningStatus.ProvisioningFailed, "The schedule time zone is unavailable.", cancellationToken);
+                        _logger.LogWarning("Roster rule {RuleId} has unknown time zone {TimeZoneId}.", rule.Id, rule.TimeZoneId);
+                        continue;
+                    }
+
+                    var localToday = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(now, timeZone));
+                    if (rule.ActiveUntilDate < localToday)
+                    {
+                        await SetProvisioningStateAsync(rule, ScheduleRosterProvisioningStatus.Ready, null, cancellationToken);
+                        continue;
+                    }
+                    if (rule.DeliveryType == ScheduleDeliveryType.Zoom)
+                    {
+                        var readiness = await _schedulingIntegrationService.GetZoomReadinessAsync(rule.TeacherUserId, cancellationToken);
+                        if (!readiness.CanAttemptProvisioning)
                         {
-                            var scheduleEvent = BuildEvent(
-                                rule.CourseClass,
-                                rule.TeacherUser,
+                            await SetProvisioningStateAsync(rule, ScheduleRosterProvisioningStatus.PendingZoomSetup, readiness.Message, cancellationToken);
+                            continue;
+                        }
+                    }
+                    var connectionValidation = await _schedulingIntegrationService.ValidateTeacherConnectionsAsync(
+                        rule.TeacherUserId,
+                        rule.DeliveryType,
+                        rule.DeliveryType == ScheduleDeliveryType.Zoom,
+                        cancellationToken);
+                    if (!connectionValidation.Success)
+                    {
+                        await SetProvisioningStateAsync(rule, ScheduleRosterProvisioningStatus.PendingZoomSetup,
+                            TeacherProvisioningMessage(teacherName, connectionValidation.ErrorMessage), cancellationToken);
+                        _logger.LogWarning(
+                            "Roster rule {RuleId} could not generate meetings: {Error}",
+                            rule.Id,
+                            connectionValidation.ErrorMessage);
+                        continue;
+                    }
+
+                    await SetProvisioningStateAsync(rule, ScheduleRosterProvisioningStatus.PendingProvisioning, null, cancellationToken);
+                    string? provisioningError = null;
+                    var providerFailed = false;
+                    var fromDate = rule.ActiveFromDate > localToday ? rule.ActiveFromDate : localToday;
+                    var horizon = localToday.AddDays(rule.GenerateWeeksAhead * 7);
+                    var untilDate = rule.ActiveUntilDate.HasValue && rule.ActiveUntilDate.Value < horizon
+                        ? rule.ActiveUntilDate.Value
+                        : horizon;
+                    var offset = ((int)rule.DayOfWeek - (int)fromDate.DayOfWeek + 7) % 7;
+                    var occurrenceDate = fromDate.AddDays(offset);
+
+                    while (occurrenceDate <= untilDate)
+                    {
+                        var localStart = DateTime.SpecifyKind(
+                            occurrenceDate.ToDateTime(rule.LocalStartTime),
+                            DateTimeKind.Unspecified);
+                        if (!timeZone.IsInvalidTime(localStart))
+                        {
+                            var startUtc = TimeZoneInfo.ConvertTimeToUtc(localStart, timeZone);
+                            var endUtc = startUtc.AddMinutes(rule.DurationMinutes);
+                            var exists = await _dbContext.ScheduledEvents.AsNoTracking().AnyAsync(
+                                scheduleEvent =>
+                                    scheduleEvent.ScheduleRosterRuleId == rule.Id &&
+                                    scheduleEvent.StartAtUtc == startUtc,
+                                cancellationToken);
+                            var conflict = !exists && await HasTeacherConflictAsync(
+                                rule.TeacherUserId,
                                 startUtc,
                                 endUtc,
-                                AmsterdamTimeZoneId,
-                                rule.Capacity,
-                                rule.DeliveryType,
-                                rule.DeliveryType == ScheduleDeliveryType.Zoom ? null : rule.MeetingUrl,
-                                rule.Location,
-                                rule.BookingOpenDaysBefore,
-                                rule.BookingCloseHoursBefore,
-                                ScheduleEventSource.Roster,
-                                rule.Id);
-                            scheduleEvent.IsVisibleForStudentBooking = rule.IsVisibleForStudentBooking;
-                            var provisioned = await _schedulingIntegrationService.ProvisionEventAsync(scheduleEvent, cancellationToken);
-                            if (!provisioned.Success)
+                                null,
+                                cancellationToken);
+                            if (conflict)
+                                provisioningError ??= $"{teacherName}: some occurrences overlap existing meetings. Resolve the conflicts before meeting setup can finish.";
+                            if (!exists && !conflict && startUtc > now)
                             {
-                                _logger.LogWarning(
-                                    "Roster occurrence for rule {RuleId} at {StartUtc} was skipped: {Error}",
-                                    rule.Id,
+                                var scheduleEvent = BuildEvent(
+                                    rule.CourseClass,
+                                    rule.TeacherUser,
                                     startUtc,
-                                    provisioned.ErrorMessage);
-                            }
-                            else
-                            {
-                                _dbContext.ScheduledEvents.Add(scheduleEvent);
-                                try
+                                    endUtc,
+                                    AmsterdamTimeZoneId,
+                                    rule.Capacity,
+                                    rule.DeliveryType,
+                                    rule.DeliveryType == ScheduleDeliveryType.Zoom ? null : rule.MeetingUrl,
+                                    rule.Location,
+                                    rule.BookingOpenDaysBefore,
+                                    rule.BookingCloseHoursBefore,
+                                    ScheduleEventSource.Roster,
+                                    rule.Id);
+                                scheduleEvent.IsVisibleForStudentBooking = rule.IsVisibleForStudentBooking;
+                                var provisioned = await _schedulingIntegrationService.ProvisionEventAsync(scheduleEvent, cancellationToken);
+                                if (provisioned.Success && rule.DeliveryType == ScheduleDeliveryType.Zoom &&
+                                    (string.IsNullOrWhiteSpace(scheduleEvent.ZoomMeetingId) || string.IsNullOrWhiteSpace(scheduleEvent.MeetingUrl)))
+                                    provisioned = Failure("Zoom did not return meeting details. No occurrence was published.");
+                                if (!provisioned.Success)
                                 {
-                                    await _dbContext.SaveChangesAsync(cancellationToken);
+                                    providerFailed = true;
+                                    provisioningError ??= TeacherProvisioningMessage(teacherName, provisioned.ErrorMessage);
+                                    _logger.LogWarning(
+                                        "Roster occurrence for rule {RuleId} at {StartUtc} was skipped: {Error}",
+                                        rule.Id,
+                                        startUtc,
+                                        provisioned.ErrorMessage);
+                                    break;
                                 }
-                                catch (DbUpdateException exception)
+                                else
                                 {
-                                    await _schedulingIntegrationService.CancelEventAsync(scheduleEvent, cancellationToken);
-                                    _dbContext.Entry(scheduleEvent).State = EntityState.Detached;
-                                    _logger.LogInformation(
-                                        exception,
-                                        "Roster occurrence for rule {RuleId} was created by another process.",
-                                        rule.Id);
+                                    _dbContext.ScheduledEvents.Add(scheduleEvent);
+                                    try
+                                    {
+                                        await _dbContext.SaveChangesAsync(cancellationToken);
+                                    }
+                                    catch (DbUpdateException exception)
+                                    {
+                                        await _schedulingIntegrationService.CancelEventAsync(scheduleEvent, cancellationToken);
+                                        _dbContext.Entry(scheduleEvent).State = EntityState.Detached;
+                                        if (!await _dbContext.ScheduledEvents.AsNoTracking().AnyAsync(item =>
+                                                item.ScheduleRosterRuleId == rule.Id && item.StartAtUtc == startUtc, cancellationToken))
+                                        {
+                                            providerFailed = true;
+                                            provisioningError ??= $"{teacherName}: a meeting could not be saved. Meeting setup will retry.";
+                                        }
+                                        _logger.LogInformation(
+                                            exception,
+                                            "Roster occurrence for rule {RuleId} was created by another process.",
+                                            rule.Id);
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    occurrenceDate = occurrenceDate.AddDays(7);
+                        occurrenceDate = occurrenceDate.AddDays(7);
+                    }
+                    await SetProvisioningStateAsync(rule,
+                        providerFailed ? ScheduleRosterProvisioningStatus.ProvisioningFailed :
+                        provisioningError != null ? ScheduleRosterProvisioningStatus.PendingProvisioning : ScheduleRosterProvisioningStatus.Ready,
+                        provisioningError, cancellationToken);
+                }
+                catch (Exception exception) when (exception is HttpRequestException or JsonException ||
+                    exception is OperationCanceledException && !cancellationToken.IsCancellationRequested)
+                {
+                    _logger.LogWarning(exception, "Meeting provider was unavailable for roster rule {RuleId}.", rule.Id);
+                    await SetProvisioningStateAsync(rule, ScheduleRosterProvisioningStatus.ProvisioningFailed,
+                        $"{teacherName}: the meeting provider could not be reached. Setup will retry automatically.", cancellationToken);
                 }
             }
 
         }
+
+        public async Task<OperationResult> RetryRosterRuleAsync(ScheduleActor actor, int ruleId, CancellationToken cancellationToken = default)
+        {
+            var rule = await _dbContext.ScheduleRosterRules.AsNoTracking().FirstOrDefaultAsync(item => item.Id == ruleId, cancellationToken);
+            if (rule == null || !CanManageTeacher(actor, rule.TeacherUserId))
+                return Failure("You cannot retry this recurring class.");
+            if (!rule.IsActive) return Failure("Activate the recurring class before retrying meeting setup.");
+            await GenerateUpcomingEventsAsync(ruleId, cancellationToken);
+            return await RosterSaveResultAsync(ruleId, cancellationToken);
+        }
+
+        private async Task SetProvisioningStateAsync(ScheduleRosterRule rule, ScheduleRosterProvisioningStatus status, string? error, CancellationToken cancellationToken)
+        {
+            error = NormalizeText(error, 2000);
+            var updated = await _dbContext.ScheduleRosterRules
+                .Where(item => item.Id == rule.Id && item.UpdatedAtUtc == rule.UpdatedAtUtc &&
+                    (item.ProvisioningStatus != status || item.ProvisioningError != error))
+                .ExecuteUpdateAsync(update => update.SetProperty(item => item.ProvisioningStatus, status)
+                    .SetProperty(item => item.ProvisioningError, error), cancellationToken);
+            if (updated > 0)
+            {
+                var tracked = _dbContext.ChangeTracker.Entries<ScheduleRosterRule>().FirstOrDefault(item => item.Entity.Id == rule.Id);
+                if (tracked?.State == EntityState.Unchanged) await tracked.ReloadAsync(cancellationToken);
+            }
+        }
+
+        private async Task<OperationResult> RosterSaveResultAsync(int ruleId, CancellationToken cancellationToken)
+        {
+            var state = await _dbContext.ScheduleRosterRules.AsNoTracking().Where(item => item.Id == ruleId)
+                .Select(item => new { item.IsActive, item.ProvisioningStatus, item.ProvisioningError }).SingleAsync(cancellationToken);
+            if (!state.IsActive || state.ProvisioningStatus == ScheduleRosterProvisioningStatus.Ready) return Success();
+            return new ScheduleRosterSaveResult
+            {
+                Success = true,
+                ErrorMessage = string.Empty,
+                PendingSetupMessage = $"Recurring class saved. {state.ProvisioningError ?? "Meeting setup is pending."} New occurrences cannot be booked until meeting setup succeeds. Setup will retry automatically."
+            };
+        }
+
+        private static string TeacherProvisioningMessage(string teacherName, string? error)
+            => string.IsNullOrWhiteSpace(error) ? $"{teacherName}: meeting setup failed and will retry." :
+                error.StartsWith(teacherName, StringComparison.OrdinalIgnoreCase) ? error : $"{teacherName}: {error}";
 
         private async Task<ScheduledEvent?> BuildEventAsync(
             int courseClassId,
@@ -1696,6 +1799,8 @@ namespace iD_Develops.Services
                            withinEnrollmentLimit &&
                            withinCourseTimeline;
 
+            if (HasPendingRosterZoomMeeting(scheduleEvent) && !canManage && !canViewAsStaff && !hasBookingHistory)
+                return null;
             if (!canManage && !canViewAsStaff && !scheduleEvent.IsVisibleForStudentBooking && !hasBookingHistory)
                 return null;
             if (!canManage && !canViewAsStaff && !eligible && !hasBookingHistory && !hasEnrollment)
@@ -1707,6 +1812,7 @@ namespace iD_Develops.Services
             const bool isRecommended = false;
             var canBook = !canManage && !canViewAsStaff &&
                           eligible &&
+                          !HasPendingRosterZoomMeeting(scheduleEvent) &&
                           !isBooked &&
                           scheduleEvent.Status == ScheduleEventStatus.Scheduled &&
                           spotsRemaining > 0 &&
@@ -1919,6 +2025,10 @@ namespace iD_Develops.Services
 
         private bool CanManageTeacher(ScheduleActor actor, string teacherUserId)
             => actor.IsAdmin || (actor.IsTeacher && teacherUserId == actor.UserId);
+
+        private static bool HasPendingRosterZoomMeeting(ScheduledEvent scheduleEvent)
+            => scheduleEvent.Source == ScheduleEventSource.Roster && scheduleEvent.DeliveryType == ScheduleDeliveryType.Zoom &&
+               (string.IsNullOrWhiteSpace(scheduleEvent.ZoomMeetingId) || string.IsNullOrWhiteSpace(scheduleEvent.MeetingUrl));
 
         private static bool IsAssignedTeacher(ScheduleActor actor, string teacherUserId)
             => (actor.IsTeacher || actor.IsAdmin) && teacherUserId == actor.UserId;

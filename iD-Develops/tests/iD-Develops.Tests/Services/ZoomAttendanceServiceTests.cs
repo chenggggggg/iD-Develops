@@ -266,6 +266,8 @@ public sealed class ZoomAttendanceServiceTests
 
     private sealed class AttendanceIntegrationStub(ZoomAttendanceReportResult report) : ISchedulingIntegrationService
     {
+        public Task<TeacherZoomReadiness> GetZoomReadinessAsync(string teacherUserId, CancellationToken cancellationToken = default)
+            => Task.FromResult(new TeacherZoomReadiness(ZoomReadinessState.Ready, "Test teacher is connected."));
         public Task<ZoomAttendanceReportResult> GetZoomAttendanceReportAsync(int scheduledEventId, CancellationToken cancellationToken = default)
             => Task.FromResult(report);
         public Task<OperationResult> RegisterBookingAsync(int scheduledEventId, string userId, CancellationToken cancellationToken = default)
