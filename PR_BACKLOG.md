@@ -1,6 +1,6 @@
 ﻿# Planned PR backlog
 
-Updated: 2026-11-02
+Updated: 2026-11-03
 
 This is the combined planning backlog from the staging review and owner meeting.
 B01-B21 are planning IDs, not GitHub PR numbers. Priorities are proposed implementation
@@ -223,6 +223,11 @@ Dependencies: B01 and existing exam version/assignment architecture.
 ## B07 - P1 - Audit-log date filters, totals, and load more
 
 **Estimated size: Medium.** Date/timezone queries, filtering, bounded result loading, table details, and browser regressions on an existing page.
+
+Status: implemented and verified on `feature/audit-log-date-filters`; ready for PR review.
+Verification: Release build, formatting, all 422 unit/integration tests, and all 156
+Playwright tests passed on 2026-11-03. Desktop and mobile screenshots were inspected.
+No database migration is required.
 
 Expand the previously saved audit-log UX PR.
 
@@ -540,7 +545,7 @@ until the company confirms them. Include My Profile/history/refund states in B20
 - B04/B05 must preserve staff ownership rules and define on-behalf booking and credit ownership.
 - B06: product editors can configure Attempts on purchase, defaulting to the selected
   exam's allowance. Quantity one and additive repeat purchases were approved on 2026-11-02.
-  Implemented and verified on feature/product-exam-entitlements; ready for PR review.
+  Completed and merged in [PR #44](https://github.com/chenggggggg/iD-Develops/pull/44).
   Verification: Release build, formatting, all 415 unit/integration tests, 44 relevant
   browser tests, and EF model/migration consistency passed on 2026-11-02.
 - B21: unused purchases may use the refund button; used purchases require contacting

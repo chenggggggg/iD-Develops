@@ -11,13 +11,64 @@ namespace iD_Develops.Pages.Portal.Admin;
 [Authorize(Roles = "SuperAdmin")]
 public sealed class AuditLogModel : PageModel
 {
-    private const int PageSize = 50;
     private readonly ApplicationDbContext _dbContext;
+    private readonly TimeProvider _timeProvider;
 
-    public AuditLogModel(ApplicationDbContext dbContext)
+    public AuditLogModel(ApplicationDbContext dbContext, TimeProvider? timeProvider = null)
     {
         _dbContext = dbContext;
+        _timeProvider = timeProvider ?? TimeProvider.System;
     }
+
+    public static TimeZoneInfo BusinessTimeZone { get; } = FindBusinessTimeZone();
+
+    public IReadOnlyList<int> PageSizeOptions { get; } = [25, 50, 100, 200];
+
+    [BindProperty(SupportsGet = true)]
+    public int PageSize { get; set; } = 100;
+
+    [BindProperty(SupportsGet = true)]
+    public DateOnly? From { get; set; }
+
+    [BindProperty(SupportsGet = true)]
+    public DateOnly? To { get; set; }
+
+    [BindProperty(SupportsGet = true)]
+    public bool AllDates { get; set; }
+
+    [BindProperty(SupportsGet = true)]
+    public DateTimeOffset? Before { get; set; }
+
+    [BindProperty(SupportsGet = true)]
+    public long? BeforeId { get; set; }
+
+    public bool HasMore { get; private set; }
+
+    public string DateRangeLabel => AllDates ? "All dates" : From == To
+        ? $"{From:dd MMM yyyy} · Amsterdam" : $"{From:dd MMM yyyy} – {To:dd MMM yyyy} · Amsterdam";
+
+    public string? NextPageUrl => HasMore && Events.Count > 0
+        ? PageUrl(new DateTimeOffset(DateTime.SpecifyKind(Events[^1].OccurredAtUtc, DateTimeKind.Utc)), Events[^1].Id)
+        : null;
+
+    public string? PageUrl(DateTimeOffset? before = null, long? beforeId = null)
+        => Url.Page("/Portal/Admin/AuditLog", new
+        {
+            q = SearchQuery,
+            Category,
+            Outcome,
+            PageSize,
+            AllDates,
+            From = From?.ToString("yyyy-MM-dd"),
+            To = To?.ToString("yyyy-MM-dd"),
+            Before = before?.ToString("O"),
+            BeforeId = beforeId
+        });
+
+    public DateTimeOffset LocalTime(DateTime utc)
+        => TimeZoneInfo.ConvertTime(new DateTimeOffset(DateTime.SpecifyKind(utc, DateTimeKind.Utc)), BusinessTimeZone);
+
+    public string ZoneLabel(DateTime utc) => BusinessTimeZone.IsDaylightSavingTime(DateTime.SpecifyKind(utc, DateTimeKind.Utc)) ? "CEST" : "CET";
 
     [BindProperty(SupportsGet = true)]
     public string? Category { get; set; }
@@ -28,22 +79,49 @@ public sealed class AuditLogModel : PageModel
     [BindProperty(SupportsGet = true, Name = "q")]
     public string? SearchQuery { get; set; }
 
-    [BindProperty(SupportsGet = true)]
-    public int PageNumber { get; set; } = 1;
-
     public IReadOnlyList<AuditEventRow> Events { get; private set; } = [];
 
     public int TotalCount { get; private set; }
-
-    public int TotalPages => Math.Max(1, (int)Math.Ceiling(TotalCount / (double)PageSize));
 
     public IReadOnlyList<string> CategoryOptions { get; } = Enum.GetNames<AuditEventCategory>();
 
     public IReadOnlyList<string> OutcomeOptions { get; } = Enum.GetNames<AuditEventOutcome>();
 
-    public async Task OnGetAsync(CancellationToken cancellationToken)
+    public Task OnGetAsync(CancellationToken cancellationToken) => LoadAsync(cancellationToken);
+
+    public async Task<IActionResult> OnGetMoreAsync(CancellationToken cancellationToken)
     {
+        await LoadAsync(cancellationToken);
+        return ModelState.IsValid
+            ? Partial("/Pages/Portal/Admin/_AuditLogEntries.cshtml", this)
+            : BadRequest(new { message = "Check the audit-log filters and try again." });
+    }
+
+    private async Task LoadAsync(CancellationToken cancellationToken)
+    {
+        if (!PageSizeOptions.Contains(PageSize)) PageSize = 100;
+        if (!ModelState.IsValid) return;
+        if (Before.HasValue != BeforeId.HasValue || BeforeId is <= 0)
+        {
+            ModelState.AddModelError(string.Empty, "The log position is invalid. Apply the filters again to reload the newest events.");
+            return;
+        }
+
         var query = _dbContext.ApplicationAuditEvents.AsNoTracking();
+        if (!AllDates)
+        {
+            var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(_timeProvider.GetUtcNow(), BusinessTimeZone).DateTime);
+            From ??= To ?? today;
+            To ??= From;
+            if (From > To || From.Value.Year < 1900 || To.Value.Year > 9998)
+            {
+                ModelState.AddModelError(nameof(To), "Choose dates between 1900 and 9998, with the start date on or before the end date.");
+                return;
+            }
+            var startUtc = TimeZoneInfo.ConvertTimeToUtc(From.Value.ToDateTime(TimeOnly.MinValue), BusinessTimeZone);
+            var endUtc = TimeZoneInfo.ConvertTimeToUtc(To.Value.AddDays(1).ToDateTime(TimeOnly.MinValue), BusinessTimeZone);
+            query = query.Where(auditEvent => auditEvent.OccurredAtUtc >= startUtc && auditEvent.OccurredAtUtc < endUtc);
+        }
 
         if (Enum.TryParse<AuditEventCategory>(Category, true, out var category))
         {
@@ -93,14 +171,21 @@ public sealed class AuditLogModel : PageModel
         }
 
         TotalCount = await query.CountAsync(cancellationToken);
-        PageNumber = Math.Clamp(PageNumber, 1, TotalPages);
+        if (Before.HasValue)
+        {
+            var beforeUtc = Before.Value.UtcDateTime;
+            query = query.Where(auditEvent => auditEvent.OccurredAtUtc < beforeUtc ||
+                auditEvent.OccurredAtUtc == beforeUtc && auditEvent.Id < BeforeId!.Value);
+        }
 
         var auditEvents = await query
             .OrderByDescending(auditEvent => auditEvent.OccurredAtUtc)
             .ThenByDescending(auditEvent => auditEvent.Id)
-            .Skip((PageNumber - 1) * PageSize)
-            .Take(PageSize)
+            .Take(PageSize + 1)
             .ToListAsync(cancellationToken);
+
+        HasMore = auditEvents.Count > PageSize;
+        if (HasMore) auditEvents.RemoveAt(PageSize);
 
         var userIds = auditEvents
             .SelectMany(auditEvent => new[] { auditEvent.ActorUserId, auditEvent.SubjectUserId })
@@ -133,6 +218,12 @@ public sealed class AuditLogModel : PageModel
             auditEvent.IpAddress,
             auditEvent.UserAgent,
             PrettyJson(auditEvent.MetadataJson), ReadCommerceDetails(auditEvent.MetadataJson))).ToList();
+    }
+
+    private static TimeZoneInfo FindBusinessTimeZone()
+    {
+        try { return TimeZoneInfo.FindSystemTimeZoneById("Europe/Amsterdam"); }
+        catch (TimeZoneNotFoundException) { return TimeZoneInfo.FindSystemTimeZoneById("W. Europe Standard Time"); }
     }
 
     private static string ResolveUser(
