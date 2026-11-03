@@ -1,0 +1,111 @@
+@using iD_Develops.Enums
+@model iD_Develops.Pages.Portal.Admin.AuditLogModel
+@{
+    static string OutcomeTone(AuditEventOutcome outcome) => outcome switch
+    {
+        AuditEventOutcome.Success => "border-emerald-200 bg-emerald-50 text-emerald-800",
+        AuditEventOutcome.Failure => "border-red-200 bg-red-50 text-red-800",
+        _ => "border-slate-200 bg-slate-50 text-slate-700"
+    };
+}
+
+<div class="divide-y divide-slate-100" data-audit-page data-total-count="@Model.TotalCount">
+    @foreach (var auditEvent in Model.Events)
+    {
+        <details class="group" data-audit-event="@auditEvent.Id">
+            <summary class="grid cursor-pointer list-none gap-2 px-4 py-3 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500 lg:grid-cols-[10rem_7rem_minmax(0,1fr)_minmax(10rem,0.6fr)_1.25rem] lg:items-center lg:gap-3 [&::-webkit-details-marker]:hidden">
+                <time class="text-xs font-medium text-slate-500" datetime="@auditEvent.OccurredAtUtc.ToString("O")" title="@auditEvent.OccurredAtUtc.ToString("yyyy-MM-dd HH:mm:ss") UTC">
+                    @Model.LocalTime(auditEvent.OccurredAtUtc).ToString("yyyy-MM-dd HH:mm:ss")
+                    <span class="text-slate-400">@Model.ZoneLabel(auditEvent.OccurredAtUtc)</span>
+                </time>
+                <span class="w-fit rounded-full border px-2 py-0.5 text-xs font-semibold @OutcomeTone(auditEvent.Outcome)">@auditEvent.Outcome</span>
+                <span class="min-w-0">
+                    <span class="mr-2 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">@auditEvent.Category</span>
+                    <span class="text-sm font-medium text-slate-900">@auditEvent.Summary</span>
+                </span>
+                <span class="truncate text-xs text-slate-600" title="@auditEvent.Actor">@auditEvent.Actor</span>
+                <i class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform group-open:rotate-180" aria-hidden="true"></i>
+            </summary>
+
+            <div class="border-t border-slate-100 bg-slate-50/70 px-4 py-4">
+                @if (auditEvent.Category == AuditEventCategory.Commerce && auditEvent.CommerceDetails.Count > 0)
+                {
+                    <section class="mb-5 rounded-lg border border-slate-200 bg-white p-4" aria-label="Payment and delivery details">
+                        <h3 class="m-0 text-sm font-semibold text-slate-900">Payment and delivery details</h3>
+                        <dl class="mb-0 mt-3 grid gap-4 text-xs sm:grid-cols-2 xl:grid-cols-3">
+                            @foreach (var detail in auditEvent.CommerceDetails)
+                            {
+                                <div>
+                                    <dt class="font-semibold text-slate-500">@detail.Key</dt>
+                                    <dd class="m-0 mt-1 break-all text-slate-800">@detail.Value</dd>
+                                </div>
+                            }
+                        </dl>
+                        @if (!string.IsNullOrWhiteSpace(auditEvent.CheckoutReference))
+                        {
+                            <a asp-page="/Portal/Admin/AuditLog" asp-route-category="Commerce" asp-route-q="@auditEvent.CheckoutReference" asp-route-allDates="true"
+                               class="mt-4 inline-flex min-h-9 items-center text-sm font-semibold text-blue-700 underline underline-offset-4 hover:text-blue-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500">View related checkout events</a>
+                        }
+                    </section>
+                }
+                <dl class="grid gap-4 text-xs text-slate-600 sm:grid-cols-2 xl:grid-cols-4">
+                    <div>
+                        <dt class="font-semibold text-slate-500">Event type</dt>
+                        <dd class="mt-1 break-all"><code>@auditEvent.EventType</code></dd>
+                    </div>
+                    <div>
+                        <dt class="font-semibold text-slate-500">Actor</dt>
+                        <dd class="mt-1 break-all">@auditEvent.Actor</dd>
+                    </div>
+                    <div>
+                        <dt class="font-semibold text-slate-500">Affected user</dt>
+                        <dd class="mt-1 break-all">@auditEvent.Subject</dd>
+                    </div>
+                    <div>
+                        <dt class="font-semibold text-slate-500">Entity</dt>
+                        <dd class="mt-1 break-all">@(string.IsNullOrWhiteSpace(auditEvent.EntityType) ? "-" : string.IsNullOrWhiteSpace(auditEvent.EntityId) ? auditEvent.EntityType : $"{auditEvent.EntityType} / {auditEvent.EntityId}")</dd>
+                    </div>
+                    <div>
+                        <dt class="font-semibold text-slate-500">Request</dt>
+                        <dd class="mt-1 break-all">@(auditEvent.RequestPath ?? "Background / external")</dd>
+                    </div>
+                    <div>
+                        <dt class="font-semibold text-slate-500">Correlation ID</dt>
+                        <dd class="mt-1 break-all">@(auditEvent.CorrelationId ?? "-")</dd>
+                    </div>
+                    <div>
+                        <dt class="font-semibold text-slate-500">IP address</dt>
+                        <dd class="mt-1 break-all">@(auditEvent.IpAddress ?? "-")</dd>
+                    </div>
+                    <div>
+                        <dt class="font-semibold text-slate-500">User agent</dt>
+                        <dd class="mt-1 break-all">@(auditEvent.UserAgent ?? "-")</dd>
+                    </div>
+                </dl>
+                @if (!string.IsNullOrWhiteSpace(auditEvent.Metadata))
+                {
+                    <pre class="mb-0 mt-3 overflow-x-auto rounded-md bg-slate-900 p-3 text-xs text-slate-100">@auditEvent.Metadata</pre>
+                }
+            </div>
+        </details>
+    }
+
+    <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-4" data-audit-pagination>
+        @if (Model.NextPageUrl is string nextPageUrl)
+        {
+            <a href="@nextPageUrl" data-audit-load-more
+               class="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 aria-disabled:cursor-wait aria-disabled:opacity-60">
+                <span class="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700 motion-reduce:animate-none" data-audit-more-spinner aria-hidden="true" hidden></span>
+                <span data-audit-more-label>Load more</span>
+            </a>
+        }
+        else
+        {
+            <p class="m-0 text-sm text-slate-500">No more matching events.</p>
+        }
+        @if (Model.Before.HasValue)
+        {
+            <a href="@Model.PageUrl()" class="inline-flex min-h-10 items-center text-sm font-semibold text-blue-700 underline underline-offset-4 hover:text-blue-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500">Back to newest</a>
+        }
+    </div>
+</div>
