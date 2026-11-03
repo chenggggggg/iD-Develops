@@ -53,6 +53,8 @@ public sealed class PurchasedExamCheckoutTests : Microsoft.Playwright.Xunit.Page
         await Page.GetByRole(AriaRole.Link, new() { Name = "Sign in", Exact = true }).ClickAsync();
         await Page.GetByLabel("E-mail").FillAsync(data.Account.User.Email!);
         await Page.GetByLabel("Password", new() { Exact = true }).FillAsync(data.Account.Password);
+        // The sign-in handoff resumes checkout through a second rate-limited public request.
+        await PublicProductSubmissionPacing.ReserveAsync();
         await Page.GetByRole(AriaRole.Button, new() { Name = "Log in", Exact = true }).ClickAsync();
         await Expect(Page).ToHaveURLAsync(new Regex("/payment-result[?].*local=true"));
         var purchase = await db.PurchasedExamEntitlements.AsNoTracking().SingleAsync(item => item.ExamId == data.ExamId);

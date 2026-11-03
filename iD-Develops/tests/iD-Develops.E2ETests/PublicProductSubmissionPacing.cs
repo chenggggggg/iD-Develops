@@ -3,8 +3,8 @@ using System.Diagnostics;
 namespace iD_Develops.E2ETests;
 
 // Browser contexts share localhost's production rate-limit partition. Pace their
-// public product posts while reserving concurrent pairs together; assertions and
-// server-side limits still run normally.
+// public product posts and checkout-resume requests while reserving concurrent
+// pairs together; assertions and server-side limits still run normally.
 internal static class PublicProductSubmissionPacing
 {
     private static readonly SemaphoreSlim Gate = new(1, 1);
