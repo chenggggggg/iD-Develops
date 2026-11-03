@@ -114,6 +114,9 @@ namespace iD_Develops.Services
             return products;
         }
 
+        public Task<List<Exam>> GetExamOptionsAsync(CancellationToken ct = default)
+            => _dbContext.Exams.AsNoTracking().Where(exam => !exam.IsDeleted && exam.PublishStatus == ExamPublishStatus.Published).OrderBy(exam => exam.Name).ToListAsync(ct);
+
         public Task<List<Course>> GetCourseOptionsAsync(CancellationToken ct = default)
             => _dbContext.Courses
                 .AsNoTracking()
@@ -168,6 +171,7 @@ namespace iD_Develops.Services
             CatalogPricing.ValidateDiscount(product);
             if (product.DiscountType == CatalogDiscountType.None) product.DiscountValue = null;
             await EnsureGrantedCourseExistsAsync(product.GrantedCourseId, ct);
+            await ValidateGrantedExamAsync(product, ct);
             product.Slug = await GenerateUniqueSlugAsync(product.Name, product.Slug, null, ct);
             product.SlugHistory.Add(new() { Slug = product.Slug });
             product.Currency = NormalizeCurrency(product.Currency);
@@ -212,6 +216,7 @@ namespace iD_Develops.Services
             var existing = await _dbContext.CatalogProducts.FirstOrDefaultAsync(p => p.Id == product.Id, ct)
                 ?? throw new InvalidOperationException("Product not found.");
 
+            await ValidateGrantedExamAsync(product, ct, _dbContext.Entry(existing).OriginalValues.GetValue<int?>(nameof(CatalogProduct.GrantedExamId)));
             CatalogPricing.ValidateDiscount(product);
             existing.Name = product.Name.Trim();
             var previousSlug = _dbContext.Entry(existing).OriginalValues.GetValue<string>(nameof(CatalogProduct.Slug));
@@ -259,6 +264,15 @@ namespace iD_Develops.Services
                 : 1;
             existing.RequiresAccountCreation = product.RequiresAccountCreation;
             existing.GrantedCourseId = product.GrantedCourseId;
+            existing.GrantedExamId = product.GrantedExamId;
+            existing.ExamAttemptsOnPurchase = product.ExamAttemptsOnPurchase;
+            if (product.GrantedExamId.HasValue)
+            {
+                existing.EnableQuantity = false;
+                existing.MinQuantity = existing.MaxQuantity = 1;
+                existing.AllowsMultipleParticipants = false;
+                existing.MaxParticipants = 1;
+            }
             existing.CreditConsumptionPolicyId = product.CreditConsumptionPolicyId;
             existing.IncludedBookingBenefitLabel = product.IncludedBookingBenefitLabel?.Trim();
             existing.IncludedBookingBenefitUrl = product.IncludedBookingBenefitUrl?.Trim();
@@ -616,7 +630,8 @@ namespace iD_Develops.Services
                 .Include(p => p.CreditConsumptionPolicy)
                 .Include(p => p.IncludedCreditProducts)
                     .ThenInclude(inclusion => inclusion.IncludedCreditProduct)
-                .Include(p => p.GrantedCourse);
+                .Include(p => p.GrantedCourse)
+                .Include(p => p.GrantedExam);
 
         private IQueryable<CatalogProduct> ReadQuery()
             => BaseQuery().AsNoTracking();
@@ -767,6 +782,24 @@ namespace iD_Develops.Services
 
         private static int? NormalizeListItemCount(int? value)
             => value.HasValue ? Math.Max(2, value.Value) : null;
+
+        private async Task ValidateGrantedExamAsync(CatalogProduct product, CancellationToken ct, int? previousExamId = null)
+        {
+            if (!product.GrantedExamId.HasValue) { product.ExamAttemptsOnPurchase = null; return; }
+            if (product.ProductType != CatalogProductType.Standard || product.WorkflowType != CatalogWorkflowType.FormThenStripeCheckout)
+                throw new InvalidOperationException("An exam can only be attached to a standard product with payment checkout.");
+            var exam = await _dbContext.Exams.AsNoTracking().FirstOrDefaultAsync(item => item.Id == product.GrantedExamId && !item.IsDeleted, ct)
+                ?? throw new InvalidOperationException("Select an existing published exam.");
+            if (exam.PublishStatus != ExamPublishStatus.Published && exam.Id != previousExamId)
+                throw new InvalidOperationException("Select an existing published exam.");
+            product.ExamAttemptsOnPurchase ??= exam.MaxAttempts < 1 ? -1 : exam.MaxAttempts;
+            if (product.ExamAttemptsOnPurchase != -1 && product.ExamAttemptsOnPurchase < 1)
+                throw new InvalidOperationException("Attempts on purchase must be at least 1, or -1 for unlimited attempts.");
+            product.EnableQuantity = false;
+            product.MinQuantity = product.MaxQuantity = 1;
+            product.AllowsMultipleParticipants = false;
+            product.MaxParticipants = 1;
+        }
 
         private async Task EnsureGrantedCourseExistsAsync(int? courseId, CancellationToken cancellationToken)
         {

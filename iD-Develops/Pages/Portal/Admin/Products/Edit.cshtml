@@ -503,6 +503,24 @@
                         }
                     </select>
                 </div>
+                @if (Model.Product.ProductType == CatalogProductType.Standard)
+                {
+                    <div class="product-advanced-field">
+                        <label class="public-label product-admin-label" asp-for="EditInput.GrantedExamId">Attached exam</label>
+                        <select class="public-field product-admin-field" asp-for="EditInput.GrantedExamId" data-purchased-exam-select>
+                            <option value="">No exam</option>
+                            @foreach (var exam in Model.ExamOptions)
+                            {
+                                <option value="@exam.Id" data-attempts="@(exam.MaxAttempts < 1 ? -1 : exam.MaxAttempts)">@exam.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="product-advanced-field" data-purchased-exam-attempts hidden="@(!Model.EditInput.GrantedExamId.HasValue)">
+                        <label class="public-label product-admin-label" asp-for="EditInput.ExamAttemptsOnPurchase">Attempts on purchase</label>
+                        <input class="public-field product-admin-field" asp-for="EditInput.ExamAttemptsOnPurchase" type="number" min="-1" step="1" data-purchased-exam-allowance />
+                        <p class="mt-2 text-xs text-slate-600">Defaults to the selected exam's allowance. Enter -1 for unlimited attempts. Each purchase is for one account; another purchase adds this allowance again.</p>
+                    </div>
+                }
                 @if (Model.Product.ProductType == CatalogProductType.Credit)
                 {
                 <section class="col-span-full grid gap-4" data-credit-product-settings>
@@ -749,6 +767,7 @@
     {
         <div class="product-page-header">
             <h1 class="product-page-title">@Model.Product.Name</h1>
+            <partial name="_PurchasedExamBenefit" model="Model.Product" />
             @if (!string.IsNullOrWhiteSpace(Model.Product.Summary))
             {
                 <div class="product-page-summary">@Html.Raw(Model.Product.Summary)</div>
@@ -1869,6 +1888,7 @@
             });
         </script>
     }
+    <script src="~/js/product-exam-settings.js" asp-append-version="true" data-cookieconsent="ignore"></script>
     <script src="~/js/product-credit-grants.js" asp-append-version="true"></script>
     <script src="~/js/product-pricing-settings.js" asp-append-version="true" data-cookieconsent="ignore"></script>
     <script src="~/js/product-checkout-draft.js" asp-append-version="true" data-cookieconsent="ignore"></script>

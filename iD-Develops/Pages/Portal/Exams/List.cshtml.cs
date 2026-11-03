@@ -15,6 +15,7 @@ namespace iD_Develops.Pages.Portal.Exams
         public IReadOnlyList<ExamVersionSummary> Versions { get; private set; } = Array.Empty<ExamVersionSummary>();
         [BindProperty(SupportsGet = true)]
         public string Tab { get; set; } = "active";
+        public Dictionary<int, int> PurchasedVersionByExamId { get; } = new();
         public bool CanManage => User.IsInRole("Admin") || User.IsInRole("SuperAdmin") || User.IsInRole("Teacher");
         public IReadOnlyDictionary<int, ExamAccessDecision> AvailabilityByExamId { get; private set; } =
             new Dictionary<int, ExamAccessDecision>();
@@ -72,10 +73,18 @@ namespace iD_Develops.Pages.Portal.Exams
                     var availability = new Dictionary<int, ExamAccessDecision>();
                     foreach (var exam in Exams)
                     {
-                        availability[exam.Id] = await _examAccessService.GetAccessDecisionAsync(
-                            userId,
-                            exam.Id,
-                            cancellationToken);
+                        availability[exam.Id] = await _examAccessService.GetAccessDecisionAsync(userId, exam.Id, cancellationToken);
+                        var state = await _attemptService.GetStateAsync(userId, exam.Id);
+                        if (state.ExamVersionId.HasValue && (state.NextPurchasedEntitlementId.HasValue || state.CurrentPurchasedEntitlementId.HasValue || availability[exam.Id].PurchasedAccessOnly))
+                        {
+                            var descriptor = await _examVersionService.GetPublishedDescriptorAsync(exam.Id, state.ExamVersionId);
+                            if (descriptor != null)
+                            {
+                                exam.Name = descriptor.ExamTitle;
+                                exam.TimeLimitSeconds = descriptor.DurationSeconds > 0 ? descriptor.DurationSeconds : null;
+                                if (descriptor.VersionNumber.HasValue) PurchasedVersionByExamId[exam.Id] = descriptor.VersionNumber.Value;
+                            }
+                        }
                     }
                     AvailabilityByExamId = availability;
                 }
@@ -83,7 +92,7 @@ namespace iD_Develops.Pages.Portal.Exams
 
             if (Tab == "versions")
                 Versions = await _examVersionService.GetVersionHistoryAsync(Exams.Select(exam => exam.Id).ToArray());
-            else
+            else if (CanManage)
                 Exams = Exams.Where(exam => Tab == "archived"
                     ? exam.PublishStatus == ExamPublishStatus.Archived
                     : exam.PublishStatus != ExamPublishStatus.Archived).ToList();
@@ -95,7 +104,9 @@ namespace iD_Develops.Pages.Portal.Exams
             if (examId <= 0)
                 return BadRequest(new { success = false, errorMessage = "Invalid exam ID." });
 
-            var descriptor = await _examVersionService.GetPublishedDescriptorAsync(examId);
+            var launchUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var launchState = string.IsNullOrWhiteSpace(launchUserId) ? null : await _attemptService.GetStateAsync(launchUserId, examId);
+            var descriptor = await _examVersionService.GetPublishedDescriptorAsync(examId, launchState?.ExamVersionId);
             if (descriptor == null)
             {
                 if (!await CanPreviewUnpublishedExamAsync(examId))

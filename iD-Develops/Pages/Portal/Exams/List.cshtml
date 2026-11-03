@@ -154,6 +154,10 @@
                     <tr>
                         <td>
                             <div class="portal-exam-name">@exam.Name</div>
+                            @if (Model.PurchasedVersionByExamId.TryGetValue(exam.Id, out var purchasedVersion))
+                            {
+                                <small class="mt-1 block text-xs text-slate-500">Purchased version v@(purchasedVersion)</small>
+                            }
                             @if (!canManageExams && Model.AvailabilityByExamId.TryGetValue(exam.Id, out var availability))
                             {
                                 @if (availability.CanTake)
@@ -185,7 +189,7 @@
                         <td class="portal-exams-table-actions portal-table-cell-end">
                             @{
                                 Model.AvailabilityByExamId.TryGetValue(exam.Id, out var rowAvailability);
-                                var examCanLaunch = exam.PublishStatus != iD_Develops.Models.ExamPublishStatus.Archived && (canManageExams || rowAvailability == null || rowAvailability.CanTake);
+                                var examCanLaunch = (!canManageExams || exam.PublishStatus != iD_Develops.Models.ExamPublishStatus.Archived) && (canManageExams || rowAvailability == null || rowAvailability.CanTake);
                                 var actionsPopoverId = $"exam-actions-{exam.Id}";
                             }
                             <div class="flex items-center justify-end gap-2">
@@ -399,5 +403,5 @@
 
 @section Scripts {
     <script src="/js/exam-table.js"></script>
-    <script src="~/js/exams-list.js" asp-append-version="true"></script>
+    <script src="~/js/exams-list.js" asp-append-version="true" data-cookieconsent="ignore"></script>
 }

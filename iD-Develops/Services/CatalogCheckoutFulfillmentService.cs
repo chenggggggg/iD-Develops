@@ -89,6 +89,13 @@ public sealed class CatalogCheckoutFulfillmentService(ApplicationDbContext db, I
             await submissions.SaveSubmissionAsync(product, values, email, quantity, participants);
             if (inviteUseId.HasValue)
                 await accessService.CompleteInviteUseAsync(inviteUseId.Value, email, session.Id, ct);
+            await GrantPurchasedExamAsync(attempt, product, userId, session.Id, ct);
+            if (attempt?.PurchasedExamId is int paidExamId)
+            {
+                metadata["grantedExamId"] = paidExamId;
+                metadata["grantedExamVersionId"] = attempt.PurchasedExamVersionId;
+                metadata["grantedExamAttempts"] = attempt.PurchasedExamAttempts;
+            }
             await GrantAttachedCourseAsync(product, userId, email);
             await credits.GrantPurchasedCreditsAsync(product.Id, userId, email, session.Id, quantity, ct);
             db.CatalogCheckoutMails.AddRange(submissions.CreateCheckoutNotifications(product, values, email,
@@ -112,6 +119,29 @@ public sealed class CatalogCheckoutFulfillmentService(ApplicationDbContext db, I
             int ReadPositive(string key) => int.TryParse(session.Metadata.GetValueOrDefault(key), out var value) ? Math.Max(1, value) : 1;
         });
     }
+    private async Task GrantPurchasedExamAsync(CatalogCheckoutAttempt? attempt, CatalogProduct product, string? userId, string sessionId, CancellationToken ct)
+    {
+        // Deliver the saved checkout promise, never the product's current exam configuration.
+        if (attempt?.PurchasedExamId is not int examId) return;
+        if (string.IsNullOrWhiteSpace(userId) || !await db.Users.AnyAsync(user => user.Id == userId && !user.IsDeleted, ct))
+            throw new CatalogFulfillmentException("exam_purchaser_missing", "The exam purchaser account is unavailable. Reconcile the paid order before retrying delivery.");
+        if (attempt.PurchasedExamVersionId is not int versionId ||
+            !await db.ExamVersions.AnyAsync(version => version.Id == versionId && version.ExamId == examId, ct) ||
+            attempt.PurchasedExamAttempts is not int allowance || allowance != -1 && allowance < 1 || attempt.Quantity != 1)
+            throw new CatalogFulfillmentException("exam_snapshot_invalid", "The purchased exam snapshot is invalid. Reconcile the paid order before retrying delivery.");
+        if (await db.PurchasedExamEntitlements.AnyAsync(item => item.StripeSessionId == sessionId, ct)) return;
+        db.PurchasedExamEntitlements.Add(new()
+        {
+            StripeSessionId = sessionId,
+            CheckoutAttemptId = attempt.Id,
+            CatalogProductId = product.Id,
+            UserId = userId,
+            ExamId = examId,
+            ExamVersionId = versionId,
+            TotalAttempts = allowance
+        });
+    }
+
     private async Task<bool> WasPreviouslyCompletedAsync(string sessionId, CancellationToken ct)
     {
         var metadata = await db.ApplicationAuditEvents.AsNoTracking()

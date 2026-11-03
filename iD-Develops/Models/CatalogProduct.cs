@@ -97,6 +97,10 @@ namespace iD_Develops.Models
 
         public Course? GrantedCourse { get; set; }
 
+        public int? GrantedExamId { get; set; }
+        public Exam? GrantedExam { get; set; }
+        public int? ExamAttemptsOnPurchase { get; set; }
+
         public int? CreditConsumptionPolicyId { get; set; }
 
         public CreditConsumptionPolicy? CreditConsumptionPolicy { get; set; }
@@ -163,6 +167,7 @@ namespace iD_Develops.Models
         public bool RequiresAuthenticatedAccount =>
             ProductType == CatalogProductType.Credit ||
             GrantedCourseId.HasValue ||
+            GrantedExamId.HasValue ||
             CreditGrants.Count > 0 ||
             IncludedCreditProducts.Count > 0 ||
             RequiresAccountCreation;

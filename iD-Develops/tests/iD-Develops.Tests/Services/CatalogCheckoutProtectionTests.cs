@@ -612,6 +612,126 @@ public sealed class CatalogCheckoutProtectionTests
         }
     }
 
+
+    [Fact]
+    public async Task PaidExamCheckoutRequiresAccountBeforeCallingStripe()
+    {
+        using var data = new TestCheckout();
+        var product = await data.ProductAsync();
+        await AttachExamAsync(data, product);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => data.StartAsync(data.Context(), product, Guid.NewGuid(), new()));
+        Assert.Equal(0, data.Stripe.Creates);
+        Assert.Empty(await data.Db.CatalogCheckoutAttempts.ToListAsync());
+    }
+
+    [Theory]
+    [InlineData(2, 1)]
+    [InlineData(1, 2)]
+    public async Task PaidExamCheckoutRejectsQuantitiesAndOtherParticipants(int quantity, int participants)
+    {
+        using var data = new TestCheckout();
+        var product = await data.ProductAsync();
+        var (user, _) = await AttachExamAsync(data, product);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => data.StartAsync(data.Context(), product, Guid.NewGuid(), new(), userId: user.Id, quantity: quantity, participants: participants));
+        Assert.Equal(0, data.Stripe.Creates);
+    }
+
+    [Fact]
+    public async Task PaidExamCheckoutSnapshotsPromise_AndPaidRetriesGrantItExactlyOnceAfterEdits()
+    {
+        using var data = new TestCheckout();
+        var product = await data.ProductAsync();
+        var (user, exam) = await AttachExamAsync(data, product);
+        await data.StartAsync(data.Context(), product, Guid.NewGuid(), new(), userId: user.Id);
+        var order = await data.Db.CatalogCheckoutAttempts.SingleAsync();
+        var versionId = order.PurchasedExamVersionId;
+        Assert.NotNull(versionId);
+        Assert.Equal(2, order.PurchasedExamAttempts);
+        var session = data.Stripe.Session!;
+        session.Status = "complete";
+        Assert.False(await data.Fulfillment.CompleteAsync(session));
+        Assert.Empty(await data.Db.PurchasedExamEntitlements.ToListAsync());
+        product.GrantedExamId = null;
+        product.ExamAttemptsOnPurchase = 99;
+        exam.TimeLimitSeconds = 15;
+        exam.PublishStatus = ExamPublishStatus.Archived;
+        await data.Db.SaveChangesAsync();
+        session.PaymentStatus = "paid";
+        Assert.True(await data.Fulfillment.CompleteAsync(session));
+        Assert.True(await data.Fulfillment.CompleteAsync(session));
+        var grant = await data.Db.PurchasedExamEntitlements.SingleAsync();
+        Assert.Equal(user.Id, grant.UserId);
+        Assert.Equal(exam.Id, grant.ExamId);
+        Assert.Equal(versionId, grant.ExamVersionId);
+        Assert.Equal(2, grant.TotalAttempts);
+        Assert.Equal(0, grant.UsedAttempts);
+        Assert.Equal(session.Id, grant.StripeSessionId);
+        Assert.Equal(order.Id, grant.CheckoutAttemptId);
+        var audit = await data.Db.ApplicationAuditEvents.SingleAsync(row => row.EventType == ApplicationAuditEventTypes.PurchaseCompleted);
+        Assert.Contains("grantedExamVersionId", audit.MetadataJson);
+    }
+
+    [Fact]
+    public async Task RepeatPaidExamPurchasesGrantSeparateAllowances()
+    {
+        using var data = new TestCheckout();
+        var product = await data.ProductAsync();
+        var (user, _) = await AttachExamAsync(data, product);
+        for (var index = 0; index < 2; index++)
+        {
+            await data.StartAsync(data.Context(), product, Guid.NewGuid(), new(), userId: user.Id);
+            var session = data.Stripe.Session!;
+            session.Status = "complete";
+            session.PaymentStatus = "paid";
+            Assert.True(await data.Fulfillment.CompleteAsync(session));
+        }
+        var grants = await data.Db.PurchasedExamEntitlements.ToListAsync();
+        Assert.Equal(2, grants.Count);
+        Assert.Equal(4, grants.Sum(item => item.TotalAttempts));
+        Assert.Equal(2, grants.Select(item => item.StripeSessionId).Distinct().Count());
+    }
+
+    [Fact]
+    public async Task InvalidPaidExamSnapshotFailsDeliveryAndRecordsFailureWithoutGranting()
+    {
+        using var data = new TestCheckout();
+        var product = await data.ProductAsync();
+        var (user, _) = await AttachExamAsync(data, product);
+        await data.StartAsync(data.Context(), product, Guid.NewGuid(), new(), userId: user.Id);
+        var order = await data.Db.CatalogCheckoutAttempts.SingleAsync();
+        order.PurchasedExamVersionId = null;
+        await data.Db.SaveChangesAsync();
+        var session = data.Stripe.Session!;
+        session.Status = "complete";
+        session.PaymentStatus = "paid";
+        var error = await Assert.ThrowsAsync<CatalogFulfillmentException>(() => data.Fulfillment.CompleteAsync(session));
+        Assert.Equal("exam_snapshot_invalid", error.Code);
+        Assert.Empty(await data.Db.PurchasedExamEntitlements.ToListAsync());
+        Assert.Empty(await data.Db.CatalogCheckoutReceipts.ToListAsync());
+        Assert.True(await data.Db.ApplicationAuditEvents.AnyAsync(row => row.EventType == ApplicationAuditEventTypes.FulfillmentFailed));
+    }
+
+    private static async Task<(ApplicationUser User, Exam Exam)> AttachExamAsync(TestCheckout data, CatalogProduct product)
+    {
+        var user = new ApplicationUser { Id = "paid-buyer", UserName = "buyer@example.test", Email = "buyer@example.test" };
+        var exam = new Exam
+        {
+            Name = "Paid exam",
+            CreatedByUserId = "teacher",
+            IntroductionPrimaryLanguage = "Start",
+            MaxAttempts = 3,
+            TimeLimitSeconds = 120,
+            PublishStatus = ExamPublishStatus.Published,
+            Questions = [new OpenQuestion { Text = "Question", QuestionNumber = 1, Score = 1 }]
+        };
+        data.Db.AddRange(user, exam);
+        await data.Db.SaveChangesAsync();
+        product.GrantedExamId = exam.Id;
+        product.ExamAttemptsOnPurchase = 2;
+        await data.Db.SaveChangesAsync();
+        return (user, exam);
+    }
+
     private sealed class TestCheckout : IDisposable
     {
         private readonly SqliteTestDbFactory _factory = new();
@@ -648,7 +768,7 @@ public sealed class CatalogCheckoutProtectionTests
             Fulfillment = new(Db, new CatalogProductService(Db), submission, Access, Credits,
                 new ApplicationAuditService(Db, new HttpContextAccessor(), NullLogger<ApplicationAuditService>.Instance),
                 urls, CheckoutAudit, NullLogger<CatalogCheckoutFulfillmentService>.Instance);
-            _coordinator = new(Db, new CatalogStripeCheckoutService(Stripe), Stripe, Access, new TestEnvironment(), Fulfillment, urls, CheckoutAudit);
+            _coordinator = new(Db, new CatalogStripeCheckoutService(Stripe), Stripe, Access, new TestEnvironment(), Fulfillment, urls, CheckoutAudit, new ExamVersionService(Db));
         }
 
         public async Task<CatalogProduct> ProductAsync()
@@ -693,8 +813,8 @@ public sealed class CatalogCheckoutProtectionTests
             };
         }
 
-        public Task<string> StartAsync(HttpContext context, CatalogProduct product, Guid id, Dictionary<string, string> values, string? access = null)
-            => _coordinator.StartAsync(context, product, product.Variants.First(), id, values, "buyer@example.test", 1, 1, access, null, default);
+        public Task<string> StartAsync(HttpContext context, CatalogProduct product, Guid id, Dictionary<string, string> values, string? access = null, string? userId = null, int quantity = 1, int participants = 1)
+            => _coordinator.StartAsync(context, product, product.Variants.First(), id, values, "buyer@example.test", quantity, participants, access, userId, default);
         public void Dispose() { _services.Dispose(); Db.Dispose(); _factory.Dispose(); }
     }
 

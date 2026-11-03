@@ -35,6 +35,7 @@ namespace iD_Develops.Models
 
         public ICollection<Question> Questions { get; set; } = new List<Question>();
         public ICollection<Record> Records { get; set; } = new List<Record>();
+        public ICollection<PurchasedExamEntitlement> PurchasedEntitlements { get; set; } = new List<PurchasedExamEntitlement>();
         public ICollection<ExamVersion> Versions { get; set; } = new List<ExamVersion>();
         public ICollection<ExamGradeBand> GradeBands { get; set; } = new List<ExamGradeBand>();
         public ICollection<CourseSectionExam> CoursePlacements { get; set; } = new List<CourseSectionExam>();

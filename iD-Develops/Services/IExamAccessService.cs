@@ -4,7 +4,8 @@ namespace iD_Develops.Services
         bool CanTake,
         DateTime? UnlockAtUtc,
         DateTime? DueAtUtc,
-        string? BlockReason);
+        string? BlockReason,
+        bool PurchasedAccessOnly = false);
 
     public interface IExamAccessService
     {

@@ -81,6 +81,7 @@ namespace iD_Develops.Pages
         public bool CanTakeAction => IsPreviewMode || Product.IsSalesActive;
         public bool IsAdminEditMode { get; private set; }
         public List<Course> CourseOptions { get; private set; } = new();
+        public List<Exam> ExamOptions { get; private set; } = new();
         public IReadOnlyList<CreditType> CreditTypeOptions { get; private set; } = Array.Empty<CreditType>();
         public IReadOnlyList<CatalogProduct> CreditProductOptions { get; private set; } = Array.Empty<CatalogProduct>();
         public IReadOnlyList<CourseClassCreditOption> CourseClassOptions { get; private set; } = Array.Empty<CourseClassCreditOption>();
@@ -693,6 +694,8 @@ namespace iD_Develops.Pages
                     MaxQuantity = product.MaxQuantity,
                     RequiresAccountCreation = product.RequiresAccountCreation,
                     GrantedCourseId = EditInput.GrantedCourseId,
+                    GrantedExamId = EditInput.GrantedExamId,
+                    ExamAttemptsOnPurchase = EditInput.ExamAttemptsOnPurchase,
                     CreditConsumptionPolicyId = product.CreditConsumptionPolicyId,
                     IncludedBookingBenefitLabel = ResolveStoredFileLabel(attachmentUrl),
                     IncludedBookingBenefitUrl = attachmentUrl,
@@ -837,6 +840,7 @@ namespace iD_Develops.Pages
                EditInput.TransactionFee.HasValue && EditInput.TransactionFee.Value > 0 ||
                EditInput.ServiceFee.HasValue && EditInput.ServiceFee.Value > 0 ||
                EditInput.GrantedCourseId.HasValue ||
+               EditInput.GrantedExamId.HasValue ||
                !string.IsNullOrWhiteSpace(EditInput.CreditConfiguration.Name) ||
                !string.IsNullOrWhiteSpace(EditInput.ExternalBookingUrl) ||
                !string.IsNullOrWhiteSpace(EditInput.ImageObjectKey) ||
@@ -1353,6 +1357,8 @@ namespace iD_Develops.Pages
                 SortOrder = product.SortOrder,
                 IsHomepageHighlighted = product.IsHomepageHighlighted,
                 GrantedCourseId = product.GrantedCourseId,
+                GrantedExamId = product.GrantedExamId,
+                ExamAttemptsOnPurchase = product.ExamAttemptsOnPurchase,
                 CreditConfiguration = CreateCreditConfigurationInput(product),
                 IncludedCreditProductIds = product.IncludedCreditProducts
                     .Select(inclusion => inclusion.IncludedCreditProductId)
@@ -1497,6 +1503,9 @@ namespace iD_Develops.Pages
         private async Task LoadConfigurationOptionsAsync(CancellationToken cancellationToken)
         {
             CourseOptions = await _catalogProductService.GetCourseOptionsAsync(cancellationToken);
+            ExamOptions = await _catalogProductService.GetExamOptionsAsync(cancellationToken);
+            if (Product.GrantedExam != null && ExamOptions.All(exam => exam.Id != Product.GrantedExamId))
+                ExamOptions.Add(Product.GrantedExam);
             CreditTypeOptions = await _creditConfigurationService.GetCreditTypeOptionsAsync(true, cancellationToken);
             CreditProductOptions = await _catalogProductService.GetCreditProductOptionsAsync(Product.Id, cancellationToken);
             CourseClassOptions = await _creditConfigurationService.GetCourseClassOptionsAsync(cancellationToken);
@@ -1588,6 +1597,8 @@ namespace iD_Develops.Pages
             public bool IsHomepageHighlighted { get; set; }
 
             public int? GrantedCourseId { get; set; }
+            public int? GrantedExamId { get; set; }
+            public int? ExamAttemptsOnPurchase { get; set; }
 
             public CreditProductConfigurationInput CreditConfiguration { get; set; } = new();
 

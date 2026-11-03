@@ -37,15 +37,18 @@ namespace iD_Develops.Services
                     userRole.UserId == userId && privilegedRoleIds.Contains(userRole.RoleId),
                     cancellationToken);
 
+            var hasPurchase = await _dbContext.PurchasedExamEntitlements.AsNoTracking()
+                .AnyAsync(item => item.UserId == userId && item.ExamId == examId, cancellationToken);
             var exam = await _dbContext.Exams
                 .AsNoTracking()
                 .Where(item =>
                     item.Id == examId &&
                     !item.IsDeleted &&
-                    item.PublishStatus == ExamPublishStatus.Published)
+                    (item.PublishStatus == ExamPublishStatus.Published || hasPurchase))
                 .Select(item => new
                 {
                     item.CreatedByUserId,
+                    item.PublishStatus,
                     DirectAssignments = item.UserExams!
                         .Where(access => access.UserId == userId)
                         .Select(access => new { access.UnlockAtUtc, access.DueAtUtc })
@@ -87,6 +90,8 @@ namespace iD_Develops.Services
 
             if (exam == null)
                 return Blocked("This exam is not available.");
+            if (exam.PublishStatus != ExamPublishStatus.Published)
+                return new ExamAccessDecision(true, null, null, null, PurchasedAccessOnly: true);
             if (isPrivileged || exam.CreatedByUserId == userId || exam.HasLegacyCourseAccess || exam.IsCourseManager)
                 return Allowed();
 
@@ -111,6 +116,8 @@ namespace iD_Develops.Services
                 .ToList();
             if (placementUnlocks.Any(unlockAtUtc => !unlockAtUtc.HasValue || unlockAtUtc <= now))
                 return Allowed();
+
+            if (hasPurchase) return new ExamAccessDecision(true, null, null, null, PurchasedAccessOnly: true);
 
             var futureUnlock = exam.DirectAssignments
                 .Where(access => !access.DueAtUtc.HasValue || access.DueAtUtc >= now)

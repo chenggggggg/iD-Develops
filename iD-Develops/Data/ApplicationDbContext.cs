@@ -19,6 +19,7 @@ namespace iD_Develops.Data
         public DbSet<Exam> Exams { get; set; }
         public DbSet<UserExam> UserExams { get; set; }
         public DbSet<ExamAttemptGrant> ExamAttemptGrants { get; set; }
+        public DbSet<PurchasedExamEntitlement> PurchasedExamEntitlements { get; set; }
         public DbSet<Question> Questions { get; set; }
         public DbSet<MultipleChoiceQuestion> MultipleChoiceQuestions { get; set; }
         public DbSet<MultipleChoiceAnswer> MultipleChoiceAnswers { get; set; }
@@ -965,6 +966,16 @@ namespace iD_Develops.Data
             modelBuilder.Entity<ScheduleRosterRule>()
                 .Property(rule => rule.DeliveryType)
                 .HasConversion<string>();
+
+            modelBuilder.Entity<PurchasedExamEntitlement>().HasIndex(item => item.StripeSessionId).IsUnique();
+            modelBuilder.Entity<PurchasedExamEntitlement>().HasIndex(item => new { item.UserId, item.ExamId });
+            modelBuilder.Entity<PurchasedExamEntitlement>().HasOne(item => item.User).WithMany().HasForeignKey(item => item.UserId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<PurchasedExamEntitlement>().HasOne(item => item.CatalogProduct).WithMany().HasForeignKey(item => item.CatalogProductId).OnDelete(DeleteBehavior.SetNull);
+            modelBuilder.Entity<PurchasedExamEntitlement>().HasOne(item => item.Exam).WithMany(item => item.PurchasedEntitlements).HasForeignKey(item => item.ExamId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<PurchasedExamEntitlement>().HasOne(item => item.ExamVersion).WithMany().HasForeignKey(item => item.ExamVersionId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Record>().HasOne(item => item.PurchasedExamEntitlement).WithMany(item => item.Records).HasForeignKey(item => item.PurchasedExamEntitlementId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<CatalogProduct>().HasOne(item => item.GrantedExam).WithMany().HasForeignKey(item => item.GrantedExamId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<CatalogCheckoutAttempt>().HasOne<ExamVersion>().WithMany().HasForeignKey(item => item.PurchasedExamVersionId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<ScheduleRosterRule>()
                 .Property(rule => rule.ProvisioningStatus)

@@ -498,6 +498,15 @@ namespace iD_Develops.Data.Migrations
                     b.Property<int>("ParticipantCount")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("PurchasedExamAttempts")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("PurchasedExamId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("PurchasedExamVersionId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
@@ -518,6 +527,8 @@ namespace iD_Develops.Data.Migrations
                     b.HasIndex("CatalogProductId");
 
                     b.HasIndex("ExpiresAtUtc");
+
+                    b.HasIndex("PurchasedExamVersionId");
 
                     b.HasIndex("RequestKey")
                         .IsUnique();
@@ -638,6 +649,9 @@ namespace iD_Develops.Data.Migrations
                     b.Property<bool>("EnableQuantity")
                         .HasColumnType("boolean");
 
+                    b.Property<int?>("ExamAttemptsOnPurchase")
+                        .HasColumnType("integer");
+
                     b.Property<string>("ExternalBookingButtonText")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
@@ -650,6 +664,9 @@ namespace iD_Develops.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<int?>("GrantedCourseId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("GrantedExamId")
                         .HasColumnType("integer");
 
                     b.Property<bool>("HideFromProductsPage")
@@ -767,6 +784,8 @@ namespace iD_Develops.Data.Migrations
                     b.HasIndex("CreditConsumptionPolicyId");
 
                     b.HasIndex("GrantedCourseId");
+
+                    b.HasIndex("GrantedExamId");
 
                     b.HasIndex("Slug")
                         .IsUnique();
@@ -2386,6 +2405,61 @@ namespace iD_Develops.Data.Migrations
                     b.ToTable("Prospects");
                 });
 
+            modelBuilder.Entity("iD_Develops.Models.PurchasedExamEntitlement", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CatalogProductId")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("CheckoutAttemptId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ExamId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ExamVersionId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("PurchasedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("StripeSessionId")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("TotalAttempts")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UsedAttempts")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CatalogProductId");
+
+                    b.HasIndex("ExamId");
+
+                    b.HasIndex("ExamVersionId");
+
+                    b.HasIndex("StripeSessionId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "ExamId");
+
+                    b.ToTable("PurchasedExamEntitlements");
+                });
+
             modelBuilder.Entity("iD_Develops.Models.Question", b =>
                 {
                     b.Property<int>("Id")
@@ -2469,6 +2543,9 @@ namespace iD_Develops.Data.Migrations
                     b.Property<DateTime?>("LastActivityUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int?>("PurchasedExamEntitlementId")
+                        .HasColumnType("integer");
+
                     b.Property<double>("Score")
                         .HasColumnType("double precision");
 
@@ -2490,6 +2567,8 @@ namespace iD_Develops.Data.Migrations
                     b.HasIndex("ExamId");
 
                     b.HasIndex("ExamVersionId");
+
+                    b.HasIndex("PurchasedExamEntitlementId");
 
                     b.HasIndex("UserId");
 
@@ -3253,6 +3332,11 @@ namespace iD_Develops.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("iD_Develops.Models.ExamVersion", null)
+                        .WithMany()
+                        .HasForeignKey("PurchasedExamVersionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("CatalogProduct");
                 });
 
@@ -3268,9 +3352,16 @@ namespace iD_Develops.Data.Migrations
                         .HasForeignKey("GrantedCourseId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("iD_Develops.Models.Exam", "GrantedExam")
+                        .WithMany()
+                        .HasForeignKey("GrantedExamId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("CreditConsumptionPolicy");
 
                     b.Navigation("GrantedCourse");
+
+                    b.Navigation("GrantedExam");
                 });
 
             modelBuilder.Entity("iD_Develops.Models.CatalogProductCreditGrant", b =>
@@ -3821,6 +3912,40 @@ namespace iD_Develops.Data.Migrations
                     b.Navigation("Record");
                 });
 
+            modelBuilder.Entity("iD_Develops.Models.PurchasedExamEntitlement", b =>
+                {
+                    b.HasOne("iD_Develops.Models.CatalogProduct", "CatalogProduct")
+                        .WithMany()
+                        .HasForeignKey("CatalogProductId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("iD_Develops.Models.Exam", "Exam")
+                        .WithMany("PurchasedEntitlements")
+                        .HasForeignKey("ExamId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("iD_Develops.Models.ExamVersion", "ExamVersion")
+                        .WithMany()
+                        .HasForeignKey("ExamVersionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("iD_Develops.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CatalogProduct");
+
+                    b.Navigation("Exam");
+
+                    b.Navigation("ExamVersion");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("iD_Develops.Models.Question", b =>
                 {
                     b.HasOne("iD_Develops.Models.Exam", null)
@@ -3841,6 +3966,11 @@ namespace iD_Develops.Data.Migrations
                         .HasForeignKey("ExamVersionId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("iD_Develops.Models.PurchasedExamEntitlement", "PurchasedExamEntitlement")
+                        .WithMany("Records")
+                        .HasForeignKey("PurchasedExamEntitlementId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("iD_Develops.Models.ApplicationUser", "User")
                         .WithMany("Records")
                         .HasForeignKey("UserId");
@@ -3848,6 +3978,8 @@ namespace iD_Develops.Data.Migrations
                     b.Navigation("Exam");
 
                     b.Navigation("ExamVersion");
+
+                    b.Navigation("PurchasedExamEntitlement");
 
                     b.Navigation("User");
                 });
@@ -4261,6 +4393,8 @@ namespace iD_Develops.Data.Migrations
 
                     b.Navigation("GradeBands");
 
+                    b.Navigation("PurchasedEntitlements");
+
                     b.Navigation("Questions");
 
                     b.Navigation("Records");
@@ -4289,6 +4423,11 @@ namespace iD_Develops.Data.Migrations
                     b.Navigation("Completions");
 
                     b.Navigation("SourceFiles");
+                });
+
+            modelBuilder.Entity("iD_Develops.Models.PurchasedExamEntitlement", b =>
+                {
+                    b.Navigation("Records");
                 });
 
             modelBuilder.Entity("iD_Develops.Models.Question", b =>
