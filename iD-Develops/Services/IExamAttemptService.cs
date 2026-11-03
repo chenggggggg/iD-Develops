@@ -28,7 +28,11 @@
         bool CanStart,
         bool CanContinue,
         bool CanRestart,
-        string? BlockReason           // e.g. "No attempts left"
+        string? BlockReason,          // e.g. "No attempts left"
+        int? ExamVersionId = null,
+        int? NextPurchasedEntitlementId = null,
+        int? NextExamVersionId = null,
+        int? CurrentPurchasedEntitlementId = null
     );
 
     public sealed record AttemptActionResult(

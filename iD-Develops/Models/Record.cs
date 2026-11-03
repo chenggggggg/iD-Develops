@@ -12,6 +12,8 @@ namespace iD_Develops.Models
         public Exam Exam { get; set; }
         public int? ExamVersionId { get; set; }
         public ExamVersion? ExamVersion { get; set; }
+        public int? PurchasedExamEntitlementId { get; set; }
+        public PurchasedExamEntitlement? PurchasedExamEntitlement { get; set; }
         public double Score { get; set; }
         public DateTime StartDateTime { get; set; }
         public DateTime? EndDateTime { get; set; }

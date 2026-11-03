@@ -59,4 +59,7 @@
   <data name="SignupCountryLabel" xml:space="preserve"><value>Land</value></data>
   <data name="SignupOptionalLabel" xml:space="preserve"><value>optioneel</value></data>
   <data name="SignupOptionalFieldError" xml:space="preserve"><value>{0}: gebruik maximaal {1} tekens en een enkele regel.</value></data>
+  <data name="IncludedExamLabel" xml:space="preserve"><value>Inbegrepen examen</value></data>
+  <data name="UnlimitedPurchasedAttempts" xml:space="preserve"><value>Onbeperkt aantal pogingen per aankoop</value></data>
+  <data name="PurchasedAttemptCount" xml:space="preserve"><value>{0} pogingen per aankoop</value></data>
 </root>

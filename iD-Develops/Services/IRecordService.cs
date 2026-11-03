@@ -39,6 +39,8 @@ namespace iD_Develops.Services
         /// Includes optional self-heal: if multiple InProgress exist, keeps the latest and cancels the rest.
         /// </summary>
         Task<Guid> StartAttemptAtomicAsync(string userId, int examId, int? examVersionId, DateTime startTimeUtc, DateTime? endTimeUtc);
+        Task<Guid> StartPurchasedAttemptAtomicAsync(string userId, int examId, int entitlementId, int examVersionId, DateTime startTimeUtc, DateTime? endTimeUtc)
+            => Task.FromResult(Guid.Empty);
         Task<IReadOnlyList<UserExamRecordSummary>> GetUserResultRecordsAsync(string userId, CancellationToken cancellationToken = default);
     }
 }

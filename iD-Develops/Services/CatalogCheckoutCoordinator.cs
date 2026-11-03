@@ -11,12 +11,19 @@ namespace iD_Develops.Services;
 
 public sealed class CatalogCheckoutCoordinator(ApplicationDbContext db, ICatalogCheckoutService checkout,
     IStripeCheckoutClient stripe, CatalogProductAccessService accessService, IWebHostEnvironment environment,
-    CatalogCheckoutFulfillmentService fulfillment, IApplicationUrlService urls, CatalogCheckoutAuditService checkoutAudit)
+    CatalogCheckoutFulfillmentService fulfillment, IApplicationUrlService urls, CatalogCheckoutAuditService checkoutAudit, IExamVersionService examVersions)
 {
     public async Task<string> StartAsync(HttpContext context, CatalogProduct product, CatalogProductVariant variant,
         Guid requestId, Dictionary<string, string> values, string? email, int quantity, int participants,
         string? access, string? userId, CancellationToken ct)
     {
+        if (product.GrantedExamId.HasValue)
+        {
+            if (quantity != 1 || participants != 1) throw new InvalidOperationException("Exam purchases must have quantity 1 and one participant.");
+            var purchaser = string.IsNullOrWhiteSpace(userId) ? null : await db.Users.AsNoTracking().FirstOrDefaultAsync(user => user.Id == userId && !user.IsDeleted, ct);
+            if (purchaser == null) throw new InvalidOperationException("Sign in to purchase this exam.");
+            if (string.IsNullOrWhiteSpace(email)) email = purchaser.Email;
+        }
         if (JsonSerializer.Serialize(values).Length > 60000)
             throw new InvalidOperationException("The form contains too much information. Please shorten your answers.");
         if (requestId == Guid.Empty) throw new InvalidOperationException("Please reload the product page before checking out.");
@@ -29,6 +36,8 @@ public sealed class CatalogCheckoutCoordinator(ApplicationDbContext db, ICatalog
             variantId = variant.Id,
             variant.Price,
             product.BasePrice,
+            product.GrantedExamId,
+            product.ExamAttemptsOnPurchase,
             product.DiscountType,
             product.DiscountValue,
             product.RegistrationFee,
@@ -90,6 +99,17 @@ public sealed class CatalogCheckoutCoordinator(ApplicationDbContext db, ICatalog
             if (invite != null)
             {
                 attempt.InviteUseId = (await accessService.ReserveInviteAsync(invite, email, ct)).Id;
+            }
+            if (product.GrantedExamId is int examId)
+            {
+                var descriptor = await examVersions.GetOrCreateAttemptVersionAsync(examId)
+                    ?? throw new InvalidOperationException("The attached exam is not available for purchase.");
+                if (descriptor.ExamVersionId is not > 0) throw new InvalidOperationException("The exam version could not be preserved for checkout.");
+                var allowance = product.ExamAttemptsOnPurchase ?? descriptor.MaxAttempts;
+                if (allowance != -1 && allowance < 1) throw new InvalidOperationException("The purchased exam allowance is invalid.");
+                attempt.PurchasedExamId = examId;
+                attempt.PurchasedExamVersionId = descriptor.ExamVersionId;
+                attempt.PurchasedExamAttempts = allowance;
             }
             db.CatalogCheckoutAttempts.Add(attempt);
             await db.SaveChangesAsync(ct);

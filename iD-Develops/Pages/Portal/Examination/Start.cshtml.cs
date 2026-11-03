@@ -42,7 +42,9 @@ namespace iD_Develops.Pages.Portal.Examination
             if (examId <= 0)
                 return RedirectToPage("/Portal/Exams/List");
 
-            var descriptor = await _examVersionService.GetPublishedDescriptorAsync(examId);
+            var launchUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var launchState = string.IsNullOrWhiteSpace(launchUserId) ? null : await _attemptService.GetStateAsync(launchUserId, examId);
+            var descriptor = await _examVersionService.GetPublishedDescriptorAsync(examId, launchState?.ExamVersionId);
             var isPublished = descriptor != null;
 
             string examTitle;

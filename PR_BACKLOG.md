@@ -3,7 +3,7 @@
 Updated: 2026-11-02
 
 This is the combined planning backlog from the staging review and owner meeting.
-B01-B20 are planning IDs, not GitHub PR numbers. Priorities are proposed implementation
+B01-B21 are planning IDs, not GitHub PR numbers. Priorities are proposed implementation
 priorities: P0 payment reliability, P1 core workflows, P2 presentation and feature expansion.
 This file does not authorize implementation, Git changes, or deployments.
 
@@ -47,6 +47,7 @@ work without changing its size. Estimates may change after a focused investigati
 | B18 | Medium | Editorial layout configuration, post ordering/featured selections, responsive previews, and a homepage feed on the B16/B17 foundation. |
 | B19 | Medium | Investigation and measurement precede a focused query correction; estimate is provisional until the offending query is identified. |
 | B20 | Large (audit effort) | Broad source and safe browser coverage across environments, roles, layouts, and states. This estimates the review/report, not implementation of unknown findings. |
+| B21 | Large | Account payment history, purchase-specific usage checks, monetary refunds, payment/provider reconciliation, entitlement reversal, concurrency, and browser regressions. |
 
 ## Completed work excluded from this backlog
 
@@ -112,7 +113,7 @@ Dependencies: existing checkout/audit foundation. Separate from B07 table UX.
 
 **Estimated size: Large.** The message-only correction is Small; the proposed pending-setup lifecycle needs scheduling, provider provisioning, visibility, and retry changes.
 
-Status: implemented and verified on `fix/recurring-class-zoom-readiness`; ready for PR review.
+Status: completed and merged in [PR #42](https://github.com/chenggggggg/iD-Develops/pull/42).
 Verification: Release build, formatting, 398 unit/integration tests, and 34 relevant
 Playwright tests passed. Local Zoom is disabled; provider recovery uses simulated
 provider tests rather than creating real Zoom meetings.
@@ -198,7 +199,11 @@ Dependencies: B04; coordinate Zoom readiness with B02/B03.
 
 New product/entitlement PR using the existing checkout and exam assignment services.
 
-- Add an optional exam selector to standard products; a product may sell an exam alone.
+- Add an optional exam selector to standard products, alongside the existing course
+  selector in product edit/settings; a product may sell an exam alone.
+- When an exam is selected, show an editable "Attempts on purchase" setting. Default
+  it to that exam's configured attempt allowance; the staff member editing the product
+  can override it. Snapshot the purchased allowance along with the exam version.
 - Require an authenticated account before paying for an exam entitlement, and explain
   this requirement in the public signup/checkout flow.
 - Verified successful payment assigns the purchased exam to the purchasing account.
@@ -207,8 +212,11 @@ New product/entitlement PR using the existing checkout and exam assignment servi
   editing a product or exam after checkout cannot silently change what was purchased.
 - Make fulfillment idempotent across duplicate webhooks, retries, and success-page visits.
 - Show the delivered exam in My Exams; preserve appropriate access and audit entries.
-- Record paid-but-unassigned failures through B01. Define quantity, repeat purchases,
-  exam-attempt entitlement, and refund behavior before finalizing those cases.
+- Record paid-but-unassigned failures through B01. Preserve purchase-to-attempt links
+  so later usage checks can identify which purchase supplied an attempt.
+- Monetary refunds and payment history belong to B21, not this entitlement PR.
+  Approved on 2026-11-02: quantity is fixed at one exam purchase per checkout;
+  repeat purchases add their configured attempt allowance, preserving each purchased version.
 
 Dependencies: B01 and existing exam version/assignment architecture.
 
@@ -477,21 +485,73 @@ Deliverables and boundaries:
 Dependencies: use completed B12 conventions and inspect other delivered backlog features;
 record any preceding items still incomplete rather than claiming final complete coverage.
 
+## B21 - P1 - Payment history and refunds for unused purchases
+
+**Estimated size: Large.** Account payment history, purchase-specific usage checks,
+monetary refunds, payment/provider reconciliation, entitlement reversal, concurrency,
+and relevant unit/integration and browser coverage.
+
+New separate feature PR, requested on 2026-11-02. This is saved scope, not an instruction
+to implement it before B06 or to change legal terms.
+
+- Add a Payment/Purchase History section to My Profile showing the signed-in user's
+  purchases, purchase date, product, paid amount/currency, payment/refund status, and
+  a useful order reference. Enforce ownership on the server; do not attach historical
+  purchases to an account solely because an email address matches.
+- Offer a Refund button for an otherwise eligible paid, unused purchase. Explain the
+  amount and consequences before confirmation, and show pending/success/failure states.
+- Initial user-approved rule: once a purchased product has been used, disable or hide
+  its Refund button and explain "This purchase has been used. Please contact the company
+  to request a refund." Do not prevent a separate request to the company.
+- For exams, creating an attempt record from the purchased allowance means it has been
+  used, even if the attempt is unfinished or later cancelled. Link usage to the purchase
+  rather than treating unrelated earlier exam attempts as use of a new purchase.
+- Apply the same unused/used distinction across product types. Credit reservations or
+  consumption, course usage, and delivered/consumed services need reliable purchase-linked
+  evidence. Define the concrete usage signals for each type during investigation; do not
+  expose self-service refunds where unused status cannot be reliably established.
+- Initial self-service scope: full refund of an entirely unused purchase. If any part of
+  a bundle or allowance has been used, direct the customer to the company. Partial refunds
+  and exceptional used-product refunds remain manual rather than guessing a company policy.
+- Perform eligibility checks on the server immediately before processing. Coordinate
+  refund processing with exam starts, credit use, and other consumption so simultaneous
+  requests cannot both use and refund the same purchased benefit.
+- Integrate monetary refunds with Stripe using persisted, idempotent refund requests and
+  verified provider results/events. Handle retries, duplicate events, pending outcomes,
+  provider failures, and refunds performed externally without issuing duplicate refunds
+  or claiming success before confirmation.
+- Revoke only the refunded purchase's unused entitlements as part of a consistent refund
+  lifecycle; preserve other purchases, independent assignments, exam records/results,
+  financial history, and audit evidence. Record refund requests and outcomes through B01.
+- Keep the eligibility rule configurable/extendable for the company's later refund-policy
+  decision. Do not invent a time window, deductions, or update Terms & Conditions in this PR.
+
+Dependencies: B01 audit trail and reliable purchase/fulfillment identity; B06's purchased
+exam allowances and version/record links. Broader policy and legal-text changes are deferred
+until the company confirms them. Include My Profile/history/refund states in B20's final audit.
+
 ## Decisions and dependencies retained
 
 - Making Exam Level optional remains a separate pending product decision, not an approved
   implementation requirement or an accidentally forgotten PR.
 - B03's Zoom organization/licensing/hosting choice needs confirmation before architecture work.
-- B02's pending schedules should be hidden from student booking until a usable meeting exists;
-  confirm this recommendation before changing lifecycle behavior.
+- B02's staff-only pending schedules and provision-after-connection behavior were approved
+  and delivered in PR #42.
 - B04/B05 must preserve staff ownership rules and define on-behalf booking and credit ownership.
-- B06 needs a clear purchased exam version/attempt/quantity/refund entitlement policy.
+- B06: product editors can configure Attempts on purchase, defaulting to the selected
+  exam's allowance. Quantity one and additive repeat purchases were approved on 2026-11-02.
+  Implemented and verified on feature/product-exam-entitlements; ready for PR review.
+  Verification: Release build, formatting, all 415 unit/integration tests, 44 relevant
+  browser tests, and EF model/migration consistency passed on 2026-11-02.
+- B21: unused purchases may use the refund button; used purchases require contacting
+  the company. Defer additional refund rules and legal wording until company approval.
 - B15 awaits the owner's supplied replacement hero image.
 
 ## Suggested implementation order
 
 B01 first. Then B02's immediate scheduling clarity and B06's purchase-to-exam fulfillment;
-B07 makes the audit trail easier to operate. Decide B03 before major Zoom changes. Deliver
+B07 makes the audit trail easier to operate. B21 follows the purchase/usage foundation
+from B06; keep monetary refunds separate from exam delivery. Decide B03 before major Zoom changes. Deliver
 B04 then B05, followed by B11's coherent roster workflow. B08/B09 can be independent focused
 workflow PRs; B10 can proceed independently of the new hero. Audit B12 before systematic
 UI standardization, then B13/B14. B16 -> B17 -> B18 is the blog sequence. B15 can run when

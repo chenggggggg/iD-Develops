@@ -13,7 +13,9 @@ function initializeExamsList() {
     sessionStorage.removeItem("successMessage");
 }
 
-if (document.readyState === "loading") {
+// This script is rendered after the dialog. Initialize immediately when its DOM is
+// present; consent managers can delay DOMContentLoaded listeners until consent.
+if (document.readyState === "loading" && !document.getElementById("examLaunchDialog")) {
     document.addEventListener("DOMContentLoaded", initializeExamsList, { once: true });
 } else {
     initializeExamsList();
@@ -41,7 +43,7 @@ function initializeExamActionConfirmation() {
 
             if (action === "archive") {
                 title.textContent = "Archive exam";
-                message.textContent = `Archive “${examName}”? Students will no longer be able to start it, while existing attempts and results remain available.`;
+                message.textContent = `Archive “${examName}”? New purchases and starts through ordinary assignments will be blocked. Previously purchased versions, existing attempts, and results remain available.`;
                 confirmLabel.textContent = "Archive exam";
                 confirmButton.classList.remove("portal-btn-danger");
                 confirmButton.classList.add("portal-btn-primary");

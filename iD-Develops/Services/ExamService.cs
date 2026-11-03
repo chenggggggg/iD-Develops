@@ -126,8 +126,8 @@ namespace iD_Develops.Services
                 .AsNoTracking()
                 .Where(exam =>
                     !exam.IsDeleted &&
-                    exam.PublishStatus == ExamPublishStatus.Published &&
-                    (exam.UserExams!.Any(access => access.UserId == userId) ||
+                    (exam.PublishStatus == ExamPublishStatus.Published || exam.PurchasedEntitlements.Any(item => item.UserId == userId)) &&
+                    (exam.PurchasedEntitlements.Any(item => item.UserId == userId) || exam.UserExams!.Any(access => access.UserId == userId) ||
                      exam.CoursePlacements.Any(placement =>
                          placement.CourseSection.Course.UserCourses.Any(access => access.UserId == userId)) ||
                      (exam.CourseId != null &&
@@ -185,6 +185,14 @@ namespace iD_Develops.Services
                     return result;
                 }
 
+                if (await _dbContext.PurchasedExamEntitlements.AnyAsync(item => item.ExamId == examId) ||
+                    await _dbContext.CatalogCheckoutAttempts.AnyAsync(item => item.PurchasedExamId == examId) ||
+                    await _dbContext.CatalogProducts.AnyAsync(item => item.GrantedExamId == examId))
+                {
+                    result.Success = false;
+                    result.ErrorMessage = "This exam is linked to a product or purchase and cannot be deleted. Archive it instead.";
+                    return result;
+                }
                 var hasRecords = await _dbContext.Records.AnyAsync(record => record.ExamId == examId);
                 if (hasRecords)
                 {

@@ -1,0 +1,9 @@
+@model iD_Develops.Models.CatalogProduct
+@inject Microsoft.Extensions.Localization.IStringLocalizer<iD_Develops.Pages.ProductModel> ProductText
+@if (Model.GrantedExamId.HasValue)
+{
+    <div class="my-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700" data-purchased-exam-benefit>
+        <p class="font-semibold text-slate-900">@ProductText["IncludedExamLabel"]: @Model.GrantedExam?.Name</p>
+        <p class="mt-1">@(Model.ExamAttemptsOnPurchase == -1 ? ProductText["UnlimitedPurchasedAttempts"].Value : ProductText["PurchasedAttemptCount", Model.ExamAttemptsOnPurchase ?? Model.GrantedExam?.MaxAttempts ?? 1].Value)</p>
+    </div>
+}

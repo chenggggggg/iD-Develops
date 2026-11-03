@@ -59,4 +59,7 @@
   <data name="SignupCountryLabel" xml:space="preserve"><value>Country</value></data>
   <data name="SignupOptionalLabel" xml:space="preserve"><value>optional</value></data>
   <data name="SignupOptionalFieldError" xml:space="preserve"><value>{0}: use at most {1} characters and a single line.</value></data>
+  <data name="IncludedExamLabel" xml:space="preserve"><value>Included exam</value></data>
+  <data name="UnlimitedPurchasedAttempts" xml:space="preserve"><value>Unlimited attempts per purchase</value></data>
+  <data name="PurchasedAttemptCount" xml:space="preserve"><value>{0} attempts per purchase</value></data>
 </root>

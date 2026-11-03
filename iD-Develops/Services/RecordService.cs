@@ -289,15 +289,23 @@ namespace iD_Develops.Services
             return records.Count;
         }
 
-        public async Task<Guid> StartAttemptAtomicAsync(string userId, int examId, int? examVersionId, DateTime startTimeUtc, DateTime? endTimeUtc)
+        public Task<Guid> StartAttemptAtomicAsync(string userId, int examId, int? examVersionId, DateTime startTimeUtc, DateTime? endTimeUtc)
+            => StartAttemptCoreAsync(userId, examId, examVersionId, startTimeUtc, endTimeUtc, null);
+
+        public Task<Guid> StartPurchasedAttemptAtomicAsync(string userId, int examId, int entitlementId, int examVersionId, DateTime startTimeUtc, DateTime? endTimeUtc)
+            => StartAttemptCoreAsync(userId, examId, examVersionId, startTimeUtc, endTimeUtc, entitlementId);
+
+        private async Task<Guid> StartAttemptCoreAsync(string userId, int examId, int? examVersionId, DateTime startTimeUtc, DateTime? endTimeUtc, int? entitlementId)
         {
             if (string.IsNullOrWhiteSpace(userId) || examId <= 0)
                 return Guid.Empty;
 
             var strategy = _dbContext.Database.CreateExecutionStrategy();
 
+            var executionAttempt = 0;
             return await strategy.ExecuteAsync(async () =>
             {
+                if (executionAttempt++ > 0) _dbContext.ChangeTracker.Clear();
                 await using var tx = await _dbContext.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
 
                 await MarkInvalidInProgressRecordsForUserExamAsync(userId, examId);
@@ -329,8 +337,18 @@ namespace iD_Develops.Services
                     return keep.Id;
                 }
 
+                PurchasedExamEntitlement? entitlement = null;
+                if (entitlementId.HasValue)
+                {
+                    entitlement = await _dbContext.PurchasedExamEntitlements.FirstOrDefaultAsync(item =>
+                        item.Id == entitlementId && item.UserId == userId && item.ExamId == examId && item.ExamVersionId == examVersionId);
+                    if (entitlement == null || entitlement.TotalAttempts != -1 && entitlement.UsedAttempts >= entitlement.TotalAttempts)
+                        return Guid.Empty;
+                    entitlement.UsedAttempts = checked(entitlement.UsedAttempts + 1);
+                }
                 var record = new Record
                 {
+                    PurchasedExamEntitlementId = entitlement?.Id,
                     UserId = userId,
                     ExamId = examId,
                     ExamVersionId = examVersionId,

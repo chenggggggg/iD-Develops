@@ -15,6 +15,7 @@ namespace iD_Develops.Services
         Task<List<CatalogProduct>> GetPublishedFreeDownloadsAsync(CancellationToken ct = default);
         Task<List<CatalogProduct>> GetPublishedFreeDownloadsForCultureAsync(string culture, CancellationToken ct = default);
         Task<List<Course>> GetCourseOptionsAsync(CancellationToken ct = default);
+        Task<List<Exam>> GetExamOptionsAsync(CancellationToken ct = default);
         Task<List<CatalogProduct>> GetCreditProductOptionsAsync(int? excludeProductId = null, CancellationToken ct = default);
         Task<CatalogProduct?> GetProductByIdAsync(int id, CancellationToken ct = default);
         Task<CatalogProduct?> GetProductBySlugAsync(string slug, CancellationToken ct = default);
