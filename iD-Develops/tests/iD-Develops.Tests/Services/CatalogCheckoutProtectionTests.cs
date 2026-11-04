@@ -711,6 +711,34 @@ public sealed class CatalogCheckoutProtectionTests
         Assert.True(await data.Db.ApplicationAuditEvents.AnyAsync(row => row.EventType == ApplicationAuditEventTypes.FulfillmentFailed));
     }
 
+    [Fact]
+    public async Task AlreadyRefundedPaymentDoesNotDeliverAnExamEvenWhenItsRefundEventArrivedFirst()
+    {
+        using var data = new TestCheckout(refundProvider: new AlreadyRefundedProvider());
+        var product = await data.ProductAsync();
+        var (user, _) = await AttachExamAsync(data, product);
+        await data.StartAsync(data.Context(), product, Guid.NewGuid(), new(), userId: user.Id);
+        var session = data.Stripe.Session!;
+        session.Status = "complete";
+        session.PaymentStatus = "paid";
+        session.PaymentIntentId = "pi_refunded";
+        Assert.True(await data.Fulfillment.CompleteAsync(session));
+        Assert.Empty(await data.Db.PurchasedExamEntitlements.ToListAsync());
+        Assert.Empty(await data.Db.CatalogCheckoutReceipts.ToListAsync());
+        var purchase = await data.Db.CatalogPurchases.AsNoTracking().SingleAsync();
+        Assert.Equal("Refunded", purchase.RefundStatus);
+        Assert.Null(purchase.FulfilledAtUtc);
+    }
+
+    private sealed class AlreadyRefundedProvider : IStripeRefundClient
+    {
+        public bool IsAvailable => true;
+        public Task<IReadOnlyList<ProviderRefund>> ListAsync(string paymentIntentId, CancellationToken ct)
+            => Task.FromResult<IReadOnlyList<ProviderRefund>>([new("re_already_refunded", paymentIntentId, 1000, "eur", "succeeded")]);
+        public Task<ProviderRefund> CreateAsync(string paymentIntentId, long amount, string currency, Guid requestId, CancellationToken ct)
+            => throw new InvalidOperationException("An existing refund must not trigger another payment operation.");
+    }
+
     private static async Task<(ApplicationUser User, Exam Exam)> AttachExamAsync(TestCheckout data, CatalogProduct product)
     {
         var user = new ApplicationUser { Id = "paid-buyer", UserName = "buyer@example.test", Email = "buyer@example.test" };
@@ -746,7 +774,7 @@ public sealed class CatalogCheckoutProtectionTests
         public FailOnceCredits Credits { get; }
         private readonly CatalogCheckoutCoordinator _coordinator;
 
-        public TestCheckout(bool failPaymentAudit = false)
+        public TestCheckout(bool failPaymentAudit = false, IStripeRefundClient? refundProvider = null)
         {
             Db = _factory.CreateDbContext();
             var auditOptions = new DbContextOptionsBuilder<iD_Develops.Data.ApplicationDbContext>(_factory.Options);
@@ -767,7 +795,9 @@ public sealed class CatalogCheckoutProtectionTests
             Credits = new(new PurchasedCreditService(Db, NullLogger<PurchasedCreditService>.Instance));
             Fulfillment = new(Db, new CatalogProductService(Db), submission, Access, Credits,
                 new ApplicationAuditService(Db, new HttpContextAccessor(), NullLogger<ApplicationAuditService>.Instance),
-                urls, CheckoutAudit, NullLogger<CatalogCheckoutFulfillmentService>.Instance);
+                urls, CheckoutAudit, NullLogger<CatalogCheckoutFulfillmentService>.Instance,
+                refundProvider == null ? null : new CatalogRefundService(Db, refundProvider,
+                    new ApplicationAuditService(Db, new HttpContextAccessor(), NullLogger<ApplicationAuditService>.Instance), NullLogger<CatalogRefundService>.Instance));
             _coordinator = new(Db, new CatalogStripeCheckoutService(Stripe), Stripe, Access, new TestEnvironment(), Fulfillment, urls, CheckoutAudit, new ExamVersionService(Db));
         }
 

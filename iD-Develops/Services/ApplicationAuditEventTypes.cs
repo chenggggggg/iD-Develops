@@ -14,6 +14,9 @@ public static class ApplicationAuditEventTypes
     public const string FulfillmentFailed = "commerce.fulfillment.failed";
     public const string NotificationAccepted = "commerce.notification.accepted";
     public const string NotificationFailed = "commerce.notification.failed";
+    public const string RefundRequested = "commerce.refund.requested";
+    public const string RefundUpdated = "commerce.refund.updated";
+    public const string RefundProcessingFailed = "commerce.refund.processing_failed";
     public const string PurchaseCompleted = "commerce.purchase.completed";
     public const string PurchaseFailed = "commerce.purchase.failed";
     public const string CheckoutSessionCreationFailed = "commerce.checkout.session_creation_failed";

@@ -315,6 +315,52 @@ It does not backfill pre-deployment payments or repair orders previously marked 
 without their expected access. Reconcile those against Stripe and the existing order/access
 records before taking a recovery action; do not create a second purchase to repair one.
 
+### Purchase history and unused-purchase refunds
+
+My Profile shows durable, account-owned purchase history. Temporary checkout cleanup
+does not remove it. The migration imports earlier completed checkout records and
+usable audit evidence only where an explicit account reference exists. Guest purchases
+are not assigned to an account merely because its email matches, and incomplete older
+benefit snapshots require company review.
+
+Add `refund.created`, `refund.updated`, `refund.failed`, and `charge.refunded` to the
+existing `/api/stripe-webhook` destination in Stripe Workbench, retaining the checkout
+event subscriptions above. Its signing secret remains `Stripe__WebhookSecret`.
+`Stripe__SecretKey` must be able to read and create refunds; update those permissions
+if using a restricted API key. No additional DigitalOcean variable is required.
+Keep staging on Stripe test mode; configure live credentials and the live destination
+separately when production is provisioned.
+
+- Self-service refunds cover a full, entirely unused purchase with reliably tracked
+  exam/credit benefits. Started exam records, including cancelled/deleted attempts,
+  and previously reserved/used credits require contacting the company. Courses,
+  external services, unknown benefits, and incomplete older snapshots remain manual.
+- Preparing a refund and starting/consuming its benefits use transaction checks.
+  The request is persisted before contacting Stripe; its own exam attempts and credit
+  lots are held while the outcome is pending or uncertain. Repeated requests reuse the
+  same operation. A confirmed refund removes only that purchase's unused benefits.
+- Verified callbacks retrieve the provider's current refund state. The existing
+  maintenance worker also checks unfinished requests, and checkout delivery checks
+  for prior refunds. Partial external refunds require company review. A definitive
+  provider failure releases the hold; a later reversal restores credits actually
+  revoked by that refund. Other purchases, independent assignments, and exam records
+  remain intact.
+- If a create response is lost, keep the hold and reconcile before retrying the same
+  idempotency key. After 23 hours without a confirmed provider reference, stop issuing
+  create requests and flag company review. Do not clear holds or delete financial
+  rows to retry an uncertain payment operation. Use the correlated order/refund
+  references in Audit Log and Stripe to establish the outcome.
+- `Local` purchases use deterministic simulated refunds and never contact Stripe.
+  The confirmation screen identifies this explicitly. Unit tests use a fake provider;
+  browser tests must use the existing local app and dedicated test data.
+
+This implements the interim unused-product rule only. It does not introduce a legal
+refund window, deductions, or changes to Terms & Conditions.
+
+References: [Stripe refunds](https://docs.stripe.com/refunds),
+[refund creation](https://docs.stripe.com/api/refunds/create), and
+[idempotent requests](https://docs.stripe.com/api/idempotent_requests).
+
 Reference: [Stripe fulfillment](https://docs.stripe.com/checkout/fulfillment) and
 [webhook delivery behavior](https://docs.stripe.com/webhooks).
 

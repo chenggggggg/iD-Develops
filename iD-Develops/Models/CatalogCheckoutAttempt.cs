@@ -9,6 +9,7 @@ public sealed class CatalogCheckoutAttempt
     public int CatalogProductId { get; set; }
     public CatalogProduct CatalogProduct { get; set; } = null!;
     public int VariantId { get; set; }
+    [MaxLength(200)] public string? ProductNameSnapshot { get; set; }
     public int? PurchasedExamId { get; set; }
     public int? PurchasedExamVersionId { get; set; }
     public int? PurchasedExamAttempts { get; set; }

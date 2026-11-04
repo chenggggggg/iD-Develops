@@ -498,6 +498,10 @@ namespace iD_Develops.Data.Migrations
                     b.Property<int>("ParticipantCount")
                         .HasColumnType("integer");
 
+                    b.Property<string>("ProductNameSnapshot")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<int?>("PurchasedExamAttempts")
                         .HasColumnType("integer");
 
@@ -1185,6 +1189,149 @@ namespace iD_Develops.Data.Migrations
                     b.HasKey("CatalogProductVariantId", "Culture");
 
                     b.ToTable("CatalogProductVariantTranslations");
+                });
+
+            modelBuilder.Entity("iD_Develops.Models.CatalogPurchase", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("AmountMinorUnits")
+                        .HasColumnType("bigint");
+
+                    b.Property<int?>("CatalogProductId")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("CheckoutAttemptId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("CreditLotCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
+
+                    b.Property<int>("ExamEntitlementCount")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("FulfilledAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("GrantedCourseId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("HasUntrackedBenefits")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsLocal")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("OwnedCourseAccessGrantedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("PaidAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PaymentIntentId")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("RefundBlocked")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("RefundStatus")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<long>("RefundedMinorUnits")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("StripeSessionId")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("UserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CatalogProductId");
+
+                    b.HasIndex("PaymentIntentId")
+                        .IsUnique();
+
+                    b.HasIndex("StripeSessionId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "PaidAtUtc");
+
+                    b.ToTable("CatalogPurchases");
+                });
+
+            modelBuilder.Entity("iD_Develops.Models.CatalogRefund", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("AmountMinorUnits")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("CatalogPurchaseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FailureCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<bool>("IsExternal")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("NextCheckAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ProviderRefundId")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CatalogPurchaseId");
+
+                    b.HasIndex("ProviderRefundId")
+                        .IsUnique();
+
+                    b.HasIndex("Status", "NextCheckAtUtc");
+
+                    b.ToTable("CatalogRefunds");
                 });
 
             modelBuilder.Entity("iD_Develops.Models.CorrectAnswer", b =>
@@ -2428,6 +2575,9 @@ namespace iD_Develops.Data.Migrations
                     b.Property<DateTime>("PurchasedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<bool>("RefundBlocked")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("StripeSessionId")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -3014,6 +3164,12 @@ namespace iD_Develops.Data.Migrations
                     b.Property<int>("GrantedQuantity")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("RefundBlocked")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("RefundRevokedQuantity")
+                        .HasColumnType("integer");
+
                     b.Property<int>("RemainingQuantity")
                         .HasColumnType("integer");
 
@@ -3502,6 +3658,34 @@ namespace iD_Develops.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("CatalogProductVariant");
+                });
+
+            modelBuilder.Entity("iD_Develops.Models.CatalogPurchase", b =>
+                {
+                    b.HasOne("iD_Develops.Models.CatalogProduct", "CatalogProduct")
+                        .WithMany()
+                        .HasForeignKey("CatalogProductId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("iD_Develops.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("CatalogProduct");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("iD_Develops.Models.CatalogRefund", b =>
+                {
+                    b.HasOne("iD_Develops.Models.CatalogPurchase", "CatalogPurchase")
+                        .WithMany("Refunds")
+                        .HasForeignKey("CatalogPurchaseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CatalogPurchase");
                 });
 
             modelBuilder.Entity("iD_Develops.Models.CorrectAnswer", b =>
@@ -4306,6 +4490,11 @@ namespace iD_Develops.Data.Migrations
             modelBuilder.Entity("iD_Develops.Models.CatalogProductVariant", b =>
                 {
                     b.Navigation("Translations");
+                });
+
+            modelBuilder.Entity("iD_Develops.Models.CatalogPurchase", b =>
+                {
+                    b.Navigation("Refunds");
                 });
 
             modelBuilder.Entity("iD_Develops.Models.Course", b =>

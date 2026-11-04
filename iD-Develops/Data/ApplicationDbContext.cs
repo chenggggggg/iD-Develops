@@ -16,6 +16,8 @@ namespace iD_Develops.Data
 
         public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
         public DbSet<ApplicationAuditEvent> ApplicationAuditEvents { get; set; }
+        public DbSet<CatalogPurchase> CatalogPurchases { get; set; }
+        public DbSet<CatalogRefund> CatalogRefunds { get; set; }
         public DbSet<Exam> Exams { get; set; }
         public DbSet<UserExam> UserExams { get; set; }
         public DbSet<ExamAttemptGrant> ExamAttemptGrants { get; set; }
@@ -389,6 +391,15 @@ namespace iD_Develops.Data
             modelBuilder.Entity<CatalogCheckoutAttempt>().HasOne(a => a.CatalogProduct).WithMany()
                 .HasForeignKey(a => a.CatalogProductId).OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<CatalogCheckoutMail>().HasIndex(m => new { m.SentAtUtc, m.NextAttemptAtUtc });
+
+            modelBuilder.Entity<CatalogPurchase>().HasIndex(item => item.StripeSessionId).IsUnique();
+            modelBuilder.Entity<CatalogPurchase>().HasIndex(item => item.PaymentIntentId).IsUnique();
+            modelBuilder.Entity<CatalogPurchase>().HasIndex(item => new { item.UserId, item.PaidAtUtc });
+            modelBuilder.Entity<CatalogPurchase>().HasOne(item => item.User).WithMany().HasForeignKey(item => item.UserId).OnDelete(DeleteBehavior.SetNull);
+            modelBuilder.Entity<CatalogPurchase>().HasOne(item => item.CatalogProduct).WithMany().HasForeignKey(item => item.CatalogProductId).OnDelete(DeleteBehavior.SetNull);
+            modelBuilder.Entity<CatalogRefund>().HasIndex(item => item.ProviderRefundId).IsUnique();
+            modelBuilder.Entity<CatalogRefund>().HasIndex(item => new { item.Status, item.NextCheckAtUtc });
+            modelBuilder.Entity<CatalogRefund>().HasOne(item => item.CatalogPurchase).WithMany(item => item.Refunds).HasForeignKey(item => item.CatalogPurchaseId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<ApplicationAuditEvent>()
                 .Property(auditEvent => auditEvent.Category)

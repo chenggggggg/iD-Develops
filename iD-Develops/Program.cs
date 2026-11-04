@@ -414,6 +414,8 @@ builder.Services.AddScoped<CatalogProductFileStorageService>();
 builder.Services.AddHttpClient<ICourseMediaService, CourseMediaService>();
 builder.Services.AddScoped<CatalogProductSubmissionService>();
 builder.Services.AddScoped<IStripeCheckoutClient, StripeCheckoutClient>();
+builder.Services.AddScoped<IStripeRefundClient, StripeRefundClient>();
+builder.Services.AddScoped<CatalogRefundService>();
 builder.Services.AddScoped<CatalogCheckoutCoordinator>();
 builder.Services.AddScoped<CatalogCheckoutFulfillmentService>();
 builder.Services.AddScoped<CatalogCheckoutAuditService>();

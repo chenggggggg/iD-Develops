@@ -22,6 +22,10 @@ namespace iD_Develops.Models
 
         public int RemainingQuantity { get; set; }
 
+        public bool RefundBlocked { get; set; }
+
+        public int RefundRevokedQuantity { get; set; }
+
         public CreditGrantScope Scope { get; set; } = CreditGrantScope.Global;
 
         public int? CourseId { get; set; }

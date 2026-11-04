@@ -1,0 +1,51 @@
+@page "{id:guid}"
+@model iD_Develops.Pages.Portal.Profile.RefundModel
+@inject iD_Develops.Services.IApplicationUrlService ApplicationUrls
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = "Request a refund";
+}
+
+<section class="portal-page-shell space-y-6">
+    <header class="portal-page-header">
+        <div>
+            <p class="portal-eyebrow">Purchase history</p>
+            <h1 class="portal-title-sm">Request a refund</h1>
+            <p class="portal-copy">Review this purchase before confirming.</p>
+        </div>
+        <a asp-page="/Portal/Profile/Index" asp-fragment="purchase-history" class="portal-btn portal-btn-outline">Back to My Profile</a>
+    </header>
+    <div class="flex max-w-2xl flex-col gap-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div>
+            <h2 class="m-0 text-lg font-semibold text-slate-950">@Model.Purchase.ProductName</h2>
+            <p class="mb-0 mt-1 text-sm text-slate-500">Order @Model.Purchase.Id.ToString()[..13].ToUpperInvariant() · @Model.Purchase.PaidAtUtc.ToString("dd MMM yyyy")</p>
+        </div>
+        <dl class="m-0 flex flex-wrap items-baseline justify-between gap-2 border-y border-slate-100 py-4">
+            <dt class="text-sm font-medium text-slate-700">@(Model.Eligibility.CanRefund ? "Full refund amount" : "Original payment")</dt>
+            <dd class="m-0 text-xl font-semibold text-slate-950">@iD_Develops.Utilities.PaymentAmounts.Format(Model.Purchase.AmountMinorUnits, Model.Purchase.Currency)</dd>
+        </dl>
+        @if (Model.Purchase.IsLocal)
+        {
+            <p class="m-0 rounded-lg bg-slate-50 p-3 text-sm text-slate-600">This is a local test purchase. No money will move.</p>
+        }
+        @if (Model.Eligibility.CanRefund)
+        {
+            <p class="m-0 text-sm leading-6 text-slate-700">This requests a full refund to the original payment method. The unused exam attempts and credits from this purchase will be unavailable while the refund is being processed.</p>
+            <form method="post" data-submit-feedback class="flex flex-wrap gap-3">
+                <button type="submit" class="portal-btn portal-btn-primary" data-testid="confirm-refund">
+                    <span data-submit-idle>Confirm refund</span>
+                    <span data-submit-pending hidden class="inline-flex items-center gap-2">
+                        <span class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white motion-reduce:animate-none" aria-hidden="true"></span>
+                        Processing…
+                    </span>
+                </button>
+                <a asp-page="/Portal/Profile/Index" asp-fragment="purchase-history" class="portal-btn portal-btn-outline">Keep purchase</a>
+            </form>
+        }
+        else
+        {
+            <p role="status" class="m-0 text-sm leading-6 text-slate-700">@Model.Eligibility.Message</p>
+            <a href="@ApplicationUrls.PublicUrl("/en-us/contact")" class="portal-btn portal-btn-outline">Contact the company</a>
+        }
+    </div>
+</section>

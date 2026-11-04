@@ -126,8 +126,8 @@ namespace iD_Develops.Services
                 .AsNoTracking()
                 .Where(exam =>
                     !exam.IsDeleted &&
-                    (exam.PublishStatus == ExamPublishStatus.Published || exam.PurchasedEntitlements.Any(item => item.UserId == userId)) &&
-                    (exam.PurchasedEntitlements.Any(item => item.UserId == userId) || exam.UserExams!.Any(access => access.UserId == userId) ||
+                    (exam.PublishStatus == ExamPublishStatus.Published || exam.PurchasedEntitlements.Any(item => !item.RefundBlocked && item.UserId == userId)) &&
+                    (exam.PurchasedEntitlements.Any(item => !item.RefundBlocked && item.UserId == userId) || exam.UserExams!.Any(access => access.UserId == userId) ||
                      exam.CoursePlacements.Any(placement =>
                          placement.CourseSection.Course.UserCourses.Any(access => access.UserId == userId)) ||
                      (exam.CourseId != null &&

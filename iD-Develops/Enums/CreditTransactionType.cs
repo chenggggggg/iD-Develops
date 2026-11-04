@@ -5,6 +5,8 @@ namespace iD_Develops.Enums
         Grant = 1,
         Reserve = 2,
         Return = 3,
-        Consume = 4
+        Consume = 4,
+        Refund = 5,
+        RefundReversed = 6
     }
 }
