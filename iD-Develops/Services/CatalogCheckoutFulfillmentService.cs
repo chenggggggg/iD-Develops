@@ -12,14 +12,19 @@ public sealed class CatalogCheckoutFulfillmentService(ApplicationDbContext db, I
     CatalogProductSubmissionService submissions, CatalogProductAccessService accessService,
     IPurchasedCreditService credits, IApplicationAuditService audit, IApplicationUrlService urls,
     CatalogCheckoutAuditService checkoutAudit,
-    ILogger<CatalogCheckoutFulfillmentService> logger)
+    ILogger<CatalogCheckoutFulfillmentService> logger, CatalogRefundService? refunds = null)
 {
     public async Task<bool> CompleteAsync(Session session, CancellationToken ct = default, string? stripeEventId = null)
     {
         if (string.IsNullOrWhiteSpace(session.Id)) throw new InvalidOperationException("Missing checkout session.");
         await checkoutAudit.ObservePaymentAsync(session, stripeEventId, null, ct);
         if (!CatalogCheckoutAuditService.IsPaid(session)) return false;
-        try { return await FulfillAsync(session, stripeEventId, ct); }
+        try
+        {
+            await CatalogPurchaseLedger.RecordPaymentAsync(db, session, ct);
+            if (refunds != null) await refunds.CheckBeforeDeliveryAsync(session.Id, ct);
+            return await FulfillAsync(session, stripeEventId, ct);
+        }
         catch (Exception error) when (!ct.IsCancellationRequested)
         {
             db.ChangeTracker.Clear();
@@ -39,6 +44,13 @@ public sealed class CatalogCheckoutFulfillmentService(ApplicationDbContext db, I
             db.ChangeTracker.Clear();
             await using var transaction = await db.Database.BeginTransactionAsync(ct);
             await CheckoutDatabaseLock.AcquireTransactionAsync(db, "fulfill:" + session.Id, ct);
+            await CheckoutDatabaseLock.AcquireTransactionAsync(db, "purchase:" + session.Id, ct);
+            var purchase = await db.CatalogPurchases.SingleOrDefaultAsync(item => item.StripeSessionId == session.Id, ct);
+            if (purchase?.RefundBlocked == true)
+            {
+                if (purchase.RefundedMinorUnits >= purchase.AmountMinorUnits) return true;
+                throw new CatalogFulfillmentException("refund_pending", "Delivery is on hold while the payment refund is being checked.");
+            }
             if (await db.CatalogCheckoutReceipts.AnyAsync(row => row.StripeSessionId == session.Id, ct)) return true;
             if (!session.Metadata.TryGetValue("catalog_product_id", out var productRaw) || !int.TryParse(productRaw, out var productId))
                 throw new CatalogFulfillmentException("product_reference_invalid", "The paid checkout has no valid product reference. Reconcile its Stripe metadata before retrying delivery.");
@@ -96,7 +108,7 @@ public sealed class CatalogCheckoutFulfillmentService(ApplicationDbContext db, I
                 metadata["grantedExamVersionId"] = attempt.PurchasedExamVersionId;
                 metadata["grantedExamAttempts"] = attempt.PurchasedExamAttempts;
             }
-            await GrantAttachedCourseAsync(product, userId, email);
+            await GrantAttachedCourseAsync(product, userId, email, purchase);
             await credits.GrantPurchasedCreditsAsync(product.Id, userId, email, session.Id, quantity, ct);
             db.CatalogCheckoutMails.AddRange(submissions.CreateCheckoutNotifications(product, values, email,
                 quantity, participants, urls.PublicBaseUrl, session.Id));
@@ -104,6 +116,17 @@ public sealed class CatalogCheckoutFulfillmentService(ApplicationDbContext db, I
             {
                 attempt.CompletedAtUtc = DateTime.UtcNow;
                 attempt.FormDataJson = "{}"; // The completed submission now owns these details.
+            }
+            if (purchase != null)
+            {
+                purchase.FulfilledAtUtc = DateTime.UtcNow;
+                purchase.GrantedCourseId = product.GrantedCourseId;
+                purchase.ExamEntitlementCount = await db.PurchasedExamEntitlements.CountAsync(item => item.StripeSessionId == session.Id, ct)
+                    + db.ChangeTracker.Entries<PurchasedExamEntitlement>().Count(item => item.State == EntityState.Added && item.Entity.StripeSessionId == session.Id);
+                purchase.CreditLotCount = await db.UserCreditLots.CountAsync(item => item.ExternalReference == session.Id, ct);
+                purchase.HasUntrackedBenefits = product.GrantedCourseId.HasValue ||
+                    !string.IsNullOrWhiteSpace(product.IncludedBookingBenefitUrl) || !string.IsNullOrWhiteSpace(product.ExternalBookingUrl) ||
+                    purchase.ExamEntitlementCount + purchase.CreditLotCount == 0;
             }
             db.CatalogCheckoutReceipts.Add(new() { StripeSessionId = session.Id });
             await db.SaveChangesAsync(ct);
@@ -160,7 +183,8 @@ public sealed class CatalogCheckoutFulfillmentService(ApplicationDbContext db, I
     private async Task GrantAttachedCourseAsync(
         CatalogProduct product,
         string? authenticatedUserId,
-        string? customerEmail)
+        string? customerEmail,
+        CatalogPurchase? purchase)
     {
         if (!product.GrantedCourseId.HasValue)
         {
@@ -210,16 +234,16 @@ public sealed class CatalogCheckoutFulfillmentService(ApplicationDbContext db, I
 
         if (existingAccess != null)
         {
-            if (!existingAccess.PurchasedAtUtc.HasValue)
+            if (existingAccess.AssignmentSource == CourseAssignmentSource.Purchase && !existingAccess.PurchasedAtUtc.HasValue)
             {
                 existingAccess.PurchasedAtUtc = purchaseTime;
-                existingAccess.AssignmentSource = CourseAssignmentSource.Purchase;
                 await db.SaveChangesAsync();
             }
 
             return;
         }
 
+        if (purchase != null) purchase.OwnedCourseAccessGrantedAtUtc = purchaseTime;
         db.UserCourses.Add(new UserCourse
         {
             UserId = user.Id,

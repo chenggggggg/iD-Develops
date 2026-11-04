@@ -153,6 +153,8 @@ public sealed class AuditLogModel : PageModel
             var eventRef = JsonSerializer.Serialize(new { stripeEventId = SearchQuery });
             var customerRef = JsonSerializer.Serialize(new { customerEmail = SearchQuery });
             var recipientRef = JsonSerializer.Serialize(new { recipientEmail = SearchQuery });
+            var purchaseRef = JsonSerializer.Serialize(new { purchaseId = SearchQuery });
+            var refundRef = JsonSerializer.Serialize(new { stripeRefundIds = new[] { SearchQuery } });
             query = query.Where(auditEvent =>
                 EF.Functions.ILike(auditEvent.Summary, pattern) ||
                 EF.Functions.ILike(auditEvent.EventType, pattern) ||
@@ -167,7 +169,9 @@ public sealed class AuditLogModel : PageModel
                      EF.Functions.JsonContains(auditEvent.MetadataJson, paymentRef) ||
                      EF.Functions.JsonContains(auditEvent.MetadataJson, eventRef) ||
                      EF.Functions.JsonContains(auditEvent.MetadataJson, customerRef) ||
-                     EF.Functions.JsonContains(auditEvent.MetadataJson, recipientRef))));
+                     EF.Functions.JsonContains(auditEvent.MetadataJson, recipientRef) ||
+                     EF.Functions.JsonContains(auditEvent.MetadataJson, purchaseRef) ||
+                     EF.Functions.JsonContains(auditEvent.MetadataJson, refundRef))));
         }
 
         TotalCount = await query.CountAsync(cancellationToken);
@@ -250,6 +254,8 @@ public sealed class AuditLogModel : PageModel
             if (document.RootElement.ValueKind != JsonValueKind.Object) return [];
             var labels = new (string Key, string Label)[]
             {
+                ("purchaseId", "Order"), ("refundStatus", "Refund status"), ("stripeRefundIds", "Refund references"),
+                ("refundedAmountMinorUnits", "Refunded total (minor units)"), ("benefitsOnHold", "Purchase benefits on hold"),
                 ("stage", "Stage"), ("checkoutStatus", "Checkout status"), ("checkoutAttemptId", "Checkout attempt"),
                 ("expectedAmountMinorUnits", "Expected total (minor units)"), ("stripeEventType", "Stripe callback type"), ("paymentStatus", "Payment status"), ("fulfillmentStatus", "Delivery status at this event"), ("productName", "Product"),
                 ("productId", "Product ID"), ("customerEmail", "Purchaser email"), ("userId", "Purchaser account"),

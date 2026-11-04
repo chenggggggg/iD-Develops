@@ -17,6 +17,7 @@ public sealed class PurchasedExamEntitlement
     public ExamVersion ExamVersion { get; set; } = null!;
     public int TotalAttempts { get; set; }
     public int UsedAttempts { get; set; }
+    public bool RefundBlocked { get; set; }
     public DateTime PurchasedAtUtc { get; set; } = DateTime.UtcNow;
     public ICollection<Record> Records { get; set; } = new List<Record>();
 }

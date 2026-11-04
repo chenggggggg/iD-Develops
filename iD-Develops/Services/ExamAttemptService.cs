@@ -25,9 +25,10 @@ public class ExamAttemptService : IExamAttemptService
         if (string.IsNullOrWhiteSpace(userId) || examId <= 0) return Blocked(examId, "Invalid user or exam.");
         var access = await _examAccessService.GetAccessDecisionAsync(userId, examId);
         if (!access.CanTake) return Blocked(examId, access.BlockReason ?? "This exam is not assigned to your account.");
-        var purchases = _dbContext == null ? new List<PurchasedExamEntitlement>() :
+        var allPurchases = _dbContext == null ? new List<PurchasedExamEntitlement>() :
             await _dbContext.PurchasedExamEntitlements.AsNoTracking().Where(item => item.UserId == userId && item.ExamId == examId)
                 .OrderBy(item => item.PurchasedAtUtc).ThenBy(item => item.Id).ToListAsync();
+        var purchases = allPurchases.Where(item => !item.RefundBlocked).ToList();
         var nextPurchase = purchases.FirstOrDefault(item => item.TotalAttempts == -1 || item.UsedAttempts < item.TotalAttempts);
         var fallbackVersionId = purchases.LastOrDefault()?.ExamVersionId;
         var descriptor = await _examVersionService.GetPublishedDescriptorAsync(examId,
@@ -40,7 +41,7 @@ public class ExamAttemptService : IExamAttemptService
         var ordinaryAllowance = access.PurchasedAccessOnly ? grantedAttempts :
             ordinaryDescriptor?.MaxAttempts < 0 ? -1L : (long)(ordinaryDescriptor?.MaxAttempts ?? 0) + grantedAttempts;
         // Purchased allowances are independent of free/course assignments and their historical attempts.
-        var ordinaryUsed = purchases.Count == 0 ? await _recordService.CountAttemptsAsync(userId, examId) :
+        var ordinaryUsed = allPurchases.Count == 0 ? await _recordService.CountAttemptsAsync(userId, examId) :
             await _dbContext!.Records.CountAsync(record => !record.IsDeleted && record.UserId == userId && record.ExamId == examId && record.PurchasedExamEntitlementId == null);
         var inProgress = await _recordService.GetInProgressRecordsAsync(userId, examId);
         var current = inProgress.FirstOrDefault();

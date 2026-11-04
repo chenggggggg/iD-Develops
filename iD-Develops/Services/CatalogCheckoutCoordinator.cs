@@ -87,6 +87,7 @@ public sealed class CatalogCheckoutCoordinator(ApplicationDbContext db, ICatalog
                 RequestKey = key,
                 CatalogProductId = product.Id,
                 VariantId = variant.Id,
+                ProductNameSnapshot = product.Name,
                 AuthenticatedUserId = userId,
                 CustomerEmail = email,
                 Quantity = quantity,

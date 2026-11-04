@@ -325,7 +325,9 @@ namespace iD_Develops.Services
                     cancellationToken);
             if (assignment == null)
                 return Failure("This user no longer has access to the course.");
-            if (assignment.AssignmentSource == CourseAssignmentSource.Purchase)
+            if (assignment.AssignmentSource == CourseAssignmentSource.Purchase ||
+                await _dbContext.CatalogPurchases.AnyAsync(item => item.UserId == userId && item.GrantedCourseId == courseId &&
+                    item.FulfilledAtUtc != null && item.RefundStatus != "Refunded", cancellationToken))
                 return Failure("Purchased access cannot be removed with Unassign.");
 
             var sectionAccesses = await _dbContext.CourseSectionUserAccesses

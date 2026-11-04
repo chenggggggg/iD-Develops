@@ -341,7 +341,7 @@ namespace iD_Develops.Services
                 if (entitlementId.HasValue)
                 {
                     entitlement = await _dbContext.PurchasedExamEntitlements.FirstOrDefaultAsync(item =>
-                        item.Id == entitlementId && item.UserId == userId && item.ExamId == examId && item.ExamVersionId == examVersionId);
+                        !item.RefundBlocked && item.Id == entitlementId && item.UserId == userId && item.ExamId == examId && item.ExamVersionId == examVersionId);
                     if (entitlement == null || entitlement.TotalAttempts != -1 && entitlement.UsedAttempts >= entitlement.TotalAttempts)
                         return Guid.Empty;
                     entitlement.UsedAttempts = checked(entitlement.UsedAttempts + 1);

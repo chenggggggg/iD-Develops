@@ -11,6 +11,42 @@ namespace iD_Develops.Tests.Services;
 public sealed class SchedulingServiceTests
 {
     [Fact]
+    public async Task BookAsync_CannotReserveCreditsHeldForAPaymentRefund()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var seed = await SeedCourseAsync(db, bookingAccess: CourseClassBookingAccess.CourseEnrollmentAndCredit, creditCost: 1);
+        var credit = new CreditType { Name = "Refund hold lesson", NormalizedName = "REFUND HOLD LESSON", SingularLabel = "lesson", PluralLabel = "lessons" };
+        db.CreditTypes.Add(credit);
+        await db.SaveChangesAsync();
+        seed.Event.RequiredCreditTypeId = credit.Id;
+        seed.CourseClass.RequiredCreditTypeId = credit.Id;
+        var lot = new UserCreditLot
+        {
+            UserId = seed.Student.Id,
+            CreditTypeId = credit.Id,
+            GrantedQuantity = 3,
+            RemainingQuantity = 3,
+            RefundBlocked = true
+        };
+        db.UserCreditLots.Add(lot);
+        await db.SaveChangesAsync();
+        var actor = new ScheduleActor(seed.Student.Id, false, false);
+        var service = CreateService(db);
+        var blocked = await service.BookAsync(actor, seed.Event.Id);
+        Assert.False(blocked.Success);
+        Assert.Contains("eligible credits", blocked.ErrorMessage);
+        Assert.Empty(await db.EventBookings.ToListAsync());
+        Assert.Equal(3, (await db.UserCreditLots.AsNoTracking().SingleAsync()).RemainingQuantity);
+        await db.UserCreditLots.Where(item => item.Id == lot.Id).ExecuteUpdateAsync(update => update.SetProperty(item => item.RefundBlocked, false));
+        // A later HTTP request uses a fresh context, without the failed request's unsaved booking.
+        db.ChangeTracker.Clear();
+        var released = await service.BookAsync(actor, seed.Event.Id);
+        Assert.True(released.Success, released.ErrorMessage);
+        Assert.Equal(2, (await db.UserCreditLots.AsNoTracking().SingleAsync()).RemainingQuantity);
+    }
+
+    [Fact]
     public async Task BookAsync_EnforcesCapacityAndDuplicateBookings()
     {
         using var factory = new SqliteTestDbFactory();

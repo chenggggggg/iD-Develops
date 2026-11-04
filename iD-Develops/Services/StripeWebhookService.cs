@@ -11,7 +11,7 @@ namespace iD_Develops.Services;
 
 public sealed class StripeWebhookService(ILogger<StripeWebhookService> logger, IOptions<StripeSettings> settings,
     CatalogCheckoutFulfillmentService fulfillment, CatalogProductAccessService accessService,
-    ApplicationDbContext db, CatalogCheckoutAuditService checkoutAudit) : IStripeWebhookService
+    ApplicationDbContext db, CatalogCheckoutAuditService checkoutAudit, CatalogRefundService? refunds = null) : IStripeWebhookService
 {
     public async Task<IResult> CheckoutCompletedAsync(HttpRequest request)
     {
@@ -32,6 +32,21 @@ public sealed class StripeWebhookService(ILogger<StripeWebhookService> logger, I
         catch (Exception exception) when (exception is StripeException or Newtonsoft.Json.JsonException or System.Text.Json.JsonException)
         {
             return Results.BadRequest(new { error = "Invalid Stripe signature." });
+        }
+        if (stripeEvent.Type is "refund.created" or "refund.updated" or "refund.failed" or "charge.refunded")
+        {
+            try
+            {
+                var paymentIntentId = stripeEvent.Data.Object switch { Refund refund => refund.PaymentIntentId, Charge charge => charge.PaymentIntentId, _ => null };
+                await (refunds ?? throw new InvalidOperationException("Refund reconciliation is unavailable."))
+                    .ReconcilePaymentAsync(paymentIntentId, request.HttpContext.RequestAborted);
+                return Results.Json(new { status = "refund_reconciled" });
+            }
+            catch (Exception error)
+            {
+                logger.LogError(error, "Refund webhook {EventId} could not be reconciled; Stripe may retry.", stripeEvent.Id);
+                return Results.StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
         if (stripeEvent.Data.Object is not Session session ||
             !session.Metadata.ContainsKey("catalog_product_id")) return Results.Json(new { status = "ignored" });

@@ -103,6 +103,11 @@ internal sealed class CatalogBrowsingFixture(ApplicationDbContext db) : IAsyncDi
         {
             var ids = new[] { Credit?.Id, Standard?.Id, Draft?.Id, Hidden?.Id }
                 .Where(id => id.HasValue && id.Value > 0).Select(id => id!.Value).ToArray();
+            var fixtureUserId = User?.Id;
+            var purchaseIds = await db.CatalogPurchases.Where(item => item.CatalogProductId.HasValue && ids.Contains(item.CatalogProductId.Value) || fixtureUserId != null && item.UserId == fixtureUserId)
+                .Select(item => item.Id).ToListAsync();
+            await db.CatalogRefunds.Where(item => purchaseIds.Contains(item.CatalogPurchaseId)).ExecuteDeleteAsync();
+            await db.CatalogPurchases.Where(item => purchaseIds.Contains(item.Id)).ExecuteDeleteAsync();
             await db.CatalogProducts.Where(product => ids.Contains(product.Id)).ExecuteDeleteAsync();
             if (User != null)
                 await db.Users.Where(user => user.Id == User.Id).ExecuteDeleteAsync();

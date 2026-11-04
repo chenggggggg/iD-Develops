@@ -38,7 +38,7 @@ namespace iD_Develops.Services
                     cancellationToken);
 
             var hasPurchase = await _dbContext.PurchasedExamEntitlements.AsNoTracking()
-                .AnyAsync(item => item.UserId == userId && item.ExamId == examId, cancellationToken);
+                .AnyAsync(item => !item.RefundBlocked && item.UserId == userId && item.ExamId == examId, cancellationToken);
             var exam = await _dbContext.Exams
                 .AsNoTracking()
                 .Where(item =>

@@ -830,7 +830,7 @@ namespace iD_Develops.Services
                 .AsNoTracking()
                 .Where(lot =>
                     lot.UserId == actor.UserId &&
-                    lot.RemainingQuantity > 0 &&
+                    !lot.RefundBlocked && lot.RemainingQuantity > 0 &&
                     (!lot.ExpiresAtUtc.HasValue || lot.ExpiresAtUtc > DateTime.UtcNow))
                 .ToListAsync(cancellationToken);
             var enrollmentBookingCounts = staffCalendarView
@@ -1907,7 +1907,7 @@ namespace iD_Develops.Services
             var query = _dbContext.UserCreditLots.Where(lot =>
                 lot.UserId == userId &&
                 lot.CreditTypeId == scheduleEvent.RequiredCreditTypeId &&
-                lot.RemainingQuantity > 0 &&
+                !lot.RefundBlocked && lot.RemainingQuantity > 0 &&
                 (!lot.ExpiresAtUtc.HasValue || lot.ExpiresAtUtc > now));
             query = query.Where(lot =>
                 lot.Scope == CreditGrantScope.Global ||
@@ -1921,7 +1921,7 @@ namespace iD_Develops.Services
         }
 
         private static bool IsLotEligible(UserCreditLot lot, ScheduledEvent scheduleEvent)
-            => lot.CreditTypeId == scheduleEvent.RequiredCreditTypeId &&
+            => !lot.RefundBlocked && lot.CreditTypeId == scheduleEvent.RequiredCreditTypeId &&
                (lot.Scope == CreditGrantScope.Global ||
                 (lot.Scope == CreditGrantScope.Course && lot.CourseId == scheduleEvent.CourseId) ||
                 (lot.Scope == CreditGrantScope.CourseClass && lot.CourseClassId == scheduleEvent.CourseClassId));

@@ -1,6 +1,6 @@
 ﻿# Planned PR backlog
 
-Updated: 2026-11-03
+Updated: 2026-11-04
 
 This is the combined planning backlog from the staging review and owner meeting.
 B01-B21 are planning IDs, not GitHub PR numbers. Priorities are proposed implementation
@@ -224,7 +224,7 @@ Dependencies: B01 and existing exam version/assignment architecture.
 
 **Estimated size: Medium.** Date/timezone queries, filtering, bounded result loading, table details, and browser regressions on an existing page.
 
-Status: implemented and verified on `feature/audit-log-date-filters`; ready for PR review.
+Status: completed and merged in [PR #46](https://github.com/chenggggggg/iD-Develops/pull/46).
 Verification: Release build, formatting, all 422 unit/integration tests, and all 156
 Playwright tests passed on 2026-11-03. Desktop and mobile screenshots were inspected.
 No database migration is required.
@@ -491,6 +491,18 @@ Dependencies: use completed B12 conventions and inspect other delivered backlog 
 record any preceding items still incomplete rather than claiming final complete coverage.
 
 ## B21 - P1 - Payment history and refunds for unused purchases
+
+Status: implemented and verified on `feature/purchase-history-refunds`; ready for review.
+Commit, push, and pull-request creation were authorized on 2026-11-04.
+Build, formatting, all 453 unit/integration tests, all 163 Playwright tests, and EF
+model/migration consistency passed on 2026-11-04. Desktop and mobile purchase/refund
+screens were inspected. Provider verification used local/fake refunds; run a Stripe
+test-mode smoke check after deployment and webhook setup.
+
+Self-service eligibility is limited to reliably tracked, entirely unused exam/credit
+purchases. Courses, external services, guest purchases, and incomplete historical
+snapshots require company review. Enable the four refund webhook events documented
+in `iD-Develops/ENVIRONMENTS.md`; no new DigitalOcean variables are required.
 
 **Estimated size: Large.** Account payment history, purchase-specific usage checks,
 monetary refunds, payment/provider reconciliation, entitlement reversal, concurrency,

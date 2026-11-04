@@ -198,6 +198,7 @@ public class UnconfirmedUserCleanupService : BackgroundService
             || await context.ScheduledEvents.AnyAsync(item => item.TeacherUserId == userId, cancellationToken)
             || await context.SchedulingProviderConnections.AnyAsync(item => item.UserId == userId, cancellationToken)
             || await context.EventBookings.AnyAsync(item => item.UserId == userId, cancellationToken)
+            || await context.CatalogPurchases.AnyAsync(item => item.UserId == userId, cancellationToken)
             || await context.UserCreditLots.AnyAsync(item => item.UserId == userId, cancellationToken)
             || await context.UserCreditTransactions.AnyAsync(item => item.UserId == userId, cancellationToken);
     }

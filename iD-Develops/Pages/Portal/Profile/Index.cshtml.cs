@@ -2,6 +2,8 @@ using System.Security.Claims;
 using iD_Develops.Data;
 using iD_Develops.Enums;
 using iD_Develops.Models;
+using iD_Develops.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -15,11 +17,20 @@ namespace iD_Develops.Pages.Portal.Profile
         private readonly ApplicationDbContext _dbContext;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public IndexModel(ApplicationDbContext dbContext, UserManager<ApplicationUser> userManager)
+        private readonly CatalogRefundService? _refunds;
+
+        public IndexModel(ApplicationDbContext dbContext, UserManager<ApplicationUser> userManager, CatalogRefundService? refunds = null)
         {
             _dbContext = dbContext;
             _userManager = userManager;
+            _refunds = refunds;
         }
+
+        [BindProperty(SupportsGet = true)] public int PurchasePage { get; set; } = 1;
+        public int PurchaseCount { get; private set; }
+        public int PurchasePages => Math.Max(1, (int)Math.Ceiling(PurchaseCount / 20d));
+        public List<PurchaseHistoryItem> Purchases { get; } = new();
+        public sealed record PurchaseHistoryItem(CatalogPurchase Purchase, RefundEligibility Eligibility);
 
         public string DisplayName { get; private set; } = string.Empty;
         public string Email { get; private set; } = string.Empty;
@@ -47,6 +58,14 @@ namespace iD_Develops.Pages.Portal.Profile
                 ?? roles.FirstOrDefault()
                 ?? "Portal user";
 
+            PurchaseCount = await _dbContext.CatalogPurchases.CountAsync(item => item.UserId == userId, cancellationToken);
+            PurchasePage = Math.Clamp(PurchasePage, 1, PurchasePages);
+            var purchases = await _dbContext.CatalogPurchases.AsNoTracking()
+                .Where(item => item.UserId == userId).OrderByDescending(item => item.PaidAtUtc).ThenByDescending(item => item.Id)
+                .Skip((PurchasePage - 1) * 20).Take(20).ToListAsync(cancellationToken);
+            foreach (var purchase in purchases)
+                Purchases.Add(new(purchase, _refunds == null ? new(false, "Please contact the company to request a refund.") : await _refunds.EligibilityAsync(purchase, cancellationToken)));
+
             var now = DateTime.UtcNow;
             CourseCount = await _dbContext.UserCourses.CountAsync(item => item.UserId == userId, cancellationToken);
             CompletedExamCount = await _dbContext.Records
@@ -60,7 +79,7 @@ namespace iD_Develops.Pages.Portal.Profile
 
             CreditBalances = await _dbContext.UserCreditLots
                 .AsNoTracking()
-                .Where(lot => lot.UserId == userId && lot.RemainingQuantity > 0 &&
+                .Where(lot => lot.UserId == userId && !lot.RefundBlocked && lot.RemainingQuantity > 0 &&
                               (!lot.ExpiresAtUtc.HasValue || lot.ExpiresAtUtc > now))
                 .GroupBy(lot => new { lot.CreditTypeId, lot.CreditType.Name, lot.CreditType.SingularLabel, lot.CreditType.PluralLabel })
                 .OrderBy(group => group.Key.Name)

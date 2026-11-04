@@ -135,7 +135,7 @@ namespace iD_Develops.Services
             var now = DateTime.UtcNow;
             var types = await AppointmentTypesQuery().Where(item => item.IsActive).OrderBy(item => item.Name).ToListAsync(cancellationToken);
             var balances = await _dbContext.UserCreditLots.AsNoTracking()
-                .Where(lot => lot.UserId == actor.UserId && lot.Scope == CreditGrantScope.Global && lot.RemainingQuantity > 0 &&
+                .Where(lot => lot.UserId == actor.UserId && lot.Scope == CreditGrantScope.Global && !lot.RefundBlocked && lot.RemainingQuantity > 0 &&
                               (!lot.ExpiresAtUtc.HasValue || lot.ExpiresAtUtc > now))
                 .GroupBy(lot => lot.CreditTypeId)
                 .Select(group => new { CreditTypeId = group.Key, Quantity = group.Sum(lot => lot.RemainingQuantity) })
@@ -230,7 +230,7 @@ namespace iD_Develops.Services
                 return Failure("That time is no longer available. Choose another slot.");
             var balance = await _dbContext.UserCreditLots.AsNoTracking()
                 .Where(lot => lot.UserId == actor.UserId && lot.CreditTypeId == type.RequiredCreditTypeId &&
-                              lot.Scope == CreditGrantScope.Global && lot.RemainingQuantity > 0 &&
+                              lot.Scope == CreditGrantScope.Global && !lot.RefundBlocked && lot.RemainingQuantity > 0 &&
                               (!lot.ExpiresAtUtc.HasValue || lot.ExpiresAtUtc > DateTime.UtcNow))
                 .SumAsync(lot => lot.RemainingQuantity, cancellationToken);
             if (balance < type.CreditCost)

@@ -54,6 +54,7 @@ namespace iD_Develops.Services
                 {
                     ["internal_order_id"] = inviteUseId?.ToString() ?? string.Empty,
                     ["catalog_product_id"] = product.Id.ToString(),
+                    ["product_name_snapshot"] = attempt.ProductNameSnapshot ?? product.Name,
                     ["catalog_variant_id"] = variant.Id.ToString(),
                     ["order_quantity"] = quantity.ToString(),
                     ["participant_count"] = participantCount.ToString(),

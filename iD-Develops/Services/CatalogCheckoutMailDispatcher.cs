@@ -67,6 +67,7 @@ public sealed class CatalogCheckoutMaintenanceService(IServiceScopeFactory scope
                 using var scope = scopes.CreateScope();
                 await scope.ServiceProvider.GetRequiredService<CatalogCheckoutMailDispatcher>().DispatchAsync(stoppingToken);
                 var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                await scope.ServiceProvider.GetRequiredService<CatalogRefundService>().ReconcileDueAsync(stoppingToken);
                 var cutoff = DateTime.UtcNow.AddDays(-30);
                 await db.CatalogCheckoutAttempts.Where(row => row.ExpiresAtUtc < cutoff).ExecuteDeleteAsync(stoppingToken);
                 await db.CatalogCheckoutMails.Where(row => row.SentAtUtc < cutoff || row.CreatedAtUtc < cutoff)
