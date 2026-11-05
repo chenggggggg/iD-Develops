@@ -385,6 +385,23 @@ Course attachment browser tests mock the external storage capability, signing, a
 file transfer in Local/CI. Course saves, reloads, and enrolled learner access use
 the running application and database. They do not upload files to Cloudflare.
 
+## Event Types
+
+Staff manage event types at Portal Calendar > Event types (`/calendar/appointment-types`).
+Admins and SuperAdmins manage teacher assignments; teachers manage types they created
+and new teacher-created types are assigned to themselves. Students cannot manage types.
+
+Credit requirements are optional. Free types store no credit or consumption-policy
+reference and cost zero. Credit-based types require an active credit, positive cost,
+and active policy. Existing bookings retain their saved duration, credit cost, and
+policy when a type is edited or deactivated. Availability and Zoom connection checks
+still apply to bookings, including free sessions.
+
+The `OptionalEventTypeCredits` migration preserves existing paid types and bookings.
+Downgrading is blocked while free types or free meetings exist; review those records
+before attempting a downgrade rather than assigning fake credits or deleting history.
+No additional environment variables or provider setup are required for this change.
+
 ## Zoom OAuth Setup
 
 Create one user-managed General OAuth app in the Zoom App Marketplace for iD Develops. The app credentials belong in the server environment; teachers never enter a client ID, client secret, or API key.

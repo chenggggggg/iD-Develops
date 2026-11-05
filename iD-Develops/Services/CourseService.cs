@@ -1289,6 +1289,7 @@ namespace iD_Develops.Services
             {
                 if (!Enum.IsDefined(classInput.Format) ||
                     !Enum.IsDefined(classInput.BookingAccess) ||
+                    classInput.BookingAccess == CourseClassBookingAccess.Free ||
                     !Enum.IsDefined(classInput.BookingEligibility))
                     return Failure("Select valid Class booking settings.");
                 if (classInput.DurationMinutes is < 5 or > 1440)

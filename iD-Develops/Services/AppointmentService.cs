@@ -61,18 +61,24 @@ namespace iD_Develops.Services
             CancellationToken cancellationToken = default)
         {
             if (!actor.IsAdmin && !actor.IsTeacher)
-                return Failure("You do not have permission to manage appointment types.");
+                return Failure("You do not have permission to manage event types.");
+            if (input.Id < 0)
+                return Failure("This event type no longer exists.");
             var name = input.Name?.Trim() ?? string.Empty;
             if (name.Length is < 2 or > 150)
-                return Failure("Enter an appointment name between 2 and 150 characters.");
+                return Failure("Enter an event type name between 2 and 150 characters.");
             if (input.DurationMinutes is < 5 or > 480)
                 return Failure("Duration must be between 5 minutes and 8 hours.");
-            if (input.CreditCost is < 1 or > 1000)
-                return Failure("Credit cost must be between 1 and 1,000.");
-            if (!await _dbContext.CreditTypes.AnyAsync(item => item.Id == input.RequiredCreditTypeId && item.IsActive, cancellationToken))
-                return Failure("Select an active required credit.");
-            if (!await _dbContext.CreditConsumptionPolicies.AnyAsync(item => item.Id == input.CreditConsumptionPolicyId && item.IsActive, cancellationToken))
-                return Failure("Select an active credit policy.");
+            var requiresCredits = input.RequiredCreditTypeId.HasValue;
+            if (requiresCredits)
+            {
+                if (input.CreditCost is < 1 or > 1000)
+                    return Failure("Credit cost must be between 1 and 1,000.");
+                if (!await _dbContext.CreditTypes.AnyAsync(item => item.Id == input.RequiredCreditTypeId && item.IsActive, cancellationToken))
+                    return Failure("Select an active required credit.");
+                if (!await _dbContext.CreditConsumptionPolicies.AnyAsync(item => item.Id == input.CreditConsumptionPolicyId && item.IsActive, cancellationToken))
+                    return Failure("Select an active credit policy.");
+            }
 
             var teacherIds = actor.IsAdmin
                 ? input.TeacherUserIds.Where(id => !string.IsNullOrWhiteSpace(id)).Select(id => id.Trim()).Distinct().ToList()
@@ -88,11 +94,11 @@ namespace iD_Develops.Services
             {
                 entity = await _dbContext.AppointmentTypes
                     .Include(item => item.Teachers)
-                    .FirstOrDefaultAsync(item => item.Id == input.Id, cancellationToken)
-                    ?? throw new InvalidOperationException("Appointment type no longer exists.");
+                    .FirstOrDefaultAsync(item => item.Id == input.Id, cancellationToken)!;
+                if (entity == null)
+                    return Failure("This event type no longer exists.");
                 if (!actor.IsAdmin && entity.CreatedByUserId != actor.UserId)
-                    return Failure("You cannot edit this appointment type.");
-                _dbContext.AppointmentTypeTeachers.RemoveRange(entity.Teachers);
+                    return Failure("You cannot edit this event type.");
             }
             else
             {
@@ -103,11 +109,16 @@ namespace iD_Develops.Services
             entity.Name = name;
             entity.DurationMinutes = input.DurationMinutes;
             entity.RequiredCreditTypeId = input.RequiredCreditTypeId;
-            entity.CreditCost = input.CreditCost;
-            entity.CreditConsumptionPolicyId = input.CreditConsumptionPolicyId;
+            entity.CreditCost = requiresCredits ? input.CreditCost : 0;
+            entity.CreditConsumptionPolicyId = requiresCredits ? input.CreditConsumptionPolicyId : null;
             entity.IsActive = input.IsActive;
             entity.UpdatedAtUtc = DateTime.UtcNow;
-            entity.Teachers = teacherIds.Select(id => new AppointmentTypeTeacher { TeacherUserId = id }).ToList();
+            if (actor.IsAdmin || input.Id == 0)
+            {
+                _dbContext.AppointmentTypeTeachers.RemoveRange(entity.Teachers.Where(item => !teacherIds.Contains(item.TeacherUserId)));
+                foreach (var id in teacherIds.Where(id => entity.Teachers.All(item => item.TeacherUserId != id)))
+                    entity.Teachers.Add(new AppointmentTypeTeacher { TeacherUserId = id });
+            }
             await _dbContext.SaveChangesAsync(cancellationToken);
             return Success();
         }
@@ -119,9 +130,9 @@ namespace iD_Develops.Services
         {
             var entity = await _dbContext.AppointmentTypes.FirstOrDefaultAsync(item => item.Id == appointmentTypeId, cancellationToken);
             if (entity == null)
-                return Failure("Appointment type no longer exists.");
+                return Failure("Event type no longer exists.");
             if (!actor.IsAdmin && (!actor.IsTeacher || entity.CreatedByUserId != actor.UserId))
-                return Failure("You cannot deactivate this appointment type.");
+                return Failure("You cannot deactivate this event type.");
             entity.IsActive = false;
             entity.UpdatedAtUtc = DateTime.UtcNow;
             await _dbContext.SaveChangesAsync(cancellationToken);
@@ -142,7 +153,7 @@ namespace iD_Develops.Services
                 .ToDictionaryAsync(item => item.CreditTypeId, item => item.Quantity, cancellationToken);
             return types.Select(item => Map(item, false) with
             {
-                AvailableCreditQuantity = balances.GetValueOrDefault(item.RequiredCreditTypeId)
+                AvailableCreditQuantity = item.RequiredCreditTypeId.HasValue ? balances.GetValueOrDefault(item.RequiredCreditTypeId.Value) : 0
             }).ToList();
         }
 
@@ -228,13 +239,16 @@ namespace iD_Develops.Services
             var slots = await GetSlotsAsync(actor, appointmentTypeId, teacherUserId, date, 1, cancellationToken);
             if (!slots.Any(item => item.IsAvailable && item.StartUtc == startUtc))
                 return Failure("That time is no longer available. Choose another slot.");
-            var balance = await _dbContext.UserCreditLots.AsNoTracking()
+            if (type.RequiredCreditTypeId.HasValue)
+            {
+                var balance = await _dbContext.UserCreditLots.AsNoTracking()
                 .Where(lot => lot.UserId == actor.UserId && lot.CreditTypeId == type.RequiredCreditTypeId &&
                               lot.Scope == CreditGrantScope.Global && !lot.RefundBlocked && lot.RemainingQuantity > 0 &&
                               (!lot.ExpiresAtUtc.HasValue || lot.ExpiresAtUtc > DateTime.UtcNow))
                 .SumAsync(lot => lot.RemainingQuantity, cancellationToken);
-            if (balance < type.CreditCost)
-                return Failure($"You need {type.CreditCost} {type.RequiredCreditType.PluralLabel} to book this appointment.");
+                if (balance < type.CreditCost)
+                    return Failure($"You need {type.CreditCost} {type.RequiredCreditType!.PluralLabel} to book this appointment.");
+            }
             var connections = await _integrationService.ValidateTeacherConnectionsAsync(
                 teacherUserId,
                 ScheduleDeliveryType.Zoom,
@@ -260,7 +274,7 @@ namespace iD_Develops.Services
                 DeliveryType = ScheduleDeliveryType.Zoom,
                 BookingOpensAtUtc = DateTime.UtcNow,
                 BookingClosesAtUtc = startUtc,
-                BookingAccess = CourseClassBookingAccess.Credit,
+                BookingAccess = type.RequiredCreditTypeId.HasValue ? CourseClassBookingAccess.Credit : CourseClassBookingAccess.Free,
                 RequiredCreditTypeId = type.RequiredCreditTypeId,
                 CreditCost = type.CreditCost,
                 CreditConsumptionPolicyId = type.CreditConsumptionPolicyId
@@ -324,7 +338,8 @@ namespace iD_Develops.Services
         private IQueryable<string> ValidTeacherIdsQuery()
         {
             var roleIds = _dbContext.Roles.Where(role => role.Name == "Teacher" || role.Name == "Admin" || role.Name == "SuperAdmin").Select(role => role.Id);
-            return _dbContext.UserRoles.Where(item => roleIds.Contains(item.RoleId)).Select(item => item.UserId).Distinct();
+            var users = _dbContext.Users.Where(user => !user.IsDeleted).Select(user => user.Id);
+            return _dbContext.UserRoles.Where(item => roleIds.Contains(item.RoleId) && users.Contains(item.UserId)).Select(item => item.UserId).Distinct();
         }
 
         private static AppointmentTypeItem Map(AppointmentType item, bool canEdit)
@@ -333,11 +348,11 @@ namespace iD_Develops.Services
                 item.Name,
                 item.DurationMinutes,
                 item.RequiredCreditTypeId,
-                item.RequiredCreditType.Name,
-                item.CreditCost == 1 ? item.RequiredCreditType.SingularLabel : item.RequiredCreditType.PluralLabel,
+                item.RequiredCreditType?.Name ?? string.Empty,
+                (item.CreditCost == 1 ? item.RequiredCreditType?.SingularLabel : item.RequiredCreditType?.PluralLabel) ?? string.Empty,
                 item.CreditCost,
                 item.CreditConsumptionPolicyId,
-                item.CreditConsumptionPolicy.Name,
+                item.CreditConsumptionPolicy?.Name ?? string.Empty,
                 item.IsActive,
                 canEdit,
                 item.Teachers.Select(teacher => new AppointmentTeacherItem(

@@ -101,6 +101,213 @@ public sealed class AppointmentServiceTests
         Assert.Equal(1, (await db.UserCreditLots.SingleAsync()).RemainingQuantity);
     }
 
+    [Fact]
+    public async Task SaveFreeType_NeedsNoCreditCatalogOrPolicy()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var seed = await SeedAsync(db);
+        db.AppointmentTypes.Remove(seed.Type);
+        db.UserCreditLots.RemoveRange(db.UserCreditLots);
+        await db.SaveChangesAsync();
+        db.CreditTypes.RemoveRange(db.CreditTypes);
+        db.CreditConsumptionPolicies.RemoveRange(db.CreditConsumptionPolicies);
+        await db.SaveChangesAsync();
+
+        var result = await CreateService(db).SaveAppointmentTypeAsync(new(seed.Teacher.Id, false, true), new()
+        {
+            Name = "Free introduction",
+            DurationMinutes = 20,
+            CreditCost = 99,
+            CreditConsumptionPolicyId = 999
+        });
+
+        Assert.True(result.Success, result.ErrorMessage);
+        var saved = await db.AppointmentTypes.Include(item => item.Teachers).SingleAsync();
+        Assert.Null(saved.RequiredCreditTypeId);
+        Assert.Null(saved.CreditConsumptionPolicyId);
+        Assert.Equal(0, saved.CreditCost);
+        Assert.Equal(seed.Teacher.Id, Assert.Single(saved.Teachers).TeacherUserId);
+        var option = Assert.Single(await CreateService(db).GetStudentOptionsAsync(new(seed.Student.Id, false, false)));
+        Assert.False(option.RequiresCredits);
+        Assert.Equal(0, option.AvailableCreditQuantity);
+    }
+
+    [Theory]
+    [InlineData("zero-cost")]
+    [InlineData("large-cost")]
+    [InlineData("missing-credit")]
+    [InlineData("inactive-credit")]
+    [InlineData("missing-policy")]
+    [InlineData("inactive-policy")]
+    public async Task SavePaidType_RejectsInvalidCreditConfiguration(string invalid)
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var seed = await SeedAsync(db);
+        var input = PaidInput(seed.Type);
+        input.Id = 0;
+        if (invalid == "zero-cost") input.CreditCost = 0;
+        if (invalid == "large-cost") input.CreditCost = 1001;
+        if (invalid == "missing-credit") input.RequiredCreditTypeId = int.MaxValue;
+        if (invalid == "inactive-credit") seed.Type.RequiredCreditType!.IsActive = false;
+        if (invalid == "missing-policy") input.CreditConsumptionPolicyId = null;
+        if (invalid == "inactive-policy") seed.Type.CreditConsumptionPolicy!.IsActive = false;
+        await db.SaveChangesAsync();
+
+        var result = await CreateService(db).SaveAppointmentTypeAsync(new(seed.Teacher.Id, false, true), input);
+
+        Assert.False(result.Success);
+        Assert.Equal(1, await db.AppointmentTypes.CountAsync());
+    }
+
+    [Fact]
+    public async Task TeacherCannotAssignOthersOrChangeAnotherOwnersType()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var seed = await SeedAsync(db);
+        var other = await AddTeacherAsync(db);
+        var service = CreateService(db);
+        var created = await service.SaveAppointmentTypeAsync(new(other.Id, false, true), new()
+        {
+            Name = "Teacher-owned",
+            TeacherUserIds = [seed.Teacher.Id]
+        });
+        Assert.True(created.Success, created.ErrorMessage);
+        var saved = await db.AppointmentTypes.Include(item => item.Teachers).SingleAsync(item => item.CreatedByUserId == other.Id);
+        Assert.Equal(other.Id, Assert.Single(saved.Teachers).TeacherUserId);
+        var forbidden = PaidInput(seed.Type);
+        forbidden.Name = "Unauthorized change";
+        Assert.False((await service.SaveAppointmentTypeAsync(new(other.Id, false, true), forbidden)).Success);
+        Assert.False((await service.DeactivateAppointmentTypeAsync(new(other.Id, false, true), seed.Type.Id)).Success);
+        Assert.Equal("Private coaching", seed.Type.Name);
+        Assert.True(seed.Type.IsActive);
+        Assert.Equal(saved.Id, Assert.Single((await service.GetManagementDataAsync(new(other.Id, false, true))).AppointmentTypes).Id);
+    }
+
+    [Fact]
+    public async Task AdminCanChangeAssignments_TeacherEditsPreserveThoseAssignments()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var seed = await SeedAsync(db);
+        var other = await AddTeacherAsync(db);
+        var service = CreateService(db);
+        var input = PaidInput(seed.Type);
+        input.TeacherUserIds = [seed.Teacher.Id, other.Id];
+        Assert.True((await service.SaveAppointmentTypeAsync(new(other.Id, true, false), input)).Success);
+        input.Name = "Updated by owner";
+        input.TeacherUserIds = [seed.Student.Id];
+        Assert.True((await service.SaveAppointmentTypeAsync(new(seed.Teacher.Id, false, true), input)).Success);
+        Assert.Equal(2, await db.AppointmentTypeTeachers.CountAsync(item => item.AppointmentTypeId == seed.Type.Id));
+        input.TeacherUserIds = [other.Id];
+        Assert.True((await service.SaveAppointmentTypeAsync(new(other.Id, true, false), input)).Success);
+        Assert.Equal(other.Id, (await db.AppointmentTypeTeachers.SingleAsync()).TeacherUserId);
+    }
+
+    [Fact]
+    public async Task StudentsCannotManageTypesAndDeletedTeachersCannotBeAssigned()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var seed = await SeedAsync(db);
+        var service = CreateService(db);
+        Assert.Empty((await service.GetManagementDataAsync(new(seed.Student.Id, false, false))).AppointmentTypes);
+        Assert.False((await service.SaveAppointmentTypeAsync(new(seed.Student.Id, false, false), PaidInput(seed.Type))).Success);
+        Assert.False((await service.DeactivateAppointmentTypeAsync(new(seed.Student.Id, false, false), seed.Type.Id)).Success);
+        seed.Teacher.IsDeleted = true;
+        await db.SaveChangesAsync();
+        Assert.False((await service.SaveAppointmentTypeAsync(new(seed.Student.Id, true, false), PaidInput(seed.Type))).Success);
+    }
+
+    [Fact]
+    public async Task BookFreeType_NoBalanceOrCreditTransactionsNeededIncludingCancellation()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var seed = await SeedAsync(db);
+        seed.Type.RequiredCreditTypeId = null;
+        seed.Type.RequiredCreditType = null;
+        seed.Type.CreditConsumptionPolicyId = null;
+        seed.Type.CreditConsumptionPolicy = null;
+        seed.Type.CreditCost = 0;
+        db.UserCreditLots.RemoveRange(db.UserCreditLots);
+        var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(2));
+        db.TeacherAvailabilityWindows.Add(new() { TeacherUserId = seed.Teacher.Id, DayOfWeek = date.DayOfWeek, LocalStartTime = new(9, 0), LocalEndTime = new(12, 0) });
+        await db.SaveChangesAsync();
+        var actor = new ScheduleActor(seed.Student.Id, false, false);
+        var booked = await CreateService(db).BookAppointmentAsync(actor, seed.Type.Id, seed.Teacher.Id, AmsterdamUtc(date, new(9, 0)));
+        Assert.True(booked.Success, booked.ErrorMessage);
+        var meeting = await db.ScheduledEvents.Include(item => item.Bookings).SingleAsync();
+        Assert.Equal(CourseClassBookingAccess.Free, meeting.BookingAccess);
+        Assert.Null(meeting.RequiredCreditTypeId);
+        Assert.Null(meeting.CreditConsumptionPolicyId);
+        Assert.Equal(0, meeting.CreditCost);
+        Assert.Single(meeting.Bookings);
+        var integration = new FakeSchedulingIntegrationService();
+        var cancelled = await new SchedulingService(db, integration, NullLogger<SchedulingService>.Instance).CancelBookingAsync(actor, meeting.Id);
+        Assert.True(cancelled.Success, cancelled.ErrorMessage);
+        Assert.Empty(await db.EventBookingCreditAllocations.ToListAsync());
+        Assert.Empty(await db.UserCreditTransactions.ToListAsync());
+    }
+
+    [Fact]
+    public async Task EditingPaidTypeToFreeAndDeactivating_PreservesExistingBookingSnapshots()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var seed = await SeedAsync(db);
+        var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(2));
+        db.TeacherAvailabilityWindows.Add(new() { TeacherUserId = seed.Teacher.Id, DayOfWeek = date.DayOfWeek, LocalStartTime = new(9, 0), LocalEndTime = new(12, 0) });
+        await db.SaveChangesAsync();
+        var service = CreateService(db);
+        Assert.True((await service.BookAppointmentAsync(new(seed.Student.Id, false, false), seed.Type.Id, seed.Teacher.Id, AmsterdamUtc(date, new(9, 0)))).Success);
+        var creditId = seed.Type.RequiredCreditTypeId;
+        var policyId = seed.Type.CreditConsumptionPolicyId;
+        var changed = await service.SaveAppointmentTypeAsync(new(seed.Teacher.Id, false, true), new() { Id = seed.Type.Id, Name = "Now free", DurationMinutes = 20 });
+        Assert.True(changed.Success, changed.ErrorMessage);
+        Assert.True((await service.DeactivateAppointmentTypeAsync(new(seed.Teacher.Id, false, true), seed.Type.Id)).Success);
+        Assert.Empty(await service.GetStudentOptionsAsync(new(seed.Student.Id, false, false)));
+        var meeting = await db.ScheduledEvents.Include(item => item.Bookings).SingleAsync();
+        Assert.Equal("Private coaching", meeting.Title);
+        Assert.Equal(TimeSpan.FromHours(1), meeting.EndAtUtc - meeting.StartAtUtc);
+        Assert.Equal(creditId, meeting.RequiredCreditTypeId);
+        Assert.Equal(policyId, meeting.CreditConsumptionPolicyId);
+        Assert.Equal(2, meeting.CreditCost);
+        Assert.Single(meeting.Bookings);
+        Assert.Equal(1, (await db.UserCreditLots.SingleAsync()).RemainingQuantity);
+    }
+
+    [Fact]
+    public async Task MissingTypeReturnsValidationFailure()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var seed = await SeedAsync(db);
+        Assert.False((await CreateService(db).SaveAppointmentTypeAsync(new(seed.Teacher.Id, false, true), new() { Id = int.MaxValue, Name = "Missing" })).Success);
+    }
+
+    private static AppointmentTypeInput PaidInput(AppointmentType type) => new()
+    {
+        Id = type.Id,
+        Name = type.Name,
+        DurationMinutes = type.DurationMinutes,
+        RequiredCreditTypeId = type.RequiredCreditTypeId,
+        CreditCost = type.CreditCost,
+        CreditConsumptionPolicyId = type.CreditConsumptionPolicyId,
+        TeacherUserIds = type.Teachers.Select(item => item.TeacherUserId).ToArray()
+    };
+
+    private static async Task<ApplicationUser> AddTeacherAsync(iD_Develops.Data.ApplicationDbContext db)
+    {
+        var other = User("other-teacher", "other-teacher@example.com", "Other", "Teacher");
+        db.Users.Add(other);
+        db.UserRoles.Add(new() { UserId = other.Id, RoleId = "appointment-teacher-role" });
+        await db.SaveChangesAsync();
+        return other;
+    }
+
     private static AppointmentService CreateService(iD_Develops.Data.ApplicationDbContext db)
     {
         var integration = new FakeSchedulingIntegrationService();

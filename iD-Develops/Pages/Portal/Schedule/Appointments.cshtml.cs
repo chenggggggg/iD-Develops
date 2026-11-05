@@ -23,8 +23,15 @@ namespace iD_Develops.Pages.Portal.Schedule
 
         public async Task<IActionResult> OnPostSaveAsync(CancellationToken cancellationToken)
         {
-            ModelState.Clear();
-            if (!TryValidateModel(Input, nameof(Input)))
+            if (!Input.RequiresCredits)
+            {
+                Input.RequiredCreditTypeId = null;
+                Input.CreditCost = 0;
+                Input.CreditConsumptionPolicyId = null;
+                foreach (var field in new[] { nameof(Input.RequiredCreditTypeId), nameof(Input.CreditCost), nameof(Input.CreditConsumptionPolicyId) })
+                    ModelState.Remove($"{nameof(Input)}.{field}");
+            }
+            if (!ModelState.IsValid)
             {
                 await LoadAsync(cancellationToken);
                 return Page();
@@ -32,11 +39,11 @@ namespace iD_Develops.Pages.Portal.Schedule
             var result = await _appointmentService.SaveAppointmentTypeAsync(GetActor(), Input.ToInput(), cancellationToken);
             if (!result.Success)
             {
-                ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Appointment type could not be saved.");
+                ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Event type could not be saved.");
                 await LoadAsync(cancellationToken);
                 return Page();
             }
-            TempData["StatusMessage"] = Input.Id > 0 ? "Appointment type updated." : "Appointment type created.";
+            TempData["StatusMessage"] = Input.Id > 0 ? "Event type updated." : "Event type created.";
             return RedirectToPage();
         }
 
@@ -44,7 +51,7 @@ namespace iD_Develops.Pages.Portal.Schedule
         {
             var result = await _appointmentService.DeactivateAppointmentTypeAsync(GetActor(), appointmentTypeId, cancellationToken);
             TempData[result.Success ? "StatusMessage" : "ErrorMessage"] = result.Success
-                ? "Appointment type deactivated."
+                ? "Event type deactivated."
                 : result.ErrorMessage;
             return RedirectToPage();
         }
@@ -61,25 +68,38 @@ namespace iD_Develops.Pages.Portal.Schedule
             IsAdmin,
             User.IsInRole("Teacher"));
 
-        public sealed class AppointmentForm
+        public sealed class AppointmentForm : IValidatableObject
         {
             public int Id { get; set; }
             [Required, StringLength(150, MinimumLength = 2)] public string Name { get; set; } = string.Empty;
             [Range(5, 480)] public int DurationMinutes { get; set; } = 60;
-            [Range(1, int.MaxValue)] public int RequiredCreditTypeId { get; set; }
-            [Range(1, 1000)] public int CreditCost { get; set; } = 1;
-            [Range(1, int.MaxValue)] public int CreditConsumptionPolicyId { get; set; }
+            public bool RequiresCredits { get; set; }
+            public int? RequiredCreditTypeId { get; set; }
+            public int CreditCost { get; set; } = 1;
+            public int? CreditConsumptionPolicyId { get; set; }
             public List<string> TeacherUserIds { get; set; } = [];
             public bool IsActive { get; set; } = true;
+
+            public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+            {
+                if (!RequiresCredits)
+                    yield break;
+                if (RequiredCreditTypeId is null or <= 0)
+                    yield return new("Select a required credit.", [nameof(RequiredCreditTypeId)]);
+                if (CreditCost is < 1 or > 1000)
+                    yield return new("Credit cost must be between 1 and 1,000.", [nameof(CreditCost)]);
+                if (CreditConsumptionPolicyId is null or <= 0)
+                    yield return new("Select a credit policy.", [nameof(CreditConsumptionPolicyId)]);
+            }
 
             public AppointmentTypeInput ToInput() => new()
             {
                 Id = Id,
                 Name = Name,
                 DurationMinutes = DurationMinutes,
-                RequiredCreditTypeId = RequiredCreditTypeId,
-                CreditCost = CreditCost,
-                CreditConsumptionPolicyId = CreditConsumptionPolicyId,
+                RequiredCreditTypeId = RequiresCredits ? RequiredCreditTypeId : null,
+                CreditCost = RequiresCredits ? CreditCost : 0,
+                CreditConsumptionPolicyId = RequiresCredits ? CreditConsumptionPolicyId : null,
                 TeacherUserIds = TeacherUserIds,
                 IsActive = IsActive
             };

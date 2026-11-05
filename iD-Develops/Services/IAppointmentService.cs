@@ -8,16 +8,19 @@ namespace iD_Develops.Services
         int Id,
         string Name,
         int DurationMinutes,
-        int RequiredCreditTypeId,
+        int? RequiredCreditTypeId,
         string CreditName,
         string CreditLabel,
         int CreditCost,
-        int CreditConsumptionPolicyId,
+        int? CreditConsumptionPolicyId,
         string CreditPolicyName,
         bool IsActive,
         bool CanEdit,
         IReadOnlyList<AppointmentTeacherItem> Teachers,
-        int AvailableCreditQuantity = 0);
+        int AvailableCreditQuantity = 0)
+    {
+        public bool RequiresCredits => RequiredCreditTypeId.HasValue;
+    }
 
     public sealed record AppointmentManagementData(
         IReadOnlyList<AppointmentTypeItem> AppointmentTypes,
@@ -33,9 +36,9 @@ namespace iD_Develops.Services
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public int DurationMinutes { get; set; } = 60;
-        public int RequiredCreditTypeId { get; set; }
+        public int? RequiredCreditTypeId { get; set; }
         public int CreditCost { get; set; } = 1;
-        public int CreditConsumptionPolicyId { get; set; }
+        public int? CreditConsumptionPolicyId { get; set; }
         public IReadOnlyList<string> TeacherUserIds { get; set; } = Array.Empty<string>();
         public bool IsActive { get; set; } = true;
     }

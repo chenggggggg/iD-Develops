@@ -14,14 +14,14 @@ namespace iD_Develops.Models
         [Range(5, 480)]
         public int DurationMinutes { get; set; } = 60;
 
-        public int RequiredCreditTypeId { get; set; }
-        public CreditType RequiredCreditType { get; set; } = null!;
+        public int? RequiredCreditTypeId { get; set; }
+        public CreditType? RequiredCreditType { get; set; }
 
-        [Range(1, 1000)]
+        [Range(0, 1000)]
         public int CreditCost { get; set; } = 1;
 
-        public int CreditConsumptionPolicyId { get; set; }
-        public CreditConsumptionPolicy CreditConsumptionPolicy { get; set; } = null!;
+        public int? CreditConsumptionPolicyId { get; set; }
+        public CreditConsumptionPolicy? CreditConsumptionPolicy { get; set; }
 
         [Required]
         public string CreatedByUserId { get; set; } = string.Empty;
