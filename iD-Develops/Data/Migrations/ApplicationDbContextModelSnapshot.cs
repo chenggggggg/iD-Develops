@@ -349,7 +349,7 @@ namespace iD_Develops.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("CreditConsumptionPolicyId")
+                    b.Property<int?>("CreditConsumptionPolicyId")
                         .HasColumnType("integer");
 
                     b.Property<int>("CreditCost")
@@ -366,7 +366,7 @@ namespace iD_Develops.Data.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
 
-                    b.Property<int>("RequiredCreditTypeId")
+                    b.Property<int?>("RequiredCreditTypeId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("UpdatedAtUtc")
@@ -3415,14 +3415,12 @@ namespace iD_Develops.Data.Migrations
                     b.HasOne("iD_Develops.Models.CreditConsumptionPolicy", "CreditConsumptionPolicy")
                         .WithMany("AppointmentTypes")
                         .HasForeignKey("CreditConsumptionPolicyId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("iD_Develops.Models.CreditType", "RequiredCreditType")
                         .WithMany("AppointmentTypes")
                         .HasForeignKey("RequiredCreditTypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("CreatedByUser");
 

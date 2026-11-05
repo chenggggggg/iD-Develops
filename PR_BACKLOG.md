@@ -1,6 +1,6 @@
 ﻿# Planned PR backlog
 
-Updated: 2026-11-04
+Updated: 2026-11-05
 
 This is the combined planning backlog from the staging review and owner meeting.
 B01-B21 are planning IDs, not GitHub PR numbers. Priorities are proposed implementation
@@ -157,6 +157,18 @@ Depends on confirmation of the Zoom plan, managed vs external users, and concurr
 class requirements. Can follow B02; does not need to block its messaging fix.
 
 ## B04 - P1 - Unified event types with optional credit requirements
+
+Status: implemented and verified on `feature/event-types-optional-credits`; ready for
+pull-request review. Release build, full formatting
+check, all 467 unit/integration tests, all 168 Playwright tests, and EF model/migration
+consistency passed on 2026-11-04. Desktop and mobile screens were inspected.
+
+Free types need no credit catalog or consumption policy; paid types validate both.
+Admin-controlled teacher assignments and existing booking snapshots are preserved.
+The editor retains failed submissions, and the booking selector waits for its script
+before accepting selections. Includes the `OptionalEventTypeCredits` migration and
+desktop/mobile inspection; no new environment variables are needed. B05 remains the
+separate unified booking and staff-on-behalf workflow.
 
 **Estimated size: Medium.** Extend existing appointment models, nullable credit rules/migration, management validation, role permissions, and tests.
 
@@ -492,8 +504,7 @@ record any preceding items still incomplete rather than claiming final complete 
 
 ## B21 - P1 - Payment history and refunds for unused purchases
 
-Status: implemented and verified on `feature/purchase-history-refunds`; ready for review.
-Commit, push, and pull-request creation were authorized on 2026-11-04.
+Status: completed and merged in [PR #47](https://github.com/chenggggggg/iD-Develops/pull/47).
 Build, formatting, all 453 unit/integration tests, all 163 Playwright tests, and EF
 model/migration consistency passed on 2026-11-04. Desktop and mobile purchase/refund
 screens were inspected. Provider verification used local/fake refunds; run a Stripe

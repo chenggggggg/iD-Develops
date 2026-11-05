@@ -15,7 +15,7 @@
 
     <div class="appointment-booking-layout">
         <aside class="appointment-booking-steps">
-            <label><span>1. Session</span><select data-appointment-type><option value="">Select a private session</option>@foreach (var option in Model.Options) { <option value="@option.Id">@option.Name</option> }</select></label>
+            <label><span>1. Event type</span><select data-appointment-type disabled><option value="">Select an event type</option>@foreach (var option in Model.Options) { <option value="@option.Id">@option.Name</option> }</select></label>
             <div class="appointment-selection-detail" data-appointment-detail hidden><strong data-detail-name></strong><span><i class="fa-regular fa-clock"></i> <span data-detail-duration></span></span><span><i class="fa-solid fa-ticket"></i> <span data-detail-credit></span></span><small data-detail-balance></small></div>
             <label><span>2. Teacher</span><select data-appointment-teacher disabled><option value="">Select a session first</option></select></label>
             <label><span>3. Starting date</span><input type="date" data-appointment-start-date /></label>

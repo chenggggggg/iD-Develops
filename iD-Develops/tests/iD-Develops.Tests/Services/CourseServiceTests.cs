@@ -10,6 +10,41 @@ namespace iD_Develops.Tests.Services;
 public sealed class CourseServiceTests
 {
     [Fact]
+    public async Task SaveCourseContentAsync_RejectsFreeAppointmentAccessForCourseClasses()
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var teacher = new ApplicationUser { Id = "free-class-editor", Email = "free-class-editor@example.com", UserName = "free-class-editor@example.com" };
+        var course = new Course { Name = "Enrolled course", CreatedByUserId = teacher.Id };
+        var credit = new CreditType { Name = "Class credit", NormalizedName = "CLASS CREDIT", SingularLabel = "credit", PluralLabel = "credits" };
+        var policy = new CreditConsumptionPolicy { Name = "Class policy", NormalizedName = "CLASS POLICY" };
+        db.Users.Add(teacher);
+        db.Courses.Add(course);
+        db.CreditTypes.Add(credit);
+        db.CreditConsumptionPolicies.Add(policy);
+        await db.SaveChangesAsync();
+
+        var result = await new CourseService(db).SaveCourseContentAsync(course.Id, teacher.Id, false, new()
+        {
+            CourseId = course.Id,
+            Name = "Changed",
+            Sections = [new CourseSectionEditItem
+            {
+                Title = "Classes", Classes = [new CourseClassEditItem
+                {
+                    Title = "Public class", BookingAccess = CourseClassBookingAccess.Free,
+                    RequiredCreditTypeId = credit.Id, CreditConsumptionPolicyId = policy.Id, CreditCost = 1
+                }]
+            }]
+        });
+
+        Assert.False(result.Success);
+        Assert.Equal("Select valid Class booking settings.", result.ErrorMessage);
+        Assert.Empty(await db.CourseClasses.ToListAsync());
+        Assert.Equal("Enrolled course", course.Name);
+    }
+
+    [Fact]
     public async Task CreateCourseAsync_TrimsNameAndRejectsDuplicate()
     {
         using var factory = new SqliteTestDbFactory();

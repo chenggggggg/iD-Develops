@@ -4,6 +4,7 @@ namespace iD_Develops.Enums
     {
         CourseEnrollment = 1,
         Credit = 2,
-        CourseEnrollmentAndCredit = 3
+        CourseEnrollmentAndCredit = 3,
+        Free = 4
     }
 }

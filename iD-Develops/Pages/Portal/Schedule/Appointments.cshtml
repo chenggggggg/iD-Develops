@@ -3,76 +3,129 @@
 @model iD_Develops.Pages.Portal.Schedule.AppointmentsModel
 @{
     Layout = "_PortalLayout";
-    ViewData["Title"] = "Private session types";
+    ViewData["Title"] = "Event types";
 }
-
-<section class="portal-page-shell appointment-page" data-appointment-admin>
-    <header class="portal-page-header schedule-page-header">
+<section class="portal-page-shell space-y-6" data-appointment-admin>
+    <header class="portal-page-header">
         <div>
-            <a class="roster-back-link" asp-page="/Portal/Schedule/Index"><i class="fa-solid fa-arrow-left"></i> Calendar</a>
+            <a class="portal-btn portal-btn-outline" asp-page="/Portal/Schedule/Index"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Calendar</a>
             <p class="portal-eyebrow">Private scheduling</p>
-            <h1 class="portal-title-sm">Private session types</h1>
-            <p class="portal-copy">Define which private sessions students can book with credits.</p>
+            <h1 class="portal-title-sm">Event types</h1>
+            <p class="portal-copy">Manage private sessions, eligible teachers, and optional credit requirements.</p>
         </div>
-        <button type="button" class="portal-btn portal-btn-primary" data-appointment-new><i class="fa-solid fa-plus"></i> New session type</button>
+        <button type="button" class="portal-btn portal-btn-primary" data-appointment-new><i class="fa-solid fa-plus" aria-hidden="true"></i> New event type</button>
     </header>
-
-    @if (TempData["StatusMessage"] is string status) { <div class="schedule-notice" role="status">@status</div> }
-    @if (TempData["ErrorMessage"] is string error) { <div class="schedule-notice is-error" role="alert">@error</div> }
-    @if (!ViewData.ModelState.IsValid) { <div class="schedule-notice is-error" asp-validation-summary="All"></div> }
-
-    <div class="appointment-admin-grid">
-        <div class="appointment-type-list">
-            @if (Model.Data.AppointmentTypes.Count == 0) { <p class="appointment-empty">No private appointment types yet.</p> }
+    @if (TempData["StatusMessage"] is string status)
+    {
+        <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900" role="status">@status</div>
+    }
+    @if (TempData["ErrorMessage"] is string error)
+    {
+        <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-900" role="alert">@error</div>
+    }
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-900" role="alert" asp-validation-summary="All"></div>
+    }
+    <div class="grid min-w-0 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)]">
+        <div class="grid min-w-0 gap-3" aria-label="Saved event types">
+            @if (Model.Data.AppointmentTypes.Count == 0)
+            {
+                <p class="m-0 rounded-xl border border-dashed border-slate-300 bg-white p-6 text-sm text-slate-600">No event types yet. Create a session and assign its teachers to get started.</p>
+            }
             @foreach (var item in Model.Data.AppointmentTypes)
             {
                 var json = JsonSerializer.Serialize(new
                 {
-                    id = item.Id,
-                    name = item.Name,
-                    durationMinutes = item.DurationMinutes,
-                    requiredCreditTypeId = item.RequiredCreditTypeId,
-                    creditCost = item.CreditCost,
+                    id = item.Id, name = item.Name, durationMinutes = item.DurationMinutes,
+                    requiredCreditTypeId = item.RequiredCreditTypeId, creditCost = item.CreditCost,
                     creditConsumptionPolicyId = item.CreditConsumptionPolicyId,
-                    teacherUserIds = item.Teachers.Select(teacher => teacher.Id),
-                    isActive = item.IsActive
+                    teacherUserIds = item.Teachers.Select(teacher => teacher.Id), isActive = item.IsActive
                 });
-                <article class="appointment-type-card @(item.IsActive ? null : "is-inactive")">
-                    <div><strong>@item.Name</strong><span>@item.DurationMinutes minutes · @item.CreditCost @item.CreditLabel</span><small>@string.Join(", ", item.Teachers.Select(t => t.Name))</small></div>
+                <article class="min-w-0 rounded-xl border border-slate-200 bg-white p-5 shadow-sm" data-event-type-id="@item.Id" aria-label="@item.Name">
+                    <div class="flex flex-wrap items-start justify-between gap-3">
+                        <h2 class="m-0 min-w-0 break-words text-base font-semibold text-slate-950">@item.Name</h2>
+                        <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">@(item.IsActive ? "Active" : "Inactive")</span>
+                    </div>
+                    <p class="mb-0 mt-3 text-sm text-slate-600">@item.DurationMinutes minutes &middot; @(item.RequiresCredits ? $"{item.CreditCost} {item.CreditLabel}" : "No credits required")</p>
+                    <p class="mb-0 mt-2 break-words text-sm text-slate-600"><span class="font-medium">Teachers:</span> @string.Join(", ", item.Teachers.Select(t => t.Name))</p>
                     @if (item.CanEdit)
                     {
-                        <div class="appointment-card-actions">
-                            <button type="button" data-appointment-edit data-appointment='@json' aria-label="Edit @item.Name"><i class="fa-solid fa-pencil"></i></button>
-                            @if (item.IsActive) { <form method="post" asp-page-handler="Deactivate"><input type="hidden" name="appointmentTypeId" value="@item.Id" /><button type="submit" aria-label="Deactivate @item.Name"><i class="fa-solid fa-ban"></i></button></form> }
+                        <div class="mt-4 flex flex-wrap gap-2">
+                            <button type="button" class="portal-btn portal-btn-outline" data-appointment-edit data-appointment='@json' aria-label="Edit @item.Name"><i class="fa-solid fa-pencil" aria-hidden="true"></i> Edit</button>
+                            @if (item.IsActive)
+                            {
+                                <form method="post" asp-page-handler="Deactivate" data-submit-feedback>
+                                    <input type="hidden" name="appointmentTypeId" value="@item.Id" />
+                                    <button type="submit" class="portal-btn portal-btn-outline" aria-label="Deactivate @item.Name">Deactivate</button>
+                                </form>
+                            }
                         </div>
                     }
                 </article>
             }
         </div>
-
-        <aside class="appointment-editor" data-appointment-editor hidden>
-            <div class="appointment-editor-heading"><h2 data-appointment-editor-title>New appointment type</h2><button type="button" data-appointment-close aria-label="Close">×</button></div>
-            <form method="post" asp-page-handler="Save" class="appointment-form">
+        <aside class="min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm" data-appointment-editor aria-labelledby="event-type-editor-title">
+            <div class="flex items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
+                <h2 id="event-type-editor-title" class="m-0 text-lg font-semibold text-slate-950" data-appointment-editor-title>@(Model.Input.Id > 0 ? "Edit event type" : "New event type")</h2>
+                <button type="button" class="portal-btn portal-btn-outline" data-appointment-close aria-label="Close editor"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+            </div>
+            <form method="post" asp-page-handler="Save" class="grid gap-5 p-5" data-submit-feedback>
                 <input type="hidden" asp-for="Input.Id" data-field="id" />
-                <label><span>Name</span><input asp-for="Input.Name" data-field="name" required /></label>
-                <label><span>Duration</span><select asp-for="Input.DurationMinutes" data-field="duration"><option value="30">30 minutes</option><option value="45">45 minutes</option><option value="60">60 minutes</option><option value="90">90 minutes</option><option value="120">120 minutes</option></select></label>
-                <label><span>Required credit</span><select asp-for="Input.RequiredCreditTypeId" data-field="credit" required><option value="">Select credit</option>@foreach (var credit in Model.Data.CreditTypes) { <option value="@credit.Id">@credit.Name</option> }</select></label>
-                <label><span>Credit cost</span><input asp-for="Input.CreditCost" data-field="cost" type="number" min="1" max="1000" /></label>
-                <label><span>Credit policy</span><select asp-for="Input.CreditConsumptionPolicyId" data-field="policy" required><option value="">Select policy</option>@foreach (var policy in Model.Data.CreditPolicies) { <option value="@policy.Id">@policy.Name</option> }</select></label>
+                <div class="grid gap-2">
+                    <label asp-for="Input.Name" class="text-sm font-medium text-slate-700">Name</label>
+                    <input asp-for="Input.Name" data-field="name" class="w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]" required minlength="2" maxlength="150" />
+                </div>
+                <div class="grid gap-2">
+                    <label asp-for="Input.DurationMinutes" class="text-sm font-medium text-slate-700">Duration (minutes)</label>
+                    <input asp-for="Input.DurationMinutes" data-field="duration" class="w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]" type="number" min="5" max="480" required />
+                </div>
                 @if (Model.IsAdmin)
                 {
-                    <fieldset><legend>Assigned teachers</legend>@foreach (var teacher in Model.Data.Teachers) { <label class="appointment-teacher-check"><input type="checkbox" name="Input.TeacherUserIds" value="@teacher.Id" data-teacher-id="@teacher.Id" /><span>@teacher.Name <small>@teacher.Email</small></span></label> }</fieldset>
+                    <fieldset class="m-0 grid max-h-52 gap-3 overflow-y-auto rounded-lg border border-slate-200 p-3">
+                        <legend class="px-1 text-sm font-medium text-slate-700">Assigned teachers</legend>
+                        @foreach (var teacher in Model.Data.Teachers)
+                        {
+                            <label class="flex min-w-0 items-start gap-3 text-sm text-slate-700">
+                                <input type="checkbox" name="Input.TeacherUserIds" value="@teacher.Id" data-teacher-id="@teacher.Id" checked="@Model.Input.TeacherUserIds.Contains(teacher.Id)" class="mt-1 h-4 w-4 shrink-0 accent-[var(--id-blue)]" />
+                                <span class="min-w-0 break-words">@teacher.Name <small class="block break-all text-xs text-slate-500">@teacher.Email</small></span>
+                            </label>
+                        }
+                    </fieldset>
                 }
                 else
                 {
-                    @foreach (var teacher in Model.Data.Teachers) { <input type="hidden" name="Input.TeacherUserIds" value="@teacher.Id" /> }
+                    <p class="m-0 text-sm text-slate-600">New event types are assigned to you. Only administrators can change teacher assignments.</p>
                 }
-                <label class="appointment-active"><input asp-for="Input.IsActive" data-field="active" /> Available for students</label>
-                <button class="portal-btn portal-btn-primary" type="submit">Save appointment type</button>
+                <label class="flex items-center gap-3 text-sm font-medium text-slate-700">
+                    <input asp-for="Input.RequiresCredits" data-field="requires-credits" class="h-4 w-4 accent-[var(--id-blue)]" aria-controls="event-type-credit-settings" />
+                    Require credits to book
+                </label>
+                <p class="m-0 text-sm text-slate-600" data-free-description hidden="@Model.Input.RequiresCredits">No credits required. Students can book without a credit balance.</p>
+                <fieldset id="event-type-credit-settings" class="m-0 grid gap-4 rounded-lg border border-slate-200 p-4" data-credit-settings hidden="@(!Model.Input.RequiresCredits)" disabled="@(!Model.Input.RequiresCredits)">
+                    <legend class="px-1 text-sm font-medium text-slate-700">Credit settings</legend>
+                    <div class="grid gap-2">
+                        <label asp-for="Input.RequiredCreditTypeId" class="text-sm font-medium text-slate-700">Required credit</label>
+                        <select asp-for="Input.RequiredCreditTypeId" data-field="credit" class="w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]" required><option value="">Select credit</option>@foreach (var credit in Model.Data.CreditTypes) { <option value="@credit.Id">@credit.Name</option> }</select>
+                    </div>
+                    <div class="grid gap-2">
+                        <label asp-for="Input.CreditCost" class="text-sm font-medium text-slate-700">Credit cost</label>
+                        <input asp-for="Input.CreditCost" data-field="cost" class="w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]" type="number" min="1" max="1000" required />
+                    </div>
+                    <div class="grid gap-2">
+                        <label asp-for="Input.CreditConsumptionPolicyId" class="text-sm font-medium text-slate-700">Credit policy</label>
+                        <select asp-for="Input.CreditConsumptionPolicyId" data-field="policy" class="w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]" required><option value="">Select policy</option>@foreach (var policy in Model.Data.CreditPolicies) { <option value="@policy.Id">@policy.Name</option> }</select>
+                        <p class="m-0 text-xs text-slate-500">Controls credit handling for cancellations, attendance, and no-shows.</p>
+                    </div>
+                </fieldset>
+                <details class="rounded-lg border border-slate-200 p-3">
+                    <summary class="cursor-pointer text-sm font-medium text-slate-700">Advanced options</summary>
+                    <label class="mt-4 flex items-center gap-3 text-sm text-slate-700"><input asp-for="Input.IsActive" data-field="active" class="h-4 w-4 accent-[var(--id-blue)]" /> Available for students</label>
+                    <p class="mb-0 mt-3 text-xs leading-5 text-slate-500">Changes apply to future bookings. Existing meetings keep their saved duration and credit settings. Deactivating a type stops new bookings and preserves existing meetings.</p>
+                </details>
+                <button class="portal-btn portal-btn-primary" type="submit"><span data-submit-idle>Save event type</span><span data-submit-pending hidden>Saving&hellip;</span></button>
             </form>
         </aside>
     </div>
 </section>
-
-@section Styles { <link rel="stylesheet" href="~/css/appointments.css" asp-append-version="true" /> }
 @section Scripts { <script src="~/js/appointment-admin.js" asp-append-version="true"></script> }

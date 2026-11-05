@@ -44,9 +44,10 @@
         detail.hidden = false;
         root.querySelector("[data-detail-name]").textContent = item.name;
         root.querySelector("[data-detail-duration]").textContent = `${item.durationMinutes} minutes`;
-        root.querySelector("[data-detail-credit]").textContent = `${item.creditCost} ${item.creditLabel}`;
-        const enough = item.availableCreditQuantity >= item.creditCost;
+        root.querySelector("[data-detail-credit]").textContent = item.requiresCredits ? `${item.creditCost} ${item.creditLabel}` : "No credits required";
+        const enough = !item.requiresCredits || item.availableCreditQuantity >= item.creditCost;
         const balance = root.querySelector("[data-detail-balance]");
+        balance.hidden = !item.requiresCredits;
         balance.textContent = enough ? `Balance: ${item.availableCreditQuantity}` : `Insufficient balance: ${item.availableCreditQuantity}`;
         balance.classList.toggle("is-error", !enough);
         teacherSelect.append(new Option("Select a teacher", ""));
@@ -87,10 +88,11 @@
             group.slots.forEach(slot => {
                 const button = document.createElement("button");
                 button.type = "button";
-                button.disabled = !slot.isAvailable || item.availableCreditQuantity < item.creditCost;
+                const enough = !item.requiresCredits || item.availableCreditQuantity >= item.creditCost;
+                button.disabled = !slot.isAvailable || !enough;
                 button.textContent = formatter({ hour: "2-digit", minute: "2-digit" }).format(new Date(slot.startUtc));
                 button.title = slot.unavailableReason || (button.disabled ? "Not enough credits" : "Book this time");
-                if (slot.isAvailable && item.availableCreditQuantity >= item.creditCost) button.addEventListener("click", () => book(slot));
+                if (slot.isAvailable && enough) button.addEventListener("click", () => book(slot));
                 grid.append(button);
             });
             section.append(heading, grid);
@@ -103,7 +105,7 @@
         const when = formatter({ dateStyle: "full", timeStyle: "short" }).format(new Date(slot.startUtc));
         const confirmed = await window.appConfirm({
             title: "Confirm booking",
-            message: `Book ${item.name} for ${when}? This uses ${item.creditCost} ${item.creditLabel}.`,
+            message: `Book ${item.name} for ${when}? ${item.requiresCredits ? `This uses ${item.creditCost} ${item.creditLabel}.` : "No credits are required."}`,
             confirmLabel: "Book appointment",
             tone: "info"
         });
@@ -118,4 +120,6 @@
     typeSelect.addEventListener("change", updateType);
     teacherSelect.addEventListener("change", loadSlots);
     dateInput.addEventListener("change", loadSlots);
+    typeSelect.disabled = false;
+    if (typeSelect.value) updateType();
 }());
