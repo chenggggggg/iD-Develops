@@ -1,6 +1,6 @@
 namespace iD_Develops.E2ETests;
 
-public sealed class ProductContentLocalizationTests : Microsoft.Playwright.Xunit.PageTest
+public sealed class ProductContentLocalizationTests : DiagnosticPageTest
 {
     private static string PortalBaseUrl =>
         (Environment.GetEnvironmentVariable("IDDEVELOPS_E2E_PORTAL_BASE_URL") ?? "http://portal.id.localhost:5000").TrimEnd('/');
@@ -16,13 +16,8 @@ public sealed class ProductContentLocalizationTests : Microsoft.Playwright.Xunit
         }
 
         const string editorPath = "/products/free-downloads/edit";
-        await Page.GotoAsync(
-            $"{PortalBaseUrl}/login?returnUrl={Uri.EscapeDataString(editorPath)}",
-            new Microsoft.Playwright.PageGotoOptions { WaitUntil = Microsoft.Playwright.WaitUntilState.DOMContentLoaded });
-        await Page.GetByLabel("E-mail").FillAsync(email);
-        await Page.GetByLabel("Password").FillAsync(password);
-        await Page.GetByRole(Microsoft.Playwright.AriaRole.Button, new() { Name = "Log in", Exact = true }).ClickAsync();
-        await Page.WaitForURLAsync($"{PortalBaseUrl}{editorPath}");
+        await BrowserLogin.SignInAsync(Page, email, password, editorPath,
+            Page.GetByRole(Microsoft.Playwright.AriaRole.Navigation, new() { Name = "Download content language" }));
 
         var languageNavigation = Page.GetByRole(
             Microsoft.Playwright.AriaRole.Navigation,

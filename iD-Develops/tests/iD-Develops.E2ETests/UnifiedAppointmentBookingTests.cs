@@ -7,7 +7,7 @@ using System.Text.Json;
 
 namespace iD_Develops.E2ETests;
 
-public sealed class UnifiedAppointmentBookingTests : Microsoft.Playwright.Xunit.PageTest
+public sealed class UnifiedAppointmentBookingTests : DiagnosticPageTest
 {
     private const string Path = "/calendar/book-private-session";
 
@@ -477,12 +477,37 @@ public sealed class UnifiedAppointmentBookingTests : Microsoft.Playwright.Xunit.
             await Page.ScreenshotAsync(new() { Path = System.IO.Path.Combine(AppContext.BaseDirectory, $"b11-recurring-core-{mobile}.png") });
             await advanced.ScrollIntoViewIfNeededAsync();
             await Page.ScreenshotAsync(new() { Path = System.IO.Path.Combine(AppContext.BaseDirectory, $"b11-recurring-advanced-{mobile}.png") });
-            await form.GetByRole(AriaRole.Button, new() { Name = "Save recurring class", Exact = true }).ClickAsync();
-            await Expect(Page.GetByText("Recurring class created.", new() { Exact = true })).ToBeVisibleAsync();
-            var rule = await db.ScheduleRosterRules.AsNoTracking().SingleAsync(item => item.CourseClassId == lesson.Id);
             var edit = Page.GetByRole(AriaRole.Button, new() { Name = $"Edit {lesson.Title}", Exact = true });
-            await edit.FocusAsync();
-            await Page.Keyboard.PressAsync("Enter");
+            // A redirected page can render its success message before the editor script loads.
+            const string editorScript = "**/js/schedule-roster.js?*";
+            var scriptRequested = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var releaseScript = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            await Page.RouteAsync(editorScript, async route =>
+            {
+                scriptRequested.TrySetResult();
+                await releaseScript.Task;
+                await route.ContinueAsync();
+            });
+            var save = form.GetByRole(AriaRole.Button, new() { Name = "Save recurring class", Exact = true }).ClickAsync();
+            try
+            {
+                await scriptRequested.Task.WaitAsync(TimeSpan.FromSeconds(15));
+                await Expect(Page.GetByText("Recurring class created.", new() { Exact = true })).ToBeVisibleAsync();
+                await Expect(edit).ToBeDisabledAsync();
+                await Expect(Page.Locator("[data-roster-new]")).ToBeDisabledAsync();
+                await Expect(Page.Locator("[data-roster-reset]")).ToBeDisabledAsync();
+            }
+            finally
+            {
+                releaseScript.TrySetResult();
+                await save;
+                await Page.UnrouteAsync(editorScript);
+            }
+            var rule = await db.ScheduleRosterRules.AsNoTracking().SingleAsync(item => item.CourseClassId == lesson.Id);
+            await Expect(edit).ToBeEnabledAsync();
+            await Expect(Page.Locator("[data-roster-new]")).ToBeEnabledAsync();
+            await Expect(Page.Locator("[data-roster-reset]")).ToBeEnabledAsync();
+            await edit.PressAsync("Enter");
             await Expect(form.Locator("[data-roster-teacher]")).ToBeFocusedAsync();
             await Expect(form.Locator("[data-roster-field='Id']")).ToHaveValueAsync(rule.Id.ToString());
             await Expect(form.Locator("[data-roster-field='BookingOpenDaysBefore']")).ToHaveValueAsync("17");
@@ -528,11 +553,10 @@ public sealed class UnifiedAppointmentBookingTests : Microsoft.Playwright.Xunit.
 
     private static async Task LoginAsync(IPage page, CatalogBrowsingFixture account)
     {
-        await page.GotoAsync($"{LocalTestApplication.PortalBaseUrl}/login?returnUrl={Uri.EscapeDataString(Path)}");
-        await page.GetByLabel("E-mail").FillAsync(account.User.Email!);
-        await page.GetByLabel("Password", new() { Exact = true }).FillAsync(account.Password);
-        await page.GetByRole(AriaRole.Button, new() { Name = "Log in", Exact = true }).ClickAsync();
-        await page.WaitForURLAsync(url => new Uri(url).AbsolutePath is Path or "/calendar/schedule");
+        await BrowserLogin.SignInAsync(page, account.User.Email!, account.Password, Path,
+            page.GetByLabel("1. Event type"), url =>
+                new Uri(url).GetLeftPart(UriPartial.Authority) == LocalTestApplication.PortalBaseUrl &&
+                new Uri(url).AbsolutePath is Path or "/calendar/schedule");
     }
 
     private async Task<ILocator> ChooseAsync(IPage page, BookingFixture fixture, string teacherId, DateTime start)

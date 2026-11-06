@@ -1,0 +1,5 @@
+{
+  "maxParallelThreads": 2,
+  "parallelizeTestCollections": true,
+  "parallelAlgorithm": "conservative"
+}

@@ -375,6 +375,27 @@ the PostgreSQL connection string for that same running local application. They
 create dedicated products, users, exam attempts, or courses, then remove those records
 after each test. These fixtures accept only local application and database hosts.
 CI supplies its isolated PostgreSQL connection automatically.
+Fixture contexts use Npgsql's retry strategy, matching the application's transaction
+behavior during concurrent setup. Snapshot regression tests also exercise a
+database-aborted transaction to verify that cleanup preserves the original failure
+and recovery saves exactly one version.
+
+On a shared development machine, finish the unit/integration suite before starting
+Playwright. Running both suites concurrently can compete with the existing application
+for CPU and database resources. Login helpers wait for DOM readiness and the required
+page controls rather than unrelated resources finishing their full browser load.
+The E2E runner caps parallel test collections at two browser workers. Concurrency
+scenarios within a test still issue simultaneous requests; the cap limits unrelated
+browser sessions competing with the same development app and database.
+
+The navigation, recurring-editor, event-type, attachment, and expired-exam regression
+classes retain best-effort Playwright failure traces and timestamped browser events
+under the E2E output directory's `test-results/` folder. CI uploads that folder with
+the application log. Browser event summaries omit URL query strings and request bodies.
+Error responses include `X-Request-ID`; the same value appears in application exception
+logs, allowing an HTTP 500 in `browser-events.json` to be matched to its server exception.
+Traces can contain test form data and authentication details; keep local traces private
+and use dedicated test credentials for CI artifacts.
 
 ```powershell
 $env:IDDEVELOPS_E2E_DATABASE_CONNECTION = '<local application database connection string>'

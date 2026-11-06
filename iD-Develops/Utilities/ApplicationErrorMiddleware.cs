@@ -169,6 +169,7 @@ namespace iD_Develops.Utilities
 
             context.Response.Clear();
             context.Response.StatusCode = statusCode;
+            context.Response.Headers["X-Request-ID"] = context.TraceIdentifier;
             if (statusCode == StatusCodes.Status503ServiceUnavailable)
             {
                 context.Response.Headers.RetryAfter = "60";
@@ -193,6 +194,7 @@ namespace iD_Develops.Utilities
                     originalTarget);
                 context.Response.Clear();
                 context.Response.StatusCode = statusCode;
+                context.Response.Headers["X-Request-ID"] = context.TraceIdentifier;
                 context.Response.ContentType = "text/plain; charset=utf-8";
                 if (statusCode == StatusCodes.Status503ServiceUnavailable)
                 {
@@ -218,6 +220,7 @@ namespace iD_Develops.Utilities
             bool dependencyUnavailable)
         {
             context.Response.Clear();
+            context.Response.Headers["X-Request-ID"] = context.TraceIdentifier;
             context.Response.StatusCode = statusCode;
             if (dependencyUnavailable)
             {
@@ -243,11 +246,12 @@ namespace iD_Develops.Utilities
             {
                 _logger.LogWarning(
                     exception,
-                    "Database unavailable while processing {Method} {RequestTarget}. Returning HTTP {StatusCode} ({ErrorCode}).",
+                    "Database unavailable while processing {Method} {RequestTarget}. Returning HTTP {StatusCode} ({ErrorCode}). Request ID: {RequestId}.",
                     context.Request.Method,
                     requestTarget,
                     statusCode,
-                    errorCode);
+                    errorCode,
+                    context.TraceIdentifier);
                 return;
             }
 
@@ -255,21 +259,23 @@ namespace iD_Develops.Utilities
             {
                 _logger.LogWarning(
                     exception,
-                    "Stripe unavailable while processing {Method} {RequestTarget}. Returning HTTP {StatusCode} ({ErrorCode}).",
+                    "Stripe unavailable while processing {Method} {RequestTarget}. Returning HTTP {StatusCode} ({ErrorCode}). Request ID: {RequestId}.",
                     context.Request.Method,
                     requestTarget,
                     statusCode,
-                    errorCode);
+                    errorCode,
+                    context.TraceIdentifier);
                 return;
             }
 
             _logger.LogError(
                 exception,
-                "Unhandled exception while processing {Method} {RequestTarget}. Returning HTTP {StatusCode} ({ErrorCode}).",
+                "Unhandled exception while processing {Method} {RequestTarget}. Returning HTTP {StatusCode} ({ErrorCode}). Request ID: {RequestId}.",
                 context.Request.Method,
                 requestTarget,
                 statusCode,
-                errorCode);
+                errorCode,
+                context.TraceIdentifier);
         }
     }
 }

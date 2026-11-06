@@ -4,7 +4,7 @@ using Microsoft.Playwright;
 
 namespace iD_Develops.E2ETests;
 
-public sealed class ExpiredExamTests : Microsoft.Playwright.Xunit.PageTest
+public sealed class ExpiredExamTests : DiagnosticPageTest
 {
     [Theory]
     [InlineData("en-us")]

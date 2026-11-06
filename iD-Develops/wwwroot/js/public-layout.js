@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", function () {
+function initializePublicLayout() {
     const menu = document.querySelector("[data-public-menu]");
     const backdrop = document.querySelector("[data-public-menu-backdrop]");
     const menuToggle = document.querySelector("[data-public-menu-toggle]");
@@ -89,4 +89,11 @@ document.addEventListener("DOMContentLoaded", function () {
             languageToggle.setAttribute("aria-expanded", "false");
         }
     });
-});
+    if (menuToggle) menuToggle.disabled = false;
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initializePublicLayout, { once: true });
+} else {
+    initializePublicLayout();
+}

@@ -307,4 +307,8 @@
     root.addEventListener("invalid", event => revealDetails(event.target), true);
     root.querySelectorAll(".input-validation-error").forEach(revealDetails);
     root.querySelector(".validation-summary-errors[tabindex]")?.focus();
+    // These actions depend on this script; enable them only after initialization.
+    root.querySelectorAll("[data-roster-edit], [data-roster-new], [data-roster-reset]").forEach(button => {
+        button.disabled = false;
+    });
 }());

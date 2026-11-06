@@ -6,7 +6,7 @@ using Microsoft.Playwright;
 
 namespace iD_Develops.E2ETests;
 
-public sealed class CourseAttachmentPersistenceTests : Microsoft.Playwright.Xunit.PageTest
+public sealed class CourseAttachmentPersistenceTests : DiagnosticPageTest
 {
     [Theory]
     [InlineData("lecture")]
@@ -125,12 +125,8 @@ public sealed class CourseAttachmentPersistenceTests : Microsoft.Playwright.Xuni
 
     private static async Task LoginAsync(IPage page, CatalogBrowsingFixture user, string path)
     {
-        await page.GotoAsync($"{LocalTestApplication.PortalBaseUrl}/login?returnUrl={Uri.EscapeDataString(path)}",
-            new() { WaitUntil = WaitUntilState.DOMContentLoaded });
-        await page.GetByLabel("E-mail").FillAsync(user.User.Email!);
-        await page.GetByLabel("Password", new() { Exact = true }).FillAsync(user.Password);
-        await page.GetByRole(AriaRole.Button, new() { Name = "Log in", Exact = true }).ClickAsync();
-        await page.WaitForURLAsync($"{LocalTestApplication.PortalBaseUrl}{path}");
+        await BrowserLogin.SignInAsync(page, user.User.Email!, user.Password, path,
+            page.GetByRole(AriaRole.Heading).First);
     }
 
     private async Task SaveAsync(IPage page)

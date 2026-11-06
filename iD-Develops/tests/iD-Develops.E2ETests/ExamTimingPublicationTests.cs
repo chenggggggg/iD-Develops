@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace iD_Develops.E2ETests;
 
-public sealed class ExamTimingPublicationTests : Microsoft.Playwright.Xunit.PageTest
+public sealed class ExamTimingPublicationTests : DiagnosticPageTest
 {
     [Fact]
     public async Task ConcurrentStarts_PreserveOneSharedVersionForTheSavedDefinition()
@@ -218,13 +218,11 @@ public sealed class ExamTimingPublicationTests : Microsoft.Playwright.Xunit.Page
     private async Task LoginAsync(CatalogBrowsingFixture user, string path, IPage? targetPage = null)
     {
         var page = targetPage ?? Page;
-        await page.GotoAsync($"{LocalTestApplication.PortalBaseUrl}/login?returnUrl={Uri.EscapeDataString(path)}");
-        await page.GetByLabel("E-mail").FillAsync(user.User.Email!);
-        await page.GetByLabel("Password", new() { Exact = true }).FillAsync(user.Password);
-        await page.GetByRole(AriaRole.Button, new() { Name = "Log in", Exact = true }).ClickAsync();
-        await page.WaitForURLAsync($"{LocalTestApplication.PortalBaseUrl}{path}");
-        var response = await page.GotoAsync(page.Url);
-        Assert.True(response?.Ok, $"Authenticated exam page returned HTTP {response?.Status}: {page.Url}");
+        var ready = path == "/exams" ? page.GetByRole(AriaRole.Table)
+            : path == "/exams/create" ? page.GetByLabel("Exam name", new() { Exact = true })
+            : path.StartsWith("/examination/settings", StringComparison.Ordinal) ? page.GetByLabel("Time limit", new() { Exact = true })
+            : page.GetByRole(AriaRole.Button, new() { Name = "Publish exam", Exact = true });
+        await BrowserLogin.SignInAsync(page, user.User.Email!, user.Password, path, ready);
     }
 
     private sealed class TimingFixture(ApplicationDbContext db) : IAsyncDisposable

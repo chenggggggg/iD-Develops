@@ -1,4 +1,5 @@
 using iD_Develops.Data;
+using iD_Develops.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
@@ -27,7 +28,13 @@ internal static class LocalTestApplication
     }
 
     public static ApplicationDbContext CreateDbContext()
-        => new(new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(DatabaseConnectionString).Options);
+    {
+        var recovery = new DependencyRecoveryOptions();
+        return new(new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseNpgsql(DatabaseConnectionString, options => options.EnableRetryOnFailure(
+                recovery.DatabaseRequestRetryCount, TimeSpan.FromSeconds(recovery.DatabaseRequestMaximumDelaySeconds), null))
+            .Options);
+    }
 
     private static bool IsLocalHost(string host)
         => host.Equals("localhost", StringComparison.OrdinalIgnoreCase) ||

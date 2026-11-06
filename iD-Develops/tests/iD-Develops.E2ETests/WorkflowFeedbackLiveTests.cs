@@ -5,8 +5,26 @@ using Microsoft.Playwright;
 
 namespace iD_Develops.E2ETests;
 
-public sealed class WorkflowFeedbackLiveTests : Microsoft.Playwright.Xunit.PageTest
+public sealed class WorkflowFeedbackLiveTests : DiagnosticPageTest
 {
+    [Fact]
+    public async Task PublicMenuSupportsScriptInitializationAfterTheDocumentHasLoaded()
+    {
+        await Page.SetViewportSizeAsync(390, 900);
+        await Page.RouteAsync("**/js/public-layout.js*", route => route.FulfillAsync(new() { ContentType = "application/javascript", Body = "" }));
+        await Page.GotoAsync($"{LocalTestApplication.PublicBaseUrl}/en-us/contact");
+        var toggle = Page.Locator("[data-public-menu-toggle]");
+        await Expect(toggle).ToBeDisabledAsync();
+        await Page.AddScriptTagAsync(new() { Content = await File.ReadAllTextAsync(TestAssetPaths.JavaScript("public-layout.js")) });
+        await Expect(toggle).ToBeEnabledAsync();
+        await toggle.ClickAsync();
+        await Expect(toggle).ToHaveAttributeAsync("aria-expanded", "true");
+        await Expect(Page.GetByRole(AriaRole.Link, new() { Name = "Log In", Exact = true })).ToBeVisibleAsync();
+        await Page.Keyboard.PressAsync("Escape");
+        await Expect(toggle).ToHaveAttributeAsync("aria-expanded", "false");
+        await Expect(Page.Locator("[data-public-menu]")).ToBeHiddenAsync();
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
@@ -141,11 +159,9 @@ public sealed class WorkflowFeedbackLiveTests : Microsoft.Playwright.Xunit.PageT
 
     private async Task LoginAsync(CatalogBrowsingFixture administrator, string path)
     {
-        await Page.GotoAsync($"{LocalTestApplication.PortalBaseUrl}/login?returnUrl={Uri.EscapeDataString(path)}");
-        await Page.GetByLabel("E-mail").FillAsync(administrator.User.Email!);
-        await Page.GetByLabel("Password", new() { Exact = true }).FillAsync(administrator.Password);
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Log in", Exact = true }).ClickAsync();
-        await Page.WaitForURLAsync($"{LocalTestApplication.PortalBaseUrl}{path}");
+        await BrowserLogin.SignInAsync(Page, administrator.User.Email!, administrator.Password, path,
+            path.StartsWith("/calendar/roster", StringComparison.Ordinal)
+                ? Page.Locator("[data-availability-form-root]") : Page.Locator("[data-roster-new]"));
     }
 
     private async Task VerifyNavigationAsync(ILocator link, string target, string expected)

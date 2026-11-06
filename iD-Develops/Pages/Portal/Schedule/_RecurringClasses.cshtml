@@ -8,7 +8,7 @@
                     <p class="portal-eyebrow">Automatic</p>
                     <h2 class="m-0 text-lg font-semibold text-[var(--id-ink)]">Recurring classes</h2>
                 </div>
-                <button class="portal-btn portal-btn-primary" type="button" data-roster-new>
+                <button class="portal-btn portal-btn-primary" type="button" data-roster-new disabled>
                     <i class="fa-solid fa-plus" aria-hidden="true"></i>
                     Add recurring class
                 </button>
@@ -78,6 +78,7 @@
                             <button type="button"
                                     class="portal-btn portal-btn-outline size-11 p-0"
                                     data-roster-edit
+                                    disabled
                                     data-roster-rule="@ruleJson"
                                     aria-label="Edit @rule.ClassTitle"
                                     title="Edit recurring class">
@@ -106,7 +107,7 @@
                     <p class="portal-eyebrow">Automatic</p>
                     <h2 class="m-0 text-lg font-semibold text-[var(--id-ink)]" data-roster-editor-title>New recurring class</h2>
                 </div>
-                <button type="button" class="portal-btn portal-btn-outline shrink-0" data-roster-reset aria-label="Clear form" title="Clear form">
+                <button type="button" class="portal-btn portal-btn-outline shrink-0" data-roster-reset aria-label="Clear form" title="Clear form" disabled>
                     <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Reset
                 </button>
             </div>
