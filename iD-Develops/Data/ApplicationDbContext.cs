@@ -49,6 +49,7 @@ namespace iD_Develops.Data
         public DbSet<CatalogProductIncludedCreditProduct> CatalogProductIncludedCreditProducts { get; set; }
         public DbSet<ScheduleRosterRule> ScheduleRosterRules { get; set; }
         public DbSet<AppointmentType> AppointmentTypes { get; set; }
+        public DbSet<AppointmentBookingRequest> AppointmentBookingRequests { get; set; }
         public DbSet<AppointmentTypeTeacher> AppointmentTypeTeachers { get; set; }
         public DbSet<TeacherAvailabilityWindow> TeacherAvailabilityWindows { get; set; }
         public DbSet<ScheduledEvent> ScheduledEvents { get; set; }
@@ -1001,6 +1002,12 @@ namespace iD_Develops.Data
                 .WithMany(creditType => creditType.AppointmentTypes)
                 .HasForeignKey(item => item.RequiredCreditTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<AppointmentType>().Property(item => item.DeliveryType).HasConversion<string>();
+            modelBuilder.Entity<AppointmentBookingRequest>().HasOne(item => item.ScheduledEvent).WithMany()
+                .HasForeignKey(item => item.ScheduledEventId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<AppointmentBookingRequest>().HasIndex(item => item.ScheduledEventId).IsUnique();
+            modelBuilder.Entity<AppointmentBookingRequest>().HasIndex(item => new { item.AttendeeUserId, item.CreatedAtUtc });
 
             modelBuilder.Entity<AppointmentType>()
                 .HasOne(item => item.CreditConsumptionPolicy)

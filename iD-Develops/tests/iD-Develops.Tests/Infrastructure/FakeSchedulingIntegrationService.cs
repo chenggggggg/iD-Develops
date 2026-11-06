@@ -10,6 +10,9 @@ internal sealed class FakeSchedulingIntegrationService : ISchedulingIntegrationS
     private int _sequence;
     public TeacherZoomReadiness ZoomReadiness { get; set; } = new(ZoomReadinessState.Ready, "Test teacher is connected.");
     public bool ProvisioningSucceeds { get; set; } = true;
+    public bool ProvisioningOutcomeUncertain { get; set; }
+    public bool ConnectionsReady { get; set; } = true;
+    public int CancellationCalls { get; private set; }
     public bool ReturnMeetingDetails { get; set; } = true;
     public Exception? ProvisioningException { get; set; }
     public int ProvisioningCalls { get; private set; }
@@ -48,7 +51,7 @@ internal sealed class FakeSchedulingIntegrationService : ISchedulingIntegrationS
         => Task.FromResult(new ZoomAttendanceReportResult(true, Array.Empty<ZoomAttendanceParticipant>(), null));
 
     public Task<OperationResult> ValidateTeacherConnectionsAsync(string teacherUserId, ScheduleDeliveryType deliveryType, bool requiresGeneratedZoom, CancellationToken cancellationToken = default)
-        => Task.FromResult(Success());
+        => Task.FromResult(ConnectionsReady ? Success() : new OperationResult { Success = false, ErrorMessage = "Teacher connection unavailable." });
 
     public Task<ExternalAvailabilityResult> CheckAvailabilityAsync(string teacherUserId, DateTime startUtc, DateTime endUtc, DateTime? excludedStartUtc = null, DateTime? excludedEndUtc = null, CancellationToken cancellationToken = default)
         => Task.FromResult(new ExternalAvailabilityResult(true, true, null));
@@ -60,7 +63,7 @@ internal sealed class FakeSchedulingIntegrationService : ISchedulingIntegrationS
     {
         ProvisioningCalls++;
         if (ProvisioningException != null) throw ProvisioningException;
-        if (!ProvisioningSucceeds) return Task.FromResult(new OperationResult { Success = false, ErrorMessage = "Test provider unavailable." });
+        if (!ProvisioningSucceeds) return Task.FromResult(new OperationResult { Success = false, ErrorMessage = "Test provider unavailable.", OutcomeUncertain = ProvisioningOutcomeUncertain });
         var sequence = Interlocked.Increment(ref _sequence);
         if (ReturnMeetingDetails && scheduleEvent.DeliveryType == ScheduleDeliveryType.Zoom && string.IsNullOrWhiteSpace(scheduleEvent.MeetingUrl))
         {
@@ -77,7 +80,10 @@ internal sealed class FakeSchedulingIntegrationService : ISchedulingIntegrationS
         => Task.FromResult(Success());
 
     public Task<OperationResult> CancelEventAsync(ScheduledEvent scheduleEvent, CancellationToken cancellationToken = default)
-        => Task.FromResult(Success());
+    {
+        CancellationCalls++;
+        return Task.FromResult(Success());
+    }
 
     private static OperationResult Success() => new() { Success = true, ErrorMessage = string.Empty };
 }

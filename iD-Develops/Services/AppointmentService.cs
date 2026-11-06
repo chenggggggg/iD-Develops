@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace iD_Develops.Services
 {
-    public sealed class AppointmentService : IAppointmentService
+    public sealed partial class AppointmentService : IAppointmentService
     {
         private const int SlotIntervalMinutes = 30;
         private readonly ApplicationDbContext _dbContext;
@@ -69,6 +69,14 @@ namespace iD_Develops.Services
                 return Failure("Enter an event type name between 2 and 150 characters.");
             if (input.DurationMinutes is < 5 or > 480)
                 return Failure("Duration must be between 5 minutes and 8 hours.");
+            if (!Enum.IsDefined(input.DeliveryType)) return Failure("Select a valid delivery type.");
+            var location = input.Location?.Trim();
+            var meetingUrl = input.MeetingUrl?.Trim();
+            if (location?.Length > 300) return Failure("Location must be 300 characters or fewer.");
+            if (!string.IsNullOrEmpty(meetingUrl) && (meetingUrl.Length > 1024 || !Uri.TryCreate(meetingUrl, UriKind.Absolute, out var uri) || (uri.Scheme != "https" && uri.Scheme != "http")))
+                return Failure("Enter a valid HTTP or HTTPS meeting link.");
+            if (input.DeliveryType == ScheduleDeliveryType.InPerson && string.IsNullOrWhiteSpace(location)) return Failure("Enter a location for an in-person session.");
+            if (input.DeliveryType == ScheduleDeliveryType.OtherOnline && string.IsNullOrWhiteSpace(meetingUrl)) return Failure("Enter a meeting link for an online session.");
             var requiresCredits = input.RequiredCreditTypeId.HasValue;
             if (requiresCredits)
             {
@@ -108,6 +116,9 @@ namespace iD_Develops.Services
 
             entity.Name = name;
             entity.DurationMinutes = input.DurationMinutes;
+            entity.DeliveryType = input.DeliveryType;
+            entity.Location = string.IsNullOrEmpty(location) ? null : location;
+            entity.MeetingUrl = input.DeliveryType == ScheduleDeliveryType.InPerson || string.IsNullOrEmpty(meetingUrl) ? null : meetingUrl;
             entity.RequiredCreditTypeId = input.RequiredCreditTypeId;
             entity.CreditCost = requiresCredits ? input.CreditCost : 0;
             entity.CreditConsumptionPolicyId = requiresCredits ? input.CreditConsumptionPolicyId : null;
@@ -153,6 +164,7 @@ namespace iD_Develops.Services
                 .ToDictionaryAsync(item => item.CreditTypeId, item => item.Quantity, cancellationToken);
             return types.Select(item => Map(item, false) with
             {
+                MeetingUrl = null,
                 AvailableCreditQuantity = item.RequiredCreditTypeId.HasValue ? balances.GetValueOrDefault(item.RequiredCreditTypeId.Value) : 0
             }).ToList();
         }
@@ -163,8 +175,13 @@ namespace iD_Develops.Services
             string teacherUserId,
             DateOnly startDate,
             int days,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default,
+            string? attendeeUserId = null)
         {
+            var attendeeId = await ResolveAttendeeAsync(actor, attendeeUserId, cancellationToken);
+            if (attendeeId == null || attendeeId == teacherUserId || (!actor.IsAdmin && actor.IsTeacher && attendeeId != actor.UserId && teacherUserId != actor.UserId)) return [];
+            var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, AmsterdamZone()));
+            if (startDate < today || startDate.DayNumber > DateOnly.MaxValue.DayNumber - 31) return [];
             days = Math.Clamp(days, 1, 31);
             var type = await _dbContext.AppointmentTypes.AsNoTracking()
                 .Include(item => item.Teachers)
@@ -185,6 +202,13 @@ namespace iD_Develops.Services
                                item.StartAtUtc < rangeEndUtc && item.EndAtUtc > rangeStartUtc)
                 .Select(item => new { item.StartAtUtc, item.EndAtUtc })
                 .ToListAsync(cancellationToken);
+            var attendeeConflicts = await _dbContext.EventBookings.AsNoTracking().Where(item => item.UserId == attendeeId &&
+                (item.Status == EventBookingStatus.Confirmed || item.Status == EventBookingStatus.Attended) && item.ScheduledEvent.Status == ScheduleEventStatus.Scheduled &&
+                item.ScheduledEvent.StartAtUtc < rangeEndUtc && item.ScheduledEvent.EndAtUtc > rangeStartUtc)
+                .Select(item => new { item.ScheduledEvent.StartAtUtc, item.ScheduledEvent.EndAtUtc }).ToListAsync(cancellationToken);
+            var hosting = await _dbContext.ScheduledEvents.AsNoTracking().Where(item => item.TeacherUserId == attendeeId && item.Status == ScheduleEventStatus.Scheduled &&
+                item.StartAtUtc < rangeEndUtc && item.EndAtUtc > rangeStartUtc).Select(item => new { item.StartAtUtc, item.EndAtUtc }).ToListAsync(cancellationToken);
+            var readiness = await _integrationService.ValidateTeacherConnectionsAsync(teacherUserId, type.DeliveryType, type.DeliveryType == ScheduleDeliveryType.Zoom && string.IsNullOrWhiteSpace(type.MeetingUrl), cancellationToken);
             var external = await _integrationService.GetBusyPeriodsAsync(
                 teacherUserId,
                 rangeStartUtc,
@@ -197,127 +221,23 @@ namespace iD_Develops.Services
                 var date = startDate.AddDays(offset);
                 foreach (var window in windows.Where(item => item.DayOfWeek == date.DayOfWeek))
                 {
-                    var cursor = date.ToDateTime(window.LocalStartTime);
-                    var windowEnd = date.ToDateTime(window.LocalEndTime);
-                    while (cursor.AddMinutes(type.DurationMinutes) <= windowEnd)
+                    var windowStart = WindowBoundaryUtc(date.ToDateTime(window.LocalStartTime), zone, earliest: true);
+                    var windowEnd = WindowBoundaryUtc(date.ToDateTime(window.LocalEndTime), zone, earliest: false);
+                    for (var startUtc = windowStart; startUtc.AddMinutes(type.DurationMinutes) <= windowEnd; startUtc = startUtc.AddMinutes(SlotIntervalMinutes))
                     {
-                        if (!zone.IsInvalidTime(cursor))
-                        {
-                            var startUtc = TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(cursor, DateTimeKind.Unspecified), zone);
-                            var endUtc = startUtc.AddMinutes(type.DurationMinutes);
-                            var reason = startUtc <= DateTime.UtcNow.AddHours(1)
-                                ? "Too close to the start time"
-                                : conflicts.Any(item => item.StartAtUtc < endUtc && item.EndAtUtc > startUtc)
-                                    ? "Already scheduled"
-                                    : !external.Success
-                                        ? "Calendar availability unavailable"
-                                        : external.Periods.Any(item => item.StartUtc < endUtc && item.EndUtc > startUtc)
-                                            ? "Busy in Google Calendar"
-                                            : null;
-                            slots.Add(new AppointmentSlot(startUtc, endUtc, reason == null, reason));
-                        }
-                        cursor = cursor.AddMinutes(SlotIntervalMinutes);
+                        var endUtc = startUtc.AddMinutes(type.DurationMinutes);
+                        var reason = startUtc <= DateTime.UtcNow.AddHours(1) ? "Too close to the start time"
+                            : conflicts.Any(item => item.StartAtUtc < endUtc && item.EndAtUtc > startUtc) ? "Already scheduled"
+                            : attendeeConflicts.Concat(hosting).Any(item => item.StartAtUtc < endUtc && item.EndAtUtc > startUtc) ? "The attendee already has a meeting at this time"
+                            : !readiness.Success ? "The teacher is not ready for this booking"
+                            : !external.Success ? "Calendar availability unavailable"
+                            : external.Periods.Any(item => item.StartUtc < endUtc && item.EndUtc > startUtc) ? "Busy in Google Calendar"
+                            : null;
+                        slots.Add(new(startUtc, endUtc, reason == null, reason));
                     }
                 }
             }
-            return slots.OrderBy(item => item.StartUtc).ToList();
-        }
-
-        public async Task<OperationResult> BookAppointmentAsync(
-            ScheduleActor actor,
-            int appointmentTypeId,
-            string teacherUserId,
-            DateTime startUtc,
-            CancellationToken cancellationToken = default)
-        {
-            startUtc = DateTime.SpecifyKind(startUtc, DateTimeKind.Utc);
-            var type = await AppointmentTypesQuery()
-                .FirstOrDefaultAsync(item => item.Id == appointmentTypeId && item.IsActive, cancellationToken);
-            if (type == null || !type.Teachers.Any(item => item.TeacherUserId == teacherUserId))
-                return Failure("This appointment is no longer available with that teacher.");
-            var date = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(startUtc, AmsterdamZone()));
-            var slots = await GetSlotsAsync(actor, appointmentTypeId, teacherUserId, date, 1, cancellationToken);
-            if (!slots.Any(item => item.IsAvailable && item.StartUtc == startUtc))
-                return Failure("That time is no longer available. Choose another slot.");
-            if (type.RequiredCreditTypeId.HasValue)
-            {
-                var balance = await _dbContext.UserCreditLots.AsNoTracking()
-                .Where(lot => lot.UserId == actor.UserId && lot.CreditTypeId == type.RequiredCreditTypeId &&
-                              lot.Scope == CreditGrantScope.Global && !lot.RefundBlocked && lot.RemainingQuantity > 0 &&
-                              (!lot.ExpiresAtUtc.HasValue || lot.ExpiresAtUtc > DateTime.UtcNow))
-                .SumAsync(lot => lot.RemainingQuantity, cancellationToken);
-                if (balance < type.CreditCost)
-                    return Failure($"You need {type.CreditCost} {type.RequiredCreditType!.PluralLabel} to book this appointment.");
-            }
-            var connections = await _integrationService.ValidateTeacherConnectionsAsync(
-                teacherUserId,
-                ScheduleDeliveryType.Zoom,
-                requiresGeneratedZoom: true,
-                cancellationToken);
-            if (!connections.Success)
-                return connections;
-
-            var teacher = type.Teachers.First(item => item.TeacherUserId == teacherUserId).TeacherUser;
-            var scheduleEvent = new ScheduledEvent
-            {
-                AppointmentTypeId = type.Id,
-                TeacherUserId = teacherUserId,
-                Title = type.Name,
-                CourseNameSnapshot = "Private appointment",
-                ClassNameSnapshot = type.Name,
-                TeacherNameSnapshot = teacher.FullName,
-                StartAtUtc = startUtc,
-                EndAtUtc = startUtc.AddMinutes(type.DurationMinutes),
-                TimeZoneId = SchedulingService.AmsterdamTimeZoneId,
-                Capacity = 1,
-                Source = ScheduleEventSource.StudentAppointment,
-                DeliveryType = ScheduleDeliveryType.Zoom,
-                BookingOpensAtUtc = DateTime.UtcNow,
-                BookingClosesAtUtc = startUtc,
-                BookingAccess = type.RequiredCreditTypeId.HasValue ? CourseClassBookingAccess.Credit : CourseClassBookingAccess.Free,
-                RequiredCreditTypeId = type.RequiredCreditTypeId,
-                CreditCost = type.CreditCost,
-                CreditConsumptionPolicyId = type.CreditConsumptionPolicyId
-            };
-            var provisioned = await _integrationService.ProvisionEventAsync(scheduleEvent, cancellationToken);
-            if (!provisioned.Success)
-                return provisioned;
-            _dbContext.ScheduledEvents.Add(scheduleEvent);
-            try
-            {
-                await _dbContext.SaveChangesAsync(cancellationToken);
-                var booked = await _schedulingService.BookAsync(actor, scheduleEvent.Id, cancellationToken);
-                if (booked.Success)
-                    return booked;
-                await CleanupExternalEventAsync(scheduleEvent, cancellationToken);
-                return booked;
-            }
-            catch (DbUpdateException)
-            {
-                _logger.LogDebug("Appointment slot was taken before it could be saved for teacher {TeacherUserId}.", teacherUserId);
-                await CleanupExternalEventAsync(scheduleEvent, cancellationToken);
-                return Failure("That time was just booked by someone else. Choose another slot.");
-            }
-            catch
-            {
-                await CleanupExternalEventAsync(scheduleEvent, cancellationToken);
-                throw;
-            }
-        }
-
-        private async Task CleanupExternalEventAsync(ScheduledEvent scheduleEvent, CancellationToken cancellationToken)
-        {
-            try { await _integrationService.CancelEventAsync(scheduleEvent, cancellationToken); }
-            catch (Exception exception) { _logger.LogWarning(exception, "External appointment cleanup failed for {EventId}.", scheduleEvent.Id); }
-            if (scheduleEvent.Id > 0)
-            {
-                _dbContext.ScheduledEvents.Remove(scheduleEvent);
-                await _dbContext.SaveChangesAsync(cancellationToken);
-            }
-            else
-            {
-                _dbContext.Entry(scheduleEvent).State = EntityState.Detached;
-            }
+            return slots.DistinctBy(item => item.StartUtc).OrderBy(item => item.StartUtc).ToList();
         }
 
         private IQueryable<AppointmentType> AppointmentTypesQuery()
@@ -358,7 +278,8 @@ namespace iD_Develops.Services
                 item.Teachers.Select(teacher => new AppointmentTeacherItem(
                     teacher.TeacherUserId,
                     teacher.TeacherUser.FullName,
-                    teacher.TeacherUser.Email ?? teacher.TeacherUser.UserName ?? string.Empty)).ToList());
+                    teacher.TeacherUser.Email ?? teacher.TeacherUser.UserName ?? string.Empty)).ToList(),
+                DeliveryType: item.DeliveryType, MeetingUrl: item.MeetingUrl, Location: item.Location);
 
         private static TimeZoneInfo AmsterdamZone()
         {

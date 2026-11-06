@@ -402,6 +402,57 @@ Downgrading is blocked while free types or free meetings exist; review those rec
 before attempting a downgrade rather than assigning fake credits or deleting history.
 No additional environment variables or provider setup are required for this change.
 
+## Unified Session Booking
+
+Calendar has one **Book session** action for students, and **Schedule event**,
+**Manage roster**, and **Event type** actions for staff. Booking has no separate
+sidebar entry. Students book at `/calendar/book-private-session`; staff use
+`/calendar/schedule`, with separate session-booking, one-time-event, and recurring-class
+sections. Staff visits to the older booking URL redirect to the scheduling page.
+`/calendar/roster` contains working hours and availability only; course-editor scheduling
+links open the one-time-event section with the course class selected.
+
+Staff can select themselves or an active student as attendee. Teachers
+booking on behalf of a student must be the selected host; Admins can use any eligible
+host. A staff member attending their own session chooses another host. The attendee
+owns the credit reservation; `BookedByUserId` and the durable request retain the actor.
+
+Event types support generated Zoom meetings, a supplied online link, or in-person
+delivery with a location. Existing types migrate to Zoom. Meeting links are withheld
+from booking options and released through the existing authorized Join workflow.
+Existing Zoom/Google credentials and scopes remain sufficient; no new variables are
+required. Local browser tests use in-person fixtures and do not create real meetings.
+
+Availability uses Amsterdam working windows, existing teacher events, the attendee's
+bookings/hosted meetings, provider readiness, and connected Google Calendar busy periods.
+Slots stay visible but disabled when unavailable. Session durations use UTC boundaries
+across daylight-saving changes; repeated local times include CET/CEST labels.
+
+The booking request, private calendar event, and attendee credit reservation are saved
+together before provider creation. Request IDs prevent replay from provisioning or
+spending twice. Shared person locks coordinate appointment bookings with other scheduling
+and cancellation paths. A definitive setup failure cleans up and returns reserved credits.
+An uncertain provider result keeps the time and credits held; it never automatically
+repeats meeting creation. Joining, attendee synchronization, and attendance/no-show credit
+resolution are blocked until setup is confirmed.
+
+Staff see unresolved setup under **Schedule event > Book session > Meeting setup needing attention**.
+An Admin/SuperAdmin must check the selected host's Zoom and Google Calendar for the
+session name/time before resolving it. Delete any orphaned external meeting first.
+**Resolve unconfirmed setup** requires explicit confirmation that no external meeting
+remains, retries cleanup for known provider IDs, cancels the held reservation, returns
+its credits, and records the administrator in the audit log. Failed cleanup retains
+the hold. Confirmed sessions use normal cancellation and their saved credit policy.
+
+Private cancellation also cancels its calendar event, freeing the teacher's slot.
+Existing meetings, credit history, and staff restrictions are preserved. The legacy
+custom-session picker remains under Advanced options in the one-time-event section for arbitrary times
+and durations outside event-type booking. Those manual sessions retain their existing
+rules; routine private bookings should use event types.
+
+The `UnifiedAppointmentBooking` migration adds durable requests, the actor, and type
+delivery settings. Downgrade is blocked while setup requests remain unresolved.
+
 ## Zoom OAuth Setup
 
 Create one user-managed General OAuth app in the Zoom App Marketplace for iD Develops. The app credentials belong in the server environment; teachers never enter a client ID, client secret, or API key.

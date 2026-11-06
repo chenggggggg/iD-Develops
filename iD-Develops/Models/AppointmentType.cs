@@ -14,6 +14,10 @@ namespace iD_Develops.Models
         [Range(5, 480)]
         public int DurationMinutes { get; set; } = 60;
 
+        public Enums.ScheduleDeliveryType DeliveryType { get; set; } = Enums.ScheduleDeliveryType.Zoom;
+        [MaxLength(1024)] public string? MeetingUrl { get; set; }
+        [MaxLength(300)] public string? Location { get; set; }
+
         public int? RequiredCreditTypeId { get; set; }
         public CreditType? RequiredCreditType { get; set; }
 

@@ -1,0 +1,70 @@
+@page "/calendar/schedule"
+@using System.Text.Json
+@model iD_Develops.Pages.Portal.Schedule.EventsModel
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = "Schedule event";
+    ViewData["BodyClass"] = "portal-roster-page";
+}
+<section class="portal-page-shell grid gap-6" data-schedule-events>
+    <header class="portal-page-header">
+        <div>
+            <p class="portal-eyebrow">Calendar</p>
+            <h1 class="portal-title-sm">Schedule event</h1>
+            <p class="portal-copy">Book a session, schedule a one-time event, or manage recurring classes.</p>
+        </div>
+        <a class="portal-btn portal-btn-outline" asp-page="/Portal/Schedule/Index"><i class="fa-solid fa-calendar" aria-hidden="true"></i> Calendar</a>
+    </header>
+    <nav class="flex flex-wrap gap-2 border-b border-slate-200 pb-4" aria-label="Scheduling options">
+        @foreach (var option in new[] { (Mode: "session", Label: "Book session"), (Mode: "single", Label: "One-time event"), (Mode: "recurring", Label: "Recurring classes") })
+        {
+            <a asp-page="/Portal/Schedule/Events" asp-route-mode="@option.Mode" aria-current="@(Model.SelectedMode == option.Mode ? "page" : null)" class="portal-btn @(Model.SelectedMode == option.Mode ? "portal-btn-primary" : "portal-btn-outline")">@option.Label</a>
+        }
+    </nav>
+    @if (Model.SelectedMode == "session")
+    {
+        <partial name="_SessionBooking" model="Model" />
+    }
+    else
+    {
+        <div class="roster-page" data-roster-root>
+            @if (TempData["StatusMessage"] is string statusMessage)
+            {
+                <div class="schedule-notice is-success" role="status">@statusMessage</div>
+            }
+            @if (TempData["WarningMessage"] is string warningMessage)
+            {
+                <div class="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950" role="status" data-roster-warning>@warningMessage</div>
+            }
+            @if (TempData["ErrorMessage"] is string errorMessage)
+            {
+                <div class="schedule-notice is-error" role="alert">@errorMessage</div>
+            }
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="schedule-notice is-error" role="alert" asp-validation-summary="All"></div>
+            }
+
+            <script type="application/json" data-availability-json>
+                @Html.Raw(JsonSerializer.Serialize(Model.ScheduleData.Availability.Select(item => new
+                {
+                    item.TeacherUserId,
+                    DayOfWeek = item.DayOfWeek.ToString(),
+                    Start = item.LocalStartTime.ToString("HH:mm"),
+                    End = item.LocalEndTime.ToString("HH:mm"),
+                    item.TimeZoneId
+                })))
+            </script>
+
+            @if (Model.SelectedMode == "single") { <partial name="_OneTimeEvent" model="Model" /> }
+            else { <partial name="_RecurringClasses" model="Model" /> }
+        </div>
+    }
+</section>
+@section Scripts {
+    @if (Model.SelectedMode == "session") { <script src="~/js/appointment-booking.js" asp-append-version="true"></script> }
+    else {
+        <script src="~/js/schedule-roster.js" asp-append-version="true"></script>
+        <script src="~/js/schedule-roster-zoom.js" asp-append-version="true"></script>
+    }
+}

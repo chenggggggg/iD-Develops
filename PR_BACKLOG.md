@@ -158,8 +158,8 @@ class requirements. Can follow B02; does not need to block its messaging fix.
 
 ## B04 - P1 - Unified event types with optional credit requirements
 
-Status: implemented and verified on `feature/event-types-optional-credits`; ready for
-pull-request review. Release build, full formatting
+Status: completed and merged in [PR #48](https://github.com/chenggggggg/iD-Develops/pull/48).
+Release build, full formatting
 check, all 467 unit/integration tests, all 168 Playwright tests, and EF model/migration
 consistency passed on 2026-11-04. Desktop and mobile screens were inspected.
 
@@ -186,10 +186,28 @@ Dependencies: no new duplicate model; precedes B05.
 
 ## B05 - P1 - Unified student, teacher, and admin appointment booking
 
+Status: implemented and verified on `feature/unified-appointment-booking` from the
+latest merged B04; ready for pull-request review. Includes actor/attendee separation,
+durable requests, atomic credit reservation, provider failure/review handling, session
+cancellation, and live browser regressions. Build, full formatting verification,
+485 unit/integration tests, and all 188 Playwright tests pass. The EF model matches its
+migration; desktop/mobile booking views were inspected. Real Zoom/Google provisioning
+was not exercised locally; provider outcomes are covered by service tests and browser
+fixtures use in-person delivery. Staff scheduling now groups session bookings, one-time
+events, and recurring classes; Manage roster contains availability only. The legacy
+custom-session form remains under Advanced options in one-time scheduling until its
+arbitrary time/duration capabilities are covered; routine booking uses event types.
+The separate booking sidebar item is removed. B11 remains the broader calendar/roster redesign.
+
 **Estimated size: Large.** Student and staff booking flows, booking-on-behalf permissions, atomic credit handling, availability/concurrency, and cancellation/provider regressions.
 
 Replace the teacher-only manual 1-on-1 creation UX with a shared booking workflow.
 
+- Calendar entry points: students see **Book session**; staff see **Schedule event**,
+  **Manage roster**, and **Event type**. Remove the separate booking sidebar item.
+- Staff scheduling separates session booking, one-time events, and recurring classes.
+  Manage roster contains availability/working hours only and preserves the selected
+  teacher after saving. Course-editor scheduling links target the new scheduling page.
 - Student chooses an active event type, eligible teacher, and available time.
 - Show duration and required credit/cost or 'No credits required' before confirmation.
 - Staff may book for a selected student or for themselves. Distinguish the acting user
@@ -304,6 +322,10 @@ new homepage hero asset and is not blocked by B15.
 **Estimated size: Large.** Restructure several calendar management workflows across roles and screen sizes while preserving complex scheduling behavior.
 
 New focused scheduling UX PR, incorporating the earlier timezone-label request.
+
+The B05 implementation already separates scheduling from availability and provides
+role-appropriate Calendar actions. Continue from that structure rather than duplicating
+the page split; the broader list/form layout, compact inputs, and timezone polish remain here.
 
 - Prefer task-oriented sections/tabs: Scheduled/recurring classes, Appointments/Event types,
   and Teacher availability. For admins, make upcoming classes and primary create actions

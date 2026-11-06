@@ -79,6 +79,9 @@ namespace iD_Develops.Pages.Portal.Schedule
             public int? CreditConsumptionPolicyId { get; set; }
             public List<string> TeacherUserIds { get; set; } = [];
             public bool IsActive { get; set; } = true;
+            public Enums.ScheduleDeliveryType DeliveryType { get; set; } = Enums.ScheduleDeliveryType.Zoom;
+            [StringLength(1024)] public string? MeetingUrl { get; set; }
+            [StringLength(300)] public string? Location { get; set; }
 
             public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
             {
@@ -101,7 +104,10 @@ namespace iD_Develops.Pages.Portal.Schedule
                 CreditCost = RequiresCredits ? CreditCost : 0,
                 CreditConsumptionPolicyId = RequiresCredits ? CreditConsumptionPolicyId : null,
                 TeacherUserIds = TeacherUserIds,
-                IsActive = IsActive
+                IsActive = IsActive,
+                DeliveryType = DeliveryType,
+                MeetingUrl = MeetingUrl,
+                Location = Location
             };
         }
     }

@@ -95,9 +95,9 @@ public sealed class WorkflowFeedbackLiveTests : Microsoft.Playwright.Xunit.PageT
         Task submission = Task.CompletedTask;
         try
         {
-            await LoginAsync(administrator, "/calendar/roster");
+            await LoginAsync(administrator, "/calendar/schedule?mode=recurring");
             var responseHtml = (await Page.ContentAsync()).Replace("</body>", "<p role='alert'>Save temporarily unavailable.</p></body>");
-            await Page.RouteAsync("**/calendar/roster?handler=SaveRule", async route =>
+            await Page.RouteAsync("**/calendar/schedule?*handler=SaveRule*", async route =>
             {
                 Interlocked.Increment(ref posts);
                 started.TrySetResult(route.Request);
