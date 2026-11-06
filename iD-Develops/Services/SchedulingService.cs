@@ -251,6 +251,9 @@ namespace iD_Develops.Services
             if (!await IsValidTeacherAsync(actor, teacherUserId, cancellationToken))
                 return Failure("The selected teacher could not be found.");
 
+            await using var people = new ScheduleDatabaseLock(_dbContext);
+            await people.AcquireAsync([teacherUserId], cancellationToken);
+
             var timeZone = FindTimeZone(input.TimeZoneId);
             if (timeZone == null)
                 return Failure("The selected time zone is not available.");
@@ -610,6 +613,9 @@ namespace iD_Develops.Services
             if (!await IsValidTeacherAsync(actor, teacherUserId, cancellationToken))
                 return Failure("The selected teacher could not be found.");
 
+            await using var people = new ScheduleDatabaseLock(_dbContext);
+            await people.AcquireAsync([teacherUserId, input.StudentUserId ?? string.Empty], cancellationToken);
+
             var connectionValidation = await _schedulingIntegrationService.ValidateTeacherConnectionsAsync(
                 teacherUserId,
                 input.DeliveryType,
@@ -810,6 +816,10 @@ namespace iD_Develops.Services
                 .Select(scheduleEvent => scheduleEvent.CourseId!.Value)
                 .Distinct()
                 .ToList();
+            var eventIds = events.Select(item => item.Id).ToList();
+            var pendingSetupIds = (await _dbContext.AppointmentBookingRequests.AsNoTracking()
+                .Where(item => item.ScheduledEventId != null && eventIds.Contains(item.ScheduledEventId.Value) && item.Status != "Confirmed" && item.Status != "Failed")
+                .Select(item => item.ScheduledEventId!.Value).ToListAsync(cancellationToken)).ToHashSet();
             var courseSections = eventCourseIds.Count == 0
                 ? new List<CourseSection>()
                 : await _dbContext.CourseSections
@@ -857,7 +867,8 @@ namespace iD_Develops.Services
                     creditLots,
                     enrollmentBookingCounts,
                     sectionsByCourseId,
-                    staffCalendarView);
+                    staffCalendarView,
+                    pendingSetupIds.Contains(scheduleEvent.Id));
                 if (item != null)
                     result.Add(item);
             }
@@ -982,6 +993,9 @@ namespace iD_Develops.Services
             int scheduledEventId,
             CancellationToken cancellationToken = default)
         {
+            var hostId = await _dbContext.ScheduledEvents.AsNoTracking().Where(item => item.Id == scheduledEventId).Select(item => item.TeacherUserId).FirstOrDefaultAsync(cancellationToken);
+            await using var personLock = new ScheduleDatabaseLock(_dbContext);
+            await personLock.AcquireAsync([actor.UserId, hostId ?? string.Empty], cancellationToken);
             var strategy = _dbContext.Database.CreateExecutionStrategy();
             var result = await strategy.ExecuteAsync(
                 () => BookWithinTransactionAsync(actor, scheduledEventId, cancellationToken));
@@ -1012,17 +1026,78 @@ namespace iD_Develops.Services
             return result;
         }
 
+        public async Task<OperationResult> ReserveAppointmentAsync(ScheduledEvent scheduleEvent, AppointmentBookingRequest request, CancellationToken cancellationToken = default)
+        {
+            var strategy = _dbContext.Database.CreateExecutionStrategy();
+            var result = await strategy.ExecuteAsync(async () =>
+            {
+                _dbContext.ChangeTracker.Clear();
+                scheduleEvent.Id = 0;
+                scheduleEvent.Bookings.Clear();
+                request.ScheduledEventId = null;
+                request.ScheduledEvent = null;
+                return await BookWithinTransactionAsync(new(request.AttendeeUserId, false, false), 0, cancellationToken, scheduleEvent, request);
+            });
+            if (!result.Success) _dbContext.ChangeTracker.Clear();
+            return result;
+        }
+
+        public async Task<OperationResult> FailAppointmentAsync(Guid requestId, string message, CancellationToken cancellationToken = default, string? resolvedByUserId = null)
+        {
+            return await _dbContext.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
+            {
+                _dbContext.ChangeTracker.Clear();
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
+                var request = await _dbContext.AppointmentBookingRequests.Include(item => item.ScheduledEvent)!
+                    .ThenInclude(item => item!.Bookings).ThenInclude(item => item.CreditAllocations).ThenInclude(item => item.UserCreditLot)
+                    .SingleAsync(item => item.Id == requestId, cancellationToken);
+                if (request.Status == "Failed") return Success();
+                if (request.Status == "Confirmed") return Failure("This booking was already confirmed.");
+                var now = DateTime.UtcNow;
+                foreach (var booking in request.ScheduledEvent!.Bookings.Where(item => ActiveBookingStatuses.Contains(item.Status)))
+                {
+                    ReturnBookingCredits(booking, now, "Returned because appointment setup failed");
+                    booking.Status = EventBookingStatus.Cancelled;
+                    booking.CancelledAtUtc = now;
+                }
+                request.ScheduledEvent.Status = ScheduleEventStatus.Cancelled;
+                request.ScheduledEvent.CancellationReason = "Appointment setup failed";
+                request.Status = "Failed";
+                request.Message = message.Length > 1000 ? message[..1000] : message;
+                request.UpdatedAtUtc = now;
+                if (resolvedByUserId != null)
+                    _dbContext.ApplicationAuditEvents.Add(new()
+                    {
+                        EventType = "scheduling.appointment.setup_resolved",
+                        Category = AuditEventCategory.Scheduling,
+                        Outcome = AuditEventOutcome.Success,
+                        Summary = "Unconfirmed appointment cancelled after administrator provider review.",
+                        ActorUserId = resolvedByUserId,
+                        SubjectUserId = request.AttendeeUserId,
+                        EntityType = nameof(AppointmentBookingRequest),
+                        EntityId = request.Id.ToString(),
+                        DeduplicationKey = "appointment-setup-resolution/" + request.Id.ToString("N"),
+                        MetadataJson = JsonSerializer.Serialize(new { requestId = request.Id, scheduledEventId = request.ScheduledEventId, request.TeacherUserId, providerCleanupConfirmed = true })
+                    });
+                await _dbContext.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+                return Success();
+            });
+        }
+
         private async Task<OperationResult> BookWithinTransactionAsync(
             ScheduleActor actor,
             int scheduledEventId,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            ScheduledEvent? newEvent = null,
+            AppointmentBookingRequest? request = null)
         {
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(
                 IsolationLevel.Serializable,
                 cancellationToken);
             try
             {
-                var scheduleEvent = await _dbContext.ScheduledEvents
+                var scheduleEvent = newEvent ?? await _dbContext.ScheduledEvents
                     .Include(item => item.CourseClass)
                         .ThenInclude(courseClass => courseClass!.CourseSection)
                             .ThenInclude(section => section.Course)
@@ -1032,11 +1107,18 @@ namespace iD_Develops.Services
                     .FirstOrDefaultAsync(item => item.Id == scheduledEventId, cancellationToken);
                 if (scheduleEvent == null)
                     return Failure("This meeting no longer exists.");
+                if (newEvent != null)
+                {
+                    if (await HasTeacherConflictAsync(newEvent.TeacherUserId, newEvent.StartAtUtc, newEvent.EndAtUtc, null, cancellationToken))
+                        return Failure("That time is no longer available with this teacher.");
+                    newEvent.CreditConsumptionPolicy = await _dbContext.CreditConsumptionPolicies.FirstOrDefaultAsync(item => item.Id == newEvent.CreditConsumptionPolicyId, cancellationToken);
+                    _dbContext.ScheduledEvents.Add(newEvent);
+                }
                 if (scheduleEvent.Status != ScheduleEventStatus.Scheduled)
                     return Failure("This meeting is not available for booking.");
                 if (HasPendingRosterZoomMeeting(scheduleEvent))
                     return Failure("The Zoom meeting is not ready for booking.");
-                if (!scheduleEvent.IsVisibleForStudentBooking)
+                if (!scheduleEvent.IsVisibleForStudentBooking && newEvent == null)
                     return Failure("This meeting is not available for student self-booking.");
 
                 var now = DateTime.UtcNow;
@@ -1065,7 +1147,10 @@ namespace iD_Develops.Services
                         booking.ScheduledEvent.StartAtUtc < scheduleEvent.EndAtUtc &&
                         booking.ScheduledEvent.EndAtUtc > scheduleEvent.StartAtUtc,
                         cancellationToken);
-                if (hasConflict)
+                var hostingConflict = await _dbContext.ScheduledEvents.AsNoTracking().AnyAsync(item =>
+                    item.TeacherUserId == actor.UserId && item.Id != scheduledEventId && item.Status == ScheduleEventStatus.Scheduled &&
+                    item.StartAtUtc < scheduleEvent.EndAtUtc && item.EndAtUtc > scheduleEvent.StartAtUtc, cancellationToken);
+                if (hasConflict || hostingConflict)
                     return Failure("You already have another booking at this time.");
 
                 var requiresEnrollment = scheduleEvent.BookingAccess is
@@ -1118,6 +1203,7 @@ namespace iD_Develops.Services
                     booking = new EventBooking
                     {
                         UserId = actor.UserId,
+                        BookedByUserId = request?.RequestedByUserId ?? actor.UserId,
                         ScheduledEvent = scheduleEvent
                     };
                     scheduleEvent.Bookings.Add(booking);
@@ -1176,6 +1262,11 @@ namespace iD_Develops.Services
                     }
                 }
 
+                if (request != null)
+                {
+                    request.ScheduledEvent = scheduleEvent;
+                    _dbContext.AppointmentBookingRequests.Add(request);
+                }
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
                 return Success();
@@ -1193,10 +1284,23 @@ namespace iD_Develops.Services
             int scheduledEventId,
             CancellationToken cancellationToken = default)
         {
+            var meeting = await _dbContext.ScheduledEvents.AsNoTracking().FirstOrDefaultAsync(item => item.Id == scheduledEventId, cancellationToken);
+            await using var people = new ScheduleDatabaseLock(_dbContext);
+            await people.AcquireAsync([actor.UserId, meeting?.TeacherUserId ?? string.Empty], cancellationToken);
+            var privateMeeting = meeting?.AppointmentTypeId != null;
+            if (privateMeeting)
+            {
+                if (meeting!.StartAtUtc <= DateTime.UtcNow || !await _dbContext.EventBookings.AnyAsync(item => item.ScheduledEventId == scheduledEventId && item.UserId == actor.UserId && ActiveBookingStatuses.Contains(item.Status), cancellationToken))
+                    return Failure("You do not have an active future booking for this meeting.");
+                var request = await _dbContext.AppointmentBookingRequests.AsNoTracking().FirstOrDefaultAsync(item => item.ScheduledEventId == scheduledEventId, cancellationToken);
+                if (request != null && request.Status != "Confirmed") return Failure("Meeting setup must be confirmed by the company before this booking can be cancelled.");
+                var cancellation = await _schedulingIntegrationService.CancelEventAsync(meeting, cancellationToken);
+                if (!cancellation.Success) return cancellation;
+            }
             var strategy = _dbContext.Database.CreateExecutionStrategy();
             var result = await strategy.ExecuteAsync(
                 () => CancelBookingWithinTransactionAsync(actor, scheduledEventId, cancellationToken));
-            if (result.Success)
+            if (result.Success && !privateMeeting)
             {
                 await _schedulingIntegrationService.CancelBookingRegistrationAsync(
                     scheduledEventId,
@@ -1253,6 +1357,12 @@ namespace iD_Develops.Services
 
             booking.Status = EventBookingStatus.Cancelled;
             booking.CancelledAtUtc = now;
+            if (booking.ScheduledEvent.AppointmentTypeId.HasValue)
+            {
+                booking.ScheduledEvent.Status = ScheduleEventStatus.Cancelled;
+                booking.ScheduledEvent.CancellationReason = "Private booking cancelled";
+                booking.ScheduledEvent.UpdatedAtUtc = now;
+            }
             await _dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
             return Success();
@@ -1267,6 +1377,8 @@ namespace iD_Develops.Services
                 .FirstOrDefaultAsync(item => item.Id == scheduledEventId, cancellationToken);
             if (scheduleEvent == null || scheduleEvent.Status != ScheduleEventStatus.Scheduled)
                 return new(false, null, "This meeting is no longer available.");
+            if (await _dbContext.AppointmentBookingRequests.AnyAsync(item => item.ScheduledEventId == scheduledEventId && item.Status != "Confirmed", cancellationToken))
+                return new(false, null, "Meeting setup needs company confirmation before joining.");
             var now = DateTime.UtcNow;
             if (now < scheduleEvent.StartAtUtc)
                 return new(false, null, "The joining room opens when the class starts.");
@@ -1306,6 +1418,9 @@ namespace iD_Develops.Services
             DateTime endUtc,
             CancellationToken cancellationToken = default)
         {
+            var hostId = await _dbContext.ScheduledEvents.AsNoTracking().Where(item => item.Id == scheduledEventId).Select(item => item.TeacherUserId).FirstOrDefaultAsync(cancellationToken);
+            await using var people = new ScheduleDatabaseLock(_dbContext);
+            await people.AcquireAsync([hostId ?? string.Empty], cancellationToken);
             var scheduleEvent = await _dbContext.ScheduledEvents
                 .Include(item => item.Bookings)
                 .FirstOrDefaultAsync(item => item.Id == scheduledEventId, cancellationToken);
@@ -1359,6 +1474,9 @@ namespace iD_Develops.Services
             string? reason,
             CancellationToken cancellationToken = default)
         {
+            var snapshot = await _dbContext.ScheduledEvents.AsNoTracking().Include(item => item.Bookings).FirstOrDefaultAsync(item => item.Id == scheduledEventId, cancellationToken);
+            await using var people = new ScheduleDatabaseLock(_dbContext);
+            await people.AcquireAsync(snapshot == null ? [] : snapshot.Bookings.Select(item => item.UserId).Append(snapshot.TeacherUserId), cancellationToken);
             var scheduleEvent = await _dbContext.ScheduledEvents
                 .Include(item => item.CreditConsumptionPolicy)
                 .Include(item => item.Bookings)
@@ -1372,26 +1490,37 @@ namespace iD_Develops.Services
             if (scheduleEvent.Status == ScheduleEventStatus.Cancelled)
                 return Success();
 
+            var request = await _dbContext.AppointmentBookingRequests.AsNoTracking().FirstOrDefaultAsync(item => item.ScheduledEventId == scheduledEventId, cancellationToken);
+            if (request != null && request.Status != "Confirmed") return Failure("Meeting setup needs company review before cancellation. Verify the provider outcome first.");
+
             var externalCancellation = await _schedulingIntegrationService.CancelEventAsync(scheduleEvent, cancellationToken);
             if (!externalCancellation.Success)
                 return externalCancellation;
 
-            var now = DateTime.UtcNow;
-            var shouldReturn = scheduleEvent.CreditConsumptionPolicy?.StaffCancellationAction
-                != CreditResolutionAction.Consume;
-            foreach (var booking in scheduleEvent.Bookings.Where(item => ActiveBookingStatuses.Contains(item.Status)))
+            return await _dbContext.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
             {
-                if (shouldReturn)
-                    ReturnBookingCredits(booking, now, "Returned after staff cancelled the meeting");
-                booking.Status = EventBookingStatus.Cancelled;
-                booking.CancelledAtUtc = now;
-            }
-
-            scheduleEvent.Status = ScheduleEventStatus.Cancelled;
-            scheduleEvent.CancellationReason = NormalizeText(reason, 1000) ?? "Cancelled by staff";
-            scheduleEvent.UpdatedAtUtc = now;
-            await _dbContext.SaveChangesAsync(cancellationToken);
-            return Success();
+                _dbContext.ChangeTracker.Clear();
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
+                var current = await _dbContext.ScheduledEvents.Include(item => item.CreditConsumptionPolicy)
+                    .Include(item => item.Bookings).ThenInclude(item => item.CreditAllocations).ThenInclude(item => item.UserCreditLot)
+                    .SingleAsync(item => item.Id == scheduledEventId, cancellationToken);
+                if (current.Status == ScheduleEventStatus.Cancelled) return Success();
+                var now = DateTime.UtcNow;
+                var shouldReturn = current.CreditConsumptionPolicy?.StaffCancellationAction != CreditResolutionAction.Consume;
+                foreach (var booking in current.Bookings.Where(item => ActiveBookingStatuses.Contains(item.Status)))
+                {
+                    if (shouldReturn) ReturnBookingCredits(booking, now, "Returned after staff cancelled the meeting");
+                    else ConsumeBookingCredits(booking, now, "Consumed after staff cancelled the meeting");
+                    booking.Status = EventBookingStatus.Cancelled;
+                    booking.CancelledAtUtc = now;
+                }
+                current.Status = ScheduleEventStatus.Cancelled;
+                current.CancellationReason = NormalizeText(reason, 1000) ?? "Cancelled by staff";
+                current.UpdatedAtUtc = now;
+                await _dbContext.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+                return Success();
+            });
         }
 
         public Task GenerateUpcomingEventsAsync(int? ruleId = null, CancellationToken cancellationToken = default)
@@ -1419,6 +1548,8 @@ namespace iD_Develops.Services
                 var teacherName = FormatName(rule.TeacherUser.FirstName, rule.TeacherUser.LastName, rule.TeacherUser.UserName, rule.TeacherUser.Email);
                 try
                 {
+                    await using var people = new ScheduleDatabaseLock(_dbContext);
+                    await people.AcquireAsync([rule.TeacherUserId], cancellationToken);
                     var timeZone = FindTimeZone(AmsterdamTimeZoneId);
                     if (timeZone == null)
                     {
@@ -1752,7 +1883,8 @@ namespace iD_Develops.Services
             IReadOnlyList<UserCreditLot> creditLots,
             IReadOnlyDictionary<int, int> enrollmentBookingCounts,
             IReadOnlyDictionary<int, IReadOnlyList<CourseSection>> sectionsByCourseId,
-            bool staffCalendarView = false)
+            bool staffCalendarView = false,
+            bool setupPending = false)
         {
             var canManage = CanManageTeacher(actor, scheduleEvent.TeacherUserId);
             var isAssignedTeacher = IsAssignedTeacher(actor, scheduleEvent.TeacherUserId);
@@ -1819,8 +1951,7 @@ namespace iD_Develops.Services
                           now >= scheduleEvent.BookingOpensAtUtc &&
                           now <= scheduleEvent.BookingClosesAtUtc &&
                           scheduleEvent.StartAtUtc > now;
-            var canCancel = !canManage &&
-                            !canViewAsStaff &&
+            var canCancel = !setupPending && !canViewAsStaff &&
                             isBooked &&
                             scheduleEvent.Status == ScheduleEventStatus.Scheduled &&
                             scheduleEvent.StartAtUtc > now;
@@ -1828,7 +1959,7 @@ namespace iD_Develops.Services
                                         (scheduleEvent.DeliveryType != ScheduleDeliveryType.Zoom ||
                                          string.IsNullOrWhiteSpace(scheduleEvent.ZoomMeetingId) ||
                                          booking.ZoomRegistrationStatus == ZoomRegistrationStatus.Registered);
-            var canJoin = !string.IsNullOrWhiteSpace(scheduleEvent.MeetingUrl) &&
+            var canJoin = !setupPending && !string.IsNullOrWhiteSpace(scheduleEvent.MeetingUrl) &&
                           scheduleEvent.Status == ScheduleEventStatus.Scheduled &&
                           (isAssignedTeacher || (!canViewAsStaff && isBooked && hasStudentJoinDetails)) &&
                           now >= scheduleEvent.StartAtUtc.AddMinutes(-JoinWindowMinutesBeforeStart) &&
@@ -1862,6 +1993,7 @@ namespace iD_Develops.Services
                     : "Your Zoom joining details are being prepared";
             }
 
+            if (setupPending) unavailableReason = "Meeting setup needs company confirmation";
             var category = scheduleEvent.Status == ScheduleEventStatus.Cancelled
                 ? "cancelled"
                 : canManage || canViewAsStaff

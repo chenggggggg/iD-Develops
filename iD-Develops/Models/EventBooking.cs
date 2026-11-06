@@ -17,6 +17,9 @@ namespace iD_Develops.Models
 
         public ApplicationUser User { get; set; } = null!;
 
+        [MaxLength(450)]
+        public string? BookedByUserId { get; set; }
+
         public EventBookingStatus Status { get; set; } = EventBookingStatus.Confirmed;
 
         public DateTime BookedAtUtc { get; set; } = DateTime.UtcNow;

@@ -17,30 +17,30 @@
             <h1 class="portal-title-sm">@Model.DisplayedCalendarName</h1>
             <p class="portal-copy">@(Model.ViewingStudentCalendar ? "Booked meetings on this student's calendar." : "Your meetings and course classes that are currently available to book.")</p>
         </div>
-        <div class="portal-page-header-actions">
+        <nav class="portal-page-header-actions" aria-label="Calendar actions">
             @if (Model.CanManageSchedule)
             {
-                <a class="portal-btn portal-btn-primary" asp-page="/Portal/Schedule/Roster" asp-fragment="schedule-session">
+                <a class="portal-btn portal-btn-primary" asp-page="/Portal/Schedule/Events">
                     <i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>
                     Schedule event
                 </a>
                 <a class="portal-btn portal-btn-outline" asp-page="/Portal/Schedule/Roster">
                     <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
-                    Recurring roster
+                    Manage roster
                 </a>
                 <a class="portal-btn portal-btn-outline" asp-page="/Portal/Schedule/Appointments">
                     <i class="fa-solid fa-sliders" aria-hidden="true"></i>
-                    Event types
+                    Event type
                 </a>
             }
             else
             {
                 <a class="portal-btn portal-btn-primary" asp-page="/Portal/Schedule/Book">
                     <i class="fa-solid fa-calendar-check" aria-hidden="true"></i>
-                    Book private session
+                    Book session
                 </a>
             }
-        </div>
+        </nav>
     </header>
 
     @if (TempData["StatusMessage"] is string statusMessage)

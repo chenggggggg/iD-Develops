@@ -40,6 +40,7 @@
                     id = item.Id, name = item.Name, durationMinutes = item.DurationMinutes,
                     requiredCreditTypeId = item.RequiredCreditTypeId, creditCost = item.CreditCost,
                     creditConsumptionPolicyId = item.CreditConsumptionPolicyId,
+                    deliveryType = item.DeliveryType.ToString(), meetingUrl = item.MeetingUrl, location = item.Location,
                     teacherUserIds = item.Teachers.Select(teacher => teacher.Id), isActive = item.IsActive
                 });
                 <article class="min-w-0 rounded-xl border border-slate-200 bg-white p-5 shadow-sm" data-event-type-id="@item.Id" aria-label="@item.Name">
@@ -120,6 +121,19 @@
                 </fieldset>
                 <details class="rounded-lg border border-slate-200 p-3">
                     <summary class="cursor-pointer text-sm font-medium text-slate-700">Advanced options</summary>
+                    <div class="mt-4 grid gap-3">
+                        <label class="grid gap-2 text-sm text-slate-700">Delivery
+                            <select asp-for="Input.DeliveryType" data-field="delivery" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5">
+                                <option value="Zoom">Zoom</option><option value="InPerson">In person</option><option value="OtherOnline">Other online</option>
+                            </select>
+                        </label>
+                        <label class="grid gap-2 text-sm text-slate-700">Meeting link (optional for Zoom)
+                            <input asp-for="Input.MeetingUrl" data-field="meeting-url" type="url" maxlength="1024" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5" />
+                        </label>
+                        <label class="grid gap-2 text-sm text-slate-700">Location (required for in-person sessions)
+                            <input asp-for="Input.Location" data-field="location" maxlength="300" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5" />
+                        </label>
+                    </div>
                     <label class="mt-4 flex items-center gap-3 text-sm text-slate-700"><input asp-for="Input.IsActive" data-field="active" class="h-4 w-4 accent-[var(--id-blue)]" /> Available for students</label>
                     <p class="mb-0 mt-3 text-xs leading-5 text-slate-500">Changes apply to future bookings. Existing meetings keep their saved duration and credit settings. Deactivating a type stops new bookings and preserves existing meetings.</p>
                 </details>

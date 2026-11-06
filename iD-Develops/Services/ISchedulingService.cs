@@ -168,6 +168,8 @@ namespace iD_Develops.Services
         Task<ScheduleOverviewData> GetStudentOverviewAsync(ScheduleActor actor, string studentUserId, CancellationToken cancellationToken = default);
         Task<IReadOnlyList<ScheduleCalendarItem>> GetCourseClassItemsAsync(ScheduleActor actor, int courseClassId, CancellationToken cancellationToken = default);
         Task<OperationResult> BookAsync(ScheduleActor actor, int scheduledEventId, CancellationToken cancellationToken = default);
+        Task<OperationResult> ReserveAppointmentAsync(Models.ScheduledEvent scheduleEvent, Models.AppointmentBookingRequest request, CancellationToken cancellationToken = default);
+        Task<OperationResult> FailAppointmentAsync(Guid requestId, string message, CancellationToken cancellationToken = default, string? resolvedByUserId = null);
         Task<OperationResult> CancelBookingAsync(ScheduleActor actor, int scheduledEventId, CancellationToken cancellationToken = default);
         Task<SchedulingJoinResult> GetJoinUrlAsync(ScheduleActor actor, int scheduledEventId, CancellationToken cancellationToken = default);
         Task<OperationResult> MoveEventAsync(ScheduleActor actor, int scheduledEventId, DateTime startUtc, DateTime endUtc, CancellationToken cancellationToken = default);

@@ -334,6 +334,64 @@ namespace iD_Develops.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("iD_Develops.Models.AppointmentBookingRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("AppointmentTypeId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("AttendeeUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("EndAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Message")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("RequestedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<int?>("ScheduledEventId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("StartAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("TeacherUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ScheduledEventId")
+                        .IsUnique();
+
+                    b.HasIndex("AttendeeUserId", "CreatedAtUtc");
+
+                    b.ToTable("AppointmentBookingRequests");
+                });
+
             modelBuilder.Entity("iD_Develops.Models.AppointmentType", b =>
                 {
                     b.Property<int>("Id")
@@ -355,11 +413,23 @@ namespace iD_Develops.Data.Migrations
                     b.Property<int>("CreditCost")
                         .HasColumnType("integer");
 
+                    b.Property<string>("DeliveryType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<int>("DurationMinutes")
                         .HasColumnType("integer");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("MeetingUrl")
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -1821,6 +1891,10 @@ namespace iD_Develops.Data.Migrations
 
                     b.Property<DateTime>("BookedAtUtc")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("BookedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
 
                     b.Property<DateTime?>("CancelledAtUtc")
                         .HasColumnType("timestamp with time zone");
@@ -3402,6 +3476,16 @@ namespace iD_Develops.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("iD_Develops.Models.AppointmentBookingRequest", b =>
+                {
+                    b.HasOne("iD_Develops.Models.ScheduledEvent", "ScheduledEvent")
+                        .WithMany()
+                        .HasForeignKey("ScheduledEventId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ScheduledEvent");
                 });
 
             modelBuilder.Entity("iD_Develops.Models.AppointmentType", b =>

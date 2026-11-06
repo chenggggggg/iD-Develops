@@ -1,0 +1,225 @@
+@using System.Text.Json
+@using iD_Develops.Enums
+@model iD_Develops.Pages.Portal.Schedule.EventsModel
+    <div class="roster-layout">
+        <div class="roster-list-panel">
+            <div class="roster-section-heading">
+                <div>
+                    <p class="portal-eyebrow">Automatic</p>
+                    <h2>Recurring classes</h2>
+                </div>
+                <button class="portal-btn portal-btn-primary portal-btn-sm" type="button" data-roster-new>
+                    <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                    Add recurring class
+                </button>
+            </div>
+
+            <div class="roster-rule-list">
+                @if (Model.ScheduleData.Rules.Count == 0)
+                {
+                    <div class="roster-empty">
+                        <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+                        <strong>No recurring classes</strong>
+                    </div>
+                }
+                @foreach (var rule in Model.ScheduleData.Rules)
+                {
+                    var ruleJson = JsonSerializer.Serialize(new
+                    {
+                        rule.Id,
+                        rule.TeacherUserId,
+                        rule.CourseClassId,
+                        DayOfWeek = rule.DayOfWeek.ToString(),
+                        LocalStartTime = rule.LocalStartTime.ToString("HH:mm"),
+                        rule.TimeZoneId,
+                        ActiveFromDate = rule.ActiveFromDate.ToString("yyyy-MM-dd"),
+                        ActiveUntilDate = rule.ActiveUntilDate?.ToString("yyyy-MM-dd"),
+                        rule.DurationMinutes,
+                        rule.Capacity,
+                        DeliveryType = rule.DeliveryType.ToString(),
+                        rule.Location,
+                        rule.BookingOpenDaysBefore,
+                        rule.BookingCloseHoursBefore,
+                        rule.GenerateWeeksAhead,
+                        rule.IsVisibleForStudentBooking,
+                        rule.IsActive
+                    });
+                    <article class="roster-rule @(rule.IsActive ? null : "is-inactive")" data-roster-rule-id="@rule.Id">
+                        <span class="roster-rule-day">
+                            <strong>@rule.DayOfWeek.ToString()[..3]</strong>
+                            <small>@rule.LocalStartTime.ToString("HH:mm")</small>
+                        </span>
+                        <span class="roster-rule-copy">
+                            <strong>@rule.ClassTitle</strong>
+                            <small>@rule.CourseName &middot; @rule.TeacherName</small>
+                            @if (rule.IsActive && rule.ProvisioningStatus != ScheduleRosterProvisioningStatus.Ready)
+                            {
+                                <span class="mt-2 inline-flex w-fit rounded-md bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-950" data-roster-provisioning-status="@rule.ProvisioningStatus">
+                                    @(rule.ProvisioningStatus == ScheduleRosterProvisioningStatus.PendingZoomSetup ? "Pending Zoom setup" : rule.ProvisioningStatus == ScheduleRosterProvisioningStatus.ProvisioningFailed ? "Meeting setup failed" : "Meeting setup pending")
+                                </span>
+                                @if (!string.IsNullOrWhiteSpace(rule.ProvisioningError))
+                                {
+                                    <small class="break-words text-amber-950">@rule.ProvisioningError</small>
+                                }
+                            }
+                            <span>@rule.DurationMinutes min &middot; @rule.Capacity seat@(rule.Capacity == 1 ? string.Empty : "s") &middot; @rule.UpcomingEventCount upcoming</span>
+                        </span>
+                        <span class="roster-rule-actions">
+                            @if (rule.IsActive && rule.ProvisioningStatus != ScheduleRosterProvisioningStatus.Ready)
+                            {
+                                <form method="post" asp-route-mode="recurring" asp-page-handler="RetryRule" data-submit-feedback>
+                                    <input type="hidden" name="ruleId" value="@rule.Id" />
+                                    <button type="submit" class="hover:bg-slate-100 hover:text-slate-700 focus-visible:bg-slate-100 focus-visible:text-slate-700" aria-label="Retry meeting setup for @rule.ClassTitle" title="Retry meeting setup">
+                                        <span data-submit-idle><i class="fa-solid fa-rotate-right" aria-hidden="true"></i></span>
+                                        <span data-submit-pending hidden class="inline-flex"><span aria-hidden="true" class="size-4 rounded-full border-2 border-current border-r-transparent motion-safe:animate-spin"></span></span>
+                                    </button>
+                                </form>
+                            }
+                            <button type="button"
+                                    data-roster-edit
+                                    data-roster-rule="@ruleJson"
+                                    aria-label="Edit @rule.ClassTitle"
+                                    title="Edit recurring class">
+                                <i class="fa-solid fa-pencil" aria-hidden="true"></i>
+                            </button>
+                            <form method="post" asp-route-mode="recurring"
+                                  asp-page-handler="DeleteRule"
+                                  data-confirm-title="Remove recurring class"
+                                  data-confirm-message="Remove this recurring class and its unbooked future meetings?"
+                                  data-confirm-action="Remove class"
+                                  data-confirm-tone="danger">
+                                <input type="hidden" name="ruleId" value="@rule.Id" />
+                                <button type="submit" aria-label="Remove @rule.ClassTitle" title="Remove recurring class">
+                                    <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
+                                </button>
+                            </form>
+                        </span>
+                    </article>
+                }
+            </div>
+        </div>
+
+        <aside class="roster-editor" data-roster-editor>
+            <div class="roster-editor-heading">
+                <div>
+                    <p class="portal-eyebrow">Automatic</p>
+                    <h2 data-roster-editor-title>New recurring class</h2>
+                </div>
+                <button type="button" data-roster-reset aria-label="Clear form" title="Clear form">
+                    <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
+                </button>
+            </div>
+            <form id="recurring-class" method="post" asp-route-mode="recurring" asp-page-handler="SaveRule" class="roster-form" data-roster-form data-submit-feedback>
+                <input asp-for="RuleInput.Id" type="hidden" data-roster-field="Id" />
+                <div class="col-span-full rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700" data-zoom-readiness data-readiness-url="@Url.Page(null, "ZoomReadiness")" role="status" aria-live="polite">
+                    <strong class="inline-flex items-center gap-2">Zoom setup <span hidden data-zoom-readiness-spinner class="size-4 rounded-full border-2 border-current border-r-transparent motion-safe:animate-spin" aria-hidden="true"></span></strong>
+                    <p class="mt-1" data-zoom-readiness-message>Select a teacher to check their Zoom connection.</p>
+                    <p class="mt-2">You can save the schedule before Zoom is connected. New occurrences become bookable only after their meetings are created. Pending setup retries automatically, normally within a minute.</p>
+                </div>
+                @if (Model.IsAdmin)
+                {
+                    <label class="roster-field is-wide">
+                        <span>Teacher</span>
+                        <select asp-for="RuleInput.TeacherUserId" data-roster-field="TeacherUserId" data-roster-teacher required>
+                            <option value="">Select an available teacher</option>
+                            @foreach (var teacher in Model.ScheduleData.Teachers)
+                            {
+                                <option value="@teacher.Id">@teacher.Name</option>
+                            }
+                        </select>
+                    </label>
+                }
+                else
+                {
+                    <input type="hidden" asp-for="RuleInput.TeacherUserId" value="@Model.ScheduleData.Teachers.FirstOrDefault()?.Id" data-roster-field="TeacherUserId" data-roster-teacher />
+                }
+                <label class="roster-field is-wide">
+                    <span>Course class</span>
+                    <select asp-for="RuleInput.CourseClassId" data-roster-field="CourseClassId" data-roster-class required>
+                        <option value="">Select class</option>
+                        @foreach (var courseClass in Model.ScheduleData.Classes)
+                        {
+                            <option value="@courseClass.Id" data-duration="@courseClass.DurationMinutes" data-capacity="@courseClass.Capacity">@courseClass.CourseName &middot; @courseClass.SectionTitle &middot; @courseClass.ClassTitle</option>
+                        }
+                    </select>
+                </label>
+                <label class="roster-field">
+                    <span>Day</span>
+                    <select asp-for="RuleInput.DayOfWeek" data-roster-field="DayOfWeek" data-roster-day>
+                        @foreach (var day in Enum.GetValues<DayOfWeek>().OrderBy(day => ((int)day + 6) % 7))
+                        {
+                            <option value="@day">@day</option>
+                        }
+                    </select>
+                </label>
+                <label class="roster-field">
+                    <span>Start time</span>
+                    <input asp-for="RuleInput.LocalStartTime" type="time" data-roster-field="LocalStartTime" data-roster-start required />
+                </label>
+                <input asp-for="RuleInput.TimeZoneId" type="hidden" data-roster-field="TimeZoneId" data-roster-time-zone />
+                <p class="roster-availability-hint is-wide" data-roster-availability-hint></p>
+                <label class="roster-field">
+                    <span>Active from</span>
+                    <input asp-for="RuleInput.ActiveFromDate" type="date" data-roster-field="ActiveFromDate" required />
+                </label>
+                <label class="roster-field">
+                    <span>Active until</span>
+                    <input asp-for="RuleInput.ActiveUntilDate" type="date" data-roster-field="ActiveUntilDate" required />
+                </label>
+                <input asp-for="RuleInput.DurationMinutes" type="hidden" data-roster-field="DurationMinutes" />
+                <input asp-for="RuleInput.Capacity" type="hidden" data-roster-field="Capacity" />
+                <label class="roster-field">
+                    <span>Delivery</span>
+                    <select asp-for="RuleInput.DeliveryType" data-roster-field="DeliveryType">
+                        <option value="@ScheduleDeliveryType.Zoom">Zoom</option>
+                        <option value="@ScheduleDeliveryType.InPerson">In person</option>
+                        <option value="@ScheduleDeliveryType.OtherOnline">Other online</option>
+                    </select>
+                </label>
+                <label class="roster-field is-wide">
+                    <span>Location</span>
+                    <input asp-for="RuleInput.Location" maxlength="300" placeholder="Room or address" data-roster-field="Location" />
+                </label>
+                <details class="roster-advanced is-wide">
+                    <summary>Advanced booking options</summary>
+                    <div>
+                        <label class="roster-field">
+                            <span>Generate ahead</span>
+                            <select asp-for="RuleInput.GenerateWeeksAhead" data-roster-field="GenerateWeeksAhead">
+                                <option value="4">4 weeks</option>
+                                <option value="8">8 weeks</option>
+                                <option value="12">12 weeks</option>
+                                <option value="24">24 weeks</option>
+                                <option value="52">52 weeks</option>
+                            </select>
+                        </label>
+                        <label class="roster-field">
+                            <span>Booking opens</span>
+                            <span class="roster-input-suffix"><input asp-for="RuleInput.BookingOpenDaysBefore" type="number" min="0" max="365" data-roster-field="BookingOpenDaysBefore" /><small>days before</small></span>
+                        </label>
+                        <label class="roster-field">
+                            <span>Booking closes</span>
+                            <span class="roster-input-suffix"><input asp-for="RuleInput.BookingCloseHoursBefore" type="number" min="0" max="8760" data-roster-field="BookingCloseHoursBefore" /><small>hours before</small></span>
+                        </label>
+                        <label class="roster-toggle">
+                            <input asp-for="RuleInput.IsVisibleForStudentBooking" data-roster-field="IsVisibleForStudentBooking" />
+                            <span aria-hidden="true"></span>
+                            Visible for student self-booking
+                        </label>
+                        <label class="roster-toggle">
+                            <input asp-for="RuleInput.IsActive" data-roster-field="IsActive" />
+                            <span aria-hidden="true"></span>
+                            Active recurring class
+                        </label>
+                    </div>
+                </details>
+                <button class="portal-btn portal-btn-primary roster-submit" type="submit">
+                    <span data-submit-idle><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> <span data-roster-submit-label>Save recurring class</span></span>
+                    <span data-submit-pending hidden class="inline-flex items-center gap-2">
+                        <span aria-hidden="true" class="size-4 rounded-full border-2 border-current border-r-transparent motion-safe:animate-spin"></span>
+                        Saving recurring class...
+                    </span>
+                </button>
+            </form>
+        </aside>
+    </div>

@@ -39,14 +39,6 @@
         <span>Calendar</span>
     </a>
 
-    @if (User.IsInRole("Student"))
-    {
-        <a class="portal-nav-link @(IsPage("/Portal/Schedule/Book") ? "active" : null)" asp-page="/Portal/Schedule/Book">
-            <i class="fa-solid fa-calendar-check"></i>
-            <span>Book a session</span>
-        </a>
-    }
-
     <details class="portal-nav-group" @(isExamsActive ? "open" : null)>
         <summary class="portal-nav-link portal-nav-group-toggle @(isExamsActive ? "active" : null)">
             <span class="portal-nav-group-label">

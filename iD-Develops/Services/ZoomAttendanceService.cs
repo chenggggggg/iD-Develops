@@ -91,6 +91,9 @@ namespace iD_Develops.Services
                     return new(true, StatusCodes.Status204NoContent, null, null, null);
                 }
 
+                if (await _dbContext.AppointmentBookingRequests.AnyAsync(item => item.ScheduledEventId == scheduleEvent.Id && item.Status != "Confirmed", cancellationToken))
+                    return new(true, StatusCodes.Status204NoContent, null, null, null);
+
                 var meetingUuid = Truncate(ReadString(meeting, "uuid"), 300);
                 if (!string.IsNullOrWhiteSpace(meetingUuid))
                     scheduleEvent.ZoomMeetingUuid = meetingUuid;
@@ -187,6 +190,7 @@ namespace iD_Develops.Services
                     item.Status == EventBookingStatus.Confirmed &&
                     item.ScheduledEvent.DeliveryType == ScheduleDeliveryType.Zoom &&
                     item.ScheduledEvent.Status == ScheduleEventStatus.Scheduled &&
+                    !_dbContext.AppointmentBookingRequests.Any(request => request.ScheduledEventId == item.ScheduledEventId && request.Status != "Confirmed") &&
                     item.ScheduledEvent.StartAtUtc > now &&
                     (item.ZoomRegistrationStatus == ZoomRegistrationStatus.Pending ||
                      item.ZoomRegistrationStatus == ZoomRegistrationStatus.Failed) &&
@@ -208,6 +212,7 @@ namespace iD_Develops.Services
                 .Where(item =>
                     item.DeliveryType == ScheduleDeliveryType.Zoom &&
                     item.Status == ScheduleEventStatus.Scheduled &&
+                    !_dbContext.AppointmentBookingRequests.Any(request => request.ScheduledEventId == item.Id && request.Status != "Confirmed") &&
                     item.ZoomMeetingId != null &&
                     item.AttendanceReconciledAtUtc == null &&
                     ((item.ZoomEndedAtUtc != null && item.ZoomEndedAtUtc <= now.AddMinutes(-15)) ||
@@ -339,6 +344,7 @@ namespace iD_Develops.Services
 
         private IQueryable<EventBooking> BookingForResolutionQuery()
             => _dbContext.EventBookings
+                .Where(item => !_dbContext.AppointmentBookingRequests.Any(request => request.ScheduledEventId == item.ScheduledEventId && request.Status != "Confirmed"))
                 .Include(item => item.ScheduledEvent)
                     .ThenInclude(scheduleEvent => scheduleEvent.CreditConsumptionPolicy)
                 .Include(item => item.CreditAllocations)

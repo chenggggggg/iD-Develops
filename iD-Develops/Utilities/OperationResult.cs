@@ -4,5 +4,6 @@
     {
         public bool Success { get; set; }        // Indicates whether the operation was successful
         public string ErrorMessage { get; set; }
+        public bool OutcomeUncertain { get; set; }
     }
 }

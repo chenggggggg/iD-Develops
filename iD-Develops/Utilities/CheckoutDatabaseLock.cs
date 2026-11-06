@@ -9,6 +9,7 @@ namespace iD_Develops.Utilities;
 public sealed class CheckoutDatabaseLock(ApplicationDbContext db, string key) : IAsyncDisposable
 {
     private bool _opened;
+    private bool _acquired;
 
     public async Task AcquireAsync(CancellationToken ct)
     {
@@ -16,6 +17,22 @@ public sealed class CheckoutDatabaseLock(ApplicationDbContext db, string key) : 
         _opened = db.Database.GetDbConnection().State != ConnectionState.Open;
         if (_opened) await db.Database.OpenConnectionAsync(ct);
         await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_lock(hashtextextended({key}, 0))", ct);
+        _acquired = true;
+    }
+
+    public async Task<bool> TryAcquireAsync(CancellationToken ct)
+    {
+        if (!db.Database.IsNpgsql()) return true;
+        _opened = db.Database.GetDbConnection().State != ConnectionState.Open;
+        if (_opened) await db.Database.OpenConnectionAsync(ct);
+        await using var command = db.Database.GetDbConnection().CreateCommand();
+        command.CommandText = "SELECT pg_try_advisory_lock(hashtextextended(@key, 0))";
+        var parameter = command.CreateParameter();
+        parameter.ParameterName = "key";
+        parameter.Value = key;
+        command.Parameters.Add(parameter);
+        _acquired = await command.ExecuteScalarAsync(ct) is true;
+        return _acquired;
     }
 
     public static Task AcquireTransactionAsync(ApplicationDbContext context, string value, CancellationToken ct)
@@ -28,7 +45,7 @@ public sealed class CheckoutDatabaseLock(ApplicationDbContext db, string key) : 
         if (!db.Database.IsNpgsql()) return;
         try
         {
-            if (db.Database.GetDbConnection().State == ConnectionState.Open)
+            if (_acquired && db.Database.GetDbConnection().State == ConnectionState.Open)
                 await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_unlock(hashtextextended({key}, 0))");
         }
         finally

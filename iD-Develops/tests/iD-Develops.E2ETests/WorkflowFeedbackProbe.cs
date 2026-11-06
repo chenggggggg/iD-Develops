@@ -5,6 +5,31 @@ namespace iD_Develops.E2ETests;
 
 internal static class WorkflowFeedbackProbe
 {
+    public static async Task<TaskCompletionSource<JsonElement>> AppointmentSubmissionAsync(IPage page)
+    {
+        await page.WaitForLoadStateAsync(LoadState.Load);
+        await page.Locator("[data-navigation-progress][data-workflow-feedback-ready]").WaitForAsync(new() { State = WaitForSelectorState.Attached });
+        var snapshot = new TaskCompletionSource<JsonElement>();
+        await page.ExposeFunctionAsync("recordAppointmentFeedback", (Action<JsonElement>)(state => snapshot.TrySetResult(state)));
+        await page.EvaluateAsync("""
+            () => window.addEventListener('submit', event => {
+                const form = event.target;
+                if (event.defaultPrevented || !form.hasAttribute('data-appointment-book-form')) return;
+                form.addEventListener('formdata', () => setTimeout(() => {
+                    const button = document.querySelector('[data-appointment-slots] button[aria-busy=true]');
+                    const spinner = button?.querySelector('[aria-hidden=true]');
+                    const duplicate = new SubmitEvent('submit', {bubbles:true, cancelable:true});
+                    window.recordAppointmentFeedback({
+                        busy: button?.getAttribute('aria-busy'), disabled: button?.disabled,
+                        spinnerVisible: !!spinner && spinner.getBoundingClientRect().width > 0,
+                        duplicatePrevented: !form.dispatchEvent(duplicate)
+                    });
+                }, 0), {once:true});
+            })
+            """);
+        return snapshot;
+    }
+
     // Capture state after event dispatch, while the destination response is held.
     // Frame-based queries wait for the new document; immediate event listeners
     // can observe state before later application listeners have updated it.

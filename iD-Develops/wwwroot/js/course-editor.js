@@ -402,7 +402,7 @@
             ? "Add a date and time so learners can book this class."
             : "Review the available dates or add another session.";
         const sessionAction = Number(courseClass.Id) > 0
-            ? `<a href="/calendar/roster?courseClassId=${Number(courseClass.Id)}&mode=single#schedule-session" class="inline-flex items-center justify-center gap-2 rounded-lg bg-sky-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-800"><i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>${upcomingSessionCount === 0 ? "Add session" : "Manage sessions"}</a>`
+            ? `<a href="/calendar/schedule?courseClassId=${Number(courseClass.Id)}&mode=single#schedule-session" class="inline-flex items-center justify-center gap-2 rounded-lg bg-sky-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-800"><i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>${upcomingSessionCount === 0 ? "Add session" : "Manage sessions"}</a>`
             : `<span class="text-xs text-slate-500">Save the course before adding sessions.</span>`;
         return `${heading("Class", "fa-calendar-days", courseClass, "Untitled class")}
             <section class="course-editor-class-preview"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i><strong>${escapeHtml(courseClass.Title || "Untitled class")}</strong><span>${Number(courseClass.DurationMinutes) || 0} min · ${format === 2 ? "One-to-one" : "Group"}</span></section>

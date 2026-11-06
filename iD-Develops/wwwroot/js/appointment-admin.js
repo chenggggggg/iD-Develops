@@ -25,6 +25,9 @@
         field("policy").value = item.creditConsumptionPolicyId || "";
         field("requires-credits").checked = item.requiredCreditTypeId != null && item.requiredCreditTypeId !== "";
         field("active").checked = item.isActive !== false;
+        field("delivery").value = item.deliveryType || "Zoom";
+        field("meeting-url").value = item.meetingUrl || "";
+        field("location").value = item.location || "";
         editor.querySelectorAll("[data-teacher-id]").forEach(input => {
             input.checked = (item.teacherUserIds || []).includes(input.dataset.teacherId);
         });

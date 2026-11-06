@@ -37,7 +37,7 @@ public sealed class RecurringClassZoomReadinessTests : Microsoft.Playwright.Xuni
         try
         {
             await Page.SetViewportSizeAsync(mobile ? 390 : 1440, 1000);
-            await LoginAsync(administrator, "/calendar/roster");
+            await LoginAsync(administrator, "/calendar/schedule?mode=recurring");
             var form = Page.Locator("[data-roster-form]");
             await form.Locator("[data-roster-class]").SelectOptionAsync(lesson.Id.ToString());
             await form.Locator("[data-roster-day]").SelectOptionAsync(tomorrow.DayOfWeek.ToString());
@@ -110,7 +110,7 @@ public sealed class RecurringClassZoomReadinessTests : Microsoft.Playwright.Xuni
     }
 
     private static string ReadinessUrl(string teacherId)
-        => $"{LocalTestApplication.PortalBaseUrl}/calendar/roster?handler=ZoomReadiness&teacherUserId={Uri.EscapeDataString(teacherId)}";
+        => $"{LocalTestApplication.PortalBaseUrl}/calendar/schedule?handler=ZoomReadiness&teacherUserId={Uri.EscapeDataString(teacherId)}";
 
     private async Task LoginAsync(CatalogBrowsingFixture account, string path)
     {

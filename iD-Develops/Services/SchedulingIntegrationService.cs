@@ -284,6 +284,7 @@ namespace iD_Develops.Services
                 .Where(scheduleEvent =>
                     scheduleEvent.TeacherUserId == teacherUserId &&
                     scheduleEvent.Status == ScheduleEventStatus.Scheduled &&
+                    !_dbContext.AppointmentBookingRequests.Any(request => request.ScheduledEventId == scheduleEvent.Id && request.Status != "Confirmed") &&
                     scheduleEvent.EndAtUtc > DateTime.UtcNow)
                 .OrderBy(scheduleEvent => scheduleEvent.StartAtUtc)
                 .ToListAsync(cancellationToken);
@@ -339,6 +340,8 @@ namespace iD_Develops.Services
             int scheduledEventId,
             CancellationToken cancellationToken = default)
         {
+            if (await _dbContext.AppointmentBookingRequests.AnyAsync(item => item.ScheduledEventId == scheduledEventId && item.Status != "Confirmed", cancellationToken))
+                return Failure("Meeting setup is not confirmed.");
             var scheduleEvent = await _dbContext.ScheduledEvents
                 .FirstOrDefaultAsync(item => item.Id == scheduledEventId, cancellationToken);
             if (scheduleEvent == null)
@@ -372,6 +375,8 @@ namespace iD_Develops.Services
             string userId,
             CancellationToken cancellationToken = default)
         {
+            if (await _dbContext.AppointmentBookingRequests.AnyAsync(item => item.ScheduledEventId == scheduledEventId && item.Status != "Confirmed", cancellationToken))
+                return Failure("Meeting setup is not confirmed.");
             var booking = await _dbContext.EventBookings
                 .Include(item => item.User)
                 .Include(item => item.ScheduledEvent)
@@ -511,6 +516,8 @@ namespace iD_Develops.Services
             string userId,
             CancellationToken cancellationToken = default)
         {
+            if (await _dbContext.AppointmentBookingRequests.AnyAsync(item => item.ScheduledEventId == scheduledEventId && item.Status != "Confirmed", cancellationToken))
+                return new(false, null, "Meeting setup is not confirmed.");
             var booking = await _dbContext.EventBookings
                 .AsNoTracking()
                 .Include(item => item.ScheduledEvent)
@@ -772,7 +779,7 @@ namespace iD_Develops.Services
             {
                 var zoom = await CreateZoomMeetingAsync(scheduleEvent, cancellationToken);
                 if (!zoom.Success)
-                    return Failure(zoom.ErrorMessage!);
+                    return new OperationResult { Success = false, ErrorMessage = zoom.ErrorMessage!, OutcomeUncertain = zoom.OutcomeUncertain };
                 scheduleEvent.ZoomMeetingId = zoom.ExternalId;
                 scheduleEvent.MeetingUrl = zoom.JoinUrl;
             }
@@ -785,8 +792,14 @@ namespace iD_Develops.Services
                 var google = await CreateGoogleEventAsync(scheduleEvent, cancellationToken);
                 if (!google.Success)
                 {
+                    if (google.OutcomeUncertain)
+                        return new OperationResult { Success = false, ErrorMessage = google.ErrorMessage!, OutcomeUncertain = true };
                     if (!string.IsNullOrWhiteSpace(scheduleEvent.ZoomMeetingId))
-                        await DeleteZoomMeetingAsync(scheduleEvent.TeacherUserId, scheduleEvent.ZoomMeetingId, cancellationToken);
+                    {
+                        var cleanup = await DeleteZoomMeetingAsync(scheduleEvent.TeacherUserId, scheduleEvent.ZoomMeetingId, cancellationToken);
+                        if (!cleanup.Success)
+                            return new OperationResult { Success = false, ErrorMessage = cleanup.ErrorMessage!, OutcomeUncertain = true };
+                    }
                     scheduleEvent.ZoomMeetingId = null;
                     scheduleEvent.MeetingUrl = null;
                     return Failure(google.ErrorMessage!);
@@ -978,9 +991,9 @@ namespace iD_Develops.Services
             });
             using var response = await SendProviderRequestAsync(request, cancellationToken);
             if (response == null)
-                return new(false, null, null, null, "Zoom could not be reached.");
+                return new(false, null, null, null, "Zoom could not be reached.", true);
             if (!response.IsSuccessStatusCode)
-                return new(false, null, null, null, await ProviderErrorAsync(response, "Zoom meeting creation failed.", cancellationToken));
+                return new(false, null, null, null, await ProviderErrorAsync(response, "Zoom meeting creation failed.", cancellationToken), (int)response.StatusCode >= 500);
             using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
             var id = document.RootElement.GetProperty("id").GetRawText().Trim('"');
             var joinUrl = document.RootElement.GetProperty("join_url").GetString();
@@ -1010,9 +1023,9 @@ namespace iD_Develops.Services
             request.Content = BuildGoogleEventContent(scheduleEvent, startUtc, endUtc);
             using var response = await SendProviderRequestAsync(request, cancellationToken);
             if (response == null)
-                return new(false, null, null, null, "Google Calendar could not be reached.");
+                return new(false, null, null, null, "Google Calendar could not be reached.", true);
             if (!response.IsSuccessStatusCode)
-                return new(false, null, null, null, await ProviderErrorAsync(response, "Google Calendar event creation failed.", cancellationToken));
+                return new(false, null, null, null, await ProviderErrorAsync(response, "Google Calendar event creation failed.", cancellationToken), (int)response.StatusCode >= 500);
             using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
             await RecordConnectionSuccessAsync(token.Connection, cancellationToken);
             return new(true, document.RootElement.GetProperty("id").GetString(), null, calendarId, null);
@@ -1452,7 +1465,7 @@ namespace iD_Develops.Services
         private sealed record TokenResult(bool Success, string? AccessToken, string? RefreshToken, int ExpiresInSeconds, string? Scope, string? ErrorMessage);
         private sealed record ProfileResult(bool Success, string? AccountId, string? Email, string? ErrorMessage);
         private sealed record TokenAccessResult(bool Success, string? AccessToken, SchedulingProviderConnection? Connection, string? ErrorMessage);
-        private sealed record ExternalCreateResult(bool Success, string? ExternalId, string? JoinUrl, string? CalendarId, string? ErrorMessage);
+        private sealed record ExternalCreateResult(bool Success, string? ExternalId, string? JoinUrl, string? CalendarId, string? ErrorMessage, bool OutcomeUncertain = false);
 
     }
 }
