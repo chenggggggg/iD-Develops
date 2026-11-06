@@ -446,9 +446,15 @@ the hold. Confirmed sessions use normal cancellation and their saved credit poli
 
 Private cancellation also cancels its calendar event, freeing the teacher's slot.
 Existing meetings, credit history, and staff restrictions are preserved. The legacy
-custom-session picker remains under Advanced options in the one-time-event section for arbitrary times
+one-time-event section explicitly chooses a course class or student for custom times
 and durations outside event-type booking. Those manual sessions retain their existing
-rules; routine private bookings should use event types.
+rules; routine bookings with credit requirements should use event types.
+
+Scheduling forms group attendees, timing, and delivery, with infrequent settings under
+Advanced options. Failed saves retain submitted values and conversion errors. Each form
+binds in its own handler so an unused form cannot block submission. A selected teacher
+that becomes unavailable remains visible after failure, with a message to change the
+teacher or time before retrying. Calendar labels use CET/CEST for the displayed dates.
 
 The `UnifiedAppointmentBooking` migration adds durable requests, the actor, and type
 delivery settings. Downgrade is blocked while setup requests remain unresolved.

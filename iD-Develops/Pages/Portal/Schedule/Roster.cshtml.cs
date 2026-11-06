@@ -22,8 +22,7 @@ public class RosterModel(ISchedulingService schedulingService) : PageModel
 
     public async Task<IActionResult> OnPostSaveAvailabilityAsync(CancellationToken cancellationToken)
     {
-        ModelState.Clear();
-        if (!TryValidateModel(AvailabilityInput, nameof(AvailabilityInput)))
+        if (!ModelState.IsValid || !TryValidateModel(AvailabilityInput, nameof(AvailabilityInput)))
         {
             await LoadAsync(cancellationToken);
             return Page();

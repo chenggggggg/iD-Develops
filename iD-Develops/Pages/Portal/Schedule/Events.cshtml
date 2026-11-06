@@ -18,7 +18,14 @@
     <nav class="flex flex-wrap gap-2 border-b border-slate-200 pb-4" aria-label="Scheduling options">
         @foreach (var option in new[] { (Mode: "session", Label: "Book session"), (Mode: "single", Label: "One-time event"), (Mode: "recurring", Label: "Recurring classes") })
         {
-            <a asp-page="/Portal/Schedule/Events" asp-route-mode="@option.Mode" aria-current="@(Model.SelectedMode == option.Mode ? "page" : null)" class="portal-btn @(Model.SelectedMode == option.Mode ? "portal-btn-primary" : "portal-btn-outline")">@option.Label</a>
+            @if (Model.SelectedMode == option.Mode)
+            {
+                <span aria-current="page" aria-disabled="true" class="portal-btn portal-btn-primary pointer-events-none select-none">@option.Label</span>
+            }
+            else
+            {
+                <a asp-page="/Portal/Schedule/Events" asp-route-mode="@option.Mode" class="portal-btn portal-btn-outline">@option.Label</a>
+            }
         }
     </nav>
     @if (Model.SelectedMode == "session")
@@ -27,7 +34,7 @@
     }
     else
     {
-        <div class="roster-page" data-roster-root>
+        <div class="grid min-w-0 gap-6" data-roster-root>
             @if (TempData["StatusMessage"] is string statusMessage)
             {
                 <div class="schedule-notice is-success" role="status">@statusMessage</div>

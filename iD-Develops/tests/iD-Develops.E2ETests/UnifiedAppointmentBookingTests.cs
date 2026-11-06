@@ -256,6 +256,7 @@ public sealed class UnifiedAppointmentBookingTests : Microsoft.Playwright.Xunit.
     [InlineData("Admin", true)]
     public async Task CalendarActionsSeparateSessionBookingEventsAndWorkingHours(string role, bool mobile)
     {
+        Page.PageError += (_, error) => Console.WriteLine($"Calendar browser error: {error}");
         await using var fixture = await BookingFixture.CreateAsync();
         var account = role == "Admin" ? fixture.Admin : role == "Teacher" ? fixture.Teacher : fixture.Student;
         await Page.SetViewportSizeAsync(mobile ? 390 : 1440, 1000);
@@ -265,6 +266,14 @@ public sealed class UnifiedAppointmentBookingTests : Microsoft.Playwright.Xunit.
         await Expect(Page.Locator(".portal-nav-list a[href*='book-private-session'], .portal-nav-list a[href*='/calendar/schedule']")).ToHaveCountAsync(0);
         if (role == "Student")
         {
+            var upcomingTab = Page.GetByRole(AriaRole.Tab, new() { Name = "Upcoming", Exact = true });
+            await Expect(upcomingTab).ToBeEnabledAsync();
+            await upcomingTab.FocusAsync();
+            await Expect(upcomingTab).ToBeFocusedAsync();
+            await Page.Keyboard.PressAsync("ArrowRight");
+            await Expect(Page.GetByRole(AriaRole.Tab, new() { Name = "Available events", Exact = true })).ToHaveAttributeAsync("aria-selected", "true");
+            await Page.Keyboard.PressAsync("ArrowLeft");
+            await Expect(upcomingTab).ToHaveAttributeAsync("aria-selected", "true");
             await Expect(actions.GetByRole(AriaRole.Link)).ToHaveCountAsync(1);
             await actions.GetByRole(AriaRole.Link, new() { Name = "Book session", Exact = true }).ClickAsync();
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Book session", Exact = true })).ToBeVisibleAsync();
@@ -283,27 +292,54 @@ public sealed class UnifiedAppointmentBookingTests : Microsoft.Playwright.Xunit.
         await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Schedule event", Exact = true })).ToBeVisibleAsync();
         await Expect(Page.Locator("[data-appointment-booking]")).ToBeVisibleAsync();
         var choices = Page.GetByRole(AriaRole.Navigation, new() { Name = "Scheduling options" });
+        async Task AssertCurrentPageDoesNotReloadAsync(string name)
+        {
+            var current = choices.Locator("[aria-current='page']");
+            await Expect(current).ToHaveTextAsync(name);
+            await Expect(current).ToHaveAttributeAsync("aria-disabled", "true");
+            await Expect(choices.GetByRole(AriaRole.Link)).ToHaveCountAsync(2);
+            var navigations = new List<string>();
+            EventHandler<IRequest> observe = (_, request) =>
+            {
+                if (request.IsNavigationRequest && request.Frame == Page.MainFrame) navigations.Add(request.Url);
+            };
+            Page.Request += observe;
+            try
+            {
+                for (var click = 0; click < 3; click++)
+                    await current.ClickAsync(new() { Force = true });
+                Assert.True(navigations.Count == 0, string.Join(Environment.NewLine, navigations));
+            }
+            finally { Page.Request -= observe; }
+        }
+        await AssertCurrentPageDoesNotReloadAsync("Book session");
         await choices.GetByRole(AriaRole.Link, new() { Name = "One-time event", Exact = true }).ClickAsync();
-        var manual = Page.Locator(".roster-manual-form");
+        await AssertCurrentPageDoesNotReloadAsync("One-time event");
+        var manual = Page.Locator("[data-manual-form]");
         await Expect(manual).ToBeVisibleAsync();
         await Expect(Page.Locator("[data-availability-form-root], [data-roster-form]")).ToHaveCountAsync(0);
         await manual.Locator("[data-manual-duration]").FillAsync("0");
-        await manual.EvaluateAsync("form => { form.noValidate = true; form.requestSubmit(); }");
+        await manual.EvaluateAsync("form => form.submit()");
         await Expect(Page.GetByRole(AriaRole.Alert)).ToContainTextAsync("Enter a duration between 5 and 1440 minutes.");
-        await Expect(Page.Locator(".roster-manual-form")).ToBeVisibleAsync();
+        await Expect(Page.Locator("[data-manual-form]")).ToBeVisibleAsync();
+        await manual.Locator("[data-manual-duration]").EvaluateAsync("input => { input.type = 'text'; input.value = 'invalid'; }");
+        await manual.EvaluateAsync("form => form.submit()");
+        await Expect(Page.GetByRole(AriaRole.Alert)).ToContainTextAsync("invalid");
+        await Expect(manual.Locator("[data-manual-duration]")).ToHaveAttributeAsync("value", "invalid");
         await choices.GetByRole(AriaRole.Link, new() { Name = "Recurring classes", Exact = true }).ClickAsync();
+        await AssertCurrentPageDoesNotReloadAsync("Recurring classes");
         var recurring = Page.Locator("[data-roster-form]");
         await Expect(recurring).ToBeVisibleAsync();
-        await Expect(Page.Locator("[data-availability-form-root], .roster-manual-form")).ToHaveCountAsync(0);
-        await recurring.EvaluateAsync("form => { form.noValidate = true; form.requestSubmit(); }");
-        await Expect(Page.GetByRole(AriaRole.Alert)).ToContainTextAsync("Select a course class.");
+        await Expect(Page.Locator("[data-availability-form-root], [data-manual-form]")).ToHaveCountAsync(0);
+        await recurring.EvaluateAsync("form => form.submit()");
+        await Expect(Page.GetByRole(AriaRole.Alert)).ToContainTextAsync("The value '' is invalid.");
         await Expect(Page.Locator("[data-roster-form]")).ToBeVisibleAsync();
         Assert.True(await Page.Locator("[data-schedule-events]").EvaluateAsync<bool>("element => element.scrollWidth <= element.clientWidth + 1"));
         await Page.ScreenshotAsync(new() { Path = System.IO.Path.Combine(AppContext.BaseDirectory, $"schedule-event-{role}-{mobile}.png"), FullPage = true });
         await Page.GotoAsync($"{LocalTestApplication.PortalBaseUrl}/calendar");
         await actions.GetByRole(AriaRole.Link, new() { Name = "Manage roster", Exact = true }).ClickAsync();
         await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Manage roster", Exact = true })).ToBeVisibleAsync();
-        await Expect(Page.Locator("[data-roster-form], .roster-manual-form, [data-appointment-booking]")).ToHaveCountAsync(0);
+        await Expect(Page.Locator("[data-roster-form], [data-manual-form], [data-appointment-booking]")).ToHaveCountAsync(0);
         var availability = Page.Locator("[data-availability-form-root]");
         var availabilityOwner = role == "Admin" ? fixture.OtherTeacher.User.Id : account.User.Id;
         if (role == "Admin")
@@ -318,6 +354,8 @@ public sealed class UnifiedAppointmentBookingTests : Microsoft.Playwright.Xunit.
         await availability.GetByRole(AriaRole.Button, new() { Name = "Save availability", Exact = true }).ClickAsync();
         await Expect(Page.GetByRole(AriaRole.Status)).ToHaveTextAsync("Teacher availability saved.");
         await Expect(Page.Locator("[data-availability-teacher]")).ToHaveValueAsync(availabilityOwner);
+        await Page.GetByRole(AriaRole.Heading, new() { Name = "Manage roster", Exact = true }).ScrollIntoViewIfNeededAsync();
+        await Page.ScreenshotAsync(new() { Path = System.IO.Path.Combine(AppContext.BaseDirectory, $"b11-roster-{role}-{mobile}.png") });
         await using var db = LocalTestApplication.CreateDbContext();
         Assert.True(await db.TeacherAvailabilityWindows.AnyAsync(item => item.TeacherUserId == availabilityOwner && item.DayOfWeek == DayOfWeek.Monday && item.LocalStartTime == new TimeOnly(8, 0) && item.LocalEndTime == new TimeOnly(17, 0)));
         if (role == "Admin") Assert.False(await db.TeacherAvailabilityWindows.AnyAsync(item => item.TeacherUserId == account.User.Id));
@@ -333,7 +371,7 @@ public sealed class UnifiedAppointmentBookingTests : Microsoft.Playwright.Xunit.
         var actor = role == "Admin" ? fixture.Admin : fixture.Teacher;
         await LoginAsync(Page, actor);
         await Page.GetByRole(AriaRole.Navigation, new() { Name = "Scheduling options" }).GetByRole(AriaRole.Link, new() { Name = "One-time event", Exact = true }).ClickAsync();
-        var form = Page.Locator(".roster-manual-form");
+        var form = Page.Locator("[data-manual-form]");
         await form.Locator("[data-manual-start]").FillAsync(fixture.Date.ToString("yyyy-MM-dd") + "T10:00");
         await form.Locator("[data-manual-duration]").FillAsync("45");
         if (role == "Admin")
@@ -341,19 +379,151 @@ public sealed class UnifiedAppointmentBookingTests : Microsoft.Playwright.Xunit.
             await Expect(form.Locator($"[data-manual-teacher] option[value='{fixture.Teacher.User.Id}']")).ToBeEnabledAsync();
             await form.Locator("[data-manual-teacher]").SelectOptionAsync(fixture.Teacher.User.Id);
         }
-        await form.GetByText("Advanced: custom session", new() { Exact = true }).ClickAsync();
+        await form.GetByRole(AriaRole.Radio, new() { Name = "Student", Exact = true }).CheckAsync();
         await form.Locator("[data-manual-student]").SelectOptionAsync(fixture.Student.User.Id);
         await form.Locator("[name='ManualInput.DeliveryType']").SelectOptionAsync("InPerson");
         await form.Locator("[name='ManualInput.Location']").FillAsync("E2E studio");
         await form.GetByRole(AriaRole.Button, new() { Name = "Schedule meeting", Exact = true }).ClickAsync();
         await Expect(Page.GetByRole(AriaRole.Status)).ToHaveTextAsync("Meeting scheduled.");
-        await Expect(Page.Locator(".roster-manual-form")).ToBeVisibleAsync();
+        await Expect(Page.Locator("[data-manual-form]")).ToBeVisibleAsync();
         await Expect(Page.Locator("[data-availability-form-root], [data-roster-form]")).ToHaveCountAsync(0);
         await using var db = LocalTestApplication.CreateDbContext();
         var meeting = await db.ScheduledEvents.SingleAsync(item => item.TeacherUserId == fixture.Teacher.User.Id);
         Assert.Equal(ScheduleDeliveryType.InPerson, meeting.DeliveryType);
         Assert.Equal(TimeSpan.FromMinutes(45), meeting.EndAtUtc - meeting.StartAtUtc);
         Assert.True(await db.EventBookings.AnyAsync(item => item.ScheduledEventId == meeting.Id && item.UserId == fixture.Student.User.Id));
+        // A rejected overlapping save must keep the attendee, time and advanced settings.
+        form = Page.Locator("[data-manual-form]");
+        await form.GetByRole(AriaRole.Radio, new() { Name = "Student", Exact = true }).CheckAsync();
+        await form.Locator("[data-manual-student]").SelectOptionAsync(fixture.Student.User.Id);
+        await form.Locator("[data-manual-start]").FillAsync(fixture.Date.ToString("yyyy-MM-dd") + "T11:00");
+        if (role == "Admin")
+        {
+            await Expect(form.Locator($"[data-manual-teacher] option[value='{fixture.Teacher.User.Id}']")).ToBeEnabledAsync();
+            await form.Locator("[data-manual-teacher]").SelectOptionAsync(fixture.Teacher.User.Id);
+            await Expect(form.Locator("[data-manual-availability-hint]")).Not.ToContainTextAsync("Checking");
+        }
+        await form.Locator("[name='ManualInput.DeliveryType']").SelectOptionAsync("InPerson");
+        await form.Locator("[name='ManualInput.Location']").FillAsync("Keep this location");
+        await form.Locator("[data-schedule-advanced] summary").ClickAsync();
+        await form.Locator("[name='ManualInput.BookingOpenDaysBefore']").FillAsync("17");
+        // The teacher becomes busy after selection, so the server must reject this race.
+        meeting.StartAtUtc = meeting.StartAtUtc.AddHours(1);
+        meeting.EndAtUtc = meeting.EndAtUtc.AddHours(1);
+        await db.SaveChangesAsync();
+        await form.GetByRole(AriaRole.Button, new() { Name = "Schedule meeting", Exact = true }).ClickAsync();
+        await Expect(Page.GetByRole(AriaRole.Alert)).ToContainTextAsync("overlaps");
+        await Expect(form.Locator("[data-manual-student]")).ToHaveValueAsync(fixture.Student.User.Id);
+        await Expect(form.Locator("[data-manual-start]")).ToHaveValueAsync(fixture.Date.ToString("yyyy-MM-dd") + "T11:00");
+        if (role == "Admin") await Expect(form.Locator("[data-manual-teacher]")).ToHaveValueAsync(fixture.Teacher.User.Id);
+        await Expect(form.Locator("[name='ManualInput.Location']")).ToHaveValueAsync("Keep this location");
+        await Expect(form.Locator("[name='ManualInput.BookingOpenDaysBefore']")).ToHaveValueAsync("17");
+        Assert.Equal(1, await db.ScheduledEvents.CountAsync(item => item.TeacherUserId == fixture.Teacher.User.Id));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RecurringEditorPreservesAdvancedSettingsAndSupportsKeyboardEditing(bool mobile)
+    {
+        await using var fixture = await BookingFixture.CreateAsync();
+        await using var db = LocalTestApplication.CreateDbContext();
+        var lesson = new CourseClass { Title = $"Roster UX {Guid.NewGuid():N}", DurationMinutes = 45, Capacity = 4 };
+        var course = new Course { Name = "Roster UX course", CreatedByUserId = fixture.Admin.User.Id, Sections = [new CourseSection { Title = "Classes", Classes = [lesson] }] };
+        db.Courses.Add(course);
+        await db.SaveChangesAsync();
+        try
+        {
+            await Page.SetViewportSizeAsync(mobile ? 390 : 1440, 1000);
+            await LoginAsync(Page, fixture.Admin);
+            await Page.GetByRole(AriaRole.Navigation, new() { Name = "Scheduling options" }).GetByRole(AriaRole.Link, new() { Name = "Recurring classes", Exact = true }).ClickAsync();
+            var form = Page.Locator("[data-roster-form]");
+            async Task FillScheduleAsync()
+            {
+                await form.Locator("[data-roster-class]").SelectOptionAsync(lesson.Id.ToString());
+                await form.Locator("[data-roster-day]").SelectOptionAsync(fixture.Date.DayOfWeek.ToString());
+                await form.Locator("[data-roster-start]").FillAsync("10:00");
+                await form.Locator("[data-roster-teacher]").SelectOptionAsync(fixture.Teacher.User.Id);
+                await form.Locator("[data-roster-field='ActiveFromDate']").FillAsync(fixture.Date.ToString("yyyy-MM-dd"));
+                await form.Locator("[data-roster-field='ActiveUntilDate']").FillAsync(fixture.Date.AddDays(14).ToString("yyyy-MM-dd"));
+                await form.Locator("[data-delivery]").SelectOptionAsync("InPerson");
+                await form.Locator("[data-location]").FillAsync("Studio A");
+            }
+            await FillScheduleAsync();
+            await Expect(form.Locator("[data-class-summary]")).ToContainTextAsync("45 minutes");
+            await Expect(form.Locator("[data-class-summary]")).ToContainTextAsync("4 seats");
+            var advanced = form.Locator("[data-schedule-advanced]");
+            Assert.False(await advanced.EvaluateAsync<bool>("element => element.open"));
+            await advanced.Locator("summary").ClickAsync();
+            await form.Locator("[data-roster-field='BookingOpenDaysBefore']").FillAsync("-1");
+            await advanced.EvaluateAsync("element => element.open = false");
+            await form.GetByRole(AriaRole.Button, new() { Name = "Save recurring class", Exact = true }).ClickAsync();
+            await Expect(form.Locator("[data-roster-field='BookingOpenDaysBefore']")).ToBeFocusedAsync();
+            Assert.True(await advanced.EvaluateAsync<bool>("element => element.open"));
+            Assert.False(await db.ScheduleRosterRules.AnyAsync(item => item.CourseClassId == lesson.Id));
+            await form.Locator("[data-roster-field='BookingOpenDaysBefore']").FillAsync("17");
+            await form.Locator("[data-roster-field='BookingCloseHoursBefore']").FillAsync("2");
+            await form.Locator("[data-roster-field='GenerateWeeksAhead']").SelectOptionAsync("4");
+            Assert.True(await Page.Locator("[data-schedule-events]").EvaluateAsync<bool>("element => element.scrollWidth <= element.clientWidth + 1"));
+            var fontSize = await form.Locator("[data-roster-class]").EvaluateAsync<double>("element => parseFloat(getComputedStyle(element).fontSize)");
+            Assert.True(fontSize >= (mobile ? 16 : 14));
+            if (!mobile)
+            {
+                var editor = await Page.Locator("[data-roster-editor]").BoundingBoxAsync();
+                Assert.True(editor!.Width >= 500, $"Editor is only {editor.Width}px wide.");
+            }
+            await Page.Locator("[data-roster-editor]").ScreenshotAsync(new() { Path = System.IO.Path.Combine(AppContext.BaseDirectory, $"b11-recurring-{mobile}.png") });
+            await form.GetByRole(AriaRole.Group, new() { Name = "Class and teacher", Exact = true }).ScrollIntoViewIfNeededAsync();
+            await Page.ScreenshotAsync(new() { Path = System.IO.Path.Combine(AppContext.BaseDirectory, $"b11-recurring-core-{mobile}.png") });
+            await advanced.ScrollIntoViewIfNeededAsync();
+            await Page.ScreenshotAsync(new() { Path = System.IO.Path.Combine(AppContext.BaseDirectory, $"b11-recurring-advanced-{mobile}.png") });
+            await form.GetByRole(AriaRole.Button, new() { Name = "Save recurring class", Exact = true }).ClickAsync();
+            await Expect(Page.GetByText("Recurring class created.", new() { Exact = true })).ToBeVisibleAsync();
+            var rule = await db.ScheduleRosterRules.AsNoTracking().SingleAsync(item => item.CourseClassId == lesson.Id);
+            var edit = Page.GetByRole(AriaRole.Button, new() { Name = $"Edit {lesson.Title}", Exact = true });
+            await edit.FocusAsync();
+            await Page.Keyboard.PressAsync("Enter");
+            await Expect(form.Locator("[data-roster-teacher]")).ToBeFocusedAsync();
+            await Expect(form.Locator("[data-roster-field='Id']")).ToHaveValueAsync(rule.Id.ToString());
+            await Expect(form.Locator("[data-roster-field='BookingOpenDaysBefore']")).ToHaveValueAsync("17");
+            await Expect(form.Locator("[data-roster-field='BookingCloseHoursBefore']")).ToHaveValueAsync("2");
+            await form.Locator("[data-location]").FillAsync("Studio B");
+            await form.GetByRole(AriaRole.Button, new() { Name = "Update recurring class", Exact = true }).ClickAsync();
+            await Expect(Page.GetByText("Recurring class updated.", new() { Exact = true })).ToBeVisibleAsync();
+            Assert.Equal("Studio B", (await db.ScheduleRosterRules.AsNoTracking().SingleAsync(item => item.Id == rule.Id)).Location);
+            await FillScheduleAsync();
+            await advanced.Locator("summary").ClickAsync();
+            await form.Locator("[data-roster-field='BookingOpenDaysBefore']").FillAsync("9");
+            await form.GetByRole(AriaRole.Button, new() { Name = "Save recurring class", Exact = true }).ClickAsync();
+            await Expect(Page.GetByRole(AriaRole.Alert)).ToContainTextAsync("overlaps");
+            await Expect(form.Locator("[data-roster-class]")).ToHaveValueAsync(lesson.Id.ToString());
+            await Expect(form.Locator("[data-roster-teacher]")).ToHaveValueAsync(fixture.Teacher.User.Id);
+            await Expect(form.Locator("[data-roster-field='BookingOpenDaysBefore']")).ToHaveValueAsync("9");
+            Assert.Equal(1, await db.ScheduleRosterRules.CountAsync(item => item.CourseClassId == lesson.Id));
+        }
+        finally
+        {
+            // Fixtures have no external meetings; remove generated unbooked occurrences before their rule/course.
+            await db.ScheduledEvents.Where(item => item.CourseClassId == lesson.Id).ExecuteDeleteAsync();
+            await db.ScheduleRosterRules.Where(item => item.CourseClassId == lesson.Id).ExecuteDeleteAsync();
+            await db.Courses.Where(item => item.Id == course.Id).ExecuteDeleteAsync();
+        }
+    }
+
+    [Theory]
+    [InlineData("2027-01-10T12:00:00Z", "CET")]
+    [InlineData("2027-06-15T12:00:00Z", "CEST")]
+    [InlineData("2027-03-28T12:00:00Z", "CET/CEST")]
+    public async Task CalendarShowsAmsterdamZoneForTheDisplayedWeek(string date, string label)
+    {
+        await using var account = await CatalogBrowsingFixture.CreateAsync(administrator: true);
+        await LoginAsync(Page, account);
+        await Page.SetViewportSizeAsync(1440, 1000);
+        await Page.Clock.SetFixedTimeAsync(DateTime.Parse(date, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AdjustToUniversal));
+        await Page.GotoAsync($"{LocalTestApplication.PortalBaseUrl}/calendar");
+        await Expect(Page.Locator("[data-schedule-zone-label]")).ToHaveTextAsync($"Amsterdam ({label})");
+        Assert.True(await Page.Locator("[data-schedule-root]").EvaluateAsync<bool>("element => element.scrollWidth <= element.clientWidth + 1"));
+        await Page.ScreenshotAsync(new() { Path = System.IO.Path.Combine(AppContext.BaseDirectory, $"b11-calendar-{label.Replace('/', '-')}.png"), FullPage = true });
     }
 
     private static async Task LoginAsync(IPage page, CatalogBrowsingFixture account)

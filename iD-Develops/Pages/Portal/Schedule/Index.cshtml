@@ -64,7 +64,7 @@
                     <label for="scheduleCalendarView">
                         <span class="sr-only">Select calendar</span>
                         <span class="schedule-calendar-select">
-                            <select id="scheduleCalendarView" name="CalendarView" onchange="this.form.submit()">
+                            <select id="scheduleCalendarView" name="CalendarView" class="min-h-11 min-w-0 text-base sm:text-sm" onchange="this.form.submit()">
                                 <option value="mine" selected="@(Model.CalendarView == "mine" ? "selected" : null)">My calendar</option>
                                 <option value="all" selected="@(Model.CalendarView == "all" ? "selected" : null)">All calendars</option>
                                 <optgroup label="Teachers">
@@ -89,15 +89,15 @@
             }
             <div class="schedule-time-zone">
                 <span class="schedule-time-zone-icon" aria-hidden="true"><i class="fa-solid fa-earth-europe"></i></span>
-                <span><small>Time zone</small><strong>Amsterdam</strong></span>
+                <span><small>Time zone</small><strong data-schedule-zone-label>Amsterdam (CET/CEST)</strong></span>
                 <span class="sr-only">Europe/Amsterdam</span>
             </div>
         </div>
     </div>
 
-    <div class="schedule-workspace">
-        <section class="schedule-calendar-panel" aria-label="Calendar">
-            <div class="schedule-calendar-legend" aria-label="Calendar legend">
+    <div class="schedule-workspace grid min-w-0 grid-cols-1 items-start gap-6 2xl:grid-cols-[minmax(0,1fr)_22rem]">
+        <section class="min-w-0 rounded-xl border border-[var(--id-border)] bg-white p-3 sm:p-5" aria-label="Calendar">
+            <div class="schedule-calendar-legend text-sm" aria-label="Calendar legend">
                 @if (Model.CanManageSchedule && !Model.ViewingStudentCalendar)
                 {
                     <span><i class="is-managed"></i> Scheduled</span>
@@ -117,29 +117,29 @@
             <div id="portalScheduleCalendar" class="schedule-calendar"></div>
         </section>
 
-        <aside class="schedule-upcoming" aria-labelledby="schedule-upcoming-title">
+        <aside class="schedule-upcoming min-w-0 rounded-xl border border-[var(--id-border)] bg-white p-5" aria-labelledby="schedule-upcoming-title">
             <div class="schedule-upcoming-heading">
                 <p class="portal-eyebrow">Calendar</p>
-                <h2 id="schedule-upcoming-title">Your events</h2>
+                <h2 id="schedule-upcoming-title" class="m-0 text-lg font-semibold text-[var(--id-ink)]">Your events</h2>
             </div>
             @if (!Model.CanManageSchedule)
             {
                 <div class="schedule-upcoming-tabs" role="tablist" aria-label="Event lists">
-                    <button type="button" class="is-active" role="tab" aria-selected="true"
+                    <button type="button" class="is-active text-sm disabled:cursor-wait disabled:opacity-50" role="tab" disabled aria-selected="true"
                             aria-controls="scheduleParticipatingEvents" data-schedule-panel-tab="upcoming">Upcoming</button>
-                    <button type="button" role="tab" aria-selected="false"
-                            aria-controls="scheduleAvailableEvents" data-schedule-panel-tab="available">Available events</button>
+                    <button type="button" class="text-sm disabled:cursor-wait disabled:opacity-50" role="tab" disabled aria-selected="false"
+                            aria-controls="scheduleAvailableEvents" tabindex="-1" data-schedule-panel-tab="available">Available events</button>
                 </div>
             }
             <div id="scheduleParticipatingEvents" role="tabpanel" data-schedule-panel="upcoming">
-                <div class="schedule-upcoming-list" data-schedule-upcoming-list>
+                <div class="schedule-upcoming-list grid grid-cols-1 gap-3 md:grid-cols-2 2xl:grid-cols-1" data-schedule-upcoming-list>
                     @if (Model.Overview.UpcomingItems.Count == 0)
                     {
                         <p class="schedule-empty">No upcoming meetings you participate in.</p>
                     }
                     @foreach (var item in Model.Overview.UpcomingItems)
                     {
-                        <button type="button" class="schedule-upcoming-item"
+                        <button type="button" class="schedule-upcoming-item min-h-11 min-w-0 gap-3 rounded-lg p-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]"
                                 data-schedule-event-id="@item.Id"
                                 data-schedule-event-start="@item.Start.ToString("O")"
                                 data-schedule-event-end="@item.End.ToString("O")">
@@ -148,8 +148,8 @@
                                 <span>@item.Start.ToString("MMM")</span>
                             </time>
                             <span>
-                                <strong>@item.Title</strong>
-                                <small data-schedule-upcoming-meta>@item.Start.ToString("HH:mm") UTC &middot; @item.TeacherName</small>
+                                <strong class="break-words text-sm font-semibold">@item.Title</strong>
+                                <small class="text-sm" data-schedule-upcoming-meta>@item.Start.ToString("HH:mm") UTC &middot; @item.TeacherName</small>
                             </span>
                         </button>
                     }
@@ -165,7 +165,7 @@
                         }
                         @foreach (var item in Model.Overview.AvailableItems)
                         {
-                            <button type="button" class="schedule-upcoming-item"
+                            <button type="button" class="schedule-upcoming-item min-h-11 min-w-0 gap-3 rounded-lg p-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]"
                                     data-schedule-event-id="@item.Id"
                                     data-schedule-event-start="@item.Start.ToString("O")"
                                     data-schedule-event-end="@item.End.ToString("O")">
@@ -174,8 +174,8 @@
                                     <span>@item.Start.ToString("MMM")</span>
                                 </time>
                                 <span>
-                                    <strong>@item.Title</strong>
-                                    <small data-schedule-upcoming-meta>@item.Start.ToString("HH:mm") UTC &middot; @item.TeacherName</small>
+                                    <strong class="break-words text-sm font-semibold">@item.Title</strong>
+                                    <small class="text-sm" data-schedule-upcoming-meta>@item.Start.ToString("HH:mm") UTC &middot; @item.TeacherName</small>
                                 </span>
                             </button>
                         }
@@ -189,7 +189,7 @@
         @Html.AntiForgeryToken()
     </form>
 
-    <dialog class="schedule-dialog" data-schedule-dialog>
+    <dialog aria-labelledby="schedule-dialog-title" class="schedule-dialog" data-schedule-dialog>
         <div class="schedule-dialog-header">
             <span class="schedule-dialog-icon" data-schedule-dialog-icon aria-hidden="true">
                 <i class="fa-solid fa-video"></i>
@@ -200,7 +200,7 @@
         </div>
         <div class="schedule-dialog-body">
             <p class="portal-eyebrow" data-schedule-dialog-course></p>
-            <h2 data-schedule-dialog-title></h2>
+            <h2 id="schedule-dialog-title" data-schedule-dialog-title></h2>
             <dl class="schedule-dialog-details">
                 <div><dt><i class="fa-regular fa-clock" aria-hidden="true"></i> Time</dt><dd data-schedule-dialog-time></dd></div>
                 <div><dt><i class="fa-solid fa-chalkboard-user" aria-hidden="true"></i> Teacher</dt><dd data-schedule-dialog-teacher></dd></div>

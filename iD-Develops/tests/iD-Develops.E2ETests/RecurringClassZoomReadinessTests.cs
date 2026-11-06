@@ -65,7 +65,8 @@ public sealed class RecurringClassZoomReadinessTests : Microsoft.Playwright.Xuni
             await Expect(Page.Locator("[data-roster-warning]")).ToContainTextAsync("Recurring class saved");
             await Expect(Page.Locator($"[data-roster-rule-id='{rule.Id}'] [data-roster-provisioning-status]")).ToHaveTextAsync("Pending Zoom setup");
             Assert.False(await db.ScheduledEvents.AnyAsync(item => item.ScheduleRosterRuleId == rule.Id));
-            Assert.True(await Page.Locator("[data-roster-root]").EvaluateAsync<bool>("element => element.scrollWidth <= element.clientWidth + 1"));
+            var layout = await Page.Locator("[data-roster-root]").EvaluateAsync<JsonElement>("root => ({width:root.clientWidth,scroll:root.scrollWidth,overflow:[...root.querySelectorAll('*')].filter(element=>element.getBoundingClientRect().right>root.getBoundingClientRect().right+1).map(element=>({tag:element.tagName,text:element.textContent.slice(0,60),width:element.getBoundingClientRect().width}))})");
+            Assert.True(layout.GetProperty("scroll").GetInt32() <= layout.GetProperty("width").GetInt32() + 1, layout.ToString());
         }
         finally
         {

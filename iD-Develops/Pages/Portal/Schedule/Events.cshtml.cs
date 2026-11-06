@@ -3,7 +3,6 @@ using iD_Develops.Enums;
 using iD_Develops.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace iD_Develops.Pages.Portal.Schedule;
 
@@ -16,9 +15,9 @@ public class EventsModel(IAppointmentService appointmentService, ISchedulingServ
     [BindProperty(SupportsGet = true)] public string? Mode { get; set; }
     [BindProperty(SupportsGet = true)] public int? CourseClassId { get; set; }
     public string SelectedMode => Mode is "single" or "recurring" ? Mode : "session";
-    // Each scheduling handler explicitly validates its own form; unrelated forms must not invalidate session bookings.
-    [BindProperty, ValidateNever] public RosterRuleForm RuleInput { get; set; } = new();
-    [BindProperty, ValidateNever] public ManualEventForm ManualInput { get; set; } = new();
+    // Bind only the submitted form in its handler, preserving conversion errors without validating unused forms.
+    public RosterRuleForm RuleInput { get; set; } = new();
+    public ManualEventForm ManualInput { get; set; } = new();
 
     public override async Task<IActionResult> OnGetAsync(CancellationToken cancellationToken)
     {
@@ -74,17 +73,23 @@ public class EventsModel(IAppointmentService appointmentService, ISchedulingServ
     public async Task<IActionResult> OnPostRetryRuleAsync(int ruleId, CancellationToken cancellationToken)
         => Complete(await _schedulingService.RetryRosterRuleAsync(GetActor(), ruleId, cancellationToken), "Meeting setup completed.");
 
-    public async Task<IActionResult> OnPostSaveRuleAsync(CancellationToken cancellationToken)
+    public async Task<IActionResult> OnPostSaveRuleAsync([Bind(Prefix = nameof(RuleInput))] RosterRuleForm input, CancellationToken cancellationToken)
     {
+        RuleInput = input;
         Mode = "recurring";
-        ModelState.Clear();
-        if (!TryValidateModel(RuleInput, nameof(RuleInput)))
+        if (!ModelState.IsValid || !TryValidateModel(RuleInput, nameof(RuleInput)))
         {
             await LoadScheduleAsync(cancellationToken);
             return Page();
         }
 
         var result = await _schedulingService.SaveRosterRuleAsync(GetActor(), RuleInput.ToInput(), cancellationToken);
+        if (!result.Success)
+        {
+            ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "The recurring class could not be saved.");
+            await LoadScheduleAsync(cancellationToken);
+            return Page();
+        }
         return Complete(result, RuleInput.Id > 0 ? "Recurring class updated." : "Recurring class created.");
     }
 
@@ -94,17 +99,23 @@ public class EventsModel(IAppointmentService appointmentService, ISchedulingServ
         return Complete(result, "Recurring class removed.");
     }
 
-    public async Task<IActionResult> OnPostCreateManualAsync(CancellationToken cancellationToken)
+    public async Task<IActionResult> OnPostCreateManualAsync([Bind(Prefix = nameof(ManualInput))] ManualEventForm input, CancellationToken cancellationToken)
     {
+        ManualInput = input;
         Mode = "single";
-        ModelState.Clear();
-        if (!TryValidateModel(ManualInput, nameof(ManualInput)))
+        if (!ModelState.IsValid || !TryValidateModel(ManualInput, nameof(ManualInput)))
         {
             await LoadScheduleAsync(cancellationToken);
             return Page();
         }
 
         var result = await _schedulingService.CreateManualEventAsync(GetActor(), ManualInput.ToInput(), cancellationToken);
+        if (!result.Success)
+        {
+            ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "The event could not be saved.");
+            await LoadScheduleAsync(cancellationToken);
+            return Page();
+        }
         return Complete(result, "Meeting scheduled.");
     }
 

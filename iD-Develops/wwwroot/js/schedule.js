@@ -143,6 +143,10 @@
             list: "List"
         },
         events: loadEvents,
+        datesSet: function (info) {
+            const label = root.querySelector("[data-schedule-zone-label]");
+            if (label) label.textContent = `Amsterdam (${window.PortalScheduleTime.zoneRange(info.start, new Date(info.end.getTime() - 1))})`;
+        },
         eventDidMount: function (info) {
             const category = info.event.extendedProps.category || "available";
             const palette = eventPalette(category);
@@ -224,7 +228,7 @@
             minute: "2-digit",
             timeZone: intlTimeZone()
         });
-        return `${date}, ${times.format(start)}${end ? ` - ${times.format(end)}` : ""}`;
+        return `${date}, ${times.format(start)}${end ? ` - ${times.format(end)}` : ""} ${window.PortalScheduleTime.zoneRange(start, end || start)}`;
     }
 
     async function post(handler, values) {
@@ -327,7 +331,7 @@
         items.forEach(function (item) {
             const button = document.createElement("button");
             button.type = "button";
-            button.className = "schedule-upcoming-item";
+            button.className = "schedule-upcoming-item min-h-11 min-w-0 gap-3 rounded-lg p-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]";
             button.dataset.scheduleEventId = String(item.id);
             button.dataset.scheduleEventStart = item.start;
             button.dataset.scheduleEventEnd = item.end;
@@ -343,9 +347,11 @@
 
             const copy = document.createElement("span");
             const title = document.createElement("strong");
+            title.className = "break-words text-sm font-semibold";
             title.textContent = item.title;
             const meta = document.createElement("small");
-            meta.textContent = `${new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit", timeZone: intlTimeZone() }).format(start)} \u00b7 ${item.teacherName}`;
+            meta.className = "text-sm";
+            meta.textContent = `${new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit", timeZone: intlTimeZone() }).format(start)} ${window.PortalScheduleTime.zoneLabel(start)} \u00b7 ${item.teacherName}`;
             copy.append(title, meta);
             button.append(time, copy);
             list.appendChild(button);
@@ -359,12 +365,26 @@
                 const isSelected = candidate === tab;
                 candidate.classList.toggle("is-active", isSelected);
                 candidate.setAttribute("aria-selected", String(isSelected));
+                candidate.tabIndex = isSelected ? 0 : -1;
             });
             root.querySelectorAll("[data-schedule-panel]").forEach(function (panel) {
                 panel.hidden = panel.dataset.schedulePanel !== selectedPanel;
             });
         });
     });
+
+    const panelTabs = [...root.querySelectorAll("[data-schedule-panel-tab]")];
+    panelTabs.forEach((tab, index) => tab.addEventListener("keydown", event => {
+        const next = event.key === "ArrowRight" ? (index + 1) % panelTabs.length
+            : event.key === "ArrowLeft" ? (index + panelTabs.length - 1) % panelTabs.length
+            : event.key === "Home" ? 0 : event.key === "End" ? panelTabs.length - 1 : null;
+        if (next === null) return;
+        event.preventDefault();
+        panelTabs[next].click();
+        panelTabs[next].focus();
+    }));
+    panelTabs.forEach(tab => { tab.disabled = false; });
+    root.dataset.scheduleReady = "true";
 
     by("dialog-close").addEventListener("click", closeDialog);
     dialog.addEventListener("click", function (event) {

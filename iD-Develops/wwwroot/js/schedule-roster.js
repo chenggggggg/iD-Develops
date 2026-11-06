@@ -26,14 +26,15 @@
             startMinutes + durationMinutes <= toMinutes(window.End);
     }
 
-    function filterTeacherOptions(select, predicate) {
+    function filterTeacherOptions(select, predicate, preserveSelection = false) {
         if (!select || select.tagName !== "SELECT") return 0;
         let availableCount = 0;
         Array.from(select.options).forEach(function (option, index) {
             if (index === 0) return;
             const available = predicate(option.value);
-            option.hidden = !available;
-            option.disabled = !available;
+            const keepSelected = preserveSelection && option.selected;
+            option.hidden = !available && !keepSelected;
+            option.disabled = !available && !keepSelected;
             if (available) availableCount += 1;
         });
         if (select.value && select.selectedOptions[0]?.disabled) select.value = "";
@@ -47,7 +48,9 @@
 
     function updateAvailabilityDay(row) {
         const enabled = row.querySelector("[data-availability-enabled]")?.checked === true;
-        row.classList.toggle("is-enabled", enabled);
+        row.dataset.available = String(enabled);
+        const status = row.querySelector("[data-availability-status]");
+        if (status) status.textContent = enabled ? "Available" : "Unavailable";
         row.querySelectorAll("[data-availability-start], [data-availability-end]").forEach(function (input) {
             input.disabled = !enabled;
         });
@@ -115,7 +118,20 @@
         if (!option?.value) return;
         if (rosterDuration && option.dataset.duration) rosterDuration.value = option.dataset.duration;
         if (rosterCapacity && option.dataset.capacity) rosterCapacity.value = option.dataset.capacity;
+        updateClassSummary();
         applyRosterAvailability();
+    }
+
+    function updateClassSummary() {
+        const summary = form?.querySelector("[data-class-summary]");
+        if (summary) summary.textContent = rosterClass?.value
+            ? `${rosterDuration.value} minutes · ${rosterCapacity.value} seats`
+            : "Duration and capacity follow the selected course class.";
+    }
+
+    function focusEditor() {
+        editor.scrollIntoView({ behavior: "instant", block: "start" });
+        form.querySelector("select, input:not([type=hidden])")?.focus({ preventScroll: true });
     }
 
     function setField(name, value) {
@@ -138,8 +154,11 @@
         Object.keys(rule).forEach(function (key) { setField(key, rule[key]); });
         title.textContent = "Edit recurring class";
         submitLabel.textContent = "Update recurring class";
+        updateClassSummary();
+        syncDelivery(form);
+        form.querySelector("[data-schedule-advanced]").open = true;
         applyRosterAvailability();
-        editor.scrollIntoView({ behavior: "smooth", block: "start" });
+        focusEditor();
     }
 
     function resetForm() {
@@ -147,6 +166,8 @@
         setField("Id", 0);
         title.textContent = "New recurring class";
         submitLabel.textContent = "Save recurring class";
+        syncDelivery(form);
+        form.querySelector("[data-schedule-advanced]").open = false;
         applyClassDefaults();
         applyRosterAvailability();
     }
@@ -156,7 +177,7 @@
     });
     root.querySelector("[data-roster-new]")?.addEventListener("click", function () {
         resetForm();
-        editor.scrollIntoView({ behavior: "smooth", block: "start" });
+        focusEditor();
     });
     root.querySelector("[data-roster-reset]")?.addEventListener("click", resetForm);
     rosterTeacher?.addEventListener("change", applyRosterAvailability);
@@ -164,7 +185,8 @@
     rosterStart?.addEventListener("input", applyRosterAvailability);
     rosterDuration?.addEventListener("input", applyRosterAvailability);
     rosterClass?.addEventListener("change", applyClassDefaults);
-    applyClassDefaults();
+    if (form?.dataset.preserveValues !== "true") applyClassDefaults();
+    updateClassSummary();
     applyRosterAvailability();
 
     const manualCourse = root.querySelector("[data-manual-course]");
@@ -198,28 +220,40 @@
             const teachers = await response.json();
             if (requestNumber !== manualAvailabilityRequest) return;
             const availableIds = new Set(teachers.map(function (teacher) { return teacher.id; }));
+            const preserve = manualTeacher.closest("form").dataset.preserveValues === "true";
+            const selected = manualTeacher.value;
             const availableCount = filterTeacherOptions(manualTeacher, function (teacherId) {
                 return availableIds.has(teacherId);
-            });
+            }, preserve);
+            manualTeacher.setCustomValidity(preserve && selected && !availableIds.has(selected)
+                ? "This teacher is unavailable at the selected time. Choose another time or teacher." : "");
             if (manualAvailabilityHint) {
-                manualAvailabilityHint.textContent = `${availableCount} staff member${availableCount === 1 ? "" : "s"} available for this time and duration.`;
+                manualAvailabilityHint.textContent = manualTeacher.validationMessage || `${availableCount} staff member${availableCount === 1 ? "" : "s"} available for this time and duration.`;
             }
         } catch (_error) {
             if (requestNumber !== manualAvailabilityRequest) return;
-            filterTeacherOptions(manualTeacher, function () { return false; });
+            filterTeacherOptions(manualTeacher, function () { return false; }, manualTeacher.closest("form").dataset.preserveValues === "true");
+            manualTeacher.setCustomValidity("Teacher availability could not be confirmed. Change the time to try again.");
             if (manualAvailabilityHint) manualAvailabilityHint.textContent = "Availability could not be loaded.";
         }
     }
 
     function updateManualChoice(changed) {
         if (!manualCourse || !manualStudent) return;
-        if (changed === manualStudent && manualStudent.value) manualCourse.value = "";
-        if (changed === manualCourse && manualCourse.value) manualStudent.value = "";
-        const hasCourse = Boolean(manualCourse.value);
-        const hasStudent = Boolean(manualStudent.value);
-        manualCourse.disabled = hasStudent;
-        manualStudent.disabled = hasCourse;
-        if (studentSearch) studentSearch.disabled = hasCourse;
+        const audience = root.querySelector("[data-manual-audience]:checked")?.value || "course";
+        const forStudent = audience === "student";
+        if (changed?.matches("[data-manual-audience]")) {
+            if (forStudent) manualCourse.value = "";
+            else manualStudent.value = "";
+        }
+        manualCourse.disabled = forStudent;
+        manualCourse.required = !forStudent;
+        manualStudent.disabled = !forStudent;
+        manualStudent.required = forStudent;
+        if (studentSearch) studentSearch.disabled = !forStudent;
+        root.querySelectorAll("[data-manual-target]").forEach(section => {
+            section.hidden = section.dataset.manualTarget !== audience;
+        });
     }
 
     studentSearch?.addEventListener("input", function () {
@@ -230,9 +264,47 @@
     });
     manualCourse?.addEventListener("change", function () { updateManualChoice(manualCourse); });
     manualStudent?.addEventListener("change", function () { updateManualChoice(manualStudent); });
+    root.querySelectorAll("[data-manual-audience]").forEach(input => input.addEventListener("change", () => updateManualChoice(input)));
     manualStart?.addEventListener("input", applyManualTeacherAvailability);
     manualDuration?.addEventListener("input", applyManualTeacherAvailability);
     manualTimeZone?.addEventListener("change", applyManualTeacherAvailability);
+    manualTeacher?.addEventListener("change", applyManualTeacherAvailability);
     applyManualTeacherAvailability();
     updateManualChoice();
+
+    function syncDelivery(targetForm) {
+        const delivery = targetForm?.querySelector("[data-delivery]")?.value;
+        const locationField = targetForm?.querySelector("[data-location-field]");
+        if (locationField) {
+            locationField.hidden = delivery !== "InPerson";
+            const location = locationField.querySelector("input");
+            if (location) location.required = delivery === "InPerson";
+        }
+        if (delivery === "OtherOnline") {
+            const advanced = targetForm.querySelector("[data-schedule-advanced]");
+            if (advanced) advanced.open = true;
+        }
+    }
+
+    root.querySelectorAll("form").forEach(targetForm => {
+        syncDelivery(targetForm);
+        targetForm.querySelector("[data-delivery]")?.addEventListener("change", () => syncDelivery(targetForm));
+        // Also validate collapsed controls when legacy unobtrusive validation sets novalidate.
+        targetForm.addEventListener("submit", event => {
+            if (!targetForm.checkValidity()) {
+                event.preventDefault();
+                targetForm.reportValidity();
+            }
+        });
+    });
+    function revealDetails(element) {
+        let details = element.closest("details");
+        while (details) {
+            details.open = true;
+            details = details.parentElement.closest("details");
+        }
+    }
+    root.addEventListener("invalid", event => revealDetails(event.target), true);
+    root.querySelectorAll(".input-validation-error").forEach(revealDetails);
+    root.querySelector(".validation-summary-errors[tabindex]")?.focus();
 }());
