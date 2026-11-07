@@ -7,7 +7,7 @@ using Microsoft.Playwright;
 
 namespace iD_Develops.E2ETests;
 
-public sealed class RecurringClassZoomReadinessTests : Microsoft.Playwright.Xunit.PageTest
+public sealed class RecurringClassZoomReadinessTests : DiagnosticPageTest
 {
     [Theory]
     [InlineData(false)]
@@ -65,7 +65,8 @@ public sealed class RecurringClassZoomReadinessTests : Microsoft.Playwright.Xuni
             await Expect(Page.Locator("[data-roster-warning]")).ToContainTextAsync("Recurring class saved");
             await Expect(Page.Locator($"[data-roster-rule-id='{rule.Id}'] [data-roster-provisioning-status]")).ToHaveTextAsync("Pending Zoom setup");
             Assert.False(await db.ScheduledEvents.AnyAsync(item => item.ScheduleRosterRuleId == rule.Id));
-            Assert.True(await Page.Locator("[data-roster-root]").EvaluateAsync<bool>("element => element.scrollWidth <= element.clientWidth + 1"));
+            var layout = await Page.Locator("[data-roster-root]").EvaluateAsync<JsonElement>("root => ({width:root.clientWidth,scroll:root.scrollWidth,overflow:[...root.querySelectorAll('*')].filter(element=>element.getBoundingClientRect().right>root.getBoundingClientRect().right+1).map(element=>({tag:element.tagName,text:element.textContent.slice(0,60),width:element.getBoundingClientRect().width}))})");
+            Assert.True(layout.GetProperty("scroll").GetInt32() <= layout.GetProperty("width").GetInt32() + 1, layout.ToString());
         }
         finally
         {
@@ -114,10 +115,7 @@ public sealed class RecurringClassZoomReadinessTests : Microsoft.Playwright.Xuni
 
     private async Task LoginAsync(CatalogBrowsingFixture account, string path)
     {
-        await Page.GotoAsync($"{LocalTestApplication.PortalBaseUrl}/login?returnUrl={Uri.EscapeDataString(path)}");
-        await Page.GetByLabel("E-mail").FillAsync(account.User.Email!);
-        await Page.GetByLabel("Password", new() { Exact = true }).FillAsync(account.Password);
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Log in", Exact = true }).ClickAsync();
-        await Page.WaitForURLAsync($"{LocalTestApplication.PortalBaseUrl}{path}");
+        await BrowserLogin.SignInAsync(Page, account.User.Email!, account.Password, path,
+            Page.GetByRole(AriaRole.Navigation, new() { Name = path == "/calendar" ? "Calendar actions" : "Scheduling options" }));
     }
 }

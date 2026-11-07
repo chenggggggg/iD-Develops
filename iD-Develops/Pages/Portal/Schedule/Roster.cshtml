@@ -9,7 +9,7 @@
     ViewData["BodyClass"] = "portal-roster-page";
 }
 
-<section class="portal-page-shell roster-page" data-roster-root>
+<section class="portal-page-shell grid gap-6" data-roster-root>
     <header class="portal-page-header roster-page-header">
         <div class="portal-page-header-copy">
             <a class="roster-back-link" asp-page="/Portal/Schedule/Index">
@@ -36,67 +36,67 @@
     }
     @if (!ViewData.ModelState.IsValid)
     {
-        <div class="schedule-notice is-error" asp-validation-summary="All"></div>
+        <div class="schedule-notice is-error" role="alert" tabindex="-1" asp-validation-summary="All"></div>
     }
 
-    <section class="roster-availability-panel" data-availability-form-root>
-        <div class="roster-section-heading">
+    <section class="min-w-0 rounded-xl border border-[var(--id-border)] bg-white p-5 sm:p-6" data-availability-form-root>
+        <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
             <div>
                 <p class="portal-eyebrow">Teacher availability</p>
-                <h2>Weekly teaching hours</h2>
-                <p class="roster-section-copy">These hours determine when sessions can be booked with the selected teacher.</p>
+                <h2 class="m-0 text-lg font-semibold text-[var(--id-ink)]">Weekly teaching hours</h2>
+                <p class="mb-0 mt-2 text-sm text-slate-600">These hours determine when sessions can be booked with the selected teacher.</p>
             </div>
         </div>
-        <form method="post" asp-page-handler="SaveAvailability" class="availability-form" data-submit-feedback>
-            <div class="availability-controls">
+        <form method="post" asp-page-handler="SaveAvailability" class="grid min-w-0 max-w-4xl gap-5" data-submit-feedback>
+            <div class="grid min-w-0 gap-4 sm:grid-cols-2">
                 @if (Model.IsAdmin)
                 {
-                    <label class="roster-field">
+                    <label class="grid min-w-0 gap-2 text-sm font-medium text-slate-700">
                         <span>Teacher</span>
-                        <select asp-for="AvailabilityInput.TeacherUserId" data-availability-teacher required>
+                        <select class="min-h-11 w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-[var(--id-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 sm:text-sm" asp-for="AvailabilityInput.TeacherUserId" data-availability-teacher required>
                             @foreach (var teacher in Model.Data.Teachers)
                             {
                                 <option value="@teacher.Id">@teacher.Name</option>
                             }
                         </select>
-                    </label>
+                    <span asp-validation-for="AvailabilityInput.TeacherUserId" class="text-sm text-red-700"></span></label>
                 }
                 else
                 {
                     <input type="hidden" asp-for="AvailabilityInput.TeacherUserId" value="@Model.Data.Teachers.FirstOrDefault()?.Id" data-availability-teacher />
                 }
-                <label class="roster-field">
+                <label class="grid min-w-0 gap-2 text-sm font-medium text-slate-700">
                     <span>Time zone</span>
                     <input asp-for="AvailabilityInput.TimeZoneId" type="hidden" value="@SchedulingService.AmsterdamTimeZoneId" data-availability-time-zone />
-                    <span class="roster-fixed-value">Amsterdam (Europe/Amsterdam)</span>
-                </label>
+                    <span class="block rounded-lg bg-slate-50 p-3 text-sm text-[var(--id-ink)]">Amsterdam (CET/CEST)</span>
+                <span asp-validation-for="AvailabilityInput.TimeZoneId" class="text-sm text-red-700"></span></label>
             </div>
-            <div class="availability-week">
+            <div class="grid min-w-0 gap-3">
                 @for (var index = 0; index < Model.AvailabilityInput.Days.Count; index++)
                 {
-                    <div class="availability-day" data-availability-day="@Model.AvailabilityInput.Days[index].DayOfWeek">
+                    <div class="grid min-w-0 grid-cols-1 gap-3 min-[380px]:grid-cols-2 rounded-lg border border-slate-200 bg-slate-50 p-4 data-[available=true]:border-sky-200 data-[available=true]:bg-[var(--id-blue-soft)] sm:grid-cols-[minmax(9rem,1fr)_minmax(0,1fr)_minmax(0,1fr)] sm:items-center" data-availability-day="@Model.AvailabilityInput.Days[index].DayOfWeek" data-available="@(Model.AvailabilityInput.Days[index].IsAvailable ? "true" : "false")">
                         <input asp-for="AvailabilityInput.Days[index].DayOfWeek" type="hidden" />
-                        <label class="availability-day-toggle">
-                            <input asp-for="AvailabilityInput.Days[index].IsAvailable" data-availability-enabled />
-                            <span>@Model.AvailabilityInput.Days[index].DayOfWeek</span>
+                        <label class="col-span-full flex min-h-11 cursor-pointer items-center gap-3 sm:col-span-1 text-sm font-semibold text-[var(--id-ink)]">
+                            <input class="size-4 accent-[var(--id-blue)]" asp-for="AvailabilityInput.Days[index].IsAvailable" data-availability-enabled />
+                            <span>@Model.AvailabilityInput.Days[index].DayOfWeek<small class="mt-1 block text-sm font-normal text-slate-500" data-availability-status>@(Model.AvailabilityInput.Days[index].IsAvailable ? "Available" : "Unavailable")</small></span>
                         </label>
+                        <label class="grid min-w-0 gap-2">
+                            <span class="text-sm text-slate-600">@Model.AvailabilityInput.Days[index].DayOfWeek start time</span>
+                            <input class="min-h-11 w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-[var(--id-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 sm:text-sm" asp-for="AvailabilityInput.Days[index].LocalStartTime" type="time" data-availability-start />
+                        <span asp-validation-for="AvailabilityInput.Days[index].LocalStartTime" class="text-sm text-red-700"></span></label>
+
                         <label>
-                            <span class="sr-only">Start time</span>
-                            <input asp-for="AvailabilityInput.Days[index].LocalStartTime" type="time" data-availability-start />
-                        </label>
-                        <span class="availability-separator">to</span>
-                        <label>
-                            <span class="sr-only">End time</span>
-                            <input asp-for="AvailabilityInput.Days[index].LocalEndTime" type="time" data-availability-end />
-                        </label>
+                            <span class="text-sm text-slate-600">@Model.AvailabilityInput.Days[index].DayOfWeek end time</span>
+                            <input class="min-h-11 w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-[var(--id-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 sm:text-sm" asp-for="AvailabilityInput.Days[index].LocalEndTime" type="time" data-availability-end />
+                        <span asp-validation-for="AvailabilityInput.Days[index].LocalEndTime" class="text-sm text-red-700"></span></label>
                     </div>
                 }
             </div>
-            <button class="portal-btn portal-btn-primary portal-btn-sm" type="submit">
+            <button class="portal-btn portal-btn-primary" type="submit">
                 <span data-submit-idle><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Save availability</span>
                 <span data-submit-pending hidden class="inline-flex items-center gap-2">
                     <span aria-hidden="true" class="size-4 rounded-full border-2 border-current border-r-transparent motion-safe:animate-spin"></span>
-                    Saving availability...
+                    Saving availability&hellip;
                 </span>
             </button>
         </form>

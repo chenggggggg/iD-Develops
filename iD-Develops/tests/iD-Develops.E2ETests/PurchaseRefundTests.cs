@@ -6,7 +6,7 @@ using Microsoft.Playwright;
 
 namespace iD_Develops.E2ETests;
 
-public sealed class PurchaseRefundTests : Microsoft.Playwright.Xunit.PageTest
+public sealed class PurchaseRefundTests : DiagnosticPageTest
 {
     [Fact]
     public async Task UnusedPurchaseCanBeConfirmedAndRefundedWithoutAffectingAnotherPurchase()
@@ -212,11 +212,8 @@ public sealed class PurchaseRefundTests : Microsoft.Playwright.Xunit.PageTest
 
     private async Task LoginAsync(CatalogBrowsingFixture account, string path)
     {
-        await Page.GotoAsync($"{LocalTestApplication.PortalBaseUrl}/login?returnUrl={Uri.EscapeDataString(path)}");
-        await Page.GetByLabel("E-mail").FillAsync(account.User.Email!);
-        await Page.GetByLabel("Password", new() { Exact = true }).FillAsync(account.Password);
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Log in", Exact = true }).ClickAsync();
-        await Page.WaitForURLAsync(LocalTestApplication.PortalBaseUrl + path);
+        await BrowserLogin.SignInAsync(Page, account.User.Email!, account.Password, path,
+            path == "/profile" ? Page.GetByRole(AriaRole.Heading, new() { Name = "Purchase history", Exact = true }) : Page.GetByRole(AriaRole.Table));
     }
 
     private sealed class RefundFixture(CatalogBrowsingFixture account, int examId, string examName) : IAsyncDisposable

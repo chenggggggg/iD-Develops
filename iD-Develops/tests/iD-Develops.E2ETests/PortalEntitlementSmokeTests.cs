@@ -1,7 +1,28 @@
 ﻿namespace iD_Develops.E2ETests;
 
-public sealed class PortalEntitlementSmokeTests : Microsoft.Playwright.Xunit.PageTest
+public sealed class PortalEntitlementSmokeTests : DiagnosticPageTest
 {
+    [Fact]
+    public async Task LoginPage_LoadsWorkingLocalValidationScripts()
+    {
+        var scripts = new System.Collections.Concurrent.ConcurrentQueue<Microsoft.Playwright.IResponse>();
+        Page.Response += (_, response) =>
+        {
+            if (new Uri(response.Url).AbsolutePath.Contains("jquery.validate", StringComparison.Ordinal))
+                scripts.Enqueue(response);
+        };
+        var response = await Page.GotoAsync($"{PortalBaseUrl}/login", new() { WaitUntil = Microsoft.Playwright.WaitUntilState.DOMContentLoaded });
+        Assert.Equal(200, response?.Status);
+        Assert.Contains(scripts, script => new Uri(script.Url).AbsolutePath == "/lib/jquery-validation/dist/jquery.validate.min.js");
+        Assert.Contains(scripts, script => new Uri(script.Url).AbsolutePath == "/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js");
+        Assert.All(scripts, script =>
+        {
+            Assert.Equal(200, script.Status);
+            Assert.StartsWith("/lib/", new Uri(script.Url).AbsolutePath, StringComparison.Ordinal);
+        });
+        await Page.WaitForFunctionAsync("() => Boolean(window.jQuery?.validator?.unobtrusive)", null, new() { Timeout = 5000 });
+    }
+
     private static string PublicBaseUrl =>
         (Environment.GetEnvironmentVariable("IDDEVELOPS_E2E_PUBLIC_BASE_URL") ?? "http://id.localhost:5000").TrimEnd('/');
 
@@ -65,6 +86,8 @@ public sealed class PortalEntitlementSmokeTests : Microsoft.Playwright.Xunit.Pag
         Assert.Equal(System.Net.HttpStatusCode.NotFound, response.StatusCode);
         Assert.Null(response.Headers.Location);
         Assert.Contains("Page not found", await response.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+        Assert.True(response.Headers.TryGetValues("X-Request-ID", out var requestIds));
+        Assert.False(string.IsNullOrWhiteSpace(Assert.Single(requestIds)));
     }
 
     [Fact]
@@ -279,15 +302,7 @@ public sealed class PortalEntitlementSmokeTests : Microsoft.Playwright.Xunit.Pag
             return;
         }
 
-        await Page.GotoAsync(
-            $"{PortalBaseUrl}/login?returnUrl=%2F",
-            new Microsoft.Playwright.PageGotoOptions { WaitUntil = Microsoft.Playwright.WaitUntilState.DOMContentLoaded });
-        await Page.GetByLabel("E-mail").FillAsync(email);
-        await Page.GetByLabel("Password").FillAsync(password);
-        await Page.GetByRole(Microsoft.Playwright.AriaRole.Button, new() { Name = "Log in", Exact = true }).ClickAsync();
-        await Page.WaitForURLAsync(url =>
-            url.StartsWith(PortalBaseUrl, StringComparison.OrdinalIgnoreCase) &&
-            !url.Contains("/login", StringComparison.OrdinalIgnoreCase));
+        await BrowserLogin.SignInAsync(Page, email, password, "/", Page.GetByRole(Microsoft.Playwright.AriaRole.Main));
 
         var response = await Page.GotoAsync(
             $"{PublicBaseUrl}/en-us/",

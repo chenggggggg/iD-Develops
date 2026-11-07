@@ -9,6 +9,22 @@
         return new Intl.DateTimeFormat(undefined, Object.assign({}, options, { timeZone: selectedTimeZone() }));
     }
 
+    function zoneLabel(date) {
+        if (!date || Number.isNaN(date.getTime())) return "CET/CEST";
+        const offset = new Intl.DateTimeFormat("en", { timeZone: selectedTimeZone(), timeZoneName: "longOffset" })
+            .formatToParts(date).find(part => part.type === "timeZoneName")?.value;
+        return offset === "GMT+02:00" ? "CEST" : offset === "GMT+01:00" ? "CET" : "Amsterdam";
+    }
+
+    function zoneRange(start, end) {
+        if (!end || Number.isNaN(end.getTime())) return "CET/CEST";
+        const labels = new Set([zoneLabel(start), zoneLabel(end)]);
+        // Monthly samples also detect summer time when both endpoints are in winter.
+        for (let sample = start.getTime(), count = 0; sample < end.getTime() && count < 13; sample += 30 * 86400000, count++)
+            labels.add(zoneLabel(new Date(sample)));
+        return labels.size > 1 ? "CET/CEST" : [...labels][0];
+    }
+
     function apply(root) {
         (root || document).querySelectorAll("[data-portal-schedule-time]").forEach(function (element) {
             const start = new Date(element.dataset.start);
@@ -16,6 +32,9 @@
             if (Number.isNaN(start.getTime())) return;
 
             switch (element.dataset.portalScheduleTime) {
+                case "zone-range":
+                    element.textContent = zoneRange(start, end);
+                    break;
                 case "next":
                     element.textContent = `Next: ${formatter({ day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(start)}`;
                     break;
@@ -38,7 +57,7 @@
         });
     }
 
-    window.PortalScheduleTime = { apply: apply };
+    window.PortalScheduleTime = { apply: apply, zoneLabel: zoneLabel, zoneRange: zoneRange };
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", function () { apply(document); });
     } else {

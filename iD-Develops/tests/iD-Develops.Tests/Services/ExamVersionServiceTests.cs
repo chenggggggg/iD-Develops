@@ -3,11 +3,71 @@ using iD_Develops.Models;
 using iD_Develops.Services;
 using iD_Develops.Tests.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Storage;
+using Npgsql;
+using Npgsql.EntityFrameworkCore.PostgreSQL;
+using System.Data.Common;
 
 namespace iD_Develops.Tests.Services;
 
 public sealed class ExamVersionServiceTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task SnapshotFailureAfterDatabaseRollbackPreservesErrorAndAllowsCleanRetry(bool retryEnabled)
+    {
+        using var factory = new SqliteTestDbFactory();
+        var interceptor = new CompletedSnapshotTransactionInterceptor();
+        await using var db = factory.CreateDbContext(options =>
+        {
+            options.AddInterceptors(interceptor);
+            if (retryEnabled) options.ReplaceService<IExecutionStrategyFactory, SnapshotRetryStrategyFactory>();
+        });
+        var exam = new Exam { Name = "Snapshot rollback", CreatedByUserId = "owner", IntroductionPrimaryLanguage = "Introduction", PublishStatus = ExamPublishStatus.Published };
+        db.Exams.Add(exam);
+        await db.SaveChangesAsync();
+        var service = new ExamVersionService(db);
+        var initialCommitAttempts = interceptor.CommitAttempts;
+        interceptor.FailNextCommit = true;
+        if (!retryEnabled)
+        {
+            var exception = await Assert.ThrowsAsync<PostgresException>(() => service.GetOrCreateAttemptVersionAsync(exam.Id));
+            Assert.Equal("40001", exception.SqlState);
+            Assert.Empty(await db.ExamVersions.AsNoTracking().ToListAsync());
+        }
+        var descriptor = await service.GetOrCreateAttemptVersionAsync(exam.Id);
+        Assert.NotNull(descriptor);
+        var saved = Assert.Single(await db.ExamVersions.AsNoTracking().ToListAsync());
+        Assert.Equal(1, saved.VersionNumber);
+        Assert.Equal(initialCommitAttempts + 2, interceptor.CommitAttempts);
+    }
+
+    public sealed class SnapshotRetryStrategyFactory(ExecutionStrategyDependencies dependencies) : IExecutionStrategyFactory
+    {
+        public IExecutionStrategy Create() => new NpgsqlRetryingExecutionStrategy(dependencies, 2, TimeSpan.Zero, null);
+    }
+
+    private sealed class CompletedSnapshotTransactionInterceptor : DbTransactionInterceptor
+    {
+        public bool FailNextCommit { get; set; }
+        public int CommitAttempts { get; private set; }
+
+        public override async ValueTask<InterceptionResult> TransactionCommittingAsync(
+            DbTransaction transaction, TransactionEventData eventData, InterceptionResult result, CancellationToken cancellationToken = default)
+        {
+            CommitAttempts++;
+            if (FailNextCommit)
+            {
+                FailNextCommit = false;
+                await transaction.RollbackAsync(cancellationToken);
+                throw new PostgresException("Simulated database-aborted snapshot transaction", "ERROR", "ERROR", "40001");
+            }
+            return result;
+        }
+    }
+
     [Fact]
     public async Task GetPublishedDescriptorAsync_UsesSavedSettingsForFutureAttempts()
     {

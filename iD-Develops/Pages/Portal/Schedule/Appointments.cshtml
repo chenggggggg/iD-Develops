@@ -115,8 +115,9 @@
                     </div>
                     <div class="grid gap-2">
                         <label asp-for="Input.CreditConsumptionPolicyId" class="text-sm font-medium text-slate-700">Credit policy</label>
-                        <select asp-for="Input.CreditConsumptionPolicyId" data-field="policy" class="w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]" required><option value="">Select policy</option>@foreach (var policy in Model.Data.CreditPolicies) { <option value="@policy.Id">@policy.Name</option> }</select>
-                        <p class="m-0 text-xs text-slate-500">Controls credit handling for cancellations, attendance, and no-shows.</p>
+                        <select asp-for="Input.CreditConsumptionPolicyId" data-field="policy" class="w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]" aria-describedby="event-type-credit-policy-error event-type-credit-policy-help" data-msg-required="Select a credit policy." required><option value="">Select policy</option>@foreach (var policy in Model.Data.CreditPolicies) { <option value="@policy.Id">@policy.Name</option> }</select>
+                        <span asp-validation-for="Input.CreditConsumptionPolicyId" id="event-type-credit-policy-error" class="text-sm text-red-700" aria-live="polite"></span>
+                        <p id="event-type-credit-policy-help" class="m-0 text-xs text-slate-500">Controls credit handling for cancellations, attendance, and no-shows.</p>
                     </div>
                 </fieldset>
                 <details class="rounded-lg border border-slate-200 p-3">

@@ -1,6 +1,6 @@
 ﻿# Planned PR backlog
 
-Updated: 2026-11-05
+Updated: 2026-11-07
 
 This is the combined planning backlog from the staging review and owner meeting.
 B01-B21 are planning IDs, not GitHub PR numbers. Priorities are proposed implementation
@@ -186,8 +186,8 @@ Dependencies: no new duplicate model; precedes B05.
 
 ## B05 - P1 - Unified student, teacher, and admin appointment booking
 
-Status: implemented and verified on `feature/unified-appointment-booking` from the
-latest merged B04; ready for pull-request review. Includes actor/attendee separation,
+Status: completed and merged in [PR #49](https://github.com/chenggggggg/iD-Develops/pull/49).
+Includes actor/attendee separation,
 durable requests, atomic credit reservation, provider failure/review handling, session
 cancellation, and live browser regressions. Build, full formatting verification,
 485 unit/integration tests, and all 188 Playwright tests pass. The EF model matches its
@@ -224,6 +224,10 @@ Replace the teacher-only manual 1-on-1 creation UX with a shared booking workflo
 Dependencies: B04; coordinate Zoom readiness with B02/B03.
 
 ## B06 - P1 - Paid exams attached to products
+
+Status: completed and merged in [PR #44](https://github.com/chenggggggg/iD-Develops/pull/44).
+The purchase/version decisions and completed verification are retained below under
+Decisions and dependencies.
 
 **Estimated size: Large.** Product configuration and checkout requirements, versioned exam entitlements, payment fulfillment retries, assignment visibility, and end-to-end coverage.
 
@@ -318,6 +322,27 @@ Dependencies: existing preserved exam versions. Completion wallpaper does not re
 new homepage hero asset and is not blocked by B15.
 
 ## B11 - P1 - Calendar/roster workflow and layout redesign
+
+Status: implemented and verified on `feature/calendar-roster-ux` from merged B05;
+PR #50 is open for review.
+Uses Tailwind utilities for balanced lists/editors, readable forms, grouped advanced
+settings, working hours, and date-aware CET/CEST labels. Save failures retain submitted
+values and validation errors. Handler-specific form binding prevents unused forms from
+blocking saves. Student calendar tabs support keyboard navigation after initialization.
+Release build, full formatting verification, all 487 unit/integration tests, all 198
+Playwright tests, JavaScript syntax, and whitespace checks passed on 2026-11-07.
+Desktop/mobile views and winter/summer/DST-transition labels were inspected. No database
+migration or environment changes are required. Local provider fixtures use in-person
+delivery or pending Zoom setup rather than creating real external meetings.
+Follow-up: the current scheduling section is a non-interactive selected indicator;
+only the other sections are links. Repeated-click checks across all three sections
+passed in six desktop/mobile navigation regressions. Build and formatting checks passed.
+Reliability follow-up: editor/menu controls wait for initialization, including late
+public-menu scripts. Credit-policy validation has visible field feedback and separate
+client/server regressions. Identity validation loads working local scripts after jQuery.
+Snapshot transaction cleanup preserves the original database error for retries.
+Browser traces and request IDs support failure diagnosis; two E2E collection workers
+avoid overloading the shared app while keeping concurrency scenarios inside tests.
 
 **Estimated size: Large.** Restructure several calendar management workflows across roles and screen sizes while preserving complex scheduling behavior.
 

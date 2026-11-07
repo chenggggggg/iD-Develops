@@ -1,50 +1,49 @@
 @using iD_Develops.Services
 @using iD_Develops.Enums
 @model iD_Develops.Pages.Portal.Schedule.EventsModel
-    <section class="roster-manual-panel" id="schedule-session">
-        <div class="roster-section-heading">
+    <section class="min-w-0 rounded-xl border border-[var(--id-border)] bg-white p-5 sm:p-6" id="schedule-session">
+        <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
             <div>
                 <p class="portal-eyebrow">One-time session</p>
-                <h2>Add a session</h2>
+                <h2 class="m-0 text-lg font-semibold text-[var(--id-ink)]">Add a one-time event</h2><p class="mb-0 mt-2 text-sm text-slate-600">Schedule a course class or a custom session for a student.</p>
             </div>
         </div>
-        <form method="post" asp-route-mode="single" asp-page-handler="CreateManual" class="roster-form roster-manual-form" data-submit-feedback>
-            @if (Model.IsAdmin)
+        <form method="post" asp-route-mode="single" asp-page-handler="CreateManual" autocomplete="off" data-manual-form class="grid min-w-0 max-w-4xl grid-cols-1 gap-6 p-0" data-submit-feedback data-preserve-values="@(!ViewData.ModelState.IsValid ? "true" : "false")">
+<fieldset class="m-0 min-w-0 border-0 p-0"><legend class="mb-4 text-base font-semibold text-[var(--id-ink)]">Attendees</legend><div class="grid min-w-0 gap-4 sm:grid-cols-2">            @if (Model.IsAdmin)
             {
-                <label class="roster-field">
+                <label class="grid min-w-0 gap-2 text-sm font-medium text-slate-700">
                     <span>Teacher</span>
-                    <select asp-for="ManualInput.TeacherUserId" data-manual-teacher required>
+                    <select class="min-h-11 w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-[var(--id-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 sm:text-sm" asp-for="ManualInput.TeacherUserId" data-manual-teacher required>
                         <option value="">Select an available teacher</option>
                         @foreach (var teacher in Model.ScheduleData.Teachers)
                         {
                             <option value="@teacher.Id">@teacher.Name</option>
                         }
                     </select>
-                    <small class="roster-field-help" data-manual-availability-hint></small>
-                </label>
+                    <small class="text-sm font-normal text-slate-500" data-manual-availability-hint></small>
+                <span asp-validation-for="ManualInput.TeacherUserId" class="text-sm text-red-700"></span></label>
             }
             else
             {
                 <input type="hidden" asp-for="ManualInput.TeacherUserId" value="@Model.ScheduleData.Teachers.FirstOrDefault()?.Id" />
             }
-            <label class="roster-field">
+<fieldset class="m-0 grid gap-3 border-0 p-0 sm:col-span-2"><legend class="mb-2 text-sm font-medium text-slate-700">Event for</legend><div class="flex flex-wrap gap-3"><label class="flex min-h-11 items-center gap-3 rounded-lg border border-slate-200 px-4 py-2 text-sm"><input class="size-4 accent-[var(--id-blue)]" type="radio" name="eventAudience" data-manual-audience value="course" checked="@(string.IsNullOrWhiteSpace(Model.ManualInput.StudentUserId))" /> Course class</label><label class="flex min-h-11 items-center gap-3 rounded-lg border border-slate-200 px-4 py-2 text-sm"><input class="size-4 accent-[var(--id-blue)]" type="radio" name="eventAudience" data-manual-audience value="student" checked="@(!string.IsNullOrWhiteSpace(Model.ManualInput.StudentUserId))" /> Student</label></div></fieldset><div class="sm:col-span-2" data-manual-target="course">            <label class="grid min-w-0 gap-2 text-sm font-medium text-slate-700">
                 <span>Course class</span>
-                <select asp-for="ManualInput.CourseClassId" data-manual-course>
+                <select class="min-h-11 w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-[var(--id-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 sm:text-sm" asp-for="ManualInput.CourseClassId" data-manual-course>
                     <option value="">Select class</option>
                     @foreach (var courseClass in Model.ScheduleData.Classes)
                     {
                         <option value="@courseClass.Id">@courseClass.CourseName &middot; @courseClass.ClassTitle</option>
                     }
                 </select>
-            </label>
-            <p class="roster-choice-hint is-wide">For an event-type booking with credits, <a asp-page="/Portal/Schedule/Events">book a session</a>.</p>
-            <details class="is-wide rounded-lg border border-slate-200 p-4">
-                <summary class="cursor-pointer text-sm font-semibold text-slate-700">Advanced: custom session</summary>
-                <p class="mb-4 mt-3 text-sm text-slate-600">Keep this option for custom times or durations. Custom sessions use the manual scheduling rules and do not consume event-type credits. Choose either a student here or a course class above.</p>
-                <div class="roster-field roster-student-picker" data-student-picker>
-                    <span>Student</span>
-                    <input type="search" placeholder="Search by email" autocomplete="off" data-student-search aria-label="Search students by email" />
-                    <select asp-for="ManualInput.StudentUserId" data-manual-student>
+            <span asp-validation-for="ManualInput.CourseClassId" class="text-sm text-red-700"></span></label>
+</div>            <div class="grid gap-3 sm:col-span-2" data-manual-target="student" hidden="@(string.IsNullOrWhiteSpace(Model.ManualInput.StudentUserId))">
+
+                <p class="mb-4 mt-3 text-sm text-slate-600">Custom sessions do not use event-type credits. For a session with a credit requirement, <a asp-page="/Portal/Schedule/Events" class="font-semibold text-[var(--id-blue)] underline">book from an event type</a>.</p>
+                <div class="grid min-w-0 gap-2 text-sm font-medium text-slate-700" data-student-picker>
+                    <label for="ManualInput_StudentUserId">Student</label>
+                    <input class="min-h-11 w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-[var(--id-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 sm:text-sm" type="search" placeholder="Search by email…" autocomplete="off" data-student-search aria-label="Search students by email" />
+                    <select class="min-h-11 w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-[var(--id-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 sm:text-sm" asp-for="ManualInput.StudentUserId" data-manual-student>
                         <option value="">Select student</option>
                         @foreach (var student in Model.ScheduleData.Students)
                         {
@@ -52,54 +51,47 @@
                         }
                     </select>
                 </div>
-            </details>
-            <label class="roster-field">
+            </div></div></fieldset><fieldset class="m-0 min-w-0 border-0 p-0"><legend class="mb-4 text-base font-semibold text-[var(--id-ink)]">Date and time</legend><div class="grid min-w-0 gap-4 sm:grid-cols-2">            <label class="grid min-w-0 gap-2 text-sm font-medium text-slate-700">
                 <span>Date and time</span>
-                <input asp-for="ManualInput.StartLocal" type="datetime-local" data-manual-start required />
-            </label>
-            <label class="roster-field">
-                <span>Time zone</span>
-                <input asp-for="ManualInput.TimeZoneId" type="hidden" value="@SchedulingService.AmsterdamTimeZoneId" data-manual-time-zone />
-                <span class="roster-fixed-value">Amsterdam (Europe/Amsterdam)</span>
-            </label>
-            <label class="roster-field">
+                <input class="min-h-11 w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-[var(--id-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 sm:text-sm" asp-for="ManualInput.StartLocal" type="datetime-local" data-manual-start required />
+            <span asp-validation-for="ManualInput.StartLocal" class="text-sm text-red-700"></span></label>
+            <input asp-for="ManualInput.TimeZoneId" type="hidden" value="@SchedulingService.AmsterdamTimeZoneId" data-manual-time-zone />
+            <label class="grid min-w-0 gap-2 text-sm font-medium text-slate-700">
                 <span>Duration (min)</span>
-                <input asp-for="ManualInput.DurationMinutes" type="number" min="5" max="1440" data-manual-duration />
-            </label>
-            <label class="roster-field">
-                <span>Capacity</span>
-                <input asp-for="ManualInput.Capacity" type="number" min="1" max="10000" />
-            </label>
-            <label class="roster-field">
+                <input class="min-h-11 w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-[var(--id-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 sm:text-sm" asp-for="ManualInput.DurationMinutes" type="number" min="5" max="1440" data-manual-duration required />
+            <span asp-validation-for="ManualInput.DurationMinutes" class="text-sm text-red-700"></span></label>
+<p class="m-0 text-sm text-slate-600 sm:col-span-2">Amsterdam (<span data-manual-zone>CET/CEST</span>). Times follow local clock changes.</p></div></fieldset><fieldset class="m-0 min-w-0 border-0 p-0"><legend class="mb-4 text-base font-semibold text-[var(--id-ink)]">Delivery</legend><div class="grid min-w-0 gap-4 sm:grid-cols-2">            <label class="grid min-w-0 gap-2 text-sm font-medium text-slate-700">
                 <span>Delivery</span>
-                <select asp-for="ManualInput.DeliveryType">
+                <select class="min-h-11 w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-[var(--id-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 sm:text-sm" asp-for="ManualInput.DeliveryType" data-delivery>
                     <option value="@ScheduleDeliveryType.Zoom">Zoom</option>
                     <option value="@ScheduleDeliveryType.InPerson">In person</option>
                     <option value="@ScheduleDeliveryType.OtherOnline">Other online</option>
                 </select>
-            </label>
-            <label class="roster-field is-wide">
-                <span>Zoom URL <small>(optional)</small></span>
-                <input asp-for="ManualInput.MeetingUrl" type="url" maxlength="1024" placeholder="https://zoom.us/j/..." />
-                <small class="roster-field-help">Leave empty to create the Zoom meeting automatically from the teacher's connected account.</small>
-            </label>
-            <label class="roster-field">
+            <span asp-validation-for="ManualInput.DeliveryType" class="text-sm text-red-700"></span></label>
+            <label class="grid min-w-0 gap-2 text-sm font-medium text-slate-700" data-location-field>
                 <span>Location</span>
-                <input asp-for="ManualInput.Location" maxlength="300" />
-            </label>
-            <label class="roster-field">
+                <input class="min-h-11 w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-[var(--id-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 sm:text-sm" asp-for="ManualInput.Location" data-location maxlength="300" />
+            <span asp-validation-for="ManualInput.Location" class="text-sm text-red-700"></span></label></div></fieldset><details class="rounded-lg border border-slate-200 p-4" data-schedule-advanced open="@(!ViewData.ModelState.IsValid)"><summary class="cursor-pointer text-sm font-semibold text-[var(--id-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]">Advanced options</summary><div class="mt-4 grid gap-4 sm:grid-cols-2">            <label class="grid min-w-0 gap-2 text-sm font-medium text-slate-700 sm:col-span-2">
+                <span>Zoom URL <small>(optional)</small></span>
+                <input class="min-h-11 w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-[var(--id-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 sm:text-sm" asp-for="ManualInput.MeetingUrl" type="url" maxlength="1024" placeholder="https://zoom.us/j/..." />
+                <small class="text-sm font-normal text-slate-500">Leave empty to create the Zoom meeting automatically from the teacher's connected account.</small>
+            <span asp-validation-for="ManualInput.MeetingUrl" class="text-sm text-red-700"></span></label>
+            <label class="grid min-w-0 gap-2 text-sm font-medium text-slate-700">
+                <span>Capacity</span>
+                <input class="min-h-11 w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-[var(--id-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 sm:text-sm" asp-for="ManualInput.Capacity" type="number" min="1" max="10000" />
+            <span asp-validation-for="ManualInput.Capacity" class="text-sm text-red-700"></span></label>            <label class="grid min-w-0 gap-2 text-sm font-medium text-slate-700">
                 <span>Booking opens (days)</span>
-                <input asp-for="ManualInput.BookingOpenDaysBefore" type="number" min="0" max="365" />
-            </label>
-            <label class="roster-field">
+                <input class="min-h-11 w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-[var(--id-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 sm:text-sm" asp-for="ManualInput.BookingOpenDaysBefore" type="number" min="0" max="365" />
+            <span asp-validation-for="ManualInput.BookingOpenDaysBefore" class="text-sm text-red-700"></span></label>
+            <label class="grid min-w-0 gap-2 text-sm font-medium text-slate-700">
                 <span>Booking closes (hours)</span>
-                <input asp-for="ManualInput.BookingCloseHoursBefore" type="number" min="0" max="8760" />
-            </label>
-            <button class="portal-btn portal-btn-primary roster-submit" type="submit">
+                <input class="min-h-11 w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-[var(--id-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 sm:text-sm" asp-for="ManualInput.BookingCloseHoursBefore" type="number" min="0" max="8760" />
+            <span asp-validation-for="ManualInput.BookingCloseHoursBefore" class="text-sm text-red-700"></span></label>
+</div></details>            <button class="portal-btn portal-btn-primary justify-self-start" type="submit">
                 <span data-submit-idle><i class="fa-solid fa-calendar-plus" aria-hidden="true"></i> Schedule meeting</span>
                 <span data-submit-pending hidden class="inline-flex items-center gap-2">
                     <span aria-hidden="true" class="size-4 rounded-full border-2 border-current border-r-transparent motion-safe:animate-spin"></span>
-                    Scheduling meeting...
+                    Scheduling meeting&hellip;
                 </span>
             </button>
         </form>

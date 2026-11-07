@@ -258,7 +258,9 @@ namespace iD_Develops.Services
                 }
                 catch
                 {
-                    await transaction.RollbackAsync();
+                    // Disposal rolls back an active transaction. A database-aborted
+                    // transaction can already be complete; preserve the original
+                    // exception so the execution strategy can identify retryable errors.
                     // A retry must not reinsert an entity from the rolled-back attempt.
                     foreach (var entry in _dbContext.ChangeTracker.Entries<ExamVersion>().ToList())
                         entry.State = EntityState.Detached;

@@ -5,9 +5,47 @@ using Microsoft.Playwright;
 
 namespace iD_Develops.E2ETests;
 
-public sealed class EventTypeManagementTests : Microsoft.Playwright.Xunit.PageTest
+public sealed class EventTypeManagementTests : DiagnosticPageTest
 {
     private const string ManagementPath = "/calendar/appointment-types";
+
+    [Fact]
+    public async Task LoginWaitsForUsablePageWhileAnUnrelatedImageIsStillLoading()
+    {
+        await using var fixture = await EventTypeFixture.CreateAsync("Admin");
+        const string imageUrl = "https://e2e-delayed.example.test/image.svg";
+        var imageRequested = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseImage = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        await Page.RouteAsync(imageUrl, async route =>
+        {
+            imageRequested.TrySetResult();
+            await releaseImage.Task;
+            await route.FulfillAsync(new() { ContentType = "image/svg+xml", Body = "<svg xmlns='http://www.w3.org/2000/svg' width='1' height='1'/>" });
+        });
+        await Page.AddInitScriptAsync("""
+            if (location.pathname === '/calendar/appointment-types') {
+                document.addEventListener('DOMContentLoaded', () => {
+                    const image = document.createElement('img');
+                    image.src = 'https://e2e-delayed.example.test/image.svg';
+                    image.alt = '';
+                    document.body.append(image);
+                }, {once: true});
+            }
+            """);
+        try
+        {
+            await LoginAsync(fixture.Account, ManagementPath);
+            await imageRequested.Task.WaitAsync(TimeSpan.FromSeconds(15));
+            await Expect(Page.GetByLabel("Name", new() { Exact = true })).ToBeEditableAsync();
+            Assert.Equal("interactive", await Page.EvaluateAsync<string>("document.readyState"));
+        }
+        finally
+        {
+            releaseImage.TrySetResult();
+            await Page.WaitForLoadStateAsync(LoadState.Load);
+            await Page.UnrouteAsync(imageUrl);
+        }
+    }
 
     [Theory]
     [InlineData(false)]
@@ -61,20 +99,53 @@ public sealed class EventTypeManagementTests : Microsoft.Playwright.Xunit.PageTe
         Assert.False((await db.AppointmentTypes.AsNoTracking().SingleAsync(item => item.Id == saved.Id)).IsActive);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task MissingCreditPolicyShowsFieldFeedbackAndPreventsClientSubmission(bool mobile)
+    {
+        await using var fixture = await EventTypeFixture.CreateAsync("Admin");
+        await Page.SetViewportSizeAsync(mobile ? 390 : 1440, 1000);
+        await LoginAsync(fixture.Account, ManagementPath);
+        await FillPaidSettingsWithoutPolicyAsync(fixture);
+        var form = Page.Locator("[data-appointment-editor] form");
+        // jQuery owns validation once it installs this attribute on the form.
+        await Expect(form).ToHaveAttributeAsync("novalidate", "novalidate");
+        var posts = 0;
+        Page.Request += (_, request) =>
+        {
+            if (request.Method == "POST" && new Uri(request.Url).AbsolutePath == ManagementPath)
+                Interlocked.Increment(ref posts);
+        };
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Save event type", Exact = true }).ClickAsync();
+        var error = Page.Locator("#event-type-credit-policy-error");
+        await Expect(error).ToHaveTextAsync("Select a credit policy.");
+        await Expect(error).ToBeVisibleAsync();
+        Assert.Equal(0, posts);
+        await using var db = LocalTestApplication.CreateDbContext();
+        Assert.False(await db.AppointmentTypes.AnyAsync(item => item.CreatedByUserId == fixture.Account.User.Id));
+        await Page.Locator("[data-appointment-editor]").ScreenshotAsync(new() { Path = Path.Combine(AppContext.BaseDirectory, $"event-type-policy-error-{mobile}.png") });
+        await Page.GetByLabel("Credit policy", new() { Exact = true }).SelectOptionAsync(fixture.Policy.Id.ToString());
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Save event type", Exact = true }).ClickAsync();
+        await Expect(Page.GetByRole(AriaRole.Status)).ToHaveTextAsync("Event type created.");
+        Assert.Equal(1, posts);
+        Assert.Equal(1, await db.AppointmentTypes.CountAsync(item => item.CreatedByUserId == fixture.Account.User.Id));
+    }
+
     [Fact]
     public async Task InvalidPaidSettingsPreserveEditorValuesAndTeacherSelection()
     {
         await using var fixture = await EventTypeFixture.CreateAsync("Admin");
         await LoginAsync(fixture.Account, ManagementPath);
-        await Page.GetByLabel("Name", new() { Exact = true }).FillAsync(fixture.Name);
-        await Page.GetByLabel("Duration (minutes)").FillAsync("35");
-        await Page.Locator($"[data-teacher-id='{fixture.Teacher.User.Id}']").CheckAsync();
-        await Page.GetByLabel("Require credits to book").CheckAsync();
-        await Page.GetByLabel("Required credit", new() { Exact = true }).SelectOptionAsync(fixture.Credit.Id.ToString());
-        await Page.GetByLabel("Credit cost", new() { Exact = true }).FillAsync("3");
-        await Page.Locator("[data-appointment-editor] form").EvaluateAsync("form => form.noValidate = true");
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Save event type", Exact = true }).ClickAsync();
+        await FillPaidSettingsWithoutPolicyAsync(fixture);
+        // Exercise server validation independently of the separately tested client checks.
+        // Native submit sends the real authenticated form, including its antiforgery token.
+        var response = await Page.RunAndWaitForResponseAsync(
+            () => Page.Locator("[data-appointment-editor] form").EvaluateAsync("form => HTMLFormElement.prototype.submit.call(form)"),
+            response => response.Request.Method == "POST" && new Uri(response.Url).AbsolutePath == ManagementPath);
+        Assert.Equal(200, response.Status);
         await Expect(Page.GetByRole(AriaRole.Alert)).ToContainTextAsync("Select a credit policy.");
+        await Expect(Page.Locator("#event-type-credit-policy-error")).ToHaveTextAsync("Select a credit policy.");
         await Expect(Page.GetByLabel("Name", new() { Exact = true })).ToHaveValueAsync(fixture.Name);
         await Expect(Page.GetByLabel("Duration (minutes)")).ToHaveValueAsync("35");
         await Expect(Page.GetByLabel("Require credits to book")).ToBeCheckedAsync();
@@ -86,6 +157,19 @@ public sealed class EventTypeManagementTests : Microsoft.Playwright.Xunit.PageTe
         await Page.GetByLabel("Credit policy", new() { Exact = true }).SelectOptionAsync(fixture.Policy.Id.ToString());
         await Page.GetByRole(AriaRole.Button, new() { Name = "Save event type", Exact = true }).ClickAsync();
         await Expect(Page.GetByRole(AriaRole.Status)).ToHaveTextAsync("Event type created.");
+        var saved = await db.AppointmentTypes.SingleAsync(item => item.CreatedByUserId == fixture.Account.User.Id);
+        Assert.Equal(fixture.Policy.Id, saved.CreditConsumptionPolicyId);
+        Assert.Equal(fixture.Teacher.User.Id, (await db.AppointmentTypeTeachers.SingleAsync(item => item.AppointmentTypeId == saved.Id)).TeacherUserId);
+    }
+
+    private async Task FillPaidSettingsWithoutPolicyAsync(EventTypeFixture fixture)
+    {
+        await Page.GetByLabel("Name", new() { Exact = true }).FillAsync(fixture.Name);
+        await Page.GetByLabel("Duration (minutes)").FillAsync("35");
+        await Page.Locator($"[data-teacher-id='{fixture.Teacher.User.Id}']").CheckAsync();
+        await Page.GetByLabel("Require credits to book").CheckAsync();
+        await Page.GetByLabel("Required credit", new() { Exact = true }).SelectOptionAsync(fixture.Credit.Id.ToString());
+        await Page.GetByLabel("Credit cost", new() { Exact = true }).FillAsync("3");
     }
 
     [Fact]
@@ -160,11 +244,10 @@ public sealed class EventTypeManagementTests : Microsoft.Playwright.Xunit.PageTe
 
     private async Task LoginAsync(CatalogBrowsingFixture account, string path)
     {
-        await Page.GotoAsync($"{LocalTestApplication.PortalBaseUrl}/login?returnUrl={Uri.EscapeDataString(path)}");
-        await Page.GetByLabel("E-mail").FillAsync(account.User.Email!);
-        await Page.GetByLabel("Password", new() { Exact = true }).FillAsync(account.Password);
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Log in", Exact = true }).ClickAsync();
-        await Page.WaitForURLAsync($"{LocalTestApplication.PortalBaseUrl}{path}");
+        await BrowserLogin.SignInAsync(Page, account.User.Email!, account.Password, path,
+            path == ManagementPath
+                ? Page.GetByRole(AriaRole.Heading, new() { Name = "Event types", Exact = true })
+                : Page.GetByRole(AriaRole.Navigation, new() { Name = "Calendar actions" }));
     }
 
     private sealed class EventTypeFixture(CatalogBrowsingFixture account, CatalogBrowsingFixture teacher) : IAsyncDisposable

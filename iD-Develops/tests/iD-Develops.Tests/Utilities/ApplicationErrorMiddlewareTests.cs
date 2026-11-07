@@ -99,6 +99,7 @@ public sealed class ApplicationErrorMiddlewareTests
         await InvokeAsync(middleware, context, dependencyStatus);
 
         Assert.Equal(StatusCodes.Status503ServiceUnavailable, context.Response.StatusCode);
+        Assert.Equal(context.TraceIdentifier, context.Response.Headers["X-Request-ID"]);
         Assert.Equal("60", context.Response.Headers.RetryAfter);
         var payload = JsonDocument.Parse(await ReadBodyAsync(context));
         Assert.Equal("db-offline", payload.RootElement.GetProperty("error").GetString());
@@ -130,6 +131,7 @@ public sealed class ApplicationErrorMiddlewareTests
 
         Assert.Equal(2, calls);
         Assert.Equal(StatusCodes.Status500InternalServerError, context.Response.StatusCode);
+        Assert.Equal(context.TraceIdentifier, context.Response.Headers["X-Request-ID"]);
         Assert.False(context.Response.Headers.ContainsKey("Location"));
     }
 
@@ -183,6 +185,7 @@ public sealed class ApplicationErrorMiddlewareTests
         Assert.Equal(2, calls);
         Assert.Equal(StatusCodes.Status404NotFound, context.Response.StatusCode);
         Assert.Equal("text/plain; charset=utf-8", context.Response.ContentType);
+        Assert.Equal(context.TraceIdentifier, context.Response.Headers["X-Request-ID"]);
         Assert.Contains("Please try again later", await ReadBodyAsync(context), StringComparison.Ordinal);
     }
 
