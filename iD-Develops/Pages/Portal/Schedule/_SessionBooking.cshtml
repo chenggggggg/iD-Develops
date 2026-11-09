@@ -127,7 +127,7 @@
                     <form method="post" asp-page-handler="Cancel" class="mt-4" data-cancel-session data-cancel-message="@booking.CancellationMessage" data-submit-feedback>
                         <input type="hidden" name="scheduledEventId" value="@booking.EventId" />
                         <input type="hidden" name="attendeeUserId" value="@Model.Data.AttendeeUserId" />
-                        <button type="submit" class="portal-btn portal-btn-outline" disabled><span data-submit-idle>Cancel session</span><span data-submit-pending hidden>Cancelling&hellip;</span></button>
+                        <button type="submit" class="portal-btn portal-btn-outline" disabled><span data-submit-idle>Cancel session</span><span data-submit-pending hidden class="inline-flex items-center gap-2">Cancelling&hellip;</span></button>
                     </form>
                 }
             </article>
