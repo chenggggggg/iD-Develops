@@ -40,20 +40,41 @@ internal static class WorkflowFeedbackProbe
         var snapshot = new TaskCompletionSource<JsonElement>();
         await page.ExposeFunctionAsync("recordNavigationFeedback", (Action<JsonElement>)(state => { snapshot.TrySetResult(state); }));
         await page.EvaluateAsync("""
-            () => window.addEventListener('click', event => {
+            () => {
+            let recorded = false;
+            window.addEventListener('click', event => {
                 if (!event.target.closest('a')) return;
+                if (recorded) return;
+                recorded = true;
                 setTimeout(() => {
                     const progress = document.querySelector('[data-navigation-progress]');
-                    const spinner = progress.querySelector('[aria-hidden=true]');
+                    const panel = document.querySelector('[data-portal-navigation-progress]');
+                    const spinner = panel?.querySelector('[data-navigation-spinner]');
+                    const content = document.querySelector('[data-portal-page-content]');
+                    const sidebar = document.querySelector('[data-test-sidebar], .portal-sidebar');
+                    const rect = spinner?.getBoundingClientRect();
+                    const mainRect = document.querySelector('main')?.getBoundingClientRect();
+                    let duplicatePrevented = null;
+                    if (panel && !panel.hidden) {
+                        duplicatePrevented = !event.target.closest('a').dispatchEvent(new MouseEvent('click', {bubbles:true, cancelable:true, button:0}));
+                    }
                     window.recordNavigationFeedback({
                         hidden: progress.hidden,
                         text: progress.querySelector('[data-navigation-progress-label]').textContent.trim(),
                         busy: document.querySelector('main')?.getAttribute('aria-busy'),
                         spinnerVisible: !!spinner && spinner.getBoundingClientRect().width > 0,
-                        spinnerBorder: spinner ? getComputedStyle(spinner).borderRightColor : null
+                        spinnerBorder: spinner ? getComputedStyle(spinner).borderRightColor : null,
+                        panelHidden: panel?.hidden ?? true,
+                        contentHidden: content?.hidden ?? false,
+                        contentInert: content?.inert ?? false,
+                        sidebarVisible: !!sidebar && sidebar.getBoundingClientRect().width > 0,
+                        centered: !!rect && !!mainRect && Math.abs(rect.x + rect.width / 2 - mainRect.x - mainRect.width / 2) < 2 && Math.abs(rect.y + rect.height / 2 - mainRect.y - mainRect.height / 2) < 2,
+                        animationName: spinner ? getComputedStyle(spinner).animationName : null,
+                        duplicatePrevented
                     });
                 }, 0);
             })
+            }
             """);
         return snapshot;
     }
@@ -74,12 +95,17 @@ internal static class WorkflowFeedbackProbe
                 form.addEventListener('formdata', () => setTimeout(() => {
                     const duplicate = new SubmitEvent('submit', {bubbles:true, cancelable:true});
                     const duplicatePrevented = !form.dispatchEvent(duplicate);
+                    const button = form.querySelector('button[type=submit][aria-busy=true]');
+                    const spinners = Array.from(button?.querySelectorAll('[aria-hidden=true]') || []).filter(element => element.getBoundingClientRect().width > 0 && (element.classList.contains('animate-spin') || element.classList.contains('motion-safe:animate-spin')));
                     window.recordSubmissionFeedback({
                         busy: form.getAttribute('aria-busy'),
                         disabled: form.querySelector('button[type=submit]').disabled,
-                        pendingVisible: !form.querySelector('[data-submit-pending]').hidden,
-                        idleHidden: form.querySelector('[data-submit-idle]').hidden,
-                        duplicatePrevented
+                        pendingVisible: form.querySelector('[data-submit-pending]') ? !form.querySelector('[data-submit-pending]').hidden : spinners.length > 0,
+                        idleHidden: form.querySelector('[data-submit-idle]')?.hidden ?? false,
+                        duplicatePrevented,
+                        buttonBusy: button?.getAttribute('aria-busy'),
+                        spinnerCount: spinners.length,
+                        navigationHidden: document.querySelector('[data-navigation-progress]')?.hidden ?? true
                     });
                 }, 0), {once:true});
             })

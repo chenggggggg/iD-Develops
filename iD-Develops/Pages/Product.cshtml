@@ -827,6 +827,7 @@
                     {
                     <form method="post"
                           id="product-submit-form"
+                          data-submit-feedback
                           data-checkout-product-id="@(Model.Product.WorkflowType == CatalogWorkflowType.FormThenStripeCheckout && !Model.IsPreviewMode && !Model.IsAdminEditMode ? Model.Product.Id : (int?)null)"
                           data-default-unit-price="@initialUnitPriceValue"
                           data-original-unit-price="@pricing.OriginalUnitPrice.ToString(System.Globalization.CultureInfo.InvariantCulture)"
@@ -950,7 +951,7 @@
                     {
                         if (Model.RequiresAuthenticatedAccount)
                         {
-                            <form method="post" id="product-submit-form">
+                            <form method="post" id="product-submit-form" data-submit-feedback>
                                 @Html.AntiForgeryToken()
                                 @if (!string.IsNullOrWhiteSpace(Model.AccessToken))
                                 {

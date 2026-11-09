@@ -21,7 +21,7 @@
             state.form.setAttribute("aria-busy", "true");
             if (button && !state.spinner) {
                 state.spinner = document.createElement("span");
-                state.spinner.className = "ml-2 inline-block size-4 animate-spin rounded-full border-2 border-current border-r-transparent";
+                state.spinner.className = "ml-2 inline-block size-4 rounded-full border-2 border-current border-r-transparent motion-safe:animate-spin";
                 state.spinner.setAttribute("aria-hidden", "true");
                 state.spinner.dataset.turnstileSpinner = "";
                 button.append(state.spinner);

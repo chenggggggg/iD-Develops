@@ -171,9 +171,12 @@
             </div>
         </div>
 
-        <main class="portal-content">
-            <div class="portal-content-inner">
+        <main class="portal-content relative">
+            <div class="portal-content-inner" data-portal-page-content>
                 @RenderBody()
+            </div>
+            <div data-portal-navigation-progress hidden aria-hidden="true" class="absolute inset-0 grid place-content-center px-6 py-12">
+                <span data-navigation-spinner class="size-6 rounded-full border-2 border-current border-r-transparent text-[var(--id-blue)] motion-safe:animate-spin"></span>
             </div>
         </main>
     </div>

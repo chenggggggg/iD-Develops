@@ -65,23 +65,33 @@ public sealed class WorkflowFeedbackLiveTests : DiagnosticPageTest
     }
 
     [Theory]
-    [InlineData("en-us", "Pricing", "Loading Pricing...")]
-    [InlineData("nl-nl", "Prijzen", "Prijzen laden...")]
-    public async Task PublicProductsNavigation_ShowsLocalizedProgress(string culture, string name, string expected)
+    [InlineData("en-us", "Pricing")]
+    [InlineData("nl-nl", "Prijzen")]
+    public async Task PublicProductsNavigation_DoesNotShowLoadingPopup(string culture, string name)
     {
         await Page.GotoAsync($"{LocalTestApplication.PublicBaseUrl}/{culture}/contact");
         await VerifyNavigationAsync(
             Page.GetByRole(AriaRole.Link, new() { Name = name, Exact = true }).First,
-            $"{LocalTestApplication.PublicBaseUrl}/{culture}/pricing", expected);
+            $"{LocalTestApplication.PublicBaseUrl}/{culture}/pricing", null);
     }
 
-    [Fact]
-    public async Task PortalProductsNavigation_ShowsProgress()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PortalProductsNavigation_ShowsProgressInTheContentPanel(bool mobile)
     {
+        await Page.SetViewportSizeAsync(mobile ? 390 : 1440, 900);
         await using var administrator = await CatalogBrowsingFixture.CreateAsync(administrator: true);
         await LoginAsync(administrator, "/calendar/roster");
+        await Page.WaitForLoadStateAsync(LoadState.Load);
+        if (mobile)
+        {
+            var toggle = Page.Locator("[data-portal-sidebar-toggle]");
+            await toggle.ClickAsync();
+            await Expect(toggle).ToHaveAttributeAsync("aria-expanded", "true");
+        }
         await VerifyNavigationAsync(
-            Page.GetByRole(AriaRole.Link, new() { Name = "Products" }).First,
+            (mobile ? Page.Locator("[data-portal-sidebar]") : Page.Locator(".portal-sidebar")).GetByRole(AriaRole.Link, new() { Name = "Products" }),
             $"{LocalTestApplication.PortalBaseUrl}/products", "Loading Products...");
     }
 
@@ -164,8 +174,9 @@ public sealed class WorkflowFeedbackLiveTests : DiagnosticPageTest
                 ? Page.Locator("[data-availability-form-root]") : Page.Locator("[data-roster-new]"));
     }
 
-    private async Task VerifyNavigationAsync(ILocator link, string target, string expected)
+    private async Task VerifyNavigationAsync(ILocator link, string target, string? expected)
     {
+        await Expect(link).ToBeVisibleAsync();
         var release = new TaskCompletionSource();
         var started = new TaskCompletionSource();
         await Page.RouteAsync(target, async route =>
@@ -180,11 +191,26 @@ public sealed class WorkflowFeedbackLiveTests : DiagnosticPageTest
         {
             await started.Task.WaitAsync(TimeSpan.FromSeconds(10));
             var state = await snapshot.Task.WaitAsync(TimeSpan.FromSeconds(10));
-            Assert.False(state.GetProperty("hidden").GetBoolean(), state.ToString());
-            Assert.Equal(expected, state.GetProperty("text").GetString());
-            Assert.Equal("true", state.GetProperty("busy").GetString());
-            Assert.True(state.GetProperty("spinnerVisible").GetBoolean());
-            Assert.Equal("rgba(0, 0, 0, 0)", state.GetProperty("spinnerBorder").GetString());
+            if (expected == null)
+            {
+                Assert.True(state.GetProperty("hidden").GetBoolean(), state.ToString());
+                Assert.NotEqual("true", state.GetProperty("busy").GetString());
+                Assert.False(state.GetProperty("spinnerVisible").GetBoolean());
+                Assert.False(state.GetProperty("contentHidden").GetBoolean());
+            }
+            else
+            {
+                Assert.False(state.GetProperty("hidden").GetBoolean(), state.ToString());
+                Assert.Equal(expected, state.GetProperty("text").GetString());
+                Assert.Equal("true", state.GetProperty("busy").GetString());
+                Assert.True(state.GetProperty("contentHidden").GetBoolean());
+                Assert.True(state.GetProperty("contentInert").GetBoolean());
+                Assert.True(state.GetProperty("spinnerVisible").GetBoolean());
+                Assert.True(state.GetProperty("centered").GetBoolean(), state.ToString());
+                Assert.True(state.GetProperty("duplicatePrevented").GetBoolean());
+                Assert.Equal("rgba(0, 0, 0, 0)", state.GetProperty("spinnerBorder").GetString());
+                if (Page.ViewportSize?.Width >= 992) Assert.True(state.GetProperty("sidebarVisible").GetBoolean());
+            }
             release.TrySetResult();
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Products loaded", Exact = true })).ToBeVisibleAsync();
         }

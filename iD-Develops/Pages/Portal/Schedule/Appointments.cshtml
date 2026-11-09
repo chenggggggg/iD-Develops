@@ -13,7 +13,7 @@
             <h1 class="portal-title-sm">Event types</h1>
             <p class="portal-copy">Manage private sessions, eligible teachers, and optional credit requirements.</p>
         </div>
-        <button type="button" class="portal-btn portal-btn-primary" data-appointment-new><i class="fa-solid fa-plus" aria-hidden="true"></i> New event type</button>
+        <button type="button" class="portal-btn portal-btn-primary disabled:cursor-not-allowed disabled:opacity-50" data-appointment-new disabled><i class="fa-solid fa-plus" aria-hidden="true"></i> New event type</button>
     </header>
     @if (TempData["StatusMessage"] is string status)
     {
@@ -53,7 +53,7 @@
                     @if (item.CanEdit)
                     {
                         <div class="mt-4 flex flex-wrap gap-2">
-                            <button type="button" class="portal-btn portal-btn-outline" data-appointment-edit data-appointment='@json' aria-label="Edit @item.Name"><i class="fa-solid fa-pencil" aria-hidden="true"></i> Edit</button>
+                            <button type="button" class="portal-btn portal-btn-outline disabled:cursor-not-allowed disabled:opacity-50" data-appointment-edit data-appointment='@json' aria-label="Edit @item.Name" disabled><i class="fa-solid fa-pencil" aria-hidden="true"></i> Edit</button>
                             @if (item.IsActive)
                             {
                                 <form method="post" asp-page-handler="Deactivate" data-submit-feedback>
@@ -69,7 +69,7 @@
         <aside class="min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm" data-appointment-editor aria-labelledby="event-type-editor-title">
             <div class="flex items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
                 <h2 id="event-type-editor-title" class="m-0 text-lg font-semibold text-slate-950" data-appointment-editor-title>@(Model.Input.Id > 0 ? "Edit event type" : "New event type")</h2>
-                <button type="button" class="portal-btn portal-btn-outline" data-appointment-close aria-label="Close editor"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+                <button type="button" class="portal-btn portal-btn-outline disabled:cursor-not-allowed disabled:opacity-50" data-appointment-close aria-label="Close editor" disabled><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
             </div>
             <form method="post" asp-page-handler="Save" class="grid gap-5 p-5" data-submit-feedback>
                 <input type="hidden" asp-for="Input.Id" data-field="id" />
@@ -99,7 +99,7 @@
                     <p class="m-0 text-sm text-slate-600">New event types are assigned to you. Only administrators can change teacher assignments.</p>
                 }
                 <label class="flex items-center gap-3 text-sm font-medium text-slate-700">
-                    <input asp-for="Input.RequiresCredits" data-field="requires-credits" class="h-4 w-4 accent-[var(--id-blue)]" aria-controls="event-type-credit-settings" />
+                    <input asp-for="Input.RequiresCredits" data-field="requires-credits" class="h-4 w-4 accent-[var(--id-blue)] disabled:cursor-not-allowed disabled:opacity-50" aria-controls="event-type-credit-settings" disabled />
                     Require credits to book
                 </label>
                 <p class="m-0 text-sm text-slate-600" data-free-description hidden="@Model.Input.RequiresCredits">No credits required. Students can book without a credit balance.</p>
@@ -138,7 +138,7 @@
                     <label class="mt-4 flex items-center gap-3 text-sm text-slate-700"><input asp-for="Input.IsActive" data-field="active" class="h-4 w-4 accent-[var(--id-blue)]" /> Available for students</label>
                     <p class="mb-0 mt-3 text-xs leading-5 text-slate-500">Changes apply to future bookings. Existing meetings keep their saved duration and credit settings. Deactivating a type stops new bookings and preserves existing meetings.</p>
                 </details>
-                <button class="portal-btn portal-btn-primary" type="submit"><span data-submit-idle>Save event type</span><span data-submit-pending hidden>Saving&hellip;</span></button>
+                <button class="portal-btn portal-btn-primary" type="submit"><span data-submit-idle>Save event type</span><span data-submit-pending hidden class="inline-flex items-center gap-2">Saving&hellip;</span></button>
             </form>
         </aside>
     </div>

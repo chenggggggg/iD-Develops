@@ -1,6 +1,6 @@
 ﻿# Planned PR backlog
 
-Updated: 2026-11-07
+Updated: 2026-11-09
 
 This is the combined planning backlog from the staging review and owner meeting.
 B01-B21 are planning IDs, not GitHub PR numbers. Priorities are proposed implementation
@@ -277,6 +277,25 @@ Dependencies: B01 for new commerce details; generic date/table work can be indep
 
 ## B08 - P1 - Rework loading and progress feedback
 
+Status: implemented and verified on `feature/contextual-loading-feedback`.
+Public links use ordinary navigation without a floating progress popup. Portal links
+replace only the content panel with a centered spinner and an accessible announcement.
+Native action forms show progress on the clicked button, reuse existing spinners, and
+preserve submitted button values while preventing duplicate posts. Checkout forms opt
+into the shared feedback. Existing signup and booking indicators remain in place.
+Cancellation, browser Back, retry after an error response, and reduced motion are covered
+by browser regressions. Desktop/mobile loading views have been inspected. No database
+migration or environment changes are required.
+Release build, full formatting verification, all 487 unit/integration tests, all 205
+Playwright tests (including 26 focused feedback cases), JavaScript syntax, and whitespace
+checks passed on 2026-11-07.
+CI follow-up: event-type editor controls wait for their JavaScript handlers before
+accepting interaction. Delayed-script desktop/mobile regressions verify that editing
+updates the selected record and preserves its credit policy and teacher assignment.
+The existing create/edit workflow also checks the selected record ID before saving.
+Follow-up validation passed on 2026-11-09: Release build, formatting verification,
+all 487 unit/integration tests, all 207 E2E tests, JavaScript syntax, and whitespace.
+
 **Estimated size: Medium.** Shared progress components/scripts, portal navigation behavior, public navigation cleanup, and duplicate-submit/retry browser checks.
 
 Previously saved loading-UI PR, expanded for all scheduling actions.
@@ -323,8 +342,7 @@ new homepage hero asset and is not blocked by B15.
 
 ## B11 - P1 - Calendar/roster workflow and layout redesign
 
-Status: implemented and verified on `feature/calendar-roster-ux` from merged B05;
-PR #50 is open for review.
+Status: merged as PR #50 from `feature/calendar-roster-ux` on 2026-11-07.
 Uses Tailwind utilities for balanced lists/editors, readable forms, grouped advanced
 settings, working hours, and date-aware CET/CEST labels. Save failures retain submitted
 values and validation errors. Handler-specific form binding prevents unused forms from

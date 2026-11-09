@@ -50,6 +50,55 @@ public sealed class EventTypeManagementTests : DiagnosticPageTest
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
+    public async Task DelayedEditorScriptKeepsControlsDisabledThenUpdatesTheSelectedType(bool mobile)
+    {
+        await using var fixture = await EventTypeFixture.CreateAsync("Admin");
+        var existing = await fixture.SeedTypeAsync(fixture.Name, paid: false, otherOwner: false);
+        await Page.SetViewportSizeAsync(mobile ? 390 : 1440, 1000);
+        await LoginAsync(fixture.Account, ManagementPath);
+        var scriptRequested = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseScript = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        await Page.RouteAsync("**/js/appointment-admin.js*", async route =>
+        {
+            scriptRequested.TrySetResult();
+            await releaseScript.Task;
+            await route.ContinueAsync();
+        });
+        var card = Page.Locator($"[data-event-type-id='{existing.Id}']");
+        var edit = card.GetByRole(AriaRole.Button, new() { Name = $"Edit {fixture.Name}", Exact = true });
+        try
+        {
+            await Page.GotoAsync($"{LocalTestApplication.PortalBaseUrl}{ManagementPath}", new() { WaitUntil = WaitUntilState.Commit });
+            await scriptRequested.Task.WaitAsync(TimeSpan.FromSeconds(15));
+            await Expect(edit).ToBeDisabledAsync();
+            await Expect(Page.GetByRole(AriaRole.Button, new() { Name = "New event type", Exact = true })).ToBeDisabledAsync();
+            await Expect(Page.GetByRole(AriaRole.Button, new() { Name = "Close editor", Exact = true })).ToBeDisabledAsync();
+            await Expect(Page.GetByLabel("Require credits to book")).ToBeDisabledAsync();
+        }
+        finally { releaseScript.TrySetResult(); }
+        await edit.ClickAsync();
+        await Expect(Page.Locator("[data-field='id']")).ToHaveValueAsync(existing.Id.ToString());
+        await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Edit event type", Exact = true })).ToBeVisibleAsync();
+        await Expect(Page.GetByLabel("Name", new() { Exact = true })).ToHaveValueAsync(fixture.Name);
+        await Page.GetByLabel("Require credits to book").CheckAsync();
+        await Page.GetByLabel("Required credit", new() { Exact = true }).SelectOptionAsync(fixture.Credit.Id.ToString());
+        await Page.GetByLabel("Credit cost", new() { Exact = true }).FillAsync("2");
+        await Page.GetByLabel("Credit policy", new() { Exact = true }).SelectOptionAsync(fixture.Policy.Id.ToString());
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Save event type", Exact = true }).ClickAsync();
+        await Expect(Page.GetByRole(AriaRole.Status)).ToHaveTextAsync("Event type updated.");
+        await Expect(card).ToContainTextAsync("2 session credits");
+        await using var db = LocalTestApplication.CreateDbContext();
+        var saved = await db.AppointmentTypes.AsNoTracking().SingleAsync(item => item.CreatedByUserId == fixture.Account.User.Id);
+        Assert.Equal(existing.Id, saved.Id);
+        Assert.Equal(fixture.Credit.Id, saved.RequiredCreditTypeId);
+        Assert.Equal(2, saved.CreditCost);
+        Assert.Equal(fixture.Policy.Id, saved.CreditConsumptionPolicyId);
+        Assert.Equal(fixture.Teacher.User.Id, (await db.AppointmentTypeTeachers.SingleAsync(item => item.AppointmentTypeId == saved.Id)).TeacherUserId);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
     public async Task AdministratorCanCreateEditAndDeactivateFreeAndPaidTypes(bool mobile)
     {
         await using var fixture = await EventTypeFixture.CreateAsync("Admin");
@@ -72,6 +121,7 @@ public sealed class EventTypeManagementTests : DiagnosticPageTest
         Assert.Equal(0, saved.CreditCost);
 
         await card.GetByRole(AriaRole.Button, new() { Name = $"Edit {fixture.Name}", Exact = true }).ClickAsync();
+        await Expect(Page.Locator("[data-field='id']")).ToHaveValueAsync(saved.Id.ToString());
         await Page.GetByLabel("Require credits to book").CheckAsync();
         await Page.GetByLabel("Required credit", new() { Exact = true }).SelectOptionAsync(fixture.Credit.Id.ToString());
         await Page.GetByLabel("Credit cost", new() { Exact = true }).FillAsync("2");
@@ -85,6 +135,7 @@ public sealed class EventTypeManagementTests : DiagnosticPageTest
         Assert.Equal(fixture.Teacher.User.Id, (await db.AppointmentTypeTeachers.SingleAsync(item => item.AppointmentTypeId == saved.Id)).TeacherUserId);
 
         await card.GetByRole(AriaRole.Button, new() { Name = $"Edit {fixture.Name}", Exact = true }).ClickAsync();
+        await Expect(Page.Locator("[data-field='id']")).ToHaveValueAsync(saved.Id.ToString());
         await Page.GetByLabel("Require credits to book").UncheckAsync();
         await Page.ScreenshotAsync(new() { Path = Path.Combine(AppContext.BaseDirectory, mobile ? "event-types-mobile.png" : "event-types-desktop.png"), FullPage = true });
         Assert.True(await Page.Locator("[data-appointment-admin]").EvaluateAsync<bool>("element => element.scrollWidth <= element.clientWidth + 1"));
@@ -246,7 +297,7 @@ public sealed class EventTypeManagementTests : DiagnosticPageTest
     {
         await BrowserLogin.SignInAsync(Page, account.User.Email!, account.Password, path,
             path == ManagementPath
-                ? Page.GetByRole(AriaRole.Heading, new() { Name = "Event types", Exact = true })
+                ? Page.GetByLabel("Name", new() { Exact = true })
                 : Page.GetByRole(AriaRole.Navigation, new() { Name = "Calendar actions" }));
     }
 
