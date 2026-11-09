@@ -1,6 +1,6 @@
 ﻿# Planned PR backlog
 
-Updated: 2026-11-07
+Updated: 2026-11-09
 
 This is the combined planning backlog from the staging review and owner meeting.
 B01-B21 are planning IDs, not GitHub PR numbers. Priorities are proposed implementation
@@ -289,6 +289,12 @@ migration or environment changes are required.
 Release build, full formatting verification, all 487 unit/integration tests, all 205
 Playwright tests (including 26 focused feedback cases), JavaScript syntax, and whitespace
 checks passed on 2026-11-07.
+CI follow-up: event-type editor controls wait for their JavaScript handlers before
+accepting interaction. Delayed-script desktop/mobile regressions verify that editing
+updates the selected record and preserves its credit policy and teacher assignment.
+The existing create/edit workflow also checks the selected record ID before saving.
+Follow-up validation passed on 2026-11-09: Release build, formatting verification,
+all 487 unit/integration tests, all 207 E2E tests, JavaScript syntax, and whitespace.
 
 **Estimated size: Medium.** Shared progress components/scripts, portal navigation behavior, public navigation cleanup, and duplicate-submit/retry browser checks.
 

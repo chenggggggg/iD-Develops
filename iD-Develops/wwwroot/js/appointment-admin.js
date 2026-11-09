@@ -46,4 +46,6 @@
     root.querySelectorAll("[data-appointment-edit]").forEach(button => button.addEventListener("click", () => open(JSON.parse(button.dataset.appointment))));
     field("requires-credits").addEventListener("change", updateCredits);
     updateCredits();
+    root.querySelectorAll("[data-appointment-new], [data-appointment-edit], [data-appointment-close], [data-field=requires-credits]")
+        .forEach(control => { control.disabled = false; });
 }());
