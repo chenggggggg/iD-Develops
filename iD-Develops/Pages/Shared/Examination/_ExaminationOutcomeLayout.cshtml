@@ -1,0 +1,21 @@
+@using System.Globalization
+<!DOCTYPE html>
+<html lang="@CultureInfo.CurrentUICulture.Name">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - iD-Develops</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/tailwind.generated.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="bg-white text-[var(--id-ink)] antialiased">
+    @RenderBody()
+    <partial name="_AppDialog" />
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/app-dialogs.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+    <partial name="_WorkflowFeedback" />
+</body>
+</html>

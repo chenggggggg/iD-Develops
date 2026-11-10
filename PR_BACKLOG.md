@@ -1,14 +1,37 @@
 ﻿# Planned PR backlog
 
-Updated: 2026-11-09
+Updated: 2026-11-10
 
 This is the combined planning backlog from the staging review and owner meeting.
-B01-B21 are planning IDs, not GitHub PR numbers. Priorities are proposed implementation
-priorities: P0 payment reliability, P1 core workflows, P2 presentation and feature expansion.
+B01-B27 are planning IDs, not GitHub PR numbers. Current launch priorities are:
+P0 marketing-release blockers, P1 supporting work, P2 post-launch improvements.
 This file does not authorize implementation, Git changes, or deployments.
 
 Workflow: before each PR, summarize its ID/title, priority, estimated size, and planned
 changes for the user. B01 was explicitly started on 2026-10-31 on fix/payment-fulfillment-audit.
+
+## Marketing launch scope - owner priorities, 2026-11-10
+
+The first production release presents the company and its services, provides contact,
+and supports the full public level-test journey through emailed results. The existing
+portal remains available through its direct URL for staff operations. Removing public
+navigation links does not change authentication or role permissions.
+
+Launch order: B10 -> B22 -> B23 -> B24 -> B25 -> B26 -> B27.
+B15 asset work can run alongside these; broken visible assets are launch blockers,
+while exhaustive unused-image cleanup is supporting work. B10 already covers the
+completion wallpaper. Its current layout shows the image on desktop and prioritizes
+the form on mobile. The brighter homepage hero still awaits the user-supplied image.
+
+Public result viewing remains independent of portal login. Retain the protected emailed
+link; a record ID alone must not grant access. Signed-in attempts keep their account
+association, while anonymous attempts can remain standalone. Automatic account creation,
+staff-only portal restrictions, link expiry/reissue, and a shorter result URL are separate
+decisions. Preserve current access boundaries while preparing the launch.
+
+The wider B12/B20 audits, B13 editor polish, B14 product-editor improvements, B16-B18 blog
+work, and B03 Zoom architecture remain in the post-launch backlog. B24 brings forward
+only the public design foundations needed for the marketing pages.
 
 ## Update size estimates
 
@@ -48,6 +71,12 @@ work without changing its size. Estimates may change after a focused investigati
 | B19 | Medium | Investigation and measurement precede a focused query correction; estimate is provisional until the offending query is identified. |
 | B20 | Large (audit effort) | Broad source and safe browser coverage across environments, roles, layouts, and states. This estimates the review/report, not implementation of unknown findings. |
 | B21 | Large | Account payment history, purchase-specific usage checks, monetary refunds, payment/provider reconciliation, entitlement reversal, concurrency, and browser regressions. |
+| B22 | Medium | Exam-taking alignment, media/prompt layout, readable widths, responsive header offset, and mouse/keyboard/browser regressions. |
+| B23 | Small | Shared desktop/mobile public navigation cleanup and regression checks while preserving direct portal access. |
+| B24 | Medium | Establish and apply existing public typography, buttons, spacing, forms, and responsive component conventions for the launch pages. |
+| B25 | Large overall | Redesign four service pages using approved content and shared patterns; deliver as independently reviewable page batches. |
+| B26 | Medium | About-page layout, company information, existing imagery, contact paths, and localized responsive checks. |
+| B27 | Medium | Production configuration and data separation, stable result-link keys, production URLs/email, and release smoke checks. |
 
 ## Completed work excluded from this backlog
 
@@ -134,7 +163,7 @@ pending setup automatically, normally within a minute, with an explicit staff re
 action. Publish only occurrences with complete meeting details. Preserve existing
 bookings/history and keep individual teacher hosting; company-managed Zoom is B03.
 
-## B03 - P1 - Company-managed Zoom integration and teacher host mapping
+## B03 - P2 - Company-managed Zoom integration and teacher host mapping
 
 **Estimated size: Large.** New account authorization and teacher host mapping, existing meeting lifecycle compatibility, and integration tests; depends on Zoom account/licensing decisions.
 
@@ -277,7 +306,7 @@ Dependencies: B01 for new commerce details; generic date/table work can be indep
 
 ## B08 - P1 - Rework loading and progress feedback
 
-Status: implemented and verified on `feature/contextual-loading-feedback`.
+Status: completed and merged in [PR #51](https://github.com/chenggggggg/iD-Develops/pull/51).
 Public links use ordinary navigation without a floating progress popup. Portal links
 replace only the content panel with a centered spinner and an accessible announcement.
 Native action forms show progress on the clicked button, reuse existing spinners, and
@@ -325,7 +354,28 @@ Status: completed and merged in [PR #40](https://github.com/chenggggggg/iD-Devel
 
 B14's editable product button labels remain a separate planned PR.
 
-## B10 - P1 - Exam results and completion-page refresh
+## B10 - P0 - Exam results and completion-page refresh
+
+Status: implemented and verified on `feature/exam-results-completion`; ready for PR review.
+Results use the attempt's saved grade settings, version, time limit, feedback, questions,
+answers, and media. Shared grading presentation keeps result emails consistent and replaces
+the fixed 60-point language-level assumptions. The responsive review uses native keyboard-
+accessible disclosures and explicit unanswered/empty/unavailable states. Completion pages
+share a localized layout, visible form labels, and the restored desktop image panel.
+The original 1920x1080 JPEG was converted to WebP (191,083 to 152,402 bytes).
+Release build, formatting verification, all 500 unit/integration tests, and all 216 E2E
+tests passed on 2026-11-09. The final spacing polish was rechecked with the full unit suite
+and all 15 affected exam browser tests. English/Dutch desktop/mobile screenshots were
+inspected. No migration or environment-variable changes are required.
+Launch follow-up completed on 2026-11-10: public result/completion responses disable
+caching and request exclusion from search indexing; protected result links use a
+no-referrer policy. Browser tests cover these headers and invalid/mismatched links.
+Full-suite verification exposed a consent-delayed Portal dialog initialization race:
+essential layout behavior now initializes independently of consent, and exam Start
+buttons wait for their launch handler while preserving locked-exam restrictions.
+Both delayed-script regressions and the original exam-start/refund concurrency test pass.
+Final verification: Release build, formatting, all 500 unit/integration tests, and all
+218 E2E tests passed. Commit, push, and PR creation authorized on 2026-11-10.
 
 **Estimated size: Medium.** Results layout/data presentation plus completion imagery and responsive checks; reuse the existing immutable exam data.
 
@@ -429,7 +479,7 @@ Previously saved product editor PR.
   redirects from previous product URLs already implemented in #35.
 - Coordinate labels with B09's initial signup action and final form action.
 
-## B15 - P2 - Brighter homepage hero and public-image optimization
+## B15 - P1 - Brighter homepage hero and public-image optimization
 
 **Estimated size: Medium.** The hero replacement alone is Small; the full raster inventory, conversions, responsive assets, cache/reference checks, and image quality verification are broader.
 
@@ -642,14 +692,81 @@ until the company confirms them. Include My Profile/history/refund states in B20
 
 ## Suggested implementation order
 
-B01 first. Then B02's immediate scheduling clarity and B06's purchase-to-exam fulfillment;
-B07 makes the audit trail easier to operate. B21 follows the purchase/usage foundation
-from B06; keep monetary refunds separate from exam delivery. Decide B03 before major Zoom changes. Deliver
-B04 then B05, followed by B11's coherent roster workflow. B08/B09 can be independent focused
-workflow PRs; B10 can proceed independently of the new hero. Audit B12 before systematic
-UI standardization, then B13/B14. B16 -> B17 -> B18 is the blog sequence. B15 can run when
-the image is supplied, using the agreed storage policy. B19 remains a targeted investigation.
-B20 is the final UI/UX audit of the resulting pages and workflows, with fixes separately scoped.
+The 2026-11-10 marketing launch order supersedes the earlier feature-completion sequence:
+B10 -> B22 -> B23 -> B24 -> B25 -> B26 -> B27. Run useful B15 asset work alongside these.
+Existing completed functionality stays available to staff through the portal.
+After launch, resolve B03's Zoom decision, continue the broader B12 identity work and
+B13/B14 polish, and deliver blog work in the B16 -> B17 -> B18 sequence. B19 remains a
+targeted performance investigation. B20 remains the final broader UI/UX audit.
+
+## B22 - P0 - Exam-taking layout and header clearance
+
+**Estimated size: Medium.** Focused taking-surface layout and responsive/browser regressions.
+
+- Give scenario/context, question text, and answers one consistent left edge.
+- Lay out context and optional media first, with the question immediately above its answers.
+- Left-align multiple-choice labels and text. Slightly narrow the answer card while keeping
+  long content, images, open answers, and touch controls usable.
+- Account for the fixed examination header at desktop/mobile sizes so it cannot cover content.
+- Preserve answer autosaving, question navigation, keyboard selection, timing, and submission.
+- Keep unrelated editor pagination/input polish in B13.
+
+## B23 - P0 - Marketing navigation and public entry points
+
+**Estimated size: Small.** Shared public navigation and visible-link regressions.
+
+- Remove Login/Portal links from desktop and mobile public navigation across public pages.
+- Keep direct portal/login URLs and current staff workflows working.
+- Preserve current authorization and account settings. Hiding links is not a staff-only
+  authorization policy; broader access restrictions need a separate explicit decision.
+- Keep working contact, consultation, and level-test CTAs. Identify commerce or portal-
+  dependent public links that need an owner decision before they are advertised at launch.
+
+## B24 - P0 - Public marketing design foundations
+
+**Estimated size: Medium.** Bring forward the public-only part of B12 for launch.
+
+- Establish evidence-backed public conventions from the existing homepage/layout and tokens.
+- Apply shared typography, button geometry, spacing, content widths, form/focus states,
+  and responsive patterns needed by B25/B26.
+- Preserve recognizable website branding and the examination palette/structure.
+- Use Tailwind and existing reusable patterns; scope changes to actual launch needs.
+
+## B25 - P0 - Public service-page design and information
+
+**Estimated size: Large overall.** Split into independently reviewable page batches.
+
+- Refresh /enterprise, /nt2-integration, /personal-development, and
+  /language-and-communication using B24's patterns.
+- Make the offer, intended audience, and next step clear with approved existing content.
+- Preserve English/Dutch localization and flag information requiring owner confirmation.
+- Check mobile/desktop layouts and all advertised destinations, including visible links
+  to service subpages. Additional unfinished destinations need an explicit scope decision.
+- Keep working contact, consultation, and level-test paths prominent.
+
+## B26 - P0 - About page and company information
+
+**Estimated size: Medium.** Focused public page and content review.
+
+- Refresh /about using the public foundations and actual company information.
+- Use existing approved imagery and clear contact paths; do not invent company claims.
+- Verify localized copy, responsive layout, headings, links, and image presentation.
+
+## B27 - P0 - Marketing production launch and acceptance checks
+
+**Estimated size: Medium.** Environment configuration and complete public-flow verification.
+
+- Prepare production domains/configuration and separate production data from staging/test data.
+- Keep protected-result signing keys persistent across deployments and confirm emailed links
+  use the production public host and HTTPS.
+- Verify production mail delivery, contact submission, level-test start/autosave/countdown/
+  submit, completion, emailed results, and direct authorized staff portal access.
+- Check advertised public routes, mobile layouts, broken media/links, public metadata,
+  and private-result cache/indexing behavior.
+- Confirm deployment and rollback steps before launch. Production activation is a separate
+  deployment action, not implied by saving this backlog or implementing an earlier PR.
+- Full customer portal exposure, automatic account creation, result-link expiry/reissue,
+  and a short /results alias remain separate decisions.
 
 ## External references checked
 

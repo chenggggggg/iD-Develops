@@ -50,4 +50,12 @@
   <data name="ViewFullResultsAction" xml:space="preserve"><value>Bekijk het volledige resultaat</value></data>
   <data name="ViewMyResultsAction" xml:space="preserve"><value>Bekijk mijn resultaat</value></data>
   <data name="ViewResultsButton" xml:space="preserve"><value>Bekijk mijn resultaat!</value></data>
+  <data name="GradeLabel" xml:space="preserve"><value>Beoordeling</value></data>
+  <data name="ScoreLabel" xml:space="preserve"><value>Score</value></data>
+  <data name="CorrectAnswersLabel" xml:space="preserve"><value>Goede antwoorden</value></data>
+  <data name="ResultAdvice" xml:space="preserve"><value>Bekijk je antwoorden en feedback in je resultaatoverzicht. Neem contact met ons op als je hulp wilt bij het kiezen van je volgende stap.</value></data>
+  <data name="CompletionEyebrow" xml:space="preserve"><value>Niveautest afgerond</value></data>
+  <data name="ThankYouHeading" xml:space="preserve"><value>Bedankt!</value></data>
+  <data name="ReturnPortalAction" xml:space="preserve"><value>Terug naar het portaal</value></data>
+  <data name="SubmittedDescription" xml:space="preserve"><value>Je kunt dit venster sluiten of teruggaan naar het portaal.</value></data>
 </root>

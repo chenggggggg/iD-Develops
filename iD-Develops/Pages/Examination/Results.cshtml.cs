@@ -4,6 +4,7 @@ using iD_Develops.Data;
 using iD_Develops.Enums;
 using iD_Develops.Models;
 using iD_Develops.Services;
+using iD_Develops.Utilities;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -13,6 +14,7 @@ using Microsoft.Extensions.Localization;
 
 namespace iD_Develops.Pages.Examination
 {
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public class ResultsModel : PageModel
     {
         private const string LevelTestPublicSlug = "level-test";
@@ -38,12 +40,17 @@ namespace iD_Develops.Pages.Examination
             int QuestionNumber,
             string QuestionHtml,
             string ResultLabel,
-            string ResultBadgeClass,
+            bool IsCorrect,
+            bool IsAnswered,
             string SubmittedAnswer,
             string CorrectAnswer,
             string? FeedbackHtml,
             string? FunFactHtml,
-            IReadOnlyList<MultipleChoiceOptionReviewItem> MultipleChoiceOptions);
+            IReadOnlyList<MultipleChoiceOptionReviewItem> MultipleChoiceOptions,
+            string? ScenarioHtml,
+            string? HelpHtml,
+            string? ImageReference,
+            string? AudioReference);
 
         public sealed record MultipleChoiceOptionReviewItem(
             string Key,
@@ -62,6 +69,7 @@ namespace iD_Develops.Pages.Examination
         public bool IsInvalidResult { get; private set; }
         public int? ExamVersionNumber { get; private set; }
         public int? TimeLimitSeconds { get; private set; }
+        public int UnansweredCount => Questions.Count(question => !question.IsAnswered);
 
         private readonly ApplicationDbContext _dbContext;
         private readonly IExamVersionService _examVersionService;
@@ -88,6 +96,8 @@ namespace iD_Develops.Pages.Examination
 
         public async Task<IActionResult> OnGetAsync(CancellationToken cancellationToken)
         {
+            Response.Headers["X-Robots-Tag"] = "noindex, nofollow";
+            Response.Headers["Referrer-Policy"] = "no-referrer";
             ViewData["Title"] = _localizer["Title"];
             ViewData["BodyClass"] = "public-result-page";
 
@@ -142,7 +152,7 @@ namespace iD_Develops.Pages.Examination
         private ResultSummaryViewModel BuildSummary(iD_Develops.Models.Record record, Exam exam, double score, double maxScore, int correctCount, int totalQuestions)
         {
             maxScore = maxScore > 0 ? maxScore : ResolveMaxScore(exam);
-            var grade = ResolveLevelTestResult(score);
+            var grade = ExamResultGrade.Resolve(exam, score, maxScore, correctCount, totalQuestions, CultureInfo.CurrentUICulture);
             var scorePercentage = maxScore <= 0
                 ? 0
                 : Math.Clamp((int)Math.Round(score / maxScore * 100d, MidpointRounding.AwayFromZero), 0, 100);
@@ -156,11 +166,11 @@ namespace iD_Develops.Pages.Examination
                 maxScore,
                 correctCount,
                 totalQuestions,
-                _localizer["LevelLabel"],
-                grade.Level,
+                _localizer[grade.LabelKey],
+                grade.Value,
                 ResolveLocalized(exam.CompletionTextPrimary, exam.CompletionTextSecondary),
                 _localizer["AdviceTitle"],
-                grade.Advice,
+                _localizer["ResultAdvice"],
                 scorePercentage);
         }
 
@@ -168,17 +178,23 @@ namespace iD_Develops.Pages.Examination
         {
             answersByQuestionId.TryGetValue(question.Id, out var participantAnswer);
             var isCorrect = participantAnswer?.IsCorrect == true;
+            var isAnswered = !string.IsNullOrWhiteSpace(participantAnswer?.AnswerText);
 
             return new QuestionReviewItem(
                 question.QuestionNumber,
                 question.Text,
-                isCorrect ? _localizer["CorrectLabel"] : _localizer["ReviewLabel"],
-                isCorrect ? "public-result-badge-correct" : "public-result-badge-review",
+                isCorrect ? _localizer["CorrectLabel"] : isAnswered ? _localizer["ReviewLabel"] : _localizer["UnansweredLabel"],
+                isCorrect,
+                isAnswered,
                 FormatAnswer(question, participantAnswer?.AnswerText, emptyFallback: _localizer["NoAnswerSubmitted"]),
                 FormatCorrectAnswers(question),
                 question.Feedback,
                 question.FunFact,
-                BuildMultipleChoiceOptions(question, participantAnswer?.AnswerText));
+                BuildMultipleChoiceOptions(question, participantAnswer?.AnswerText),
+                question.Scenario,
+                question.MessageBeforeQuestion,
+                question.ImageReference,
+                question.AudioReference);
         }
 
         private bool IsValidPublicResultToken(Guid recordId, string token)
@@ -204,27 +220,6 @@ namespace iD_Develops.Pages.Examination
                         ? (await _examVersionService.GetPublishedDescriptorAsync(record.ExamId, record.ExamVersionId))?.PublicSlug
                         : record.ExamVersionId.HasValue ? record.ExamVersion?.PublicSlug : record.Exam?.PublicSlug,
                     LevelTestPublicSlug, StringComparison.OrdinalIgnoreCase);
-        }
-
-        private (string Level, string Advice) ResolveLevelTestResult(double score)
-        {
-            if (score >= 51 && score <= 60)
-            {
-                return (
-                    _localizer["GradeA1"],
-                    _localizer["GradeA1Advice"]);
-            }
-
-            if (score >= 45 && score <= 50)
-            {
-                return (
-                    _localizer["GradeReadyA1A2"],
-                    _localizer["GradeReadyA1A2Advice"]);
-            }
-
-            return (
-                _localizer["GradeBelowA1"],
-                _localizer["GradeBelowA1Advice"]);
         }
 
         private string? ResolveLocalized(string? primary, string? secondary)

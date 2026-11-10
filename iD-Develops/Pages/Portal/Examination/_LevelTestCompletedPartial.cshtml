@@ -1,106 +1,75 @@
 @model iD_Develops.Pages.Portal.Examination.CompletedModel
+@using System.Globalization
 @inject Microsoft.Extensions.Localization.IStringLocalizer<iD_Develops.Pages.Portal.Examination.CompletedModel> Localizer
-
-<div class="flex min-h-screen w-full">
-    <div class="content-panel flex flex-col items-center justify-center">
-        <div class="content-panel-inner">
+@inject iD_Develops.Services.IApplicationUrlService ApplicationUrls
+@{
+    var homeUrl = ApplicationUrls.PublicUrl($"/{CultureInfo.CurrentUICulture.Name.ToLowerInvariant()}/");
+    var primaryButton = "border-0 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[var(--id-blue)] px-5 py-3 text-sm font-semibold text-white no-underline hover:bg-[var(--id-blue-dark)] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)] disabled:cursor-not-allowed disabled:opacity-50";
+    var link = "font-semibold text-[var(--id-blue)] underline decoration-slate-300 underline-offset-4 hover:decoration-current focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]";
+    var field = "min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-[var(--id-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]";
+}
+<div class="grid min-h-dvh w-full md:grid-cols-2" data-exam-completion>
+    <div class="relative hidden overflow-hidden bg-[var(--id-blue-soft)] md:block" aria-hidden="true" data-completion-image-panel>
+        <img class="absolute inset-0 h-full w-full object-cover" src="~/images/exam-completed-wallpaper.webp" asp-append-version="true" width="1920" height="1080" alt="" decoding="async" fetchpriority="high" data-completion-image />
+    </div>
+    <section class="flex min-w-0 items-center justify-center px-6 py-12 sm:px-10 md:py-16">
+        <div class="w-full max-w-md">
+            <a class="inline-flex rounded focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--id-blue)]" href="@homeUrl">
+                <img class="h-9 w-auto max-w-full" src="~/images/iddevelops-navlogo-dark.png" alt="iD! Training &amp; Development" />
+            </a>
+            <p class="m-0 mt-10 text-xs font-semibold uppercase tracking-widest text-[var(--id-blue)]">@Localizer["CompletionEyebrow"]</p>
             @if (!string.IsNullOrWhiteSpace(Model.LevelTestSuccessMessage))
             {
-                <div class="text-center">
-                    <p class="completion-message m-0 text-center">
-                        @Model.LevelTestSuccessMessage
-                    </p>
-
-                    @if (Model.IsSignedInPortalUser)
-                    {
-                        <p class="m-0">
-                            <a asp-page="/Portal/Profile/Index" class="completion-link">@Localizer["ReturnProfileAction"]</a>
-                        </p>
-                    }
-                    else
-                    {
-                        <div class="completion-help my-6 text-center">
-                            <p class="m-0">
-                                @Localizer["EmailMissingHelp"]
-                            </p>
-
-                            <form method="post" asp-page-handler="Resend" class="completion-resend-form">
-                                <input type="hidden" name="RecordId" value="@Model.RecordId" />
-                                <button type="submit" class="completion-inline-button">@Localizer["ResendAction"]</button>.
-                            </form>
-
-                            <p class="completion-divider my-1">@Localizer["OrLabel"]</p>
-
-                            <p class="mb-4">
-                                @Localizer["ContactAtText"] <a class="completion-link" href="mailto:@Model.SupportEmail">@Model.SupportEmail</a>
-                            </p>
-                        </div>
-
-                        <p class="m-0">
-                            <a asp-page="/Index" class="completion-link">@Localizer["ReturnHomeAction"]</a>
-                        </p>
-                    }
-                </div>
+                <h1 class="m-0 mt-3 text-3xl font-semibold tracking-tight">@Localizer["ThankYouHeading"]</h1>
+                <p class="m-0 mt-5 text-base leading-7 text-[var(--id-muted)]" role="status">@Model.LevelTestSuccessMessage</p>
+                @if (Model.IsSignedInPortalUser)
+                {
+                    <a class="@primaryButton mt-8" href="@ApplicationUrls.PortalUrl("/profile")">@Localizer["ReturnProfileAction"]</a>
+                }
+                else
+                {
+                    <div class="mt-6 grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-5 text-sm leading-6 text-[var(--id-muted)]">
+                        <p>@Localizer["EmailMissingHelp"]</p>
+                        <form method="post" asp-page-handler="Resend" data-submit-feedback>
+                            <input type="hidden" name="RecordId" value="@Model.RecordId" />
+                            <button type="submit" class="@link inline-flex min-h-11 items-center gap-2 border-0 bg-transparent p-0">@Localizer["ResendAction"]</button>
+                        </form>
+                        <p>@Localizer["ContactAtText"] <a class="@link break-all" href="mailto:@Model.SupportEmail">@Model.SupportEmail</a></p>
+                    </div>
+                    <a class="@primaryButton mt-8" href="@homeUrl">@Localizer["ReturnHomeAction"]</a>
+                }
             }
             else
             {
-                <h2 class="text-center">@Localizer["FormHeading"]</h2>
-                <p class="subtitle text-center">
-                    @Localizer["FormCongratulations"]
-                    <br />@Localizer["FormResultsSoon"]
-                    @if (!Model.IsSignedInPortalUser)
-                    {
-                        <text>@Localizer["FormAnonymousExplanation"]</text>
-                    }
-                    else
-                    {
-                        <text>@Localizer["FormSignedInExplanation"]</text>
-                    }
-                    <br />@Localizer["FormClosing"]
-                </p>
-
+                <h1 class="m-0 mt-3 text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">@Localizer["FormHeading"]</h1>
+                <p class="m-0 mt-5 text-base leading-7 text-[var(--id-muted)]">@Localizer["FormCongratulations"]</p>
+                <p class="m-0 mt-3 text-sm leading-6 text-[var(--id-muted)]">@(Model.IsSignedInPortalUser ? Localizer["FormSignedInExplanation"] : Localizer["FormAnonymousExplanation"])</p>
                 @if (!string.IsNullOrWhiteSpace(Model.LevelTestErrorMessage))
                 {
-                    <div class="public-alert public-alert-danger" role="alert">
-                        @Model.LevelTestErrorMessage
-                    </div>
+                    <div class="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800" role="alert">@Model.LevelTestErrorMessage</div>
                 }
-
-                <div class="flex justify-center pt-2">
-                    <form method="post" asp-page-handler="SubmitForm" class="completed-form">
-                        <input type="hidden" name="RecordId" value="@Model.RecordId" />
-
-                        @if (!Model.IsSignedInPortalUser)
-                        {
-                            <label asp-for="Name" class="sr-only">@Localizer["NameLabel"]</label>
-                            <input asp-for="Name" placeholder="@Localizer["NamePlaceholder"]" />
-
-                            <label asp-for="Email" class="sr-only">@Localizer["EmailLabel"]</label>
-                            <input asp-for="Email" placeholder="@Localizer["EmailPlaceholder"]" />
-                        }
-
-                        @if (!Model.IsSignedInPortalUser)
-                        {
-                            <div class="mt-4 flex items-start gap-2">
-                                <input class="mt-1" asp-for="SubscribeNewsletter" type="checkbox" />
-                                <label class="consent-label font-light" asp-for="SubscribeNewsletter">
-                                    @Localizer["NewsletterConsent"]
-                                </label>
-                            </div>
-
-                        }
-
-                        @if (!Model.IsSignedInPortalUser)
-                        {
-                            <partial name="_Turnstile" />
-                        }
-
-                        <input type="submit" value="@(Model.IsSignedInPortalUser ? Localizer["ViewResultsButton"] : Localizer["SendResultsButton"])" class="submit-button mt-4" />
-
-                        <div asp-validation-summary="All" class="public-invalid-feedback mt-4"></div>
-                    </form>
-                </div>
+                <form method="post" asp-page-handler="SubmitForm" class="mt-8 grid gap-5" data-submit-feedback>
+                    <input type="hidden" name="RecordId" value="@Model.RecordId" />
+                    @if (!Model.IsSignedInPortalUser)
+                    {
+                        <div class="grid gap-2">
+                            <label asp-for="Name" class="text-sm font-medium">@Localizer["NameLabel"]</label>
+                            <input asp-for="Name" class="@field" placeholder="@Localizer["NamePlaceholder"]" autocomplete="name" required />
+                        </div>
+                        <div class="grid gap-2">
+                            <label asp-for="Email" class="text-sm font-medium">@Localizer["EmailLabel"]</label>
+                            <input asp-for="Email" class="@field" type="email" placeholder="@Localizer["EmailPlaceholder"]" autocomplete="email" required />
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <input class="mt-1 size-4 shrink-0 accent-[var(--id-blue)]" asp-for="SubscribeNewsletter" type="checkbox" />
+                            <label class="text-sm leading-6 text-[var(--id-muted)]" asp-for="SubscribeNewsletter">@Localizer["NewsletterConsent"]</label>
+                        </div>
+                        <div class="min-w-0 overflow-x-auto"><partial name="_Turnstile" /></div>
+                    }
+                    <button type="submit" class="@primaryButton">@(Model.IsSignedInPortalUser ? Localizer["ViewResultsButton"] : Localizer["SendResultsButton"])</button>
+                    <div asp-validation-summary="All" class="text-sm leading-6 text-red-800" role="alert"></div>
+                </form>
             }
         </div>
-    </div>
+    </section>
 </div>

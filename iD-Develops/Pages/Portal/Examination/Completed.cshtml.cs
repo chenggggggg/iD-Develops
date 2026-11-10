@@ -17,6 +17,7 @@ using Microsoft.Extensions.Localization;
 
 namespace iD_Develops.Pages.Portal.Examination
 {
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public class CompletedModel : PageModel
     {
         private const string LevelTestPublicSlug = "level-test";
@@ -103,6 +104,8 @@ namespace iD_Develops.Pages.Portal.Examination
 
         public async Task<IActionResult> OnGetAsync()
         {
+            Response.Headers["X-Robots-Tag"] = "noindex, nofollow";
+            Response.Headers["Referrer-Policy"] = "no-referrer";
             var (record, accessResult) = await GetAccessibleRecordAsync();
             if (accessResult != null)
                 return accessResult;
@@ -175,7 +178,8 @@ namespace iD_Develops.Pages.Portal.Examination
                 _logger.LogError(ex, "Failed to save prospect subscription for level test completion. RecordId={RecordId}", RecordId);
             }
 
-            var emailResult = await SubmitResultEmailAsync(exam, examResults.Score, examResults.MaxScore, identityResult.EmailAction);
+            var emailResult = await SubmitResultEmailAsync(exam, examResults.Score, examResults.MaxScore,
+                examResults.ParticipantAnswers.Count(answer => answer.IsCorrect), identityResult.EmailAction);
             if (!emailResult.Success)
             {
                 LevelTestErrorMessage = emailResult.ErrorMessage ?? _localizer["EmailSendError"];
@@ -228,7 +232,8 @@ namespace iD_Develops.Pages.Portal.Examination
             var answerList = await _participantAnswerService.GetParticipantAnswersByRecordIdAsync(RecordId) ?? new List<ParticipantAnswer>();
             var examResults = _examEvaluationService.EvaluateExam(exam, answerList);
 
-            var emailResult = await SubmitResultEmailAsync(exam, examResults.Score, examResults.MaxScore, emailAction);
+            var emailResult = await SubmitResultEmailAsync(exam, examResults.Score, examResults.MaxScore,
+                examResults.ParticipantAnswers.Count(answer => answer.IsCorrect), emailAction);
             if (!emailResult.Success)
             {
                 LevelTestErrorMessage = emailResult.ErrorMessage ?? _localizer["EmailResendError"];
@@ -395,7 +400,8 @@ namespace iD_Develops.Pages.Portal.Examination
         public string SupportEmail
             => string.IsNullOrWhiteSpace(_mailSettings.SupportEmail) ? _mailSettings.From : _mailSettings.SupportEmail!;
 
-        private async Task<OperationResult> SubmitResultEmailAsync(Exam exam, double score, double maxScore, LevelTestEmailAction emailAction)
+        private async Task<OperationResult> SubmitResultEmailAsync(Exam exam, double score, double maxScore,
+            int correctAnswers, LevelTestEmailAction emailAction)
         {
             var request = _httpContextAccessor.HttpContext?.Request;
             if (request == null)
@@ -407,7 +413,8 @@ namespace iD_Develops.Pages.Portal.Examination
 
             var baseUrl = $"{request.Scheme}://{request.Host}";
             var culture = _httpContextAccessor.HttpContext?.Request.RouteValues["culture"]?.ToString() ?? "en-US";
-            var resultLevel = ResolveLevelTestResult(score);
+            var grade = ExamResultGrade.Resolve(exam, score, maxScore, correctAnswers, exam.Questions.Count,
+                System.Globalization.CultureInfo.CurrentUICulture);
 
             var levelTestFormData = new TestResultData
             {
@@ -423,8 +430,9 @@ namespace iD_Develops.Pages.Portal.Examination
                 ActionText = emailAction.ButtonText,
                 Score = score,
                 MaxScore = maxScore,
-                ResultLevel = resultLevel.Level,
-                ResultAdvice = resultLevel.Advice,
+                ResultLabel = _localizer[grade.LabelKey],
+                ResultLevel = grade.Value,
+                ResultAdvice = _localizer["ResultAdvice"],
                 Branding = HttpContext.RequestServices.GetRequiredService<EmailBrandingFactory>().Create(baseUrl)
             };
 
@@ -450,27 +458,6 @@ namespace iD_Develops.Pages.Portal.Examination
                 _logger.LogError(emailEx, "Error occurred while sending email with exam results.");
                 return new OperationResult { Success = false, ErrorMessage = _localizer["EmailSendError"] };
             }
-        }
-
-        private (string Level, string Advice) ResolveLevelTestResult(double score)
-        {
-            if (score >= 51 && score <= 60)
-            {
-                return (
-                    _localizer["HighResultLevel"],
-                    _localizer["HighResultAdvice"]);
-            }
-
-            if (score >= 45 && score <= 50)
-            {
-                return (
-                    _localizer["MiddleResultLevel"],
-                    _localizer["MiddleResultAdvice"]);
-            }
-
-            return (
-                _localizer["LowResultLevel"],
-                _localizer["LowResultAdvice"]);
         }
 
         private void KeepLevelTestResendState()

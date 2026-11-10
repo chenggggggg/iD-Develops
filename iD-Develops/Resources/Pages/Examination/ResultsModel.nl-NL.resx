@@ -41,4 +41,15 @@
   <data name="GradeBelowA1Advice" xml:space="preserve"><value>Minder dan 45 punten, maar wil je het toch proberen? Dat kan, maar neem eerst contact op via info@id-develops.com. We geven je graag persoonlijk advies.</value></data>
   <data name="TimeLimitLabel" xml:space="preserve"><value>Tijdslimiet</value></data>
   <data name="NoTimeLimit" xml:space="preserve"><value>Geen tijdslimiet</value></data>
+  <data name="GradeLabel" xml:space="preserve"><value>Beoordeling</value></data>
+  <data name="ResultAdvice" xml:space="preserve"><value>Bekijk je antwoorden en feedback in je resultaatoverzicht. Neem contact met ons op als je hulp wilt bij het kiezen van je volgende stap.</value></data>
+  <data name="VersionFormat" xml:space="preserve"><value>Versie {0}</value></data>
+  <data name="VersionNotRecorded" xml:space="preserve"><value>Versie niet vastgelegd</value></data>
+  <data name="ReviewAnswersAction" xml:space="preserve"><value>Bekijk je antwoorden</value></data>
+  <data name="QuestionCountLabel" xml:space="preserve"><value>Vragen</value></data>
+  <data name="UnansweredLabel" xml:space="preserve"><value>Niet beantwoord</value></data>
+  <data name="NoQuestionsMessage" xml:space="preserve"><value>Er zijn geen vragen om te bekijken voor dit examen.</value></data>
+  <data name="HistoricalResultNote" xml:space="preserve"><value>Dit resultaat hoort bij de examenversie die je hebt gemaakt. Latere wijzigingen aan het examen veranderen dit overzicht niet.</value></data>
+  <data name="QuestionImageAlt" xml:space="preserve"><value>Afbeelding bij deze vraag</value></data>
+  <data name="QuestionAudioLabel" xml:space="preserve"><value>Audio bij de vraag</value></data>
 </root>
