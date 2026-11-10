@@ -151,18 +151,23 @@ public sealed class CompletedModelTests
         var razorPage = Assert.IsAssignableFrom<Page>(((RazorView)view.View).RazorPage);
         razorPage.PageContext = model.PageContext;
 
-        var previousCulture = System.Globalization.CultureInfo.CurrentUICulture;
+        var previousCulture = System.Globalization.CultureInfo.CurrentCulture;
+        var previousUiCulture = System.Globalization.CultureInfo.CurrentUICulture;
         string html;
         try
         {
+            // CI can use an invariant formatting culture while the page has a UI language.
+            System.Globalization.CultureInfo.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
             System.Globalization.CultureInfo.CurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(culture);
             await view.View.RenderAsync(context);
             html = writer.ToString();
         }
         finally
         {
-            System.Globalization.CultureInfo.CurrentUICulture = previousCulture;
+            System.Globalization.CultureInfo.CurrentCulture = previousCulture;
+            System.Globalization.CultureInfo.CurrentUICulture = previousUiCulture;
         }
+        Assert.Contains($"href=\"https://localhost:5001/{culture}/\"", html, StringComparison.Ordinal);
         Assert.Contains("data-turnstile-field", html);
         Assert.Contains("/js/turnstile-form.js", html);
         Assert.Contains(culture == "nl-nl" ? "De beveiligingscontrole wordt uitgevoerd" : "Completing the security check", html);

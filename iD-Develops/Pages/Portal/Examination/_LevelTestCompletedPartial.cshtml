@@ -3,7 +3,7 @@
 @inject Microsoft.Extensions.Localization.IStringLocalizer<iD_Develops.Pages.Portal.Examination.CompletedModel> Localizer
 @inject iD_Develops.Services.IApplicationUrlService ApplicationUrls
 @{
-    var homeUrl = ApplicationUrls.PublicUrl($"/{CultureInfo.CurrentCulture.Name.ToLowerInvariant()}/");
+    var homeUrl = ApplicationUrls.PublicUrl($"/{CultureInfo.CurrentUICulture.Name.ToLowerInvariant()}/");
     var primaryButton = "border-0 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[var(--id-blue)] px-5 py-3 text-sm font-semibold text-white no-underline hover:bg-[var(--id-blue-dark)] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)] disabled:cursor-not-allowed disabled:opacity-50";
     var link = "font-semibold text-[var(--id-blue)] underline decoration-slate-300 underline-offset-4 hover:decoration-current focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]";
     var field = "min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-[var(--id-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]";
