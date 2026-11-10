@@ -39,6 +39,9 @@ public sealed class CompletedModelTests
         await using var db = factory.CreateDbContext();
         var exam = SeedLevelTestExam(db);
         exam.TimeLimitSeconds = 3600;
+        exam.ResultGradeDisplayMode = iD_Develops.Enums.ResultGradeDisplayMode.GradeBands;
+        exam.GradeBands = [new ExamGradeBand { MinimumScore = 40, LabelPrimary = "Original grade", LabelSecondary = "Original grade" }];
+        exam.CompletionTextPrimary = exam.CompletionTextSecondary = "Original completion feedback";
         await db.SaveChangesAsync();
         var versions = new ExamVersionService(db);
         var preserved = (await versions.GetOrCreateAttemptVersionAsync(exam.Id))!;
@@ -48,6 +51,8 @@ public sealed class CompletedModelTests
         exam.TimeLimitSeconds = 2400;
         exam.PublicSlug = null;
         exam.PublishStatus = ExamPublishStatus.Archived;
+        exam.GradeBands.Single().LabelPrimary = exam.GradeBands.Single().LabelSecondary = "Updated grade";
+        exam.CompletionTextPrimary = exam.CompletionTextSecondary = "Updated completion feedback";
         await db.SaveChangesAsync();
         var harness = await TestHarness.CreateAsync(db);
         var completion = harness.CreateModel(versionService: new ExamVersionService(db));
@@ -60,6 +65,13 @@ public sealed class CompletedModelTests
         Assert.Equal("Level Test", results.Summary!.ExamName);
         Assert.Equal(1, results.ExamVersionNumber);
         Assert.Equal(3600, results.TimeLimitSeconds);
+        Assert.Equal("Original grade", results.Summary.GradeValue);
+        Assert.Equal("Original completion feedback", results.Summary.CompletionText);
+        completion.Name = "Learner";
+        completion.Email = "learner@example.test";
+        Assert.IsType<RedirectToPageResult>(await completion.OnPostSubmitFormAsync());
+        var email = Assert.IsType<TestResultData>(Assert.Single(harness.MailService.SentMessages).Model);
+        Assert.Equal("Original grade", email.ResultLevel);
     }
 
     [Theory]
@@ -87,6 +99,7 @@ public sealed class CompletedModelTests
         });
         builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
         builder.Services.AddRazorPages()
+            .AddViewLocalization()
             .AddApplicationPart(typeof(CompletedModel).Assembly)
             .AddRazorPagesOptions(options => options.Conventions.Add(
                 new ApplicationHostPageRouteModelConvention("localhost", "portal.localhost")));

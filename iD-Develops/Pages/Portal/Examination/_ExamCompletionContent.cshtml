@@ -1,0 +1,20 @@
+@model iD_Develops.Pages.Portal.Examination.CompletedModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<iD_Develops.Pages.Portal.Examination.CompletedModel> Localizer
+@inject iD_Develops.Services.IApplicationUrlService ApplicationUrls
+
+<main>
+    @if (Model.ShowLevelTestCompletedPartial)
+    {
+        <partial name="/Pages/Portal/Examination/_LevelTestCompletedPartial.cshtml" model="Model" />
+    }
+    else
+    {
+        <section class="flex min-h-dvh items-center justify-center px-6 py-12 text-center">
+            <div class="max-w-lg">
+                <h1 class="m-0 text-3xl font-semibold tracking-tight text-[var(--id-ink)]">@Localizer["ExamSubmittedHeading"]</h1>
+                <p class="m-0 mt-4 text-base leading-7 text-[var(--id-muted)]">@Localizer["SubmittedDescription"]</p>
+                <a class="mt-8 inline-flex min-h-11 items-center justify-center rounded-lg bg-[var(--id-blue)] px-5 py-3 text-sm font-semibold text-white no-underline hover:bg-[var(--id-blue-dark)] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]" href="@ApplicationUrls.PortalUrl()">@Localizer["ReturnPortalAction"]</a>
+            </div>
+        </section>
+    }
+</main>

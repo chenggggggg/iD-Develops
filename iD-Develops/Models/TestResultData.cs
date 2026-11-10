@@ -20,6 +20,7 @@ namespace iD_Develops.Models
         public double Score { get; set; }
         public double MaxScore { get; set; }
         public string ResultLevel { get; set; } = string.Empty;
+        public string ResultLabel { get; set; } = "Result";
         public string ResultAdvice { get; set; } = string.Empty;
         public EmailBrandingModel Branding { get; set; } = new();
     }

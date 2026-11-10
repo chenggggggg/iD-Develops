@@ -257,6 +257,7 @@ function initializeExamLaunchDialog() {
         button.addEventListener("click", function () {
             loadLaunchInfo(button.dataset.examId);
         });
+        button.disabled = button.dataset.examCanLaunch !== "true";
     });
 
     dialog.querySelectorAll("[data-exam-launch-primary-form], [data-exam-launch-restart-form]")

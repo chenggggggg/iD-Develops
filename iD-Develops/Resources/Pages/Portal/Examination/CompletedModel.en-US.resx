@@ -50,4 +50,12 @@
   <data name="ViewFullResultsAction" xml:space="preserve"><value>View full results</value></data>
   <data name="ViewMyResultsAction" xml:space="preserve"><value>View my results</value></data>
   <data name="ViewResultsButton" xml:space="preserve"><value>View my results!</value></data>
+  <data name="GradeLabel" xml:space="preserve"><value>Grade</value></data>
+  <data name="ScoreLabel" xml:space="preserve"><value>Score</value></data>
+  <data name="CorrectAnswersLabel" xml:space="preserve"><value>Correct answers</value></data>
+  <data name="ResultAdvice" xml:space="preserve"><value>You can review your answers and feedback in your result overview. Contact us if you would like help choosing your next step.</value></data>
+  <data name="CompletionEyebrow" xml:space="preserve"><value>Level test completed</value></data>
+  <data name="ThankYouHeading" xml:space="preserve"><value>Thank you!</value></data>
+  <data name="ReturnPortalAction" xml:space="preserve"><value>Return to portal</value></data>
+  <data name="SubmittedDescription" xml:space="preserve"><value>You can close this window or return to the portal.</value></data>
 </root>

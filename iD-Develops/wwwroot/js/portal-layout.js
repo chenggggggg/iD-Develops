@@ -185,7 +185,9 @@ function initializePortalLayout() {
     });
 }
 
-if (document.readyState === "loading") {
+// The layout script follows its controls. Bind essential navigation and dialog
+// behavior immediately rather than waiting for consent-delayed document events.
+if (document.readyState === "loading" && !document.querySelector("[data-portal-sidebar]")) {
     document.addEventListener("DOMContentLoaded", initializePortalLayout, { once: true });
 } else {
     initializePortalLayout();

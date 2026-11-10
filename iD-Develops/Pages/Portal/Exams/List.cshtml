@@ -198,7 +198,8 @@
                                         data-portal-dialog-open="examLaunchDialog"
                                         data-exam-launch
                                         data-exam-id="@exam.Id"
-                                        disabled="@(!examCanLaunch)"
+                                        data-exam-can-launch="@examCanLaunch.ToString().ToLowerInvariant()"
+                                        disabled
                                         title="@(examCanLaunch ? "Start exam" : rowAvailability?.BlockReason ?? "Exam is locked")">
                                     <i class="fa-solid @(examCanLaunch ? "fa-play" : "fa-lock")" aria-hidden="true"></i>
                                     <span class="@(canManageExams ? "sr-only" : null)">@(examCanLaunch ? "Start" : "Locked")</span>

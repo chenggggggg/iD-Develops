@@ -165,6 +165,38 @@ public sealed class PurchaseRefundTests : DiagnosticPageTest
         Assert.False(await check.Records.AnyAsync(item => item.ExamId == data.ExamId));
     }
 
+    [Theory]
+    [InlineData("portal-layout.js")]
+    [InlineData("exams-list.js")]
+    public async Task ExamStartWaitsForDialogScriptsWithoutConsumingAnAttempt(string script)
+    {
+        await using var data = await RefundFixture.CreateAsync();
+        await LoginAsync(data.Account, "/exams");
+        var requested = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        await Page.RouteAsync($"**/js/{script}*", async route =>
+        {
+            requested.TrySetResult();
+            await release.Task;
+            await route.ContinueAsync();
+        });
+        var row = Page.GetByRole(AriaRole.Row).Filter(new() { HasText = data.ExamName });
+        var start = row.GetByRole(AriaRole.Button, new() { Name = "Start", Exact = true });
+        try
+        {
+            await Page.GotoAsync($"{LocalTestApplication.PortalBaseUrl}/exams", new() { WaitUntil = WaitUntilState.Commit });
+            await requested.Task.WaitAsync(TimeSpan.FromSeconds(15));
+            await Expect(start).ToBeDisabledAsync();
+            await Expect(Page.Locator("script[src*='/js/portal-layout.js']")).ToHaveAttributeAsync("data-cookieconsent", "ignore");
+        }
+        finally { release.TrySetResult(); }
+
+        await start.ClickAsync();
+        await Expect(Page.GetByRole(AriaRole.Button, new() { Name = "Start exam", Exact = true })).ToBeVisibleAsync();
+        await using var db = LocalTestApplication.CreateDbContext();
+        Assert.False(await db.Records.AnyAsync(item => item.ExamId == data.ExamId));
+    }
+
     [Fact]
     public async Task ConcurrentExamStartAndRefundCannotBothConsumeAndRefundThePurchase()
     {

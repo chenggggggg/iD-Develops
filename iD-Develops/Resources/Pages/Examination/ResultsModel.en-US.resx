@@ -41,4 +41,15 @@
   <data name="GradeBelowA1Advice" xml:space="preserve"><value>Less than 45 points but still want to give it a shot? That is great, but please contact us at info@id-develops.com. We are happy to give you some advice.</value></data>
   <data name="TimeLimitLabel" xml:space="preserve"><value>Time limit</value></data>
   <data name="NoTimeLimit" xml:space="preserve"><value>No time limit</value></data>
+  <data name="GradeLabel" xml:space="preserve"><value>Grade</value></data>
+  <data name="ResultAdvice" xml:space="preserve"><value>You can review your answers and feedback in your result overview. Contact us if you would like help choosing your next step.</value></data>
+  <data name="VersionFormat" xml:space="preserve"><value>Version {0}</value></data>
+  <data name="VersionNotRecorded" xml:space="preserve"><value>Version not recorded</value></data>
+  <data name="ReviewAnswersAction" xml:space="preserve"><value>Review your answers</value></data>
+  <data name="QuestionCountLabel" xml:space="preserve"><value>Questions</value></data>
+  <data name="UnansweredLabel" xml:space="preserve"><value>Unanswered</value></data>
+  <data name="NoQuestionsMessage" xml:space="preserve"><value>There are no questions to review for this exam.</value></data>
+  <data name="HistoricalResultNote" xml:space="preserve"><value>This result uses the exam version you completed. Later changes to the exam do not change this overview.</value></data>
+  <data name="QuestionImageAlt" xml:space="preserve"><value>Image for this question</value></data>
+  <data name="QuestionAudioLabel" xml:space="preserve"><value>Question audio</value></data>
 </root>

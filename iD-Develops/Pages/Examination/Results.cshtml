@@ -2,169 +2,157 @@
 @model iD_Develops.Pages.Examination.ResultsModel
 @using System.Globalization
 @inject IStringLocalizer<iD_Develops.Pages.Examination.ResultsModel> Localizer
+@inject iD_Develops.Services.IStoragePublicUrlService StoragePublicUrls
 @{
-    var levelTestUrl = $"/{CultureInfo.CurrentCulture.Name.ToLowerInvariant()}/level-test";
+    var culture = CultureInfo.CurrentCulture.Name.ToLowerInvariant();
+    var levelTestUrl = $"/{culture}/level-test";
     ViewData["Title"] = Localizer["Title"];
-    ViewData["BodyClass"] = "public-result-page";
+    var primaryButton = "border-0 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[var(--id-blue)] px-5 py-3 text-sm font-semibold text-white no-underline transition-colors hover:bg-[var(--id-blue-dark)] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]";
+    var secondaryButton = "inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-[var(--id-ink)] no-underline transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]";
+    var richText = "min-w-0 break-words text-sm leading-7 text-[var(--id-ink)] [&_img]:h-auto [&_img]:max-w-full [&_p]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:text-[var(--id-blue)] [&_a]:underline";
 }
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/examination.css" asp-append-version="true" />
-}
-
-@if (Model.IsInvalidResult || Model.Summary == null)
-{
-    <section class="public-result-shell">
-        <div class="container">
-            <div class="public-result-invalid">
-                <p class="public-result-eyebrow">@Localizer["UnavailableEyebrow"]</p>
-                <h1>@Localizer["UnavailableTitle"]</h1>
-                <p>@Localizer["UnavailableDescription"]</p>
-                <div class="public-result-actions">
-                    <a class="public-result-button" href="@levelTestUrl">@Localizer["TakeLevelTestButton"]</a>
-                    <a class="public-result-button public-result-button-secondary" asp-page="/Contact" asp-route-culture="@CultureInfo.CurrentCulture.Name.ToLowerInvariant()">@Localizer["ContactButton"]</a>
-                </div>
+<section class="mx-auto w-full max-w-6xl px-4 py-10 text-[var(--id-ink)] sm:px-6 sm:py-16" data-exam-result>
+    @if (Model.IsInvalidResult || Model.Summary == null)
+    {
+        <div class="mx-auto max-w-xl rounded-2xl border border-slate-200 bg-white p-6 text-center sm:p-10" data-result-unavailable>
+            <p class="m-0 text-xs font-semibold uppercase tracking-widest text-[var(--id-blue)]">@Localizer["UnavailableEyebrow"]</p>
+            <h1 class="m-0 mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">@Localizer["UnavailableTitle"]</h1>
+            <p class="m-0 mt-4 text-base leading-7 text-[var(--id-muted)]">@Localizer["UnavailableDescription"]</p>
+            <div class="mt-8 flex flex-wrap justify-center gap-3">
+                <a class="@primaryButton" href="@levelTestUrl">@Localizer["TakeLevelTestButton"]</a>
+                <a class="@secondaryButton" asp-page="/Contact" asp-route-culture="@culture">@Localizer["ContactButton"]</a>
             </div>
         </div>
-    </section>
-}
-else
-{
-    <section class="public-result-hero">
-        <div class="container">
-            <div class="public-result-hero-grid">
-                <div class="public-result-hero-copy">
-                    <p class="public-result-eyebrow">@Localizer["ResultEyebrow"]</p>
-                    <h1>@Model.Summary.ExamName</h1>
-                    <p class="mt-2 text-sm text-slate-600">@(Model.ExamVersionNumber.HasValue ? $"v{Model.ExamVersionNumber}" : "Legacy") &middot; @Localizer["TimeLimitLabel"]: @(Model.TimeLimitSeconds is > 0 ? iD_Develops.Utilities.ExamDuration.Format(Model.TimeLimitSeconds.Value) : Localizer["NoTimeLimit"].Value)</p>
-                    <p class="public-result-lead">@Model.Summary.AdviceText</p>
-                    <div class="public-result-actions">
-                        <a class="public-result-button" href="https://koalendar.com/e/test-results-options" target="_blank" rel="noopener noreferrer">@Localizer["AdviceCallButton"]</a>
-                        <a class="public-result-button public-result-button-secondary" asp-page="/Pricing" asp-route-culture="@CultureInfo.CurrentCulture.Name.ToLowerInvariant()">@Localizer["PricingButton"]</a>
-                    </div>
-                </div>
-                <div class="public-result-score-panel">
-                    <div class="public-result-score-ring" style="--score-percent: @Model.Summary.ScorePercentage;">
-                        <div>
-                            <span>@Model.Summary.ScorePercentage%</span>
-                            <small>@Localizer["PointsFormat", Model.Summary.Score.ToString("0.##"), Model.Summary.MaxScore.ToString("0.##")]</small>
-                        </div>
-                    </div>
-                    <div class="public-result-score-meta">
-                        <p>@Model.Summary.GradeLabel</p>
-                        <strong>@Model.Summary.GradeValue</strong>
-                    </div>
+    }
+    else
+    {
+        <header class="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-12">
+            <div class="min-w-0">
+                <p class="m-0 text-xs font-semibold uppercase tracking-widest text-[var(--id-blue)]">@Localizer["ResultEyebrow"]</p>
+                <h1 class="m-0 mt-3 break-words text-3xl font-semibold leading-tight tracking-tight sm:text-4xl" data-result-exam-name>@Model.Summary.ExamName</h1>
+                <p class="m-0 mt-4 text-sm text-[var(--id-muted)]" data-result-version>
+                    @(Model.ExamVersionNumber.HasValue ? Localizer["VersionFormat", Model.ExamVersionNumber.Value] : Localizer["VersionNotRecorded"])
+                    <span aria-hidden="true"> &middot; </span>
+                    @Localizer["TimeLimitLabel"]: @(Model.TimeLimitSeconds is > 0 ? iD_Develops.Utilities.ExamDuration.Format(Model.TimeLimitSeconds.Value) : Localizer["NoTimeLimit"].Value)
+                </p>
+                <p class="m-0 mt-6 max-w-2xl text-base leading-7 text-[var(--id-muted)]">@Model.Summary.AdviceText</p>
+                <div class="mt-6 flex flex-wrap gap-3">
+                    <a class="@primaryButton" href="#question-review">@Localizer["ReviewAnswersAction"] <span aria-hidden="true">&darr;</span></a>
+                    <a class="@secondaryButton" href="https://koalendar.com/e/test-results-options" target="_blank" rel="noopener noreferrer">@Localizer["AdviceCallButton"] <span aria-hidden="true">&nearr;</span></a>
                 </div>
             </div>
-        </div>
-    </section>
+            <section class="min-w-0 rounded-2xl border border-[var(--id-border)] bg-[var(--id-blue-soft)] p-6 sm:p-8" aria-label="@Localizer["ScoreLabel"]">
+                <p class="m-0 text-sm font-medium text-[var(--id-muted)]">@Localizer["ScoreLabel"]</p>
+                <p class="m-0 mt-2 text-6xl font-semibold tracking-tight tabular-nums text-[var(--id-blue)]" data-result-percentage>@Model.Summary.ScorePercentage%</p>
+                <p class="m-0 mt-3 text-sm tabular-nums text-[var(--id-muted)]">@Localizer["PointsFormat", Model.Summary.Score.ToString("0.##"), Model.Summary.MaxScore.ToString("0.##")]</p>
+                <div class="mt-6 border-t border-[var(--id-border)] pt-5">
+                    <p class="m-0 text-sm text-[var(--id-muted)]" data-result-grade-label>@Model.Summary.GradeLabel</p>
+                    <p class="m-0 mt-1 break-words text-2xl font-semibold" data-result-grade>@Model.Summary.GradeValue</p>
+                </div>
+            </section>
+        </header>
 
-    <section class="public-result-content">
-        <div class="container">
-            <div class="public-result-stats">
-                <article>
-                    <span>@Localizer["ScoreLabel"]</span>
-                    <strong>@Model.Summary.Score.ToString("0.##") / @Model.Summary.MaxScore.ToString("0.##")</strong>
-                </article>
-                <article>
-                    <span>@Localizer["CorrectAnswersLabel"]</span>
-                    <strong>@Model.Summary.CorrectAnswers / @Model.Summary.TotalQuestions</strong>
-                </article>
-                <article>
-                    <span>@Localizer["CompletedLabel"]</span>
-                    <strong>@((Model.Summary.EndDateTime ?? Model.Summary.StartDateTime).ToLocalTime().ToString("dd MMM yyyy"))</strong>
-                </article>
-            </div>
+        <dl class="m-0 mt-10 grid grid-cols-2 gap-x-6 gap-y-6 border-y border-slate-200 py-6 sm:grid-cols-4">
+            <div><dt class="m-0 text-sm text-[var(--id-muted)]">@Localizer["QuestionCountLabel"]</dt><dd class="m-0 mt-2 text-lg font-semibold tabular-nums">@Model.Summary.TotalQuestions</dd></div>
+            <div><dt class="m-0 text-sm text-[var(--id-muted)]">@Localizer["CorrectAnswersLabel"]</dt><dd class="m-0 mt-2 text-lg font-semibold tabular-nums">@Model.Summary.CorrectAnswers / @Model.Summary.TotalQuestions</dd></div>
+            <div><dt class="m-0 text-sm text-[var(--id-muted)]">@Localizer["UnansweredLabel"]</dt><dd class="m-0 mt-2 text-lg font-semibold tabular-nums" data-result-unanswered>@Model.UnansweredCount</dd></div>
+            <div><dt class="m-0 text-sm text-[var(--id-muted)]">@Localizer["CompletedLabel"]</dt><dd class="m-0 mt-2 text-lg font-semibold"><time datetime="@((Model.Summary.EndDateTime ?? Model.Summary.StartDateTime).ToString("O"))">@((Model.Summary.EndDateTime ?? Model.Summary.StartDateTime).ToString("dd MMM yyyy"))</time></dd></div>
+        </dl>
 
-            <div class="public-result-section-heading">
-                <p class="public-result-eyebrow">@Localizer["PersonalAdviceEyebrow"]</p>
-                <h2>@Model.Summary.AdviceTitle</h2>
-            </div>
+        @if (!string.IsNullOrWhiteSpace(Model.Summary.CompletionText))
+        {
+            <section class="mt-10 rounded-xl border border-slate-200 bg-white p-6 sm:p-8" aria-labelledby="result-feedback-heading">
+                <h2 id="result-feedback-heading" class="m-0 text-xl font-semibold">@Model.Summary.AdviceTitle</h2>
+                <div class="@richText mt-4" data-result-feedback>@Html.Raw(Model.Summary.CompletionText)</div>
+            </section>
+        }
 
-            @if (!string.IsNullOrWhiteSpace(Model.Summary.CompletionText))
+        <section id="question-review" class="mt-12 scroll-mt-24" aria-labelledby="question-review-heading">
+            <p class="m-0 text-xs font-semibold uppercase tracking-widest text-[var(--id-blue)]">@Localizer["QuestionReviewEyebrow"]</p>
+            <h2 id="question-review-heading" class="m-0 mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">@Localizer["QuestionReviewTitle"]</h2>
+            @if (Model.Questions.Count == 0)
             {
-                <div class="public-result-advice">
-                    @Html.Raw(Model.Summary.CompletionText)
-                </div>
+                <p class="m-0 mt-6 rounded-xl border border-dashed border-slate-300 p-6 text-sm text-[var(--id-muted)]">@Localizer["NoQuestionsMessage"]</p>
             }
-
-            <div class="public-result-section-heading">
-                <p class="public-result-eyebrow">@Localizer["QuestionReviewEyebrow"]</p>
-                <h2>@Localizer["QuestionReviewTitle"]</h2>
-            </div>
-
-            <div class="public-result-question-list">
+            <div class="mt-6 grid min-w-0 gap-3">
                 @foreach (var question in Model.Questions)
                 {
-                    <article class="public-result-question">
-                        <div class="public-result-question-header">
-                            <span>@Localizer["QuestionFormat", question.QuestionNumber]</span>
-                            <strong class="@question.ResultBadgeClass">@question.ResultLabel</strong>
+                    var badge = question.IsCorrect ? "bg-emerald-50 text-emerald-800" : question.IsAnswered ? "bg-amber-50 text-amber-900" : "bg-slate-100 text-slate-600";
+                    <details class="group min-w-0 rounded-xl border border-slate-200 bg-white" open="@(question == Model.Questions[0])" data-question-number="@question.QuestionNumber">
+                        <summary class="flex min-h-16 cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-4 py-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)] sm:px-6 [&::-webkit-details-marker]:hidden">
+                            <span class="font-semibold">@Localizer["QuestionFormat", question.QuestionNumber]</span>
+                            <span class="ml-auto rounded-full px-3 py-1 text-xs font-semibold @badge">@question.ResultLabel</span>
+                            <span class="text-[var(--id-muted)] group-open:rotate-180" aria-hidden="true">&#8964;</span>
+                        </summary>
+                        <div class="flex min-w-0 flex-col gap-6 border-t border-slate-100 px-4 py-6 sm:px-6">
+                            @if (!string.IsNullOrWhiteSpace(question.ScenarioHtml))
+                            {
+                                <div class="@richText">@Html.Raw(question.ScenarioHtml)</div>
+                            }
+                            <div class="@richText font-medium">@Html.Raw(question.QuestionHtml)</div>
+                            @if (!string.IsNullOrWhiteSpace(question.ImageReference))
+                            {
+                                <img class="max-h-80 max-w-full self-start rounded-lg object-contain" src="@StoragePublicUrls.ResolvePublicUrl(question.ImageReference.Trim().TrimStart('/'))" alt="@Localizer["QuestionImageAlt"]" loading="lazy" />
+                            }
+                            @if (!string.IsNullOrWhiteSpace(question.AudioReference))
+                            {
+                                <audio class="w-full" src="@StoragePublicUrls.ResolvePublicUrl(question.AudioReference.Trim().TrimStart('/'))" controls preload="none" aria-label="@Localizer["QuestionAudioLabel"]"></audio>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(question.HelpHtml))
+                            {
+                                <div class="@richText rounded-lg bg-slate-50 p-4">@Html.Raw(question.HelpHtml)</div>
+                            }
+                            @if (question.MultipleChoiceOptions.Count > 0)
+                            {
+                                <ul class="m-0 grid list-none gap-3 p-0 sm:grid-cols-2">
+                                    @foreach (var option in question.MultipleChoiceOptions)
+                                    {
+                                        var optionClass = option.IsCorrect ? "border-emerald-200 bg-emerald-50" : option.IsSelected ? "border-amber-200 bg-amber-50" : "border-slate-200 bg-slate-50";
+                                        <li class="min-w-0 rounded-lg border p-4 @optionClass">
+                                            <p class="m-0 break-words text-sm leading-6"><span class="mr-2 font-bold">@option.Key.</span>@option.Text</p>
+                                            @if (option.IsSelected)
+                                            {
+                                                <p class="m-0 mt-2 text-xs font-semibold">@Localizer["YourAnswerLabel"]</p>
+                                            }
+                                            @if (option.IsCorrect)
+                                            {
+                                                <p class="m-0 mt-2 text-xs font-semibold text-emerald-800">@Localizer["CorrectAnswerLabel"]</p>
+                                            }
+                                        </li>
+                                    }
+                                </ul>
+                                @if (!question.IsAnswered)
+                                {
+                                    <p class="m-0 text-sm text-[var(--id-muted)]">@Localizer["NoAnswerSubmitted"]</p>
+                                }
+                            }
+                            else
+                            {
+                                <dl class="m-0 grid min-w-0 gap-3 sm:grid-cols-2">
+                                    <div class="min-w-0 rounded-lg bg-slate-50 p-4"><dt class="m-0 text-xs font-semibold text-[var(--id-muted)]">@Localizer["YourAnswerLabel"]</dt><dd class="m-0 mt-2 break-words text-sm leading-6">@question.SubmittedAnswer</dd></div>
+                                    <div class="min-w-0 rounded-lg bg-emerald-50 p-4"><dt class="m-0 text-xs font-semibold text-emerald-800">@Localizer["CorrectAnswerLabel"]</dt><dd class="m-0 mt-2 break-words text-sm leading-6">@question.CorrectAnswer</dd></div>
+                                </dl>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(question.FeedbackHtml))
+                            {
+                                <section><h3 class="m-0 text-sm font-semibold">@Localizer["FeedbackLabel"]</h3><div class="@richText mt-2">@Html.Raw(question.FeedbackHtml)</div></section>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(question.FunFactHtml))
+                            {
+                                <section><h3 class="m-0 text-sm font-semibold">@Localizer["ExtraNoteLabel"]</h3><div class="@richText mt-2">@Html.Raw(question.FunFactHtml)</div></section>
+                            }
                         </div>
-
-                        <div class="public-result-question-text">
-                            @Html.Raw(question.QuestionHtml)
-                        </div>
-
-                        @if (question.MultipleChoiceOptions.Count > 0)
-                        {
-                            <div class="public-result-option-grid">
-                                @foreach (var option in question.MultipleChoiceOptions)
-                                {
-                                    var optionClass = option.IsCorrect
-                                        ? "public-result-option public-result-option-correct"
-                                        : option.IsSelected
-                                            ? "public-result-option public-result-option-selected"
-                                            : "public-result-option";
-
-                                    <div class="@optionClass">
-                                        <span>@option.Key</span>
-                                        <p>@option.Text</p>
-                                    </div>
-                                }
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="public-result-answer-grid">
-                                <div>
-                                    <span>@Localizer["YourAnswerLabel"]</span>
-                                    <p>@question.SubmittedAnswer</p>
-                                </div>
-                                <div>
-                                    <span>@Localizer["CorrectAnswerLabel"]</span>
-                                    <p>@question.CorrectAnswer</p>
-                                </div>
-                            </div>
-                        }
-
-                        <div class="public-result-notes">
-                            <div>
-                                <span>@Localizer["FeedbackLabel"]</span>
-                                @if (string.IsNullOrWhiteSpace(question.FeedbackHtml))
-                                {
-                                    <p>@Localizer["NoFeedback"]</p>
-                                }
-                                else
-                                {
-                                    <div>@Html.Raw(question.FeedbackHtml)</div>
-                                }
-                            </div>
-                            <div>
-                                <span>@Localizer["ExtraNoteLabel"]</span>
-                                @if (string.IsNullOrWhiteSpace(question.FunFactHtml))
-                                {
-                                    <p>@Localizer["NoExtraNote"]</p>
-                                }
-                                else
-                                {
-                                    <div>@Html.Raw(question.FunFactHtml)</div>
-                                }
-                            </div>
-                        </div>
-                    </article>
+                    </details>
                 }
             </div>
+        </section>
+        <div class="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 pt-6">
+            @if (Model.ExamVersionNumber.HasValue)
+            {
+                <p class="m-0 max-w-xl text-sm leading-6 text-[var(--id-muted)]">@Localizer["HistoricalResultNote"]</p>
+            }
+            <a class="@secondaryButton" asp-page="/Pricing" asp-route-culture="@culture">@Localizer["PricingButton"] <span aria-hidden="true">&rarr;</span></a>
         </div>
-    </section>
-}
+    }
+</section>
