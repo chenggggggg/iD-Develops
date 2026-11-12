@@ -5,6 +5,7 @@
 
 @{
     var returnCourseId = ViewData["ReturnCourseId"] as int?;
+    var isTaking = Model.Mode == PaginationMode.Exam;
     var durationSeconds = Model.DurationSeconds.GetValueOrDefault();
     var durationHours = durationSeconds / 3600;
     var durationMinutes = (durationSeconds % 3600) / 60;
@@ -17,13 +18,13 @@
         : null;
 }
 
-<header>
-    <nav class="exam-header">
+<header class="@(isTaking ? "sticky top-0 z-[990]" : null)" data-exam-header>
+    <nav class="exam-header @(isTaking ? "static!" : null)">
         <div class="exam-header-inner">
-            <div class="exam-header-row">
+            <div class="exam-header-row @(isTaking ? "gap-4" : null)">
 
                 <!-- Left: Timer -->
-                <div class="exam-header-group">
+                <div class="exam-header-group @(isTaking ? "shrink-0" : null)">
                     @if (Model.Mode == PaginationMode.Editing)
                     {
                         <a class="exam-header-back"
@@ -121,14 +122,14 @@
                         </div>
                     </div>
                 }
-                else
+                else if (!isTaking)
                 {
                     <!-- Keeps spacing balanced when status is not shown -->
                     <div class="exam-header-spacer"></div>
                 }
 
                 <!-- Right: Exam + Course -->
-                <div class="exam-header-title-block">
+                <div class="exam-header-title-block @(isTaking ? "min-w-0 flex-1 items-end [overflow-wrap:anywhere]" : null)">
                     @if (Model.Mode == PaginationMode.Editing)
                     {
                         <small class="exam-header-label exam-header-name-edit"

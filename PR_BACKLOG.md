@@ -356,7 +356,7 @@ B14's editable product button labels remain a separate planned PR.
 
 ## B10 - P0 - Exam results and completion-page refresh
 
-Status: implemented and verified on `feature/exam-results-completion`; ready for PR review.
+Status: merged as PR #52 on 2026-11-10.
 Results use the attempt's saved grade settings, version, time limit, feedback, questions,
 answers, and media. Shared grading presentation keeps result emails consistent and replaces
 the fixed 60-point language-level assumptions. The responsive review uses native keyboard-
@@ -700,6 +700,20 @@ B13/B14 polish, and deliver blog work in the B16 -> B17 -> B18 sequence. B19 rem
 targeted performance investigation. B20 remains the final broader UI/UX audit.
 
 ## B22 - P0 - Exam-taking layout and header clearance
+
+Status: implemented and verified on `fix/exam-taking-layout`; ready for PR review.
+Public and Portal taking pages share a left-aligned, narrower answer area, with context/media
+first and the question immediately above its answers. Choice controls use existing brand
+tokens, visible keyboard focus, and native radio behavior. Open answers have an accessible
+question label. The taking header stays sticky in normal flow, wraps long titles, and no
+longer covers content. Taking pages override inherited viewport-height/overflow constraints
+so long questions scroll normally. Editor/start-page presentation remains outside this batch.
+All styling changes use Tailwind utilities; no custom CSS or migrations were added.
+Verification: Release build, formatting, all 500 unit/integration tests, and all 224 E2E tests
+passed. Six new public/Portal scenarios cover 320/390/768/1440px widths, English/Dutch,
+keyboard selection/deselection, focus, help, media controls, saved answers, navigation, reload,
+and scrolling. Screenshots were inspected. The initial concurrent unit/format run hit three
+database-startup timeouts; the unchanged full unit suite passed when run on its own.
 
 **Estimated size: Medium.** Focused taking-surface layout and responsive/browser regressions.
 

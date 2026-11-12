@@ -7,6 +7,7 @@
 @{
     Layout = "/Pages/Shared/Examination/_ExaminationLayout.cshtml";
     ViewData["Title"] = "Examination";
+    ViewData["ExaminationBodyClass"] = "min-h-dvh h-auto! overflow-x-clip! overflow-y-visible! bg-white text-[var(--id-ink)]";
     var requestToken = Antiforgery.GetAndStoreTokens(Model.HttpContext).RequestToken;
 }
 
@@ -15,7 +16,7 @@
 
 @if (Model.PageState.ExamStatus == ExamStatus.InProgress)
 {
-    <div class="exam-container">
+    <main class="exam-container pt-6 pb-28 sm:pt-8" data-exam-content>
         <input id="RequestVerificationToken" type="hidden" value="@requestToken" />
         <input id="ExamId" type="hidden" value="@Model.PageState.ExamId" />
         <input id="RecordId" type="hidden" value="@Model.PageState.RecordId" />
@@ -44,7 +45,7 @@
                 </div>
             </div>
         }
-    </div>
+    </main>
 
     <partial name="/Pages/Shared/Examination/_Pagination.cshtml" model="Model.Pagination" />
 }
