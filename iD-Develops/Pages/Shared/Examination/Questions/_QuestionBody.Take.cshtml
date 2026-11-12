@@ -1,4 +1,4 @@
-@using iD_Develops.Models
+﻿@using iD_Develops.Models
 @using iD_Develops.Pages.Shared.Examination.Questions
 @model QuestionShellModel
 @inject iD_Develops.Services.IStoragePublicUrlService StoragePublicUrlService
@@ -8,13 +8,11 @@
     var question = Model.Question;
     var imageRef = (question.ImageReference ?? "").Trim().TrimStart('/');
     var audioRef = (question.AudioReference ?? "").Trim().TrimStart('/');
-
     var hasImage = !string.IsNullOrWhiteSpace(imageRef);
     var hasAudio = !string.IsNullOrWhiteSpace(audioRef);
-
+    var hasScenario = !string.IsNullOrWhiteSpace(question.Scenario);
     var imageUrl = hasImage ? StoragePublicUrlService.ResolvePublicUrl(imageRef) : null;
     var audioUrl = hasAudio ? StoragePublicUrlService.ResolvePublicUrl(audioRef) : null;
-
     var hasHelpText = !string.IsNullOrWhiteSpace(question.MessageBeforeQuestion);
     var savedAnswer = (Model.SavedAnswerText ?? string.Empty).Trim();
     var normalizedSavedAnswer = savedAnswer.ToUpperInvariant() switch
@@ -27,132 +25,96 @@
         "FALSE" => "False",
         _ => savedAnswer
     };
+    var promptId = $"question{question.QuestionNumber}_prompt";
+    var richText = "min-w-0 text-base leading-7 [overflow-wrap:anywhere] [&_p]:my-0 [&_p+p]:mt-3 [&_img]:h-auto [&_img]:max-w-full";
+    var choiceLabel = "flex min-h-12 w-full cursor-pointer items-start gap-3 rounded-lg border border-slate-300 bg-white px-4 py-3 text-left text-base leading-6 text-[var(--id-ink)] hover:bg-slate-50 peer-checked:border-[var(--id-blue)] peer-checked:bg-[var(--id-blue-soft)] peer-checked:text-[var(--id-blue)] peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[var(--id-blue)]";
 }
 
-<form id="question-form" class="question-take-form" autocomplete="off">
+<form id="question-form" class="mx-auto flex w-full min-w-0 max-w-3xl flex-col gap-6 text-left text-[var(--id-ink)]" autocomplete="off">
     <input type="hidden" id="questionId" name="questionId" value="@question.Id" />
 
-    <div class="question-narrow">
-            <div class="question-grid @(hasImage ? "question-grid-has-media" : null)">
-                <div>
-                    @if (!string.IsNullOrWhiteSpace(question.Scenario))
+    @if (hasScenario || hasImage || hasAudio)
+    {
+        <div class="grid min-w-0 items-start gap-5 @(hasImage && (hasScenario || hasAudio) ? "sm:grid-cols-2" : null)" data-exam-context-media>
+            @if (hasScenario || hasAudio)
+            {
+                <div class="flex min-w-0 flex-col gap-5">
+                    @if (hasScenario)
                     {
-                        <div class="mb-4">
-                            @Html.Raw(question.Scenario)
-                        </div>
+                        <div class="@richText" data-exam-context>@Html.Raw(question.Scenario)</div>
                     }
-
                     @if (hasAudio)
                     {
-                        <div class="mb-4">
-                            <audio src="@audioUrl" class="w-full" controls preload="metadata"></audio>
+                        <audio src="@audioUrl" class="w-full min-w-0" controls preload="metadata"></audio>
+                    }
+                </div>
+            }
+            @if (hasImage)
+            {
+                <img src="@imageUrl" class="block h-auto w-full max-w-lg rounded-xl" alt="@Localizer["QuestionImageAlt"]" data-exam-question-image />
+            }
+        </div>
+    }
+
+    <div class="flex w-full min-w-0 max-w-2xl flex-col gap-3">
+        <div class="flex min-w-0 items-start gap-2 text-base font-semibold leading-7" data-exam-question>
+            <span class="shrink-0">@question.QuestionNumber.</span>
+            <div id="@promptId" class="@richText flex-1">@Html.Raw(question.Text)</div>
+            @if (hasHelpText)
+            {
+                <details class="relative shrink-0">
+                    <summary class="inline-flex size-11 cursor-pointer list-none items-center justify-center rounded-full border border-slate-200 bg-white text-[var(--id-blue)] hover:bg-[var(--id-blue-soft)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)] [&::-webkit-details-marker]:hidden" aria-label="@Localizer["QuestionHelpLabel"]">?</summary>
+                    <div class="@richText absolute top-full right-0 z-20 mt-2 w-72 max-w-[calc(100vw-3rem)] rounded-xl border border-slate-200 bg-white p-4 font-normal text-[var(--id-ink)] shadow-lg">
+                        @Html.Raw(question.MessageBeforeQuestion)
+                    </div>
+                </details>
+            }
+        </div>
+
+        <div id="question-answers" class="min-w-0" role="@(question is OpenQuestion ? null : "radiogroup")" aria-labelledby="@promptId">
+            @if (question is MultipleChoiceQuestion multipleChoiceQuestion)
+            {
+                var choices = new[]
+                {
+                    (Key: "A", Text: multipleChoiceQuestion.MultipleChoiceAnswer?.AnswerA),
+                    (Key: "B", Text: multipleChoiceQuestion.MultipleChoiceAnswer?.AnswerB),
+                    (Key: "C", Text: multipleChoiceQuestion.MultipleChoiceAnswer?.AnswerC),
+                    (Key: "D", Text: multipleChoiceQuestion.MultipleChoiceAnswer?.AnswerD)
+                };
+                <div class="grid gap-2 rounded-xl border border-[var(--id-border)] bg-white p-2 sm:p-3">
+                    @foreach (var choice in choices)
+                    {
+                        var choiceId = $"question{question.QuestionNumber}_{choice.Key}";
+                        <div class="relative min-w-0">
+                            <input class="peer sr-only" type="radio" name="answer" id="@choiceId" value="@choice.Key" autocomplete="off" checked="@(normalizedSavedAnswer == choice.Key)" />
+                            <label class="@choiceLabel" for="@choiceId">
+                                <span class="shrink-0 font-semibold">@choice.Key</span>
+                                @if (!string.IsNullOrWhiteSpace(choice.Text))
+                                {
+                                    <span class="min-w-0 [overflow-wrap:anywhere]">@choice.Text</span>
+                                }
+                            </label>
                         </div>
                     }
-
-                    <div class="mb-4 flex items-baseline font-bold take-question-line">
-                        <span class="mr-2 take-question-no">@question.QuestionNumber.</span>
-                        <div class="take-question-text">@Html.Raw(question.Text)</div>
-
-                        @if (hasHelpText)
-                        {
-                            <details class="take-help-details">
-                                <summary class="take-help-btn" aria-label="@Localizer["QuestionHelpLabel"]">?</summary>
-                                <div class="take-help-panel">
-                                    @Html.Raw(question.MessageBeforeQuestion)
-                                </div>
-                            </details>
-                        }
+                </div>
+            }
+            else if (question is OpenQuestion)
+            {
+                <textarea class="min-h-40 w-full min-w-0 resize-y rounded-lg border border-slate-300 bg-white px-4 py-3 text-base leading-7 text-[var(--id-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]" id="question@(question.QuestionNumber)_openAnswer" name="answer" rows="6" aria-labelledby="@promptId">@normalizedSavedAnswer</textarea>
+            }
+            else if (question is TrueOrFalseQuestion)
+            {
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="relative min-w-0">
+                        <input class="peer sr-only" type="radio" name="answer" id="question@(question.QuestionNumber)_true" value="True" autocomplete="off" checked="@(normalizedSavedAnswer == "True")" />
+                        <label class="@choiceLabel" for="question@(question.QuestionNumber)_true">@Localizer["TrueAnswer"]</label>
+                    </div>
+                    <div class="relative min-w-0">
+                        <input class="peer sr-only" type="radio" name="answer" id="question@(question.QuestionNumber)_false" value="False" autocomplete="off" checked="@(normalizedSavedAnswer == "False")" />
+                        <label class="@choiceLabel" for="question@(question.QuestionNumber)_false">@Localizer["FalseAnswer"]</label>
                     </div>
                 </div>
-
-                @if (hasImage)
-                {
-                    <div>
-                        <img src="@imageUrl" class="question-media-preview" alt="@Localizer["QuestionImageAlt"]" />
-                    </div>
-                }
-            </div>
-
-            <div class="mt-6">
-                <div class="question-answer-narrow">
-                    <div id="question-answers">
-                        @if (question is MultipleChoiceQuestion multipleChoiceQuestion)
-                        {
-                            var textA = multipleChoiceQuestion.MultipleChoiceAnswer?.AnswerA;
-                            var textB = multipleChoiceQuestion.MultipleChoiceAnswer?.AnswerB;
-                            var textC = multipleChoiceQuestion.MultipleChoiceAnswer?.AnswerC;
-                            var textD = multipleChoiceQuestion.MultipleChoiceAnswer?.AnswerD;
-
-                            <div class="mcq-card">
-                                <div class="record-option-list">
-                                    <div>
-                                        <input class="question-choice-input" type="radio" name="answer" id="question@(question.QuestionNumber)_A" value="A" autocomplete="off" checked="@(normalizedSavedAnswer == "A")">
-                                        <label class="mcq-option-label" for="question@(question.QuestionNumber)_A">
-                                            <span class="mcq-option-letter">A</span>
-                                            @if (!string.IsNullOrWhiteSpace(textA))
-                                            {
-                                                <span class="mcq-option-text">@textA</span>
-                                            }
-                                        </label>
-                                    </div>
-                                    <div>
-                                        <input class="question-choice-input" type="radio" name="answer" id="question@(question.QuestionNumber)_B" value="B" autocomplete="off" checked="@(normalizedSavedAnswer == "B")">
-                                        <label class="mcq-option-label" for="question@(question.QuestionNumber)_B">
-                                            <span class="mcq-option-letter">B</span>
-                                            @if (!string.IsNullOrWhiteSpace(textB))
-                                            {
-                                                <span class="mcq-option-text">@textB</span>
-                                            }
-                                        </label>
-                                    </div>
-                                    <div>
-                                        <input class="question-choice-input" type="radio" name="answer" id="question@(question.QuestionNumber)_C" value="C" autocomplete="off" checked="@(normalizedSavedAnswer == "C")">
-                                        <label class="mcq-option-label" for="question@(question.QuestionNumber)_C">
-                                            <span class="mcq-option-letter">C</span>
-                                            @if (!string.IsNullOrWhiteSpace(textC))
-                                            {
-                                                <span class="mcq-option-text">@textC</span>
-                                            }
-                                        </label>
-                                    </div>
-                                    <div>
-                                        <input class="question-choice-input" type="radio" name="answer" id="question@(question.QuestionNumber)_D" value="D" autocomplete="off" checked="@(normalizedSavedAnswer == "D")">
-                                        <label class="mcq-option-label" for="question@(question.QuestionNumber)_D">
-                                            <span class="mcq-option-letter">D</span>
-                                            @if (!string.IsNullOrWhiteSpace(textD))
-                                            {
-                                                <span class="mcq-option-text">@textD</span>
-                                            }
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                        else if (question is OpenQuestion)
-                        {
-                            <textarea class="public-field" id="question@(question.QuestionNumber)_openAnswer" name="answer" rows="6">@normalizedSavedAnswer</textarea>
-                        }
-                        else if (question is TrueOrFalseQuestion)
-                        {
-                            <div class="question-boolean-group" role="group" aria-label="@Localizer["TrueFalseAnswerLabel"]">
-                                <input class="question-choice-input" type="radio" name="answer"
-                                       id="question@(question.QuestionNumber)_true" value="True" autocomplete="off" checked="@(normalizedSavedAnswer == "True")">
-                                <label class="question-boolean-label" for="question@(question.QuestionNumber)_true">@Localizer["TrueAnswer"]</label>
-
-                                <input class="question-choice-input" type="radio" name="answer"
-                                       id="question@(question.QuestionNumber)_false" value="False" autocomplete="off" checked="@(normalizedSavedAnswer == "False")">
-                                <label class="question-boolean-label" for="question@(question.QuestionNumber)_false">@Localizer["FalseAnswer"]</label>
-                            </div>
-                        }
-                    </div>
-                </div>
-            </div>
+            }
+        </div>
     </div>
 </form>
-
-
-
-
-
-
-
