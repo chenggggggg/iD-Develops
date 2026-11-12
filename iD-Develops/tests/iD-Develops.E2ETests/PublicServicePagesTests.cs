@@ -83,6 +83,25 @@ public sealed class PublicServicePagesTests : DiagnosticPageTest
                 }
             }
 
+            if (route is "nt2-integration" or "personal-development")
+            {
+                await Expect(Page.GetByTestId("service-prose").First).ToBeVisibleAsync();
+                foreach (var prose in await Page.GetByTestId("service-prose").AllAsync())
+                {
+                    var bounds = await prose.BoundingBoxAsync();
+                    Assert.InRange(bounds!.Width, Math.Min(width - 64, 600), 780);
+                    // Read all geometry in one frame so a late font swap cannot mix measurements.
+                    var gaps = await prose.EvaluateAsync<double[]>("""
+                        prose => {
+                            const paragraphs = Array.from(prose.querySelectorAll('p'), p => p.getBoundingClientRect());
+                            return paragraphs.slice(1).map((paragraph, index) => paragraph.top - paragraphs[index].bottom);
+                        }
+                        """);
+                    Assert.All(gaps, gap => Assert.True(gap >= 20,
+                        $"{route}: consecutive paragraphs need visible separation."));
+                }
+            }
+
             var image = hero.Locator("img");
             await Expect(image).ToHaveJSPropertyAsync("complete", true);
             Assert.True(await image.EvaluateAsync<bool>("image => image.naturalWidth > 0"));

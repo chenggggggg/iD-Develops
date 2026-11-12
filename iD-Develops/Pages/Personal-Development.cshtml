@@ -7,54 +7,74 @@
     ViewData["MetaDescription"] = Localizer["MetaDescription"];
     var contactUrl = Url.Page("/Contact", new { culture = CultureInfo.CurrentCulture.Name.ToLowerInvariant() })!;
     var conversation = new PublicServiceLink(Localizer["ScheduleConversation"], "https://koalendar.com/e/meet-with-id", true);
-    var contact = new PublicServiceLink(Localizer["ContactButton"], contactUrl);
-    var hero = new PublicServiceHero(Localizer["Title"], Localizer["HeroTitle"],
-        [Localizer["HeroDescription"]], "personal-development", conversation, contact,
-        Localizer["HeroNoteTitle"], Localizer["HeroNoteDescription"]);
     var methods = Enumerable.Range(1, 4)
         .Select(index => new PublicServiceOffering(Localizer[$"Method{index}Title"], Localizer[$"Method{index}Description"])).ToArray();
 }
 
-<partial name="_PublicServiceHero" model="hero" />
-
-<section class="public-container grid gap-6 py-14 md:py-20 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16" aria-labelledby="development-approach">
-    <h2 id="development-approach" class="m-0 text-4xl leading-tight text-[var(--serif-blue-dark)] md:text-5xl">@Localizer["ApproachEyebrow"]</h2>
-    <div class="space-y-5 text-lg leading-[1.8] text-[var(--serif-muted)]">
-        <p class="m-0">@Localizer["ApproachParagraph1"]</p>
-        <p class="m-0">@Localizer["ApproachParagraph2"]</p>
+<section class="public-container pb-12 pt-10 md:pb-16 md:pt-16" data-testid="service-hero" aria-labelledby="service-title">
+    <div class="mx-auto max-w-3xl">
+        <p class="mb-4 mt-0 text-base font-semibold text-[var(--id-red)]">@Localizer["Title"]</p>
+        <h1 id="service-title" class="m-0 text-[clamp(2.125rem,4vw,3.25rem)] leading-[1.15] tracking-[-0.02em] text-[var(--serif-blue-dark)]">@Localizer["HeroTitle"]</h1>
+        <p class="mb-0 mt-6 text-lg leading-[1.8] text-[var(--serif-ink)]/85 md:text-xl">@Localizer["HeroDescription"]</p>
+        <div class="mt-6 flex flex-wrap gap-3">
+            <partial name="_PublicServiceAction" model="conversation" />
+            <a href="@contactUrl" class="public-btn public-btn-outline max-w-full gap-3 leading-snug focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--serif-blue-dark)]">@Localizer["ContactButton"] <i class="fa-solid fa-arrow-right shrink-0" aria-hidden="true"></i></a>
+        </div>
     </div>
+    <img src="/images/services/personal-development-960.webp" srcset="/images/services/personal-development-480.webp 480w, /images/services/personal-development-960.webp 960w" sizes="(min-width: 1024px) 960px, (min-width: 768px) 700px, calc(100vw - 32px)" width="960" height="641" alt="" fetchpriority="high" class="mt-9 aspect-[3/2] h-auto w-full rounded-lg object-cover object-top md:mt-10 md:aspect-[16/7]" />
 </section>
 
-<section class="bg-[var(--serif-soft)]" aria-labelledby="development-audience">
-    <div class="public-container grid gap-10 py-14 md:py-20 lg:grid-cols-2 lg:gap-16">
-        <div>
-            <p class="mb-4 mt-0 font-[family-name:var(--serif-label)] text-xs tracking-[0.12em] text-[var(--serif-muted)] uppercase">@Localizer["AudienceEyebrow"]</p>
-            <h2 id="development-audience" class="m-0 text-4xl leading-tight text-[var(--serif-blue-dark)] md:text-5xl">@Localizer["AudienceTitle"]</h2>
-            <p class="mb-0 mt-6 text-lg leading-[1.8] text-[var(--serif-muted)]">@Localizer["AudienceDescription"]</p>
-        </div>
-        <div>
-            <h3 class="mb-5 mt-0 text-2xl leading-snug text-[var(--serif-blue-dark)]">@Localizer["HelpEyebrow"]</h3>
-            <ul class="m-0 list-none divide-y divide-[var(--serif-border)] p-0">
+<div class="public-container pb-12 md:pb-16">
+    <div class="mx-auto max-w-3xl">
+        <section aria-labelledby="development-guides">
+            <h2 id="development-guides" class="mb-5 mt-0 text-3xl leading-[1.25] text-[var(--serif-blue-dark)]">@Localizer["HeroNoteTitle"]</h2>
+            <p class="m-0 text-lg leading-[1.8] text-[var(--serif-ink)]/85">@Localizer["HeroNoteDescription"]</p>
+        </section>
+        <section class="mt-10" aria-labelledby="development-approach">
+            <h2 id="development-approach" class="mb-5 mt-0 text-3xl leading-[1.25] text-[var(--serif-blue-dark)]">@Localizer["ApproachEyebrow"]</h2>
+            <div class="flex flex-col gap-6 text-lg leading-[1.8] text-[var(--serif-ink)]/85" data-testid="service-prose">
+                <p class="m-0">@Localizer["ApproachParagraph1"]</p>
+                <p class="m-0">@Localizer["ApproachParagraph2"]</p>
+            </div>
+        </section>
+    </div>
+</div>
+
+<section class="border-y border-[var(--serif-border)] bg-[var(--serif-soft)]" aria-labelledby="development-audience">
+    <div class="public-container py-12 md:py-16">
+        <div class="mx-auto max-w-3xl">
+            <p class="mb-3 mt-0 text-base font-semibold text-[var(--serif-muted)]">@Localizer["AudienceEyebrow"]</p>
+            <h2 id="development-audience" class="mb-5 mt-0 text-3xl leading-[1.25] text-[var(--serif-blue-dark)] md:text-4xl">@Localizer["AudienceTitle"]</h2>
+            <p class="m-0 text-lg leading-[1.8] text-[var(--serif-ink)]/85">@Localizer["AudienceDescription"]</p>
+            <h3 class="mb-5 mt-8 font-[family-name:var(--serif-body)] text-xl font-semibold leading-snug text-[var(--serif-blue-dark)]">@Localizer["HelpEyebrow"]</h3>
+            <ul class="m-0 grid list-disc gap-x-10 gap-y-4 pl-5 text-lg leading-relaxed text-[var(--serif-ink)]/85 marker:text-[var(--id-red)] md:grid-cols-2">
                 @for (var index = 1; index <= 8; index++)
                 {
-                    <li class="flex gap-4 py-3 text-base leading-relaxed text-[var(--serif-blue-dark)]">
-                        <i class="fa-solid fa-check mt-1.5 shrink-0 text-sm text-[var(--id-red)]" aria-hidden="true"></i>
-                        <span>@Localizer[$"HelpItem{index}"]</span>
-                    </li>
+                    <li class="pl-1">@Localizer[$"HelpItem{index}"]</li>
                 }
             </ul>
         </div>
     </div>
 </section>
 
-<section class="public-container py-14 md:py-20" aria-labelledby="development-methods">
-    <h2 id="development-methods" class="mb-9 mt-0 text-4xl leading-tight text-[var(--serif-blue-dark)] md:text-5xl">@Localizer["MethodsEyebrow"]</h2>
-    <partial name="_PublicServiceOfferings" model="methods" />
-    <div class="mt-7 border-t border-[var(--serif-border)] pt-8 md:mt-10 md:pt-10">
-        <p class="m-0 max-w-3xl text-lg leading-[1.8] text-[var(--serif-muted)]">@Localizer["MethodsConclusion"]</p>
-        <div class="mt-6 flex flex-wrap gap-3">
-            <partial name="_PublicServiceAction" model='new PublicServiceLink(Localizer["MethodsButton"], conversation.Url, true)' />
-            <a href="@contactUrl" class="public-btn public-btn-outline gap-3 leading-snug focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--serif-blue-dark)]">@Localizer["ContactButton"] <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+<section class="public-container py-12 md:py-16" aria-labelledby="development-methods">
+    <div class="mx-auto max-w-3xl">
+        <h2 id="development-methods" class="mb-8 mt-0 text-3xl leading-[1.25] text-[var(--serif-blue-dark)] md:text-4xl">@Localizer["MethodsEyebrow"]</h2>
+        <div class="flex flex-col gap-8" data-testid="service-offerings">
+            @foreach (var method in methods)
+            {
+                <article>
+                    <h3 class="mb-3 mt-0 font-[family-name:var(--serif-body)] text-xl font-semibold leading-snug text-[var(--serif-blue-dark)]">@method.Title</h3>
+                    <p class="m-0 text-lg leading-[1.8] text-[var(--serif-ink)]/85">@method.Description</p>
+                </article>
+            }
+        </div>
+        <div class="mt-10 border-t border-[var(--serif-border)] pt-8">
+            <p class="m-0 text-lg leading-[1.8] text-[var(--serif-ink)]/85">@Localizer["MethodsConclusion"]</p>
+            <div class="mt-6 flex flex-wrap gap-3">
+                <partial name="_PublicServiceAction" model='new PublicServiceLink(Localizer["MethodsButton"], conversation.Url, true)' />
+                <a href="@contactUrl" class="public-btn public-btn-outline max-w-full gap-3 leading-snug focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--serif-blue-dark)]">@Localizer["ContactButton"] <i class="fa-solid fa-arrow-right shrink-0" aria-hidden="true"></i></a>
+            </div>
         </div>
     </div>
 </section>

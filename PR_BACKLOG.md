@@ -771,7 +771,7 @@ All keyboard/value-preservation assertions remain; five repeated desktop/mobile 
 
 ## B24 - P0 - Public marketing design foundations
 
-Status: implemented and verified with B25 on `feature/public-service-pages`.
+Status: completed with B25 and merged in [PR #56](https://github.com/chenggggggg/iD-Develops/pull/56).
 Shared hero, action, offering-list, and contact partials establish
 consistent public typography, widths, section spacing, keyboard focus, and responsive
 behavior. Public primary actions use the existing wine-red accent already used by the
@@ -788,7 +788,7 @@ These components are available for B26 without redesigning its page in this PR.
 
 ## B25 - P0 - Public service-page design and information
 
-Status: implemented and verified alongside B24 on `feature/public-service-pages`.
+Status: initial four-page batch merged in [PR #56](https://github.com/chenggggggg/iD-Develops/pull/56).
 The four service routes now use photo-led introductions, clearly grouped
 content, numbered offering lists, and prominent existing next steps. All original rendered
 English/Dutch text blocks were compared against the running redesigned pages: none are
@@ -797,11 +797,22 @@ Eight new browser tests cover 320/390/768/1440px, both languages, keyboard navig
 image loading, header clearance, overflow, and contact/level-test links without JavaScript.
 Responsive WebP variants reuse the existing photographs (13-76 KB each).
 Original assets remain for the separate B15 usage audit and cleanup.
-Verification: Release build, solution formatting check, all 579 unit/integration tests,
+PR #56 verification: Release build, solution formatting check, all 579 unit/integration tests,
 234 Full-mode browser tests, and 42 Marketing-mode browser tests passed. The eight new
 service-page checks also passed separately after isolating the no-JavaScript fallback
 checks from render-blocking third-party stylesheets. Desktop/mobile screenshots were
 inspected. The local application configuration is restored to Full after mode checks.
+
+Design follow-up (P0, Medium): `fix/nt2-personal-development-design` revises NT2 and
+Personal Development following the user's visual review. Headings now sit above wider
+reading columns, paragraphs have explicit spacing and darker body text, and the pages
+use simple landscape photography. NT2 separates course choices from its longer story;
+Personal Development presents guidance as ordinary readable sections and bullet lists.
+The shared numbered service-grid treatment is removed from these two pages. English/Dutch
+copy and existing actions remain intact. Browser regressions now check reading width and
+actual separation between consecutive paragraphs. Verification passed: Release build,
+solution formatting, all 579 unit/integration tests, eight Full-mode service-page browser
+checks, and 42 Marketing-mode browser checks. Desktop/mobile renders were inspected.
 
 **Estimated size: Large overall.** Delivered as one coherent four-page change using shared components.
 
