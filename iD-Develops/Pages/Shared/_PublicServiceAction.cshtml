@@ -1,0 +1,5 @@
+@model PublicServiceLink
+<a href="@Model.Url" target="@(Model.External ? "_blank" : null)" rel="@(Model.External ? "noopener noreferrer" : null)" class="public-btn @(ViewData["ServiceActionClass"] ?? "public-btn-primary") max-w-full gap-3 text-center leading-snug focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--serif-blue-dark)]">
+    @Model.Label
+    <i class="fa-solid fa-arrow-right shrink-0" aria-hidden="true"></i>
+</a>

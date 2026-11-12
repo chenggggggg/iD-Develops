@@ -5,67 +5,56 @@
     ViewData["Title"] = Localizer["Title"];
     ViewData["SeoTitle"] = Localizer["SeoTitle"];
     ViewData["MetaDescription"] = Localizer["MetaDescription"];
+    var contactUrl = Url.Page("/Contact", new { culture = CultureInfo.CurrentCulture.Name.ToLowerInvariant() })!;
+    var conversation = new PublicServiceLink(Localizer["ScheduleConversation"], "https://koalendar.com/e/meet-with-id", true);
+    var contact = new PublicServiceLink(Localizer["ContactButton"], contactUrl);
+    var hero = new PublicServiceHero(Localizer["Title"], Localizer["HeroTitle"],
+        [Localizer["HeroDescription"]], "personal-development", conversation, contact,
+        Localizer["HeroNoteTitle"], Localizer["HeroNoteDescription"]);
+    var methods = Enumerable.Range(1, 4)
+        .Select(index => new PublicServiceOffering(Localizer[$"Method{index}Title"], Localizer[$"Method{index}Description"])).ToArray();
 }
 
-<section class="public-hero-page">
-    <div class="public-container">
-        <div class="public-hero-grid">
-            <div>
-                <p class="public-eyebrow public-eyebrow-left">@Localizer["Title"]</p>
-                <h1 class="public-hero-title mx-0">@Localizer["HeroTitle"]</h1>
-                <p class="public-hero-copy mx-0">@Localizer["HeroDescription"]</p>
-                <div class="public-actions justify-start">
-                    <a href="https://koalendar.com/e/meet-with-id" target="_blank" rel="noopener noreferrer" class="public-btn public-btn-primary">@Localizer["ScheduleConversation"] <i class="fas fa-arrow-right"></i></a>
-                    <a asp-page="/contact" asp-route-culture="@CultureInfo.CurrentCulture.Name.ToLowerInvariant()" class="public-btn public-btn-outline">@Localizer["ContactButton"] <i class="fas fa-arrow-right"></i></a>
-                </div>
-            </div>
-            <div class="public-hero-note"><h2>@Localizer["HeroNoteTitle"]</h2><p class="public-copy">@Localizer["HeroNoteDescription"]</p></div>
+<partial name="_PublicServiceHero" model="hero" />
+
+<section class="public-container grid gap-6 py-14 md:py-20 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16" aria-labelledby="development-approach">
+    <h2 id="development-approach" class="m-0 text-4xl leading-tight text-[var(--serif-blue-dark)] md:text-5xl">@Localizer["ApproachEyebrow"]</h2>
+    <div class="space-y-5 text-lg leading-[1.8] text-[var(--serif-muted)]">
+        <p class="m-0">@Localizer["ApproachParagraph1"]</p>
+        <p class="m-0">@Localizer["ApproachParagraph2"]</p>
+    </div>
+</section>
+
+<section class="bg-[var(--serif-soft)]" aria-labelledby="development-audience">
+    <div class="public-container grid gap-10 py-14 md:py-20 lg:grid-cols-2 lg:gap-16">
+        <div>
+            <p class="mb-4 mt-0 font-[family-name:var(--serif-label)] text-xs tracking-[0.12em] text-[var(--serif-muted)] uppercase">@Localizer["AudienceEyebrow"]</p>
+            <h2 id="development-audience" class="m-0 text-4xl leading-tight text-[var(--serif-blue-dark)] md:text-5xl">@Localizer["AudienceTitle"]</h2>
+            <p class="mb-0 mt-6 text-lg leading-[1.8] text-[var(--serif-muted)]">@Localizer["AudienceDescription"]</p>
+        </div>
+        <div>
+            <h3 class="mb-5 mt-0 text-2xl leading-snug text-[var(--serif-blue-dark)]">@Localizer["HelpEyebrow"]</h3>
+            <ul class="m-0 list-none divide-y divide-[var(--serif-border)] p-0">
+                @for (var index = 1; index <= 8; index++)
+                {
+                    <li class="flex gap-4 py-3 text-base leading-relaxed text-[var(--serif-blue-dark)]">
+                        <i class="fa-solid fa-check mt-1.5 shrink-0 text-sm text-[var(--id-red)]" aria-hidden="true"></i>
+                        <span>@Localizer[$"HelpItem{index}"]</span>
+                    </li>
+                }
+            </ul>
         </div>
     </div>
 </section>
 
-<section class="public-section">
-    <div class="public-container public-content-narrow mx-auto">
-        <p class="public-eyebrow public-eyebrow-left">@Localizer["ApproachEyebrow"]</p>
-        <p class="public-copy">@Localizer["ApproachParagraph1"]</p>
-        <p class="public-copy">@Localizer["ApproachParagraph2"]</p>
-    </div>
-</section>
-
-<section class="public-section public-section-soft">
-    <div class="public-container">
-        <div class="public-two-column">
-            <div>
-                <p class="public-eyebrow public-eyebrow-left">@Localizer["AudienceEyebrow"]</p>
-                <h2 class="public-section-title">@Localizer["AudienceTitle"]</h2>
-                <p class="public-copy">@Localizer["AudienceDescription"]</p>
-            </div>
-            <div>
-                <p class="public-eyebrow public-eyebrow-left">@Localizer["HelpEyebrow"]</p>
-                <ul class="public-check-list">
-                    @for (var index = 1; index <= 8; index++)
-                    {
-                        <li><i class="fa-solid fa-circle-check"></i>@Localizer[$"HelpItem{index}"]</li>
-                    }
-                </ul>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="public-section">
-    <div class="public-container">
-        <div class="public-section-heading public-section-heading-center"><p class="public-eyebrow">@Localizer["MethodsEyebrow"]</p></div>
-        <div class="public-feature-grid xl:grid-cols-4">
-            @for (var index = 1; index <= 4; index++)
-            {
-                <article class="public-feature-card"><h3>@Localizer[$"Method{index}Title"]</h3><p class="public-copy">@Localizer[$"Method{index}Description"]</p></article>
-            }
-        </div>
-        <p class="public-copy mx-auto mt-10 max-w-3xl text-center">@Localizer["MethodsConclusion"]</p>
-        <div class="public-actions">
-            <a href="https://koalendar.com/e/meet-with-id" target="_blank" rel="noopener noreferrer" class="public-btn public-btn-primary">@Localizer["MethodsButton"] <i class="fas fa-arrow-right"></i></a>
-            <a asp-page="/contact" asp-route-culture="@CultureInfo.CurrentCulture.Name.ToLowerInvariant()" class="public-btn public-btn-outline">@Localizer["ContactButton"] <i class="fas fa-arrow-right"></i></a>
+<section class="public-container py-14 md:py-20" aria-labelledby="development-methods">
+    <h2 id="development-methods" class="mb-9 mt-0 text-4xl leading-tight text-[var(--serif-blue-dark)] md:text-5xl">@Localizer["MethodsEyebrow"]</h2>
+    <partial name="_PublicServiceOfferings" model="methods" />
+    <div class="mt-7 border-t border-[var(--serif-border)] pt-8 md:mt-10 md:pt-10">
+        <p class="m-0 max-w-3xl text-lg leading-[1.8] text-[var(--serif-muted)]">@Localizer["MethodsConclusion"]</p>
+        <div class="mt-6 flex flex-wrap gap-3">
+            <partial name="_PublicServiceAction" model='new PublicServiceLink(Localizer["MethodsButton"], conversation.Url, true)' />
+            <a href="@contactUrl" class="public-btn public-btn-outline gap-3 leading-snug focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--serif-blue-dark)]">@Localizer["ContactButton"] <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
         </div>
     </div>
 </section>
