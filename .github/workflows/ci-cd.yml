@@ -317,6 +317,9 @@ jobs:
           IMAGE: registry.digitalocean.com/${{ vars.DO_REGISTRY_NAME }}/${{ vars.DO_IMAGE_REPOSITORY }}
         run: >-
           docker build
+          --platform linux/amd64
+          --provenance=false
+          --sbom=false
           --build-arg "APP_VERSION=$GITHUB_SHA"
           --tag "$IMAGE:$GITHUB_SHA"
           --tag "$IMAGE:staging"
@@ -325,12 +328,12 @@ jobs:
       - name: Push immutable image
         env:
           IMAGE: registry.digitalocean.com/${{ vars.DO_REGISTRY_NAME }}/${{ vars.DO_IMAGE_REPOSITORY }}
-        run: docker push "$IMAGE:$GITHUB_SHA"
+        run: docker push --platform linux/amd64 "$IMAGE:$GITHUB_SHA"
 
       - name: Trigger App Platform Autodeploy
         env:
           IMAGE: registry.digitalocean.com/${{ vars.DO_REGISTRY_NAME }}/${{ vars.DO_IMAGE_REPOSITORY }}
-        run: docker push "$IMAGE:staging"
+        run: docker push --platform linux/amd64 "$IMAGE:staging"
 
       - name: Wait for the deployed commit
         shell: bash
