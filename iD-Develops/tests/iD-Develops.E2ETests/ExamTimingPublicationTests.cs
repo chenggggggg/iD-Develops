@@ -79,7 +79,10 @@ public sealed class ExamTimingPublicationTests : DiagnosticPageTest
     public async Task SaveSettings_AppliesDurationToNewAttemptsWithoutRepublishing(int? originalSeconds, int? seconds)
     {
         await using var teacher = await CatalogBrowsingFixture.CreateAsync(administrator: true);
+        await using var historicalLearner = await CatalogBrowsingFixture.CreateAsync();
         await using var data = await TimingFixture.CreateAsync(teacher.User.Id, originalSeconds);
+        await data.Db.Records.Where(record => record.Id == data.Original.Id)
+            .ExecuteUpdateAsync(update => update.SetProperty(record => record.UserId, historicalLearner.User.Id));
         await Page.SetViewportSizeAsync(1440, 1000);
         var settingsPath = $"/examination/settings?examId={data.Exam.Id}";
         await LoginAsync(teacher, settingsPath);
@@ -111,23 +114,25 @@ public sealed class ExamTimingPublicationTests : DiagnosticPageTest
         else
             Assert.Null(started.EndDateTime);
 
-        // Exercise the public taking surface too, without changing the application's
-        // configured global level-test exam or any existing local attempts.
-        await using var publicContext = await Browser.NewContextAsync();
-        var publicPage = await publicContext.NewPageAsync();
-        await publicPage.GotoAsync($"{LocalTestApplication.PublicBaseUrl}/en-us/examination/level-test/{newRecordId}");
+        // Private attempts use their owner's authenticated Portal surface. Dedicated
+        // public level-test fixtures cover the anonymous countdown and completion flow.
+        Assert.Equal(200, (await Page.GotoAsync($"{LocalTestApplication.PortalBaseUrl}/examination/{newRecordId}"))!.Status);
         if (seconds.HasValue)
-            await Expect(publicPage.Locator("#countdown")).ToHaveTextAsync(new Regex(@"^00:00:\d{2}$"));
+            await Expect(Page.Locator("#countdown")).ToHaveTextAsync(new Regex(@"^00:00:\d{2}$"));
         else
-            await Expect(publicPage.Locator("#countdown")).ToHaveCountAsync(0);
+            await Expect(Page.Locator("#countdown")).ToHaveCountAsync(0);
         var old = await data.Db.Records.AsNoTracking().SingleAsync(record => record.Id == data.Original.Id);
         Assert.Equal(data.Original.ExamVersionId, old.ExamVersionId);
         Assert.Equal(data.Original.EndDateTime, old.EndDateTime);
-        await publicPage.GotoAsync($"{LocalTestApplication.PublicBaseUrl}/en-us/examination/level-test/{old.Id}");
+        await using var historicalContext = await Browser.NewContextAsync();
+        var historicalPage = await historicalContext.NewPageAsync();
+        await BrowserLogin.SignInAsync(historicalPage, historicalLearner.User.Email!, historicalLearner.Password,
+            $"/examination/{old.Id}", historicalPage.Locator("[data-exam-version]"));
+        await Expect(historicalPage.Locator("[data-exam-version]")).ToHaveTextAsync("v1");
         if (originalSeconds.HasValue)
-            await Expect(publicPage.Locator("#countdown")).ToHaveTextAsync(new Regex(@"^00:3[34]:\d{2}$"));
+            await Expect(historicalPage.Locator("#countdown")).ToHaveTextAsync(new Regex(@"^00:3[34]:\d{2}$"));
         else
-            await Expect(publicPage.Locator("#countdown")).ToHaveCountAsync(0);
+            await Expect(historicalPage.Locator("#countdown")).ToHaveCountAsync(0);
     }
 
     [Theory]

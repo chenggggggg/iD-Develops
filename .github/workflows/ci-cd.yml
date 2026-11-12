@@ -148,6 +148,7 @@ jobs:
         if: steps.playwright_project.outputs.exists == 'true'
         shell: bash
         env:
+          SiteMode: Full
           ASPNETCORE_ENVIRONMENT: Local
           ASPNETCORE_URLS: http://127.0.0.1:5000
           ApplicationUrls__PublicBaseUrl: http://id.localhost:5000
@@ -158,11 +159,10 @@ jobs:
           Mail__Provider: File
           Mail__PickupDirectory: ${{ runner.temp }}/e2e-mail
         run: |
-          dotnet run \
-            --project "$PROJECT_DIRECTORY/iD-Develops.csproj" \
-            --configuration Release \
-            --no-build \
-            > "${{ runner.temp }}/ci-app.log" 2>&1 &
+          (
+            cd "$PROJECT_DIRECTORY"
+            exec dotnet bin/Release/net10.0/iD_Develops.dll
+          ) > "${{ runner.temp }}/ci-app.log" 2>&1 &
           echo $! > "${{ runner.temp }}/ci-app.pid"
 
       - name: Wait for the CI application
@@ -192,8 +192,67 @@ jobs:
           dotnet test "$E2E_TEST_PROJECT"
           --configuration Release
           --no-build
+          --filter "SiteMode!=Marketing"
           --logger "trx;LogFileName=e2e-tests.trx"
           --results-directory "${{ runner.temp }}/test-results/e2e"
+
+      - name: Restart isolated CI application in Marketing mode
+        if: steps.playwright_project.outputs.exists == 'true'
+        shell: bash
+        env:
+          SiteMode: Marketing
+          ASPNETCORE_ENVIRONMENT: Local
+          ASPNETCORE_URLS: http://127.0.0.1:5000
+          ApplicationUrls__PublicBaseUrl: http://id.localhost:5000
+          ApplicationUrls__PortalBaseUrl: http://portal.id.localhost:5000
+          ConnectionStrings__ApplicationDbContextConnection: Host=127.0.0.1;Port=5432;Database=iddevelops_ci;Username=postgres;Password=ci-postgres-password;
+          Admin__Email: admin@example.test
+          Admin__Password: CI-Admin-Password-123!
+          Mail__Provider: File
+          Mail__PickupDirectory: ${{ runner.temp }}/e2e-mail-marketing
+        run: |
+          kill "$(cat "${{ runner.temp }}/ci-app.pid")"
+          for _ in {1..30}; do
+            if ! curl --fail --silent --max-time 1 http://127.0.0.1:5000/health/live >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          if curl --fail --silent --max-time 1 http://127.0.0.1:5000/health/live >/dev/null; then
+            echo "The previous CI application did not stop."
+            exit 1
+          fi
+          (
+            cd "$PROJECT_DIRECTORY"
+            exec dotnet bin/Release/net10.0/iD_Develops.dll
+          ) > "${{ runner.temp }}/ci-app-marketing.log" 2>&1 &
+          echo $! > "${{ runner.temp }}/ci-app.pid"
+          for _ in {1..60}; do
+            mode="$(curl --fail --silent --max-time 2 http://127.0.0.1:5000/health/version | jq -r '.siteMode // empty' || true)"
+            if [[ "$mode" == "Marketing" ]] && curl --fail --silent --max-time 2 http://127.0.0.1:5000/health/db; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "The Marketing application did not become healthy."
+          cat "${{ runner.temp }}/ci-app-marketing.log"
+          exit 1
+
+      - name: Run Marketing-mode Playwright tests
+        if: steps.playwright_project.outputs.exists == 'true'
+        env:
+          IDDEVELOPS_E2E_PUBLIC_BASE_URL: http://id.localhost:5000
+          IDDEVELOPS_E2E_PORTAL_BASE_URL: http://portal.id.localhost:5000
+          IDDEVELOPS_E2E_EMAIL: admin@example.test
+          IDDEVELOPS_E2E_PASSWORD: CI-Admin-Password-123!
+          IDDEVELOPS_E2E_DATABASE_CONNECTION: Host=127.0.0.1;Port=5432;Database=iddevelops_ci;Username=postgres;Password=ci-postgres-password;
+          IDDEVELOPS_E2E_FILE_MAIL_DIRECTORY: ${{ runner.temp }}/e2e-mail-marketing
+        run: >-
+          dotnet test "$E2E_TEST_PROJECT"
+          --configuration Release --no-build
+          --filter "SiteMode=Marketing|FullyQualifiedName~PublicExamAccessTests|FullyQualifiedName~ContactSubmissionTests|FullyQualifiedName~ExpiredExamTests|FullyQualifiedName~ExamResultPresentationTests"
+          --logger "trx;LogFileName=marketing-tests.trx"
+          --results-directory "${{ runner.temp }}/test-results/marketing"
 
       - name: Upload Playwright results and application log
         if: always() && steps.playwright_project.outputs.exists == 'true'
@@ -202,7 +261,9 @@ jobs:
           name: playwright-results
           path: |
             ${{ runner.temp }}/test-results/e2e
+            ${{ runner.temp }}/test-results/marketing
             ${{ runner.temp }}/ci-app.log
+            ${{ runner.temp }}/ci-app-marketing.log
             iD-Develops/tests/iD-Develops.E2ETests/bin/Release/net10.0/playwright-report
             iD-Develops/tests/iD-Develops.E2ETests/bin/Release/net10.0/test-results
           if-no-files-found: ignore

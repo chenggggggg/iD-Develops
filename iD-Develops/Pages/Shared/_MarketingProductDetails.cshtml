@@ -1,0 +1,31 @@
+@using System.Globalization
+@model iD_Develops.Pages.ProductModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<iD_Develops.Pages.ProductModel> Localizer
+
+<div data-marketing-product>
+    <div class="product-page-header">
+        <h1 class="product-page-title">@Model.Product.Name</h1>
+        @if (!string.IsNullOrWhiteSpace(Model.Product.Summary))
+        {
+            <div class="product-page-summary">@Html.Raw(Model.Product.Summary)</div>
+        }
+    </div>
+    <div class="product-edit-grid product-live-grid">
+        <div class="min-w-0 space-y-6">
+            <div class="product-inline-description">@Html.Raw(Model.Product.Description)</div>
+            @if (!string.IsNullOrWhiteSpace(Model.Product.FullDescriptionHtml))
+            {
+                <div class="product-inline-description">@Html.Raw(Model.Product.FullDescriptionHtml)</div>
+            }
+        </div>
+        <aside class="product-purchase-card">
+            @if (!string.IsNullOrWhiteSpace(Model.ResolvedImageUrl))
+            {
+                <img src="@Model.ResolvedImageUrl" alt="@Model.Product.Name" class="product-hero-image" />
+            }
+            <partial name="_CatalogPrice" model="Model.Product" />
+            <p class="mt-5 text-base leading-7">@Localizer["MarketingProductContactMessage"]</p>
+            <a class="public-btn public-btn-primary product-cta" asp-page="/Contact" asp-route-culture="@CultureInfo.CurrentUICulture.Name.ToLowerInvariant()">@Localizer["MarketingProductContactAction"] <span aria-hidden="true">→</span></a>
+        </aside>
+    </div>
+</div>

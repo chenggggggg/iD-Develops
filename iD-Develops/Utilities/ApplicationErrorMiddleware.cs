@@ -167,7 +167,7 @@ namespace iD_Develops.Utilities
             var originalRouteValues = context.Request.RouteValues;
             var originalMethod = context.Request.Method;
 
-            context.Response.Clear();
+            ClearPreservingCookies(context.Response);
             context.Response.StatusCode = statusCode;
             context.Response.Headers["X-Request-ID"] = context.TraceIdentifier;
             if (statusCode == StatusCodes.Status503ServiceUnavailable)
@@ -192,7 +192,7 @@ namespace iD_Develops.Utilities
                     "The error page failed while rendering HTTP {StatusCode} for {OriginalTarget}.",
                     statusCode,
                     originalTarget);
-                context.Response.Clear();
+                ClearPreservingCookies(context.Response);
                 context.Response.StatusCode = statusCode;
                 context.Response.Headers["X-Request-ID"] = context.TraceIdentifier;
                 context.Response.ContentType = "text/plain; charset=utf-8";
@@ -219,7 +219,7 @@ namespace iD_Develops.Utilities
             string errorCode,
             bool dependencyUnavailable)
         {
-            context.Response.Clear();
+            ClearPreservingCookies(context.Response);
             context.Response.Headers["X-Request-ID"] = context.TraceIdentifier;
             context.Response.StatusCode = statusCode;
             if (dependencyUnavailable)
@@ -230,6 +230,17 @@ namespace iD_Develops.Utilities
             if (DatabaseAvailability.IsAjaxOrApiRequest(context))
             {
                 await context.Response.WriteAsJsonAsync(new { error = errorCode });
+            }
+        }
+
+        private static void ClearPreservingCookies(HttpResponse response)
+        {
+            // Error rendering must not discard authentication/session cookie deletions.
+            var cookies = response.Headers.SetCookie;
+            response.Clear();
+            if (cookies.Count > 0)
+            {
+                response.Headers.SetCookie = cookies;
             }
         }
 

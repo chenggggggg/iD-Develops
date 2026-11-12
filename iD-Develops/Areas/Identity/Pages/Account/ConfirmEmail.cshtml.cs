@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using iD_Develops.Models;
+using iD_Develops.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -12,15 +13,18 @@ namespace iD_Develops.Areas.Identity.Pages.Account
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ILogger<ConfirmEmailModel> _logger;
+        private readonly ISiteAccessPolicy _siteAccess;
 
         public ConfirmEmailModel(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            ILogger<ConfirmEmailModel> logger)
+            ILogger<ConfirmEmailModel> logger,
+            ISiteAccessPolicy siteAccess)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
+            _siteAccess = siteAccess;
         }
 
         [TempData]
@@ -35,6 +39,8 @@ namespace iD_Develops.Areas.Identity.Pages.Account
             }
 
             var user = await _userManager.FindByIdAsync(userId);
+            if (user != null && !await _siteAccess.CanSignInAsync(_userManager, user))
+                return NotFound();
             if (user == null)
             {
                 _logger.LogError($"Unable to load user with ID '{userId}'.");

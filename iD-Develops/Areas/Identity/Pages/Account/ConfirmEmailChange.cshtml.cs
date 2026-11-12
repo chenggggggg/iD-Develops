@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using iD_Develops.Models;
+using iD_Develops.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -18,11 +19,14 @@ namespace iD_Develops.Areas.Identity.Pages.Account
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly ISiteAccessPolicy _siteAccess;
 
-        public ConfirmEmailChangeModel(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        public ConfirmEmailChangeModel(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager,
+            ISiteAccessPolicy siteAccess)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _siteAccess = siteAccess;
         }
 
         /// <summary>
@@ -40,6 +44,8 @@ namespace iD_Develops.Areas.Identity.Pages.Account
             }
 
             var user = await _userManager.FindByIdAsync(userId);
+            if (user != null && !await _siteAccess.CanSignInAsync(_userManager, user))
+                return NotFound();
             if (user == null)
             {
                 return NotFound($"Unable to load user with ID '{userId}'.");

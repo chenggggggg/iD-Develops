@@ -15,7 +15,42 @@ This app supports four first-class ASP.NET Core environments:
 - `Local` is the safe default for normal coding.
 - `Development` is local-with-integrations and should be used intentionally.
 
-## Environment Files
+## Site availability modes
+
+`SiteMode` controls customer-facing features independently of the ASP.NET Core environment.
+Set the runtime environment variable `SiteMode=Marketing` or `SiteMode=Full`; changing it
+requires an application reload/deployment. Unknown enum values fail configuration validation.
+
+| Mode | Public experience | Portal access |
+| --- | --- | --- |
+| Marketing | Information, contact, anonymous level testing, protected emailed results; product information links to contact instead of ordering | Admin/SuperAdmin only; no public registration or customer/teacher login, including existing sessions |
+| Full | Existing customer features and registration | Existing role/ownership rules apply |
+
+Production and shared defaults use Marketing. Local, Development, and Staging use Full.
+Configure the mode explicitly on each hosted app. Existing customers may need to sign in
+again after Full is restored; accounts, purchases, and exam records are never deleted by
+changing the setting. Staff password recovery and two-factor authentication remain available.
+Signed provider callbacks, pending payment returns, and health probes remain operational.
+`/health/version` reports the effective `siteMode` alongside the deployed code version.
+
+Full mode currently preserves existing result behavior. The mandatory verified account
+association for new Full-launch level-test results is tracked separately as B28. It must
+be completed before enabling the official Full production experience.
+
+CI runs both modes sequentially in its isolated application. Locally use the existing
+watcher, select the appropriate mode, reload that application, then run the matching suite:
+
+```powershell
+# Existing local application configured with SiteMode=Full:
+dotnet test tests/iD-Develops.E2ETests/iD-Develops.E2ETests.csproj --configuration Release --no-build --filter "SiteMode!=Marketing"
+# Existing local application configured with SiteMode=Marketing:
+dotnet test tests/iD-Develops.E2ETests/iD-Develops.E2ETests.csproj --configuration Release --no-build --filter "SiteMode=Marketing|FullyQualifiedName~PublicExamAccessTests|FullyQualifiedName~ContactSubmissionTests|FullyQualifiedName~ExpiredExamTests|FullyQualifiedName~ExamResultPresentationTests"
+```
+
+Keep test database/mail configuration as described in README.md. Marketing tests require
+the File mail provider and disabled Turnstile. Restore the preferred local mode afterward.
+
+## Environment file inventory
 
 - `appsettings.json`: shared defaults
 - `appsettings.Local.json`: local machine defaults with internet integrations disabled
