@@ -78,6 +78,9 @@ builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("Mail"
 builder.Services.Configure<TurnstileSettings>(builder.Configuration.GetSection("Turnstile"));
 builder.Services.Configure<CloudflareSettings>(builder.Configuration.GetSection("Cloudflare"));
 builder.Services.Configure<ApplicationUrlOptions>(builder.Configuration.GetSection(ApplicationUrlOptions.SectionName));
+builder.Services.AddSiteAccess(builder.Configuration);
+builder.Services.AddScoped<PublicLevelTestAccessFilter>();
+builder.Services.Configure<Microsoft.AspNetCore.Mvc.MvcOptions>(options => options.Filters.AddService<PublicLevelTestAccessFilter>());
 builder.Services.AddSingleton<IApplicationUrlService, ApplicationUrlService>();
 builder.Services.AddScoped<IPortalSessionIndicatorService, PortalSessionIndicatorService>();
 // QuestPDF
@@ -237,7 +240,8 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
     options.SignIn.RequireConfirmedAccount = true)
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders();
+    .AddDefaultTokenProviders()
+    .AddSignInManager<SiteSignInManager>();
 
 builder.Services.AddAuthorization(options =>
 {
@@ -284,6 +288,15 @@ builder.Services.ConfigureApplicationCookie(options =>
         },
         OnValidatePrincipal = async context =>
         {
+            var access = context.HttpContext.RequestServices.GetRequiredService<ISiteAccessPolicy>();
+            if (context.Principal != null && !access.CanUsePortal(context.Principal))
+            {
+                context.RejectPrincipal();
+                context.ShouldRenew = false;
+                await context.HttpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
+                return;
+            }
+
             try
             {
                 // Trigger the built-in security stamp validation explicitly.
@@ -585,6 +598,7 @@ app.Use(async (context, next) =>
     await next();
 });
 app.UseRateLimiter();
+app.UseMiddleware<SiteAccessMiddleware>();
 app.UseAuthorization();
 app.UseSession();
 
@@ -615,7 +629,8 @@ app.MapPost("/api/zoom/webhook", async (
     return Results.StatusCode(result.StatusCode);
 })
 .AllowAnonymous()
-.DisableAntiforgery();
+.DisableAntiforgery()
+.WithMetadata(new MarketingSystemEndpoint());
 
 app.MapGet("/oauth/scheduling/{provider}/callback", async (
     string provider,
@@ -715,10 +730,11 @@ app.MapGet("/health/stripe", (IDependencyStatusStore dependencies) =>
 })
 .AllowAnonymous();
 
-app.MapGet("/health/version", (IConfiguration configuration) => Results.Ok(new
+app.MapGet("/health/version", (IConfiguration configuration, ISiteAccessPolicy access) => Results.Ok(new
 {
     status = "ok",
-    version = configuration["App:Version"] ?? "unknown"
+    version = configuration["App:Version"] ?? "unknown",
+    siteMode = access.IsMarketing ? "Marketing" : "Full"
 }))
 .AllowAnonymous();
 
@@ -726,7 +742,8 @@ app.MapPost("/api/stripe-webhook", async (HttpRequest request, IStripeWebhookSer
 {
     return await stripeWebhookService.CheckoutCompletedAsync(request);
 })
-.AllowAnonymous();
+.AllowAnonymous()
+.WithMetadata(new MarketingSystemEndpoint());
 
 app.Run();
 

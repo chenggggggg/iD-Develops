@@ -40,6 +40,9 @@ Contact submission tests require `Mail:Provider=File`, disabled Turnstile, and
 `IDDEVELOPS_E2E_FILE_MAIL_DIRECTORY` set to the absolute path of that application's
 mail pickup directory (normally `iD-Develops/App_Data/Mail` from the repository root).
 The tests inspect generated emails and remove only their own uniquely marked messages.
+Full-mode tests use `--filter "SiteMode!=Marketing"`; Marketing-mode tests use the separate
+filter documented under [site availability modes](iD-Develops/ENVIRONMENTS.md#site-availability-modes).
+Both suites run in CI, with the isolated CI application restarted between modes.
 
 ## Delivery workflow
 
@@ -48,10 +51,11 @@ through pull requests. Pull requests run formatting, build, unit/integration, an
 checks. A successful merge to `main` builds the staging container and deploys the immutable
 commit to DigitalOcean.
 
-After a healthy deployment, the workflow reports obsolete container images while
-protecting deployed versions and rollback images. Deletion is disabled by default.
-See the [registry retention runbook](.github/REGISTRY_RETENTION.md) for reviewing
-reports, configuring protected environments, and enabling cleanup.
+Staging follows the moving `staging` tag. Registry cleanup is manual; see the
+[registry cleanup runbook](.github/REGISTRY_RETENTION.md). Keep live release and rollback
+images when cleaning the registry. Production promotion is planned separately in B27:
+manually select an approved existing image pinned by digest, with production autodeploy
+disabled. B23's `SiteMode=Marketing|Full` controls available features, not deployed versions.
 
 ## Security
 

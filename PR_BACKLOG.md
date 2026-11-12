@@ -1,21 +1,29 @@
 ﻿# Planned PR backlog
 
-Updated: 2026-11-10
+Updated: 2026-11-12
 
 This is the combined planning backlog from the staging review and owner meeting.
-B01-B27 are planning IDs, not GitHub PR numbers. Current launch priorities are:
+B01-B28 are planning IDs, not GitHub PR numbers. Current launch priorities are:
 P0 marketing-release blockers, P1 supporting work, P2 post-launch improvements.
 This file does not authorize implementation, Git changes, or deployments.
 
-Workflow: before each PR, summarize its ID/title, priority, estimated size, and planned
-changes for the user. B01 was explicitly started on 2026-10-31 on fix/payment-fulfillment-audit.
+Workflow: keep only one active PR. Before each PR, summarize its ID/title, priority,
+estimated size, and planned changes for the user. Verify and commit the complete intended
+change set, publish it, and confirm that PR is merged before beginning the next PR or branch.
+Preserve uncommitted work and confirm the working tree is clean before switching tasks.
+Follow AGENTS.md for Git-operation approvals. B01 was explicitly started on 2026-10-31
+on fix/payment-fulfillment-audit.
 
 ## Marketing launch scope - owner priorities, 2026-11-10
 
 The first production release presents the company and its services, provides contact,
 and supports the full public level-test journey through emailed results. The existing
-portal remains available through its direct URL for staff operations. Removing public
-navigation links does not change authentication or role permissions.
+portal remains available through its direct URL for Admin/SuperAdmin operations.
+The approved SiteMode=Marketing policy disables public registration, customer/teacher
+login and existing sessions, public signup/checkout, and customer Portal access on the
+server. Public information, contact, anonymous level testing, and protected results stay
+available. SiteMode=Full restores normal customer features; existing authorization still
+applies. These application modes are separate from Development/Staging/Production.
 
 Launch order: B10 -> B22 -> B23 -> B24 -> B25 -> B26 -> B27.
 B15 asset work can run alongside these; broken visible assets are launch blockers,
@@ -25,9 +33,10 @@ the form on mobile. The brighter homepage hero still awaits the user-supplied im
 
 Public result viewing remains independent of portal login. Retain the protected emailed
 link; a record ID alone must not grant access. Signed-in attempts keep their account
-association, while anonymous attempts can remain standalone. Automatic account creation,
-staff-only portal restrictions, link expiry/reissue, and a shorter result URL are separate
-decisions. Preserve current access boundaries while preparing the launch.
+association, while Marketing attempts remain anonymous. B28 must implement verified account
+association and account-protected results for the Full launch. Keep historical Marketing
+links working unless an explicit access-transition policy is approved. Link expiry/reissue
+and a shorter result URL remain separate decisions.
 
 The wider B12/B20 audits, B13 editor polish, B14 product-editor improvements, B16-B18 blog
 work, and B03 Zoom architecture remain in the post-launch backlog. B24 brings forward
@@ -72,11 +81,12 @@ work without changing its size. Estimates may change after a focused investigati
 | B20 | Large (audit effort) | Broad source and safe browser coverage across environments, roles, layouts, and states. This estimates the review/report, not implementation of unknown findings. |
 | B21 | Large | Account payment history, purchase-specific usage checks, monetary refunds, payment/provider reconciliation, entitlement reversal, concurrency, and browser regressions. |
 | B22 | Medium | Exam-taking alignment, media/prompt layout, readable widths, responsive header offset, and mouse/keyboard/browser regressions. |
-| B23 | Small | Shared desktop/mobile public navigation cleanup and regression checks while preserving direct portal access. |
+| B23 | Large | Reversible Marketing/Full policy, public authentication and transaction gates, existing-session rejection, staff access, and both-mode verification. |
 | B24 | Medium | Establish and apply existing public typography, buttons, spacing, forms, and responsive component conventions for the launch pages. |
 | B25 | Large overall | Redesign four service pages using approved content and shared patterns; deliver as independently reviewable page batches. |
 | B26 | Medium | About-page layout, company information, existing imagery, contact paths, and localized responsive checks. |
 | B27 | Medium | Production configuration and data separation, stable result-link keys, production URLs/email, and release smoke checks. |
+| B28 | Medium-Large | Verified account registration/sign-in and secure result claiming for Full launch, with historical Marketing links preserved. |
 
 ## Completed work excluded from this backlog
 
@@ -725,16 +735,36 @@ database-startup timeouts; the unchanged full unit suite passed when run on its 
 - Preserve answer autosaving, question navigation, keyboard selection, timing, and submission.
 - Keep unrelated editor pagination/input polish in B13.
 
-## B23 - P0 - Marketing navigation and public entry points
+## B23 - P0 - Reversible Marketing/Full access policy and navigation
 
-**Estimated size: Small.** Shared public navigation and visible-link regressions.
+Status: implemented and verified on `feature/site-release-modes` on 2026-11-12;
+ready for PR review, based on main including merged PR #53. Release build,
+full formatting verification, all 579 unit/integration tests, 226 Full-mode Playwright tests, 34 Marketing-mode
+Playwright tests, 36 registry/workflow regression tests, and CI lifecycle Bash syntax
+checks passed. Marketing checks cover English/Dutch desktop/mobile navigation, staff
+management, customer access rejection, contact receipts, and anonymous protected results.
+The existing local watcher was restored to Full mode. No database migration is required.
+Production promotion (B27) and mandatory Full-launch account association (B28) remain pending.
+CI run #116 follow-up: recurring-editor script interception now waits for running route
+handlers during cleanup, preventing "Route is already handled!" from leaving Edit disabled.
+All keyboard/value-preservation assertions remain; five repeated desktop/mobile runs
+(10 cases) passed before the complete combined-branch browser suite.
 
-- Remove Login/Portal links from desktop and mobile public navigation across public pages.
-- Keep direct portal/login URLs and current staff workflows working.
-- Preserve current authorization and account settings. Hiding links is not a staff-only
-  authorization policy; broader access restrictions need a separate explicit decision.
-- Keep working contact, consultation, and level-test CTAs. Identify commerce or portal-
-  dependent public links that need an owner decision before they are advertised at launch.
+**Estimated size: Large.** Central release policy, authentication/access boundaries, public UI, and both-mode regressions.
+
+- Introduce the server-side SiteMode=Marketing|Full setting with validated configuration.
+  Production/default configuration is Marketing; Local/Development/Staging default to Full.
+- Keep navigation/components in place and conditionally hide public Login/Portal links.
+- Marketing blocks public registration and external account creation, customer/teacher login,
+  existing customer sessions, customer Portal access, and new public signup/checkout/booking.
+- Preserve Admin/SuperAdmin sign-in, two-factor authentication, account recovery, and management.
+- Show public product information and contact actions instead of transaction forms.
+- Preserve contact, anonymous level-test completion/email/protected results, signed provider
+  callbacks, and health probes. Public exam routes must reject non-level-test attempts.
+- Test Marketing and Full independently in the same required CI workflow; preserve existing
+  Full-mode authorization and data. Switching modes never deletes accounts or exam records.
+- B28 supplies mandatory account-linked results for the completed Full release; B23 alone
+  does not certify Full launch readiness. B27 implements production promotion separately.
 
 ## B24 - P0 - Public marketing design foundations
 
@@ -750,9 +780,10 @@ database-startup timeouts; the unchanged full unit suite passed when run on its 
 
 **Estimated size: Large overall.** Split into independently reviewable page batches.
 
-- Refresh /enterprise, /nt2-integration, /personal-development, and
+- Completely redesign /enterprise, /nt2-integration, /personal-development, and
   /language-and-communication using B24's patterns.
-- Make the offer, intended audience, and next step clear with approved existing content.
+- Preserve all current English/Dutch page text; change layout and visual presentation.
+- Make the offer, intended audience, and next step clear through content hierarchy.
 - Preserve English/Dutch localization and flag information requiring owner confirmation.
 - Check mobile/desktop layouts and all advertised destinations, including visible links
   to service subpages. Additional unfinished destinations need an explicit scope decision.
@@ -779,8 +810,27 @@ database-startup timeouts; the unchanged full unit suite passed when run on its 
   and private-result cache/indexing behavior.
 - Confirm deployment and rollback steps before launch. Production activation is a separate
   deployment action, not implied by saving this backlog or implementing an earlier PR.
-- Full customer portal exposure, automatic account creation, result-link expiry/reissue,
-  and a short /results alias remain separate decisions.
+- Keep automatic main-to-staging deployment. Add a separate manually triggered production
+  workflow that promotes an approved, tested existing image pinned by digest, with production
+  autodeploy disabled. Further staging updates must not change the live release.
+- Set production SiteMode=Marketing initially. Full launch requires an approved newer image,
+  SiteMode=Full, B28 completion, and acceptance of all required customer workflows.
+- Retain the active and previous production images for rollback; separate production data,
+  persistent signing keys, URLs, and service credentials from staging.
+- Result-link expiry/reissue and a short /results alias remain separate decisions.
+
+## B28 - P1 - Verified account-linked level-test results for Full launch
+
+**Estimated size: Medium-Large.** Required before production enables the completed Full experience.
+
+- Keep test-taking available before registration. Full-mode result viewing requires sign-in
+  or verified registration and secure attachment of the attempt to that account.
+- Prove email/account ownership before linking; entering an existing account email is insufficient.
+- Keep result presentation and immutable attempt data shared with Marketing mode.
+- Preserve existing Marketing result links and account associations; explicitly decide/persist
+  the access policy applying to each attempt so mode changes do not disrupt ongoing tests.
+- Marketing mode continues to disallow public registration/login. Do not create accounts
+  automatically for Marketing visitors or remove existing records when switching modes.
 
 ## External references checked
 

@@ -26,16 +26,19 @@ namespace iD_Develops.Areas.Identity.Pages.Account
         private readonly ILogger<ForgotPasswordModel> _logger;
         private readonly IMailService _mailService;
         private readonly MailSettings _mailSettings;
+        private readonly ISiteAccessPolicy _siteAccess;
 
         public ForgotPasswordModel(UserManager<ApplicationUser> userManager,
             ILogger<ForgotPasswordModel> logger,
             IMailService mailService,
-            IOptions<MailSettings> mailSettings)
+            IOptions<MailSettings> mailSettings,
+            ISiteAccessPolicy siteAccess)
         {
             _userManager = userManager;
             _logger = logger;
             _mailService = mailService;
             _mailSettings = mailSettings.Value;
+            _siteAccess = siteAccess;
         }
 
         /// <summary>
@@ -68,7 +71,8 @@ namespace iD_Develops.Areas.Identity.Pages.Account
             }
 
             var user = await _userManager.FindByEmailAsync(Input.Email);
-            if (user == null || !(await _userManager.IsEmailConfirmedAsync(user)))
+            if (user == null || !(await _userManager.IsEmailConfirmedAsync(user)) ||
+                !await _siteAccess.CanSignInAsync(_userManager, user))
             {
                 // Don't reveal that the user does not exist or is not confirmed
                 return RedirectToPage("./ForgotPasswordConfirmation");

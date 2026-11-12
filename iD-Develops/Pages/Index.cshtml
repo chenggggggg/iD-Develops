@@ -2,6 +2,7 @@
 @model IndexModel
 @using System.Globalization
 @inject IStringLocalizer<IndexModel> Localizer
+@inject iD_Develops.Services.ISiteAccessPolicy SiteAccess
 @{
     var levelTestUrl = $"/{CultureInfo.CurrentCulture.Name.ToLowerInvariant()}/level-test";
     var routeCulture = CultureInfo.CurrentCulture.Name.ToLowerInvariant();
@@ -170,7 +171,7 @@
                         : product.HomepageDescription;
                     var homepageHighlights = (product.HomepageHighlights ?? string.Empty)
                         .Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                    var homepageButtonText = string.IsNullOrWhiteSpace(product.HomepageButtonText)
+                    var homepageButtonText = SiteAccess.IsMarketing || string.IsNullOrWhiteSpace(product.HomepageButtonText)
                         ? Localizer["ViewProductButton"].Value
                         : product.HomepageButtonText;
                     var cardClasses = product.IsHomepageHighlighted

@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?><root>
+  <data name="MarketingProductContactMessage" xml:space="preserve"><value>Interesse in dit aanbod? Neem contact met ons op voor meer informatie.</value></data>
+  <data name="MarketingProductContactAction" xml:space="preserve"><value>Neem contact op</value></data>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader><resheader name="version"><value>2.0</value></resheader>
   <data name="BookNowAction" xml:space="preserve"><value>Nu boeken</value></data>
   <data name="CheckoutExpiredMessage" xml:space="preserve"><value>Je betaalsessie is verlopen. Controleer het product en ga opnieuw verder.</value></data>

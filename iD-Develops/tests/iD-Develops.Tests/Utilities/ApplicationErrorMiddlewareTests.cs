@@ -11,6 +11,39 @@ namespace iD_Develops.Tests.Utilities;
 
 public sealed class ApplicationErrorMiddlewareTests
 {
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task ErrorRenderingPreservesSessionCookieDeletion(bool directResponse, bool errorPageFails)
+    {
+        var context = CreateContext("portal.id.localhost", directResponse ? "/api/data" : "/profile");
+        var calls = 0;
+        var middleware = CreateMiddleware(current =>
+        {
+            if (++calls == 1)
+            {
+                current.Response.Cookies.Delete(".iDDevelops.Portal");
+                current.Response.Cookies.Delete("test-session-indicator");
+                if (directResponse) throw new InvalidOperationException("test failure");
+                current.Response.StatusCode = StatusCodes.Status403Forbidden;
+                return Task.CompletedTask;
+            }
+
+            if (errorPageFails) throw new InvalidOperationException("error page failure");
+            return Task.CompletedTask;
+        });
+
+        await InvokeAsync(middleware, context);
+
+        var cookies = context.Response.Headers.SetCookie.ToArray();
+        Assert.Equal(2, cookies.Length);
+        Assert.Contains(cookies, value => value!.StartsWith(".iDDevelops.Portal=;", StringComparison.Ordinal) && value.Contains("expires=", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(cookies, value => value!.StartsWith("test-session-indicator=;", StringComparison.Ordinal));
+        Assert.Equal(directResponse ? 500 : 403, context.Response.StatusCode);
+    }
+
     [Fact]
     public async Task MissingPublicPage_IsReExecutedWithoutRedirecting()
     {

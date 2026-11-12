@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?><root>
+  <data name="MarketingProductContactMessage" xml:space="preserve"><value>Interested in this offer? Contact us for more information.</value></data>
+  <data name="MarketingProductContactAction" xml:space="preserve"><value>Contact us</value></data>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader><resheader name="version"><value>2.0</value></resheader>
   <data name="BookNowAction" xml:space="preserve"><value>Book now</value></data>
   <data name="CheckoutExpiredMessage" xml:space="preserve"><value>Your checkout session expired. Please review the product and continue again.</value></data>
