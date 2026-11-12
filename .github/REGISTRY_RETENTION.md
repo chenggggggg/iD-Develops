@@ -8,6 +8,12 @@ Container Registry. App Platform's configured Autodeploy handles the rollout whe
 `staging` is pushed. A small version/database health check confirms the expected
 commit is responding before the deployment job finishes.
 
+Each deployment publishes one Linux/AMD64 image manifest. Optional provenance and
+SBOM attestations are disabled, and both pushes explicitly select `linux/amd64`
+so an image index and its child metadata manifests are not uploaded. The commit
+and `staging` tags are two labels on the same image digest, not separate images.
+This uses Docker API 1.46 or newer, supported by the GitHub-hosted runner.
+
 Registry retention and garbage collection do not run in the deployment job.
 Registry cleanup cannot turn a successful application rollout into a failed
 `Deploy staging` job. `REGISTRY_RETENTION_MODE` and
@@ -22,10 +28,11 @@ Age does not make it unreferenced. Deleting only a tag can also leave an untagge
 manifest referencing the same layers. Empty garbage collects unreferenced data;
 it does not choose which old application versions you want to retire.
 
-A build may appear as three entries: the tagged image index, the runnable image,
-and a small provenance attestation. These are related artifacts from one build.
-The `staging` and commit tags can both point to the same index. Untagged child
-manifests can belong to retained builds; do not bulk-delete them just for lacking tags.
+Older deployments may still appear as three entries: the tagged image index,
+the runnable image, and a small provenance attestation. The single-image publishing
+configuration applies to new deployments; it does not rewrite or remove existing
+versions. Untagged child manifests can belong to retained older builds; inspect
+their references before removing obsolete versions.
 
 ## Manual cleanup in DigitalOcean
 
@@ -63,3 +70,4 @@ References:
 - [DigitalOcean container-image autodeploy](https://docs.digitalocean.com/products/app-platform/how-to/deploy-from-container-images/)
 - [DigitalOcean image deletion and garbage collection](https://docs.digitalocean.com/products/container-registry/how-to/clean-up-container-registry/)
 - [Docker image attestation storage](https://docs.docker.com/build/metadata/attestations/attestation-storage/)
+- [Docker single-platform image publishing](https://docs.docker.com/reference/cli/docker/image/push/)

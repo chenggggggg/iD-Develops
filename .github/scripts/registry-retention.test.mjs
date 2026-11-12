@@ -398,14 +398,15 @@ test('a release pin added between deletions stops the remaining batch', async ()
   assert.ok(provider.images.some(image => image.digest === digest(5)));
 });
 
-test('staging deploys by image push and health verification without registry cleanup', () => {
+test('staging publishes one platform image under both tags and verifies deployment without cleanup', () => {
   const workflow = readFileSync(new URL('../workflows/ci-cd.yml', import.meta.url), 'utf8');
   const deploy = workflow.slice(workflow.indexOf('  deploy-staging:'));
   assert.match(deploy, /group: staging/);
+  assert.match(deploy, /docker build\s+--platform linux\/amd64\s+--provenance=false\s+--sbom=false/);
   assert.match(deploy, /--tag "\$IMAGE:\$GITHUB_SHA"/);
   assert.match(deploy, /--tag "\$IMAGE:staging"/);
-  assert.match(deploy, /docker push "\$IMAGE:\$GITHUB_SHA"/);
-  assert.match(deploy, /docker push "\$IMAGE:staging"/);
+  assert.match(deploy, /docker push --platform linux\/amd64 "\$IMAGE:\$GITHUB_SHA"/);
+  assert.match(deploy, /docker push --platform linux\/amd64 "\$IMAGE:staging"/);
   assert.ok(deploy.indexOf('- name: Wait for the deployed commit') > deploy.indexOf('- name: Trigger App Platform Autodeploy'));
   assert.match(deploy, /health\/version/);
   assert.match(deploy, /health\/db/);
