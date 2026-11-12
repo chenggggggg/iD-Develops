@@ -462,6 +462,10 @@ based on evidence from the audit rather than one application-wide rewrite.
   validation, and important confirmations by purpose. Remove unintended browser alert,
   confirm, and prompt implementations without sacrificing accessible interactions.
 - Keep intentional examination/public interfaces and shared component reuse.
+- Review public font delivery while preserving the existing families. B24/B25 verification
+  reproduced delayed rendering when an external font stylesheet remained pending with
+  JavaScript disabled; consider self-hosting licensed font assets rather than relying on
+  third-party stylesheet availability. Keep this separate from purely cosmetic changes.
 
 Dependencies: evidence-backed theme/behavior baselines; urgent functional fixes need not wait.
 
@@ -711,7 +715,7 @@ targeted performance investigation. B20 remains the final broader UI/UX audit.
 
 ## B22 - P0 - Exam-taking layout and header clearance
 
-Status: implemented and verified on `fix/exam-taking-layout`; ready for PR review.
+Status: completed and merged in [PR #53](https://github.com/chenggggggg/iD-Develops/pull/53).
 Public and Portal taking pages share a left-aligned, narrower answer area, with context/media
 first and the question immediately above its answers. Choice controls use existing brand
 tokens, visible keyboard focus, and native radio behavior. Open answers have an accessible
@@ -737,8 +741,7 @@ database-startup timeouts; the unchanged full unit suite passed when run on its 
 
 ## B23 - P0 - Reversible Marketing/Full access policy and navigation
 
-Status: implemented and verified on `feature/site-release-modes` on 2026-11-12;
-ready for PR review, based on main including merged PR #53. Release build,
+Status: completed and merged in [PR #54](https://github.com/chenggggggg/iD-Develops/pull/54) on 2026-11-12. Release build,
 full formatting verification, all 579 unit/integration tests, 226 Full-mode Playwright tests, 34 Marketing-mode
 Playwright tests, 36 registry/workflow regression tests, and CI lifecycle Bash syntax
 checks passed. Marketing checks cover English/Dutch desktop/mobile navigation, staff
@@ -768,6 +771,13 @@ All keyboard/value-preservation assertions remain; five repeated desktop/mobile 
 
 ## B24 - P0 - Public marketing design foundations
 
+Status: implemented and verified with B25 on `feature/public-service-pages`.
+Shared hero, action, offering-list, and contact partials establish
+consistent public typography, widths, section spacing, keyboard focus, and responsive
+behavior. Public primary actions use the existing wine-red accent already used by the
+navbar and public links; Portal and Examination retain their own palette ownership.
+These components are available for B26 without redesigning its page in this PR.
+
 **Estimated size: Medium.** Bring forward the public-only part of B12 for launch.
 
 - Establish evidence-backed public conventions from the existing homepage/layout and tokens.
@@ -778,7 +788,22 @@ All keyboard/value-preservation assertions remain; five repeated desktop/mobile 
 
 ## B25 - P0 - Public service-page design and information
 
-**Estimated size: Large overall.** Split into independently reviewable page batches.
+Status: implemented and verified alongside B24 on `feature/public-service-pages`.
+The four service routes now use photo-led introductions, clearly grouped
+content, numbered offering lists, and prominent existing next steps. All original rendered
+English/Dutch text blocks were compared against the running redesigned pages: none are
+missing. Existing localized offer differences and consultation destinations are preserved.
+Eight new browser tests cover 320/390/768/1440px, both languages, keyboard navigation,
+image loading, header clearance, overflow, and contact/level-test links without JavaScript.
+Responsive WebP variants reuse the existing photographs (13-76 KB each).
+Original assets remain for the separate B15 usage audit and cleanup.
+Verification: Release build, solution formatting check, all 579 unit/integration tests,
+234 Full-mode browser tests, and 42 Marketing-mode browser tests passed. The eight new
+service-page checks also passed separately after isolating the no-JavaScript fallback
+checks from render-blocking third-party stylesheets. Desktop/mobile screenshots were
+inspected. The local application configuration is restored to Full after mode checks.
+
+**Estimated size: Large overall.** Delivered as one coherent four-page change using shared components.
 
 - Completely redesign /enterprise, /nt2-integration, /personal-development, and
   /language-and-communication using B24's patterns.

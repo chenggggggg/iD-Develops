@@ -68,6 +68,7 @@
   }
 
   .public-site {
+    --id-red: #B23A48;
     --serif-bg: #FAFAF8;
     --serif-ink: #1A1A1A;
     --serif-muted: #6B6B6B;

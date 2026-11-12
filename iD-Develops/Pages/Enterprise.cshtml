@@ -5,60 +5,41 @@
     ViewData["Title"] = Localizer["Title"];
     ViewData["SeoTitle"] = Localizer["SeoTitle"];
     ViewData["MetaDescription"] = Localizer["MetaDescription"];
-    var matchDescription2 = Localizer["MatchDescription2"].Value;
+    var contactUrl = Url.Page("/Contact", new { culture = CultureInfo.CurrentCulture.Name.ToLowerInvariant() })!;
+    var conversation = new PublicServiceLink(Localizer["ScheduleConversation"], "https://koalendar.com/e/samenwerken", true);
+    var contact = new PublicServiceLink(Localizer["ContactButton"], contactUrl);
+    var hero = new PublicServiceHero(Localizer["HeroEyebrow"], Localizer["HeroTitle"],
+        [Localizer["HeroDescription"]], "enterprise", conversation, contact);
+    var offerings = new[] { "Nt2", "Communication", "Development", "Programs", "Trainer" }
+        .Select(key => new PublicServiceOffering(Localizer[$"Service{key}Title"], Localizer[$"Service{key}Description"])).ToArray();
+    var closing = new PublicServiceContact(Localizer["MatchTitle"],
+        [Localizer["MatchDescription1"], Localizer["MatchDescription2"]],
+        new PublicServiceLink(Localizer["MatchButton"], conversation.Url, true));
 }
 
-<section class="public-hero-page">
-    <div class="public-container">
-        <div class="public-content-narrow">
-            <p class="public-eyebrow public-eyebrow-left">@Localizer["HeroEyebrow"]</p>
-            <h1 class="public-hero-title mx-0">@Localizer["HeroTitle"]</h1>
-            <p class="public-hero-copy mx-0">@Localizer["HeroDescription"]</p>
-            <div class="public-actions justify-start">
-                <a href="https://koalendar.com/e/samenwerken" target="_blank" rel="noopener noreferrer" class="public-btn public-btn-primary">@Localizer["ScheduleConversation"] <i class="fas fa-arrow-right"></i></a>
-                <a asp-page="/contact" asp-route-culture="@CultureInfo.CurrentCulture.Name.ToLowerInvariant()" class="public-btn public-btn-outline">@Localizer["ContactButton"] <i class="fas fa-arrow-right"></i></a>
-            </div>
-        </div>
-    </div>
-</section>
+<partial name="_PublicServiceHero" model="hero" />
 
-<section class="public-section public-section-soft">
-    <div class="public-container">
-        <div class="public-section-heading public-section-heading-center"><p class="public-eyebrow">@Localizer["ChallengesEyebrow"]</p></div>
-        <div class="public-feature-grid xl:grid-cols-5">
+<section class="bg-[var(--serif-soft)]" aria-labelledby="enterprise-challenges">
+    <div class="public-container grid gap-8 py-14 md:py-20 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
+        <div>
+            <h2 id="enterprise-challenges" class="m-0 text-3xl leading-tight text-[var(--serif-blue-dark)] md:text-4xl">@Localizer["ChallengesEyebrow"]</h2>
+            <p class="mb-0 mt-6 text-lg leading-relaxed text-[var(--serif-muted)]">@Localizer["ChallengesConclusion"]</p>
+        </div>
+        <ul class="m-0 list-none space-y-0 p-0">
             @for (var index = 1; index <= 5; index++)
             {
-                <article class="public-feature-card"><p class="public-copy">@Localizer[$"Challenge{index}"]</p></article>
+                <li class="flex gap-4 border-b border-[var(--serif-border)] py-5 first:pt-0 last:border-0 last:pb-0">
+                    <i class="fa-solid fa-check mt-2 shrink-0 text-sm text-[var(--id-red)]" aria-hidden="true"></i>
+                    <p class="m-0 text-lg leading-relaxed text-[var(--serif-blue-dark)]">@Localizer[$"Challenge{index}"]</p>
+                </li>
             }
-        </div>
-        <p class="public-copy mx-auto mt-10 max-w-3xl text-center">@Localizer["ChallengesConclusion"]</p>
+        </ul>
     </div>
 </section>
 
-<section class="public-section">
-    <div class="public-container">
-        <div class="public-section-heading public-section-heading-center"><p class="public-eyebrow">@Localizer["ServicesEyebrow"]</p></div>
-        <div class="public-icon-feature-grid">
-            <article class="public-icon-feature-card"><i class="fa-solid fa-language"></i><div><div class="public-icon-feature-title">@Localizer["ServiceNt2Title"]</div><div class="public-icon-feature-description">@Localizer["ServiceNt2Description"]</div></div></article>
-            <article class="public-icon-feature-card"><i class="fa-regular fa-comments"></i><div><div class="public-icon-feature-title">@Localizer["ServiceCommunicationTitle"]</div><div class="public-icon-feature-description">@Localizer["ServiceCommunicationDescription"]</div></div></article>
-            <article class="public-icon-feature-card"><i class="fa-solid fa-people-group"></i><div><div class="public-icon-feature-title">@Localizer["ServiceDevelopmentTitle"]</div><div class="public-icon-feature-description">@Localizer["ServiceDevelopmentDescription"]</div></div></article>
-            <article class="public-icon-feature-card"><i class="fa-solid fa-book-open"></i><div><div class="public-icon-feature-title">@Localizer["ServiceProgramsTitle"]</div><div class="public-icon-feature-description">@Localizer["ServiceProgramsDescription"]</div></div></article>
-            <article class="public-icon-feature-card"><i class="fa-solid fa-chalkboard-user"></i><div><div class="public-icon-feature-title">@Localizer["ServiceTrainerTitle"]</div><div class="public-icon-feature-description">@Localizer["ServiceTrainerDescription"]</div></div></article>
-        </div>
-    </div>
+<section class="public-container py-14 md:py-20" aria-labelledby="enterprise-offerings">
+    <h2 id="enterprise-offerings" class="mb-9 mt-0 text-4xl leading-tight text-[var(--serif-blue-dark)] md:text-5xl">@Localizer["ServicesEyebrow"]</h2>
+    <partial name="_PublicServiceOfferings" model="offerings" />
 </section>
 
-<section class="public-section public-section-soft">
-    <div class="public-container">
-        <div class="public-editorial-cta">
-            <img src="~/images/iddevelops-icon.png" alt="" aria-hidden="true" />
-            <h2>@Localizer["MatchTitle"]</h2>
-            <p class="public-copy">@Localizer["MatchDescription1"]</p>
-            @if (!string.IsNullOrWhiteSpace(matchDescription2))
-            {
-                <p class="public-copy">@matchDescription2</p>
-            }
-            <a class="public-btn public-btn-primary" href="https://koalendar.com/e/samenwerken" target="_blank" rel="noopener noreferrer">@Localizer["MatchButton"] <i class="fas fa-arrow-right"></i></a>
-        </div>
-    </div>
-</section>
+<partial name="_PublicServiceContact" model="closing" />

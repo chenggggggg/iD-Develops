@@ -1,78 +1,76 @@
 @page
 @model Nt2IntegrationModel
-@using System.Globalization
 @inject IStringLocalizer<Nt2IntegrationModel> Localizer
 @{
-    var levelTestUrl = $"/{CultureInfo.CurrentCulture.Name.ToLowerInvariant()}/level-test";
+    var culture = CultureInfo.CurrentCulture.Name.ToLowerInvariant();
     ViewData["Title"] = Localizer["Title"];
     ViewData["SeoTitle"] = Localizer["SeoTitle"];
     ViewData["MetaDescription"] = Localizer["MetaDescription"];
     var showExpandedOffer = bool.TryParse(Localizer["ShowExpandedOffer"], out var showExpanded) && showExpanded;
+    var conversation = new PublicServiceLink(Localizer["ConversationButton"], "https://koalendar.com/e/meet-with-id", true);
+    var hero = new PublicServiceHero(Localizer["Title"], Localizer["HeroTitle"],
+        [Localizer["HeroDescription"]], "nt2",
+        new PublicServiceLink(Localizer["LevelTestButton"], $"/{culture}/level-test"), conversation,
+        Localizer["HeroNoteTitle"], Localizer["HeroNoteDescription"]);
+    var offerings = new List<PublicServiceOffering>
+    {
+        new(Localizer["OfferRegularTitle"], Localizer["OfferRegularDescription"]),
+        new(Localizer["OfferDiyTitle"], Localizer["OfferDiyDescription"])
+    };
+    if (showExpandedOffer)
+    {
+        offerings.AddRange(Enumerable.Range(1, 5)
+            .Select(index => new PublicServiceOffering(Localizer[$"OfferExtra{index}Title"], Localizer[$"OfferExtra{index}Description"])));
+    }
 }
 
-<section class="public-hero-page">
-    <div class="public-container">
-        <div class="public-hero-grid">
-            <div>
-                <p class="public-eyebrow public-eyebrow-left">@Localizer["Title"]</p>
-                <h1 class="public-hero-title mx-0">@Localizer["HeroTitle"]</h1>
-                <p class="public-hero-copy mx-0">@Localizer["HeroDescription"]</p>
-                <div class="public-actions justify-start">
-                    <a href="@levelTestUrl" class="public-btn public-btn-primary">@Localizer["LevelTestButton"] <i class="fas fa-arrow-right"></i></a>
-                    <a href="https://koalendar.com/e/meet-with-id" target="_blank" rel="noopener noreferrer" class="public-btn public-btn-outline">@Localizer["ConversationButton"] <i class="fas fa-arrow-right"></i></a>
-                </div>
-            </div>
-            <div class="public-hero-note"><h2>@Localizer["HeroNoteTitle"]</h2><p class="public-copy">@Localizer["HeroNoteDescription"]</p></div>
+<partial name="_PublicServiceHero" model="hero" />
+
+<section class="public-container py-14 md:py-20" aria-labelledby="nt2-approach">
+    <p class="m-0 max-w-4xl border-l-2 border-[var(--id-red)] pl-6 text-xl leading-[1.7] text-[var(--serif-blue-dark)] md:text-2xl">@Localizer["PromiseParagraph"]</p>
+    <div class="mt-12 grid gap-6 md:mt-16 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
+        <h2 id="nt2-approach" class="m-0 text-4xl leading-tight text-[var(--serif-blue-dark)] md:text-5xl">@Localizer["WhyUsEyebrow"]</h2>
+        <div class="space-y-5 text-lg leading-[1.8] text-[var(--serif-muted)]">
+            <p class="m-0">@Localizer["WhyUsParagraph1"]</p>
+            <p class="m-0">@Localizer["WhyUsParagraph2"]</p>
+            <p class="m-0">@Localizer["WhyUsParagraph3"]</p>
         </div>
     </div>
 </section>
 
-<section class="public-section">
-    <div class="public-container public-content-narrow mx-auto">
-        <p class="public-copy">@Localizer["PromiseParagraph"]</p>
-        <p class="public-eyebrow public-eyebrow-left mt-16">@Localizer["WhyUsEyebrow"]</p>
-        <p class="public-copy">@Localizer["WhyUsParagraph1"]</p>
-        <p class="public-copy">@Localizer["WhyUsParagraph2"]</p>
-        <p class="public-copy">@Localizer["WhyUsParagraph3"]</p>
-    </div>
-</section>
-
-<section class="public-section public-section-soft">
-    <div class="public-container">
-        <div class="public-two-column">
-            <div><p class="public-eyebrow public-eyebrow-left">@Localizer["TailoredEyebrow"]</p><h2 class="public-section-title">@Localizer["TailoredTitle"]</h2></div>
-            <div><p class="public-copy">@Localizer["TailoredParagraph1"]</p><p class="public-copy">@Localizer["TailoredParagraph2"]</p><p class="public-copy">@Localizer["TailoredParagraph3"]</p></div>
+<section class="bg-[var(--serif-soft)]" aria-labelledby="nt2-tailored">
+    <div class="public-container grid gap-8 py-14 md:py-20 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
+        <div>
+            <p class="mb-4 mt-0 font-[family-name:var(--serif-label)] text-xs tracking-[0.12em] text-[var(--serif-muted)] uppercase">@Localizer["TailoredEyebrow"]</p>
+            <h2 id="nt2-tailored" class="m-0 text-4xl leading-tight text-[var(--serif-blue-dark)] md:text-5xl">@Localizer["TailoredTitle"]</h2>
+        </div>
+        <div class="space-y-5 text-lg leading-[1.8] text-[var(--serif-muted)]">
+            <p class="m-0">@Localizer["TailoredParagraph1"]</p>
+            <p class="m-0">@Localizer["TailoredParagraph2"]</p>
+            <p class="m-0">@Localizer["TailoredParagraph3"]</p>
         </div>
     </div>
 </section>
 
-<section class="public-section">
-    <div class="public-container">
-        <div class="public-section-heading public-section-heading-center"><p class="public-eyebrow">@Localizer["OfferEyebrow"]</p></div>
-        <div class="public-feature-grid mx-auto max-w-6xl md:grid-cols-2 xl:grid-cols-3">
-            <article class="public-feature-card"><h3>@Localizer["OfferRegularTitle"]</h3><p class="public-copy">@Localizer["OfferRegularDescription"]</p></article>
-            <article class="public-feature-card"><h3>@Localizer["OfferDiyTitle"]</h3><p class="public-copy">@Localizer["OfferDiyDescription"]</p></article>
-            @if (showExpandedOffer)
-            {
-                @for (var index = 1; index <= 5; index++)
-                {
-                    <article class="public-feature-card"><h3>@Localizer[$"OfferExtra{index}Title"]</h3><p class="public-copy">@Localizer[$"OfferExtra{index}Description"]</p></article>
-                }
-            }
-        </div>
-        @if (showExpandedOffer)
-        {
-            <div class="public-content-narrow mx-auto mt-16">
-                <p class="public-eyebrow public-eyebrow-left">@Localizer["TestimonialsEyebrow"]</p>
+<section class="public-container py-14 md:py-20" aria-labelledby="nt2-offer">
+    <h2 id="nt2-offer" class="mb-9 mt-0 text-4xl leading-tight text-[var(--serif-blue-dark)] md:text-5xl">@Localizer["OfferEyebrow"]</h2>
+    <partial name="_PublicServiceOfferings" model="offerings" />
+    @if (showExpandedOffer)
+    {
+        <div class="mt-10 border-t border-[var(--serif-border)] pt-10 md:mt-14">
+            <h2 class="mb-7 mt-0 text-3xl leading-tight text-[var(--serif-blue-dark)]">@Localizer["TestimonialsEyebrow"]</h2>
+            <div class="grid gap-6 md:grid-cols-3">
                 @for (var index = 1; index <= 3; index++)
                 {
-                    <p class="public-copy">@Localizer[$"Testimonial{index}"]</p>
+                    <blockquote class="m-0 border-l-2 border-[var(--id-red)] pl-5 text-base leading-[1.8] text-[var(--serif-muted)]">
+                        <p class="m-0">@Localizer[$"Testimonial{index}"]</p>
+                    </blockquote>
                 }
             </div>
-        }
-        <div class="public-actions">
-            <a asp-page="/contact" asp-route-culture="@CultureInfo.CurrentCulture.Name.ToLowerInvariant()" class="public-btn public-btn-primary">@Localizer["ContactButton"] <i class="fas fa-arrow-right"></i></a>
-            <a href="https://koalendar.com/e/meet-with-id" target="_blank" rel="noopener noreferrer" class="public-btn public-btn-outline">@Localizer["FreeConversationButton"] <i class="fas fa-arrow-right"></i></a>
         </div>
+    }
+    <div class="mt-10 flex flex-wrap gap-3 border-t border-[var(--serif-border)] pt-8">
+        <partial name="_PublicServiceAction" model='new PublicServiceLink(Localizer["ContactButton"], Url.Page("/Contact", new { culture })!)' />
+        <a href="@conversation.Url" target="_blank" rel="noopener noreferrer" class="public-btn public-btn-outline gap-3 leading-snug focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--serif-blue-dark)]">@Localizer["FreeConversationButton"] <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
     </div>
 </section>

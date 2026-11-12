@@ -5,45 +5,38 @@
     ViewData["Title"] = Localizer["Title"];
     ViewData["SeoTitle"] = Localizer["SeoTitle"];
     ViewData["MetaDescription"] = Localizer["MetaDescription"];
+    var culture = CultureInfo.CurrentCulture.Name.ToLowerInvariant();
+    var conversation = new PublicServiceLink(Localizer["ConversationButton"], "https://koalendar.com/e/meet-with-id", true);
+    var contact = new PublicServiceLink(Localizer["ContactButton"], Url.Page("/Contact", new { culture })!);
+    var hero = new PublicServiceHero(Localizer["Title"], Localizer["HeroTitle"],
+        [Localizer["HeroParagraph1"], Localizer["HeroParagraph2"]], "communication", conversation, contact);
+    var offerings = new[] { "English", "Intercultural", "Speaking", "Writing", "Outsource" }
+        .Select(key => new PublicServiceOffering(Localizer[$"Service{key}Title"], Localizer[$"Service{key}Description"])).ToArray();
 }
 
-<section class="public-hero-page">
-    <div class="public-container">
-        <div class="public-content-narrow">
-            <p class="public-eyebrow public-eyebrow-left">@Localizer["Title"]</p>
-            <h1 class="public-hero-title mx-0">@Localizer["HeroTitle"]</h1>
-            <p class="public-hero-copy mx-0">@Localizer["HeroParagraph1"]</p>
-            <p class="public-hero-copy mx-0">@Localizer["HeroParagraph2"]</p>
-            <div class="public-actions justify-start">
-                <a href="https://koalendar.com/e/meet-with-id" target="_blank" rel="noopener noreferrer" class="public-btn public-btn-primary">@Localizer["ConversationButton"] <i class="fas fa-arrow-right"></i></a>
-                <a asp-page="/contact" asp-route-culture="@CultureInfo.CurrentCulture.Name.ToLowerInvariant()" class="public-btn public-btn-outline">@Localizer["ContactButton"] <i class="fas fa-arrow-right"></i></a>
+<partial name="_PublicServiceHero" model="hero" />
+
+<section class="public-container py-14 md:py-20" aria-labelledby="communication-offerings">
+    <h2 id="communication-offerings" class="mb-9 mt-0 text-4xl leading-tight text-[var(--serif-blue-dark)] md:text-5xl">@Localizer["ServicesEyebrow"]</h2>
+    <partial name="_PublicServiceOfferings" model="offerings" />
+</section>
+
+<section class="bg-[var(--serif-soft)]" aria-labelledby="communication-audience">
+    <div class="public-container grid gap-8 py-14 md:py-20 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
+        <div>
+            <p class="mb-4 mt-0 font-[family-name:var(--serif-label)] text-xs tracking-[0.12em] text-[var(--serif-muted)] uppercase">@Localizer["AudienceEyebrow"]</p>
+            <h2 id="communication-audience" class="m-0 text-4xl leading-tight text-[var(--serif-blue-dark)] md:text-5xl">@Localizer["AudienceTitle"]</h2>
+        </div>
+        <div class="min-w-0">
+            <div class="space-y-5 text-lg leading-[1.8] text-[var(--serif-muted)]">
+                <p class="m-0">@Localizer["AudienceParagraph1"]</p>
+                <p class="m-0">@Localizer["AudienceParagraph2"]</p>
+                <p class="m-0">@Localizer["AudienceParagraph3"]</p>
             </div>
-        </div>
-    </div>
-</section>
-
-<section class="public-section">
-    <div class="public-container">
-        <div class="public-section-heading public-section-heading-center"><p class="public-eyebrow">@Localizer["ServicesEyebrow"]</p></div>
-        <div class="public-icon-feature-grid">
-            <article class="public-icon-feature-card"><i class="fa-solid fa-language"></i><div><div class="public-icon-feature-title">@Localizer["ServiceEnglishTitle"]</div><div class="public-icon-feature-description">@Localizer["ServiceEnglishDescription"]</div></div></article>
-            <article class="public-icon-feature-card"><i class="fa-solid fa-globe"></i><div><div class="public-icon-feature-title">@Localizer["ServiceInterculturalTitle"]</div><div class="public-icon-feature-description">@Localizer["ServiceInterculturalDescription"]</div></div></article>
-            <article class="public-icon-feature-card"><i class="fa-regular fa-comments"></i><div><div class="public-icon-feature-title">@Localizer["ServiceSpeakingTitle"]</div><div class="public-icon-feature-description">@Localizer["ServiceSpeakingDescription"]</div></div></article>
-            <article class="public-icon-feature-card"><i class="fa-regular fa-pen-to-square"></i><div><div class="public-icon-feature-title">@Localizer["ServiceWritingTitle"]</div><div class="public-icon-feature-description">@Localizer["ServiceWritingDescription"]</div></div></article>
-            <article class="public-icon-feature-card"><i class="fa-solid fa-file-pen"></i><div><div class="public-icon-feature-title">@Localizer["ServiceOutsourceTitle"]</div><div class="public-icon-feature-description">@Localizer["ServiceOutsourceDescription"]</div></div></article>
-        </div>
-    </div>
-</section>
-
-<section class="public-section public-section-soft">
-    <div class="public-container">
-        <div class="public-two-column">
-            <div><p class="public-eyebrow public-eyebrow-left">@Localizer["AudienceEyebrow"]</p><h2 class="public-section-title">@Localizer["AudienceTitle"]</h2></div>
-            <div><p class="public-copy">@Localizer["AudienceParagraph1"]</p><p class="public-copy">@Localizer["AudienceParagraph2"]</p><p class="public-copy">@Localizer["AudienceParagraph3"]</p></div>
-        </div>
-        <div class="public-actions">
-            <a href="https://koalendar.com/e/meet-with-id" target="_blank" rel="noopener noreferrer" class="public-btn public-btn-primary">@Localizer["ConversationButton"] <i class="fas fa-arrow-right"></i></a>
-            <a asp-page="/contact" asp-route-culture="@CultureInfo.CurrentCulture.Name.ToLowerInvariant()" class="public-btn public-btn-outline">@Localizer["ContactButton"] <i class="fas fa-arrow-right"></i></a>
+            <div class="mt-7 flex flex-wrap gap-3">
+                <partial name="_PublicServiceAction" model="conversation" />
+                <a href="@contact.Url" class="public-btn public-btn-outline gap-3 leading-snug focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--serif-blue-dark)]">@contact.Label <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+            </div>
         </div>
     </div>
 </section>
