@@ -85,20 +85,51 @@ public sealed class PublicServicePagesTests : DiagnosticPageTest
 
             if (route is "nt2-integration" or "personal-development")
             {
+                var frames = await Page.GetByTestId("service-frame").AllAsync();
+                Assert.True(frames.Count >= 4);
+                double[]? sharedEdges = null;
+                foreach (var frame in frames)
+                {
+                    var edges = await frame.EvaluateAsync<double[]>("""
+                        frame => {
+                            const box = frame.getBoundingClientRect(), style = getComputedStyle(frame);
+                            const children = Array.from(frame.children, child => child.getBoundingClientRect())
+                                .filter(box => box.width > 0 && box.height > 0);
+                            return [box.left + parseFloat(style.paddingLeft), box.right - parseFloat(style.paddingRight),
+                                Math.min(...children.map(box => box.left)), Math.max(...children.map(box => box.right))];
+                        }
+                        """);
+                    sharedEdges ??= edges;
+                    Assert.InRange(Math.Abs(edges[0] - sharedEdges[0]), 0, 1);
+                    Assert.InRange(Math.Abs(edges[1] - sharedEdges[1]), 0, 1);
+                    Assert.InRange(Math.Abs(edges[2] - edges[0]), 0, 1);
+                    Assert.InRange(Math.Abs(edges[3] - edges[1]), 0, 1);
+                }
                 await Expect(Page.GetByTestId("service-prose").First).ToBeVisibleAsync();
                 foreach (var prose in await Page.GetByTestId("service-prose").AllAsync())
                 {
-                    var bounds = await prose.BoundingBoxAsync();
-                    Assert.InRange(bounds!.Width, Math.Min(width - 64, 600), 780);
-                    // Read all geometry in one frame so a late font swap cannot mix measurements.
-                    var gaps = await prose.EvaluateAsync<double[]>("""
+                    // Check the rendered text rather than enforcing the old centered-column width.
+                    var readable = await prose.EvaluateAsync<bool>("""
                         prose => {
-                            const paragraphs = Array.from(prose.querySelectorAll('p'), p => p.getBoundingClientRect());
-                            return paragraphs.slice(1).map((paragraph, index) => paragraph.top - paragraphs[index].bottom);
+                            const paragraphs = Array.from(prose.querySelectorAll('p'));
+                            const boxes = paragraphs.map(p => p.getBoundingClientRect());
+                            if (!paragraphs.every((p, i) => {
+                                const style = getComputedStyle(p), size = parseFloat(style.fontSize);
+                                return size >= 18 && parseFloat(style.lineHeight) >= size * 1.5
+                                    && boxes[i].width >= Math.min(innerWidth - 32, 260);
+                            })) return false;
+                            for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
+                                const a = boxes[i], b = boxes[j];
+                                const overlapX = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+                                const overlapY = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+                                if (overlapX > 1 && overlapY > 1) return false;
+                                if (overlapX > 1 && Math.max(a.top, b.top) - Math.min(a.bottom, b.bottom) < 16) return false;
+                                if (overlapY > 1 && Math.max(a.left, b.left) - Math.min(a.right, b.right) < 16) return false;
+                            }
+                            return true;
                         }
                         """);
-                    Assert.All(gaps, gap => Assert.True(gap >= 20,
-                        $"{route}: consecutive paragraphs need visible separation."));
+                    Assert.True(readable, $"{route}: text must remain readable and paragraphs must not collide.");
                 }
             }
 

@@ -804,15 +804,20 @@ checks from render-blocking third-party stylesheets. Desktop/mobile screenshots 
 inspected. The local application configuration is restored to Full after mode checks.
 
 Design follow-up (P0, Medium): `fix/nt2-personal-development-design` revises NT2 and
-Personal Development following the user's visual review. Headings now sit above wider
-reading columns, paragraphs have explicit spacing and darker body text, and the pages
-use simple landscape photography. NT2 separates course choices from its longer story;
-Personal Development presents guidance as ordinary readable sections and bullet lists.
-The shared numbered service-grid treatment is removed from these two pages. English/Dutch
-copy and existing actions remain intact. Browser regressions now check reading width and
-actual separation between consecutive paragraphs. Verification passed: Release build,
-solution formatting, all 579 unit/integration tests, eight Full-mode service-page browser
-checks, and 42 Marketing-mode browser checks. Desktop/mobile renders were inspected.
+Personal Development in open PR #57. The composition uses one shared outer grid with
+deliberately positioned imagery, introductions, supporting statements, and body text.
+Centered narrow wrappers are removed. Longer passages split at sentence boundaries;
+opening sentences and the free introductory conversation receive appropriate emphasis.
+All English/Dutch words, punctuation, and existing actions remain intact. The installed
+Emil design-engineering, mobile-native, and web-design-guidelines skills inform hierarchy,
+responsive reading order, semantic controls, and focus/touch behavior.
+Browser regressions check common section edges, readable text, paragraph separation,
+and non-overlapping columns. Nine new unit cases protect lossless paragraph splitting.
+Desktop/mobile browser renders were inspected; physical-device testing is unavailable.
+Verification passed: Release build, solution-wide formatting, all 588 unit/integration
+tests, eight Full-mode service-page browser checks, and 42 Marketing-mode browser checks.
+A separate comparison of all eight original localized page bodies found no missing text.
+The local app is restored to Full mode after verification.
 
 **Estimated size: Large overall.** Delivered as one coherent four-page change using shared components.
 
