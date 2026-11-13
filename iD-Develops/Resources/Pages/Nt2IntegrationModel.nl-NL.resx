@@ -336,4 +336,19 @@
   <data name="FreeConversationButton" xml:space="preserve">
     <value>Plan direct een gesprek</value>
   </data>
+  <data name="PracticalDutchHeading" xml:space="preserve">
+    <value>Nederlands voor het dagelijks leven</value>
+  </data>
+  <data name="PersonalGuidanceHeading" xml:space="preserve">
+    <value>Persoonlijke begeleiding</value>
+  </data>
+  <data name="PromiseHeading" xml:space="preserve">
+    <value>Wat je kunt verwachten</value>
+  </data>
+  <data name="AdditionalSupportHeading" xml:space="preserve">
+    <value>Extra ondersteuning</value>
+  </data>
+  <data name="CultureExamplesStart" xml:space="preserve">
+    <value>Denk aan het afgemeten</value>
+  </data>
 </root>

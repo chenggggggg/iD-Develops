@@ -819,6 +819,16 @@ tests, eight Full-mode service-page browser checks, and 42 Marketing-mode browse
 A separate comparison of all eight original localized page bodies found no missing text.
 The local app is restored to Full mode after verification.
 
+NT2 narrative refinement in the same PR follows learner goals -> teaching approach ->
+course choices -> trainers -> testimonials where available -> next step. Company promises
+use ordinary explanatory text; only customer testimonials use quote styling. Cultural
+examples split at a translation-specific editorial boundary instead of a character midpoint.
+The two main course routes remain visible; optional English support services use a labelled,
+keyboard-accessible disclosure. Original copy is retained, with short localized topic labels.
+MCP review covered English desktop and Dutch mobile. Browser checks protect chapter order,
+trainer placement, quote roles, and access to every optional service. Build, formatting,
+588 unit/integration tests, eight Full-mode checks, and 42 Marketing-mode checks pass.
+
 **Estimated size: Large overall.** Delivered as one coherent four-page change using shared components.
 
 - Completely redesign /enterprise, /nt2-integration, /personal-development, and

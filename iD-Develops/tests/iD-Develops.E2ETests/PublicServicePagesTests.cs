@@ -70,17 +70,48 @@ public sealed class PublicServicePagesTests : DiagnosticPageTest
             if (route == "nt2-integration")
             {
                 var expanded = bool.Parse(manager.GetString("ShowExpandedOffer", CultureInfo.GetCultureInfo(culture))!);
-                await Expect(Page.GetByTestId("service-offerings").Locator("article")).ToHaveCountAsync(expanded ? 7 : 2);
+                await Expect(Page.GetByTestId("service-offerings").Locator("article")).ToHaveCountAsync(2);
+                var support = Page.GetByTestId("nt2-additional-support");
+                await Expect(support).ToHaveCountAsync(expanded ? 1 : 0);
                 if (expanded)
                 {
+                    await Expect(support.Locator("article")).ToHaveCountAsync(5);
+                    await Expect(support.Locator("article").First).ToBeHiddenAsync();
+                    await support.Locator("summary").FocusAsync();
+                    await Page.Keyboard.PressAsync("Enter");
+                    await Expect(support.Locator("article").First).ToBeVisibleAsync();
                     for (var index = 1; index <= 5; index++)
                     {
                         AssertCopy(manager, culture, $"OfferExtra{index}Title", text);
                         AssertCopy(manager, culture, $"OfferExtra{index}Description", text);
+                        await Expect(support.GetByRole(AriaRole.Heading, new()
+                        {
+                            Name = manager.GetString($"OfferExtra{index}Title", CultureInfo.GetCultureInfo(culture)),
+                            Exact = true
+                        })).ToBeVisibleAsync();
                     }
+                    await support.Locator("summary").PressAsync("Enter");
+                    await Expect(support.Locator("article").First).ToBeHiddenAsync();
                     AssertCopy(manager, culture, "TestimonialsEyebrow", text);
                     for (var index = 1; index <= 3; index++) AssertCopy(manager, culture, $"Testimonial{index}", text);
                 }
+                await Page.EvaluateAsync("window.scrollTo({ top: 0, behavior: 'instant' })");
+                var previousBottom = 0f;
+                foreach (var chapter in new[] { "service-hero", "nt2-goals", "nt2-approach", "nt2-courses", "nt2-trainers", "service-contact" })
+                {
+                    var bounds = await Page.GetByTestId(chapter).BoundingBoxAsync();
+                    Assert.True(bounds!.Y >= previousBottom - 1, $"NT2 chapter {chapter} must follow the preceding chapter.");
+                    previousBottom = bounds.Y + bounds.Height;
+                }
+                var approach = Page.GetByTestId("nt2-approach");
+                foreach (var key in new[] { "PracticalDutchHeading", "PersonalGuidanceHeading", "PromiseHeading" })
+                    await Expect(approach.GetByRole(AriaRole.Heading, new() { Name = manager.GetString(key, CultureInfo.GetCultureInfo(culture)), Exact = true })).ToBeVisibleAsync();
+                await Expect(approach.GetByTestId("service-prose").Locator("p")).ToHaveCountAsync(2);
+                await Expect(approach.GetByTestId("service-prose").Locator("p").Nth(1))
+                    .ToContainTextAsync(manager.GetString("CultureExamplesStart", CultureInfo.GetCultureInfo(culture))!);
+                await Expect(hero.GetByRole(AriaRole.Heading, new() { Level = 2 })).ToHaveCountAsync(0);
+                await Expect(approach.Locator("aside, blockquote")).ToHaveCountAsync(0);
+                await Expect(Page.Locator("main blockquote")).ToHaveCountAsync(expanded ? 3 : 0);
             }
 
             if (route is "nt2-integration" or "personal-development")

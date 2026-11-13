@@ -25,6 +25,7 @@ App_Data/
 TestResults/
 test-results/
 playwright-report/
+.playwright-mcp/
 *.trx
 *.coverage
 *.coveragexml
