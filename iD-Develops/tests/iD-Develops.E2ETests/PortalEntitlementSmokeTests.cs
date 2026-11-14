@@ -190,6 +190,14 @@ public sealed class PortalEntitlementSmokeTests : DiagnosticPageTest
 
         await enterpriseLink.ClickAsync();
         await Expect(Page).ToHaveURLAsync($"{PublicBaseUrl}/en-us/enterprise");
+        await Expect(Page.GetByRole(
+                Microsoft.Playwright.AriaRole.Heading,
+                new() { Name = "For Organizations", Level = 1, Exact = true }))
+            .ToBeVisibleAsync();
+        await Expect(Page.GetByTestId("service-hero").GetByText(
+                "Because people who communicate well together help your organization thrive",
+                new() { Exact = true }))
+            .ToBeVisibleAsync();
     }
 
     [Fact]
@@ -236,7 +244,11 @@ public sealed class PortalEntitlementSmokeTests : DiagnosticPageTest
         await Expect(Page).ToHaveURLAsync($"{PublicBaseUrl}/nl-nl/enterprise");
         await Expect(Page.GetByRole(
                 Microsoft.Playwright.AriaRole.Heading,
-                new() { Name = "Omdat mensen die goed met elkaar communiceren, je organisatie laten floreren" }))
+                new() { Name = "Voor Organisaties", Level = 1, Exact = true }))
+            .ToBeVisibleAsync();
+        await Expect(Page.GetByTestId("service-hero").GetByText(
+                "Omdat mensen die goed met elkaar communiceren, je organisatie laten floreren",
+                new() { Exact = true }))
             .ToBeVisibleAsync();
     }
 
