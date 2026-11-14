@@ -8,32 +8,44 @@
     var culture = CultureInfo.CurrentCulture.Name.ToLowerInvariant();
     var conversation = new PublicServiceLink(Localizer["ConversationButton"], "https://koalendar.com/e/meet-with-id", true);
     var contact = new PublicServiceLink(Localizer["ContactButton"], Url.Page("/Contact", new { culture })!);
+    var introduction = PublicServiceText.Lead(Localizer["HeroParagraph1"]);
+    var deeperQuestion = PublicServiceText.Lead(Localizer["AudienceParagraph3"]);
     var hero = new PublicServiceHero(Localizer["Title"], Localizer["HeroTitle"],
-        [Localizer["HeroParagraph1"], Localizer["HeroParagraph2"]], "communication", conversation, contact);
+        [introduction.Opening, introduction.Remainder], "communication", conversation, contact);
     var offerings = new[] { "English", "Intercultural", "Speaking", "Writing", "Outsource" }
         .Select(key => new PublicServiceOffering(Localizer[$"Service{key}Title"], Localizer[$"Service{key}Description"])).ToArray();
 }
 
 <partial name="_PublicServiceHero" model="hero" />
 
-<section class="public-container py-14 md:py-20" aria-labelledby="communication-offerings">
-    <h2 id="communication-offerings" class="mb-9 mt-0 text-4xl leading-tight text-[var(--serif-blue-dark)] md:text-5xl">@Localizer["ServicesEyebrow"]</h2>
-    <partial name="_PublicServiceOfferings" model="offerings" />
+<section class="border-t border-[var(--serif-border)]" aria-labelledby="communication-offerings">
+    <div class="public-container py-12 md:py-16" data-testid="service-frame">
+        <div class="mb-8 grid gap-6 lg:grid-cols-12 lg:gap-10">
+            <h2 id="communication-offerings" class="m-0 text-3xl leading-tight text-[var(--serif-blue-dark)] md:text-4xl lg:col-span-5">@Localizer["ServicesEyebrow"]</h2>
+            <p class="m-0 text-lg leading-relaxed text-[var(--serif-ink)]/85 lg:col-span-7 tracking-normal" data-testid="communication-service-introduction">@Localizer["HeroParagraph2"]</p>
+        </div>
+        <partial name="_PublicServiceOfferings" model="offerings" />
+    </div>
 </section>
 
 <section class="bg-[var(--serif-soft)]" aria-labelledby="communication-audience">
-    <div class="public-container grid gap-8 py-14 md:py-20 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
-        <div>
-            <p class="mb-4 mt-0 font-[family-name:var(--serif-label)] text-xs tracking-[0.12em] text-[var(--serif-muted)] uppercase">@Localizer["AudienceEyebrow"]</p>
-            <h2 id="communication-audience" class="m-0 text-4xl leading-tight text-[var(--serif-blue-dark)] md:text-5xl">@Localizer["AudienceTitle"]</h2>
+    <div class="public-container grid gap-6 py-12 md:py-16 lg:grid-cols-12 lg:gap-10" data-testid="service-frame">
+        <div class="min-w-0 lg:col-span-5">
+            <p class="mb-4 mt-0 text-base font-semibold text-[var(--id-red)]">@Localizer["AudienceEyebrow"]</p>
+            <h2 id="communication-audience" class="m-0 text-3xl leading-tight text-[var(--serif-blue-dark)] md:text-4xl">@Localizer["AudienceTitle"]</h2>
         </div>
-        <div class="min-w-0">
-            <div class="space-y-5 text-lg leading-[1.8] text-[var(--serif-muted)]">
+        <div class="min-w-0 lg:col-span-7">
+            <div class="flex flex-col gap-6 text-lg leading-relaxed text-[var(--serif-ink)]/85 tracking-normal" data-testid="service-prose">
                 <p class="m-0">@Localizer["AudienceParagraph1"]</p>
                 <p class="m-0">@Localizer["AudienceParagraph2"]</p>
-                <p class="m-0">@Localizer["AudienceParagraph3"]</p>
             </div>
-            <div class="mt-7 flex flex-wrap gap-3">
+            <div class="mt-8 border-t border-[var(--serif-border)] pt-6" data-testid="communication-deeper-question">
+                <h3 class="mb-3 mt-0 font-[family-name:var(--serif-body)] text-xl font-semibold leading-snug text-[var(--serif-blue-dark)] tracking-normal">@deeperQuestion.Opening</h3>
+                <div class="flex flex-col gap-6 text-lg leading-relaxed text-[var(--serif-ink)]/85 tracking-normal">
+                    <partial name="_PublicServiceParagraphs" model="deeperQuestion.Remainder" />
+                </div>
+            </div>
+            <div class="mt-8 flex flex-wrap gap-3">
                 <partial name="_PublicServiceAction" model="conversation" />
                 <a href="@contact.Url" class="public-btn public-btn-outline gap-3 leading-snug focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--serif-blue-dark)]">@contact.Label <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
             </div>

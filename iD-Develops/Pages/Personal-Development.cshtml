@@ -7,8 +7,9 @@
     ViewData["MetaDescription"] = Localizer["MetaDescription"];
     var contactUrl = Url.Page("/Contact", new { culture = CultureInfo.CurrentCulture.Name.ToLowerInvariant() })!;
     var conversation = new PublicServiceLink(Localizer["ScheduleConversation"], "https://koalendar.com/e/meet-with-id", true);
-    var introduction = PublicServiceText.Lead(Localizer["HeroDescription"]);
     var conclusion = PublicServiceText.Lead(Localizer["MethodsConclusion"]);
+    var introduction = PublicServiceText.Paragraphs(Localizer["HeroDescription"]);
+    var guidance = PublicServiceText.SplitBefore(Localizer["ApproachParagraph1"], Localizer["GuidancePracticeStart"]);
     var methods = Enumerable.Range(1, 4)
         .Select(index => new PublicServiceOffering(Localizer[$"Method{index}Title"], Localizer[$"Method{index}Description"])).ToArray();
     var closing = new PublicServiceContact(conclusion.Opening, [conclusion.Remainder],
@@ -19,28 +20,39 @@
 <section data-testid="service-hero" aria-labelledby="service-title">
     <div class="public-container grid gap-8 pb-12 pt-10 md:pb-16 md:pt-16 lg:grid-cols-12 lg:gap-x-10" data-testid="service-frame">
         <div class="lg:col-span-12">
-            <p class="mb-5 mt-0 text-base font-semibold text-[var(--id-red)]">@Localizer["Title"]</p>
-            <h1 id="service-title" class="m-0 text-[clamp(2.25rem,4vw,3.5rem)] leading-[1.12] tracking-[-0.025em] text-balance text-[var(--serif-blue-dark)]">@Localizer["HeroTitle"]</h1>
+            <h1 id="service-title" class="m-0 text-[clamp(2.25rem,4vw,3.5rem)] leading-[1.12] tracking-[-0.025em] text-balance text-[var(--serif-blue-dark)]">@Localizer["Title"]</h1>
+            <p class="mb-0 mt-4 text-xl leading-relaxed text-[var(--serif-blue-dark)] font-normal tracking-normal">@Localizer["HeroTitle"]</p>
         </div>
-        <div class="min-w-0 lg:col-span-7 lg:col-start-6 lg:row-start-2">
-            <div class="flex flex-col gap-5" data-testid="service-prose">
-                <p class="m-0 font-[family-name:var(--serif-heading)] text-2xl leading-[1.6] text-[var(--serif-blue-dark)]">@introduction.Opening</p>
-                @if (!string.IsNullOrWhiteSpace(introduction.Remainder))
-                {
-                    <p class="m-0 text-lg leading-[1.8] text-[var(--serif-ink)]/85">@introduction.Remainder</p>
-                }
+        <div class="min-w-0 lg:col-span-7">
+            <div class="flex flex-col gap-6" data-testid="service-prose">
+                <p class="m-0 text-lg leading-relaxed text-[var(--serif-ink)]/85 tracking-normal">@introduction[0]</p>
+                <div class="flex flex-col gap-3" data-prose-group data-testid="development-hero-concern">
+                    @for (var index = 1; index < introduction.Count; index++)
+                    {
+                        <p class="m-0 text-lg leading-relaxed text-[var(--serif-ink)]/85 tracking-normal">
+                            @if (index == 1)
+                            {
+                                <strong class="font-semibold text-[var(--serif-blue-dark)]">@introduction[index]</strong>
+                            }
+                            else
+                            {
+                                @introduction[index]
+                            }
+                        </p>
+                    }
+                </div>
+                <div class="flex flex-col gap-3" data-prose-group data-testid="development-hero-reassurance">
+                    <p class="m-0 text-lg font-semibold leading-relaxed text-[var(--serif-blue-dark)] tracking-normal">@Localizer["HeroNoteTitle"]</p>
+                    <p class="m-0 text-lg leading-relaxed text-[var(--serif-ink)]/85 tracking-normal">@Localizer["HeroNoteDescription"]</p>
+                </div>
             </div>
-            <div class="mt-7 flex flex-wrap gap-3">
+            <div class="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3" data-testid="development-hero-actions">
                 <partial name="_PublicServiceAction" model="conversation" />
-                <a href="@contactUrl" class="public-btn public-btn-outline max-w-full touch-manipulation gap-3 leading-snug focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--serif-blue-dark)]">@Localizer["ContactButton"] <i class="fa-solid fa-arrow-right shrink-0" aria-hidden="true"></i></a>
+                <a href="@contactUrl" class="inline-flex min-h-11 max-w-full items-center touch-manipulation rounded-sm py-2 text-base font-medium leading-relaxed text-[var(--serif-blue-dark)] underline decoration-[var(--serif-border)] underline-offset-4 hover:decoration-current focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--serif-blue-dark)]">@Localizer["ContactButton"]</a>
             </div>
         </div>
-        <figure class="m-0 min-w-0 lg:col-span-5 lg:col-start-1 lg:row-start-2">
-            <img src="/images/services/personal-development-960.webp" srcset="/images/services/personal-development-480.webp 480w, /images/services/personal-development-960.webp 960w" sizes="(min-width: 1024px) 380px, (min-width: 768px) 700px, calc(100vw - 32px)" width="960" height="641" alt="" fetchpriority="high" class="aspect-[3/2] h-auto w-full rounded-lg object-cover" />
-            <figcaption class="mt-6">
-                <h2 class="mb-3 mt-0 text-2xl leading-snug text-[var(--serif-blue-dark)]">@Localizer["HeroNoteTitle"]</h2>
-                <p class="m-0 text-lg leading-[1.75] text-[var(--serif-ink)]/85">@Localizer["HeroNoteDescription"]</p>
-            </figcaption>
+        <figure class="m-0 min-w-0 lg:col-span-5">
+            <img src="/images/services/personal-development-960.webp" srcset="/images/services/personal-development-480.webp 480w, /images/services/personal-development-960.webp 960w" sizes="(min-width: 1024px) 380px, (min-width: 768px) 700px, calc(100vw - 32px)" width="960" height="641" alt="" fetchpriority="high" class="aspect-[3/2] h-auto w-full rounded-lg object-cover lg:aspect-[4/5] lg:object-[80%_center]" />
         </figure>
     </div>
 </section>
@@ -48,23 +60,36 @@
 <section class="border-t border-[var(--serif-border)]" aria-labelledby="development-approach">
     <div class="public-container py-12 md:py-16" data-testid="service-frame">
         <h2 id="development-approach" class="mb-6 mt-0 text-3xl leading-tight text-[var(--serif-blue-dark)] md:text-4xl">@Localizer["ApproachEyebrow"]</h2>
-        <div class="grid gap-6 text-lg leading-[1.8] text-[var(--serif-ink)]/85 md:grid-cols-2 md:gap-10" data-testid="service-prose">
-            <p class="m-0">@Localizer["ApproachParagraph1"]</p>
-            <p class="m-0">@Localizer["ApproachParagraph2"]</p>
+        <div class="grid gap-8 lg:grid-cols-12 lg:gap-10">
+            <div class="min-w-0 lg:col-span-7">
+                <div class="flex flex-col gap-6 text-lg leading-relaxed text-[var(--serif-ink)]/85 tracking-normal" data-testid="service-prose">
+                    <partial name="_PublicServiceParagraphs" model="guidance.Opening" />
+                    @if (!string.IsNullOrWhiteSpace(guidance.Remainder))
+                    {
+                        <partial name="_PublicServiceParagraphs" model="guidance.Remainder" />
+                    }
+                </div>
+            </div>
+            <div class="min-w-0 lg:col-span-5">
+                <h3 class="mb-3 mt-0 font-[family-name:var(--serif-body)] text-xl font-semibold leading-snug text-[var(--serif-blue-dark)] tracking-normal">@Localizer["ExperienceHeading"]</h3>
+                <div class="flex flex-col gap-6 text-lg leading-relaxed text-[var(--serif-ink)]/85 tracking-normal">
+                    <partial name="_PublicServiceParagraphs" model='Localizer["ApproachParagraph2"].Value' />
+                </div>
+            </div>
         </div>
     </div>
 </section>
 
 <section class="border-y border-[var(--serif-border)] bg-[var(--serif-soft)]" aria-labelledby="development-audience">
-    <div class="public-container grid gap-9 py-12 md:py-16 lg:grid-cols-12 lg:gap-x-10" data-testid="service-frame">
+    <div class="public-container grid gap-8 py-12 md:py-16 lg:grid-cols-12 lg:gap-x-10" data-testid="service-frame">
         <div class="min-w-0 lg:col-span-5">
             <p class="mb-4 mt-0 text-base font-semibold text-[var(--id-red)]">@Localizer["AudienceEyebrow"]</p>
-            <h2 id="development-audience" class="mb-5 mt-0 text-3xl leading-tight text-[var(--serif-blue-dark)] md:text-4xl">@Localizer["AudienceTitle"]</h2>
-            <p class="m-0 text-lg leading-[1.8] text-[var(--serif-ink)]/85">@Localizer["AudienceDescription"]</p>
+            <h2 id="development-audience" class="mb-6 mt-0 text-3xl leading-tight text-[var(--serif-blue-dark)] md:text-4xl">@Localizer["AudienceTitle"]</h2>
+            <p class="m-0 text-lg leading-relaxed text-[var(--serif-ink)]/85 tracking-normal">@Localizer["AudienceDescription"]</p>
         </div>
         <div class="min-w-0 lg:col-span-7">
-            <h3 class="mb-5 mt-0 font-[family-name:var(--serif-body)] text-xl font-semibold leading-snug text-[var(--serif-blue-dark)]">@Localizer["HelpEyebrow"]</h3>
-            <ul class="m-0 grid list-disc gap-x-8 gap-y-4 pl-5 text-lg leading-relaxed text-[var(--serif-ink)]/85 marker:text-[var(--id-red)] md:grid-cols-2 lg:grid-cols-1">
+            <h3 class="mb-3 mt-0 font-[family-name:var(--serif-body)] text-xl font-semibold leading-snug text-[var(--serif-blue-dark)] tracking-normal">@Localizer["HelpEyebrow"]</h3>
+            <ul class="m-0 grid list-disc gap-x-8 gap-y-4 pl-5 text-lg leading-relaxed text-[var(--serif-ink)]/85 marker:text-[var(--id-red)] md:grid-cols-2 lg:grid-cols-1 tracking-normal">
                 @for (var index = 1; index <= 8; index++)
                 {
                     <li class="pl-1">@Localizer[$"HelpItem{index}"]</li>
@@ -76,13 +101,15 @@
 
 <section aria-labelledby="development-methods">
     <div class="public-container py-12 md:py-16" data-testid="service-frame">
-        <h2 id="development-methods" class="mb-7 mt-0 text-3xl leading-tight text-[var(--serif-blue-dark)] md:text-4xl">@Localizer["MethodsEyebrow"]</h2>
+        <h2 id="development-methods" class="mb-6 mt-0 text-3xl leading-tight text-[var(--serif-blue-dark)] md:text-4xl">@Localizer["MethodsEyebrow"]</h2>
         <div class="grid gap-x-10 md:grid-cols-2" data-testid="service-offerings">
             @foreach (var method in methods)
             {
                 <article class="min-w-0 border-t border-[var(--serif-border)] py-6">
-                    <h3 class="mb-3 mt-0 font-[family-name:var(--serif-body)] text-xl font-semibold leading-snug text-[var(--serif-blue-dark)]">@method.Title</h3>
-                    <p class="m-0 text-lg leading-[1.8] text-[var(--serif-ink)]/85">@method.Description</p>
+                    <h3 class="mb-3 mt-0 font-[family-name:var(--serif-body)] text-xl font-semibold leading-snug text-[var(--serif-blue-dark)] tracking-normal">@method.Title</h3>
+                    <div class="flex flex-col gap-6 text-lg leading-relaxed text-[var(--serif-ink)]/85 tracking-normal">
+                        <partial name="_PublicServiceParagraphs" model="method.Description" />
+                    </div>
                 </article>
             }
         </div>

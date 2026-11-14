@@ -196,7 +196,11 @@
     <value>Voor als ‘Is dit het nu?’ door je hoofd blijft spoken</value>
   </data>
   <data name="HeroDescription" xml:space="preserve">
-    <value>Misschien herken je het: aan de buitenkant klopt alles — baan, huis, een vol weekend. En toch knaagt er iets. Een gevoel dat je anders naar de wereld kijkt dan de mensen om je heen, of dat je onderweg een stukje van jezelf bent kwijtgeraakt.</value>
+    <value>Misschien herken je het: aan de buitenkant klopt alles — baan, huis, een vol weekend.
+
+En toch knaagt er iets.
+
+Een gevoel dat je anders naar de wereld kijkt dan de mensen om je heen, of dat je onderweg een stukje van jezelf bent kwijtgeraakt.</value>
   </data>
   <data name="ScheduleConversation" xml:space="preserve">
     <value>Plan een gesprek</value>
@@ -211,10 +215,14 @@
     <value>Onze aanpak</value>
   </data>
   <data name="ApproachParagraph1" xml:space="preserve">
-    <value>We zijn geen coaches die achterover leunen en hummen; die titel hangen we dan ook liever niet aan onszelf. We denken mee, spiegelen, stellen de vraag die je ontwijkt, en lachen onderweg mét jou. Geen helden op een voetstuk, maar ervaringsdeskundigen met een scherpe blik voor blinde vlekken.</value>
+    <value>We zijn geen coaches die achterover leunen en hummen; die titel hangen we dan ook liever niet aan onszelf.
+
+We denken mee, spiegelen, stellen de vraag die je ontwijkt, en lachen onderweg mét jou. Geen helden op een voetstuk, maar ervaringsdeskundigen met een scherpe blik voor blinde vlekken.</value>
   </data>
   <data name="ApproachParagraph2" xml:space="preserve">
-    <value>We hebben zelf ons leven meerdere keren omgegooid, soms bewust, soms gedwongen. We weten hoe het is om grote keuzes te maken zonder zicht op de afloop. Die ervaring gebruiken we om jou sneller bij je eigen antwoorden te brengen.</value>
+    <value>We hebben zelf ons leven meerdere keren omgegooid, soms bewust, soms gedwongen. We weten hoe het is om grote keuzes te maken zonder zicht op de afloop.
+
+Die ervaring gebruiken we om jou sneller bij je eigen antwoorden te brengen.</value>
   </data>
   <data name="AudienceEyebrow" xml:space="preserve">
     <value>Voor wie</value>
@@ -284,5 +292,11 @@
   </data>
   <data name="MethodsButton" xml:space="preserve">
     <value>Plan een gesprek</value>
+  </data>
+  <data name="GuidancePracticeStart" xml:space="preserve">
+    <value>We denken mee,</value>
+  </data>
+  <data name="ExperienceHeading" xml:space="preserve">
+    <value>Onze eigen ervaring</value>
   </data>
 </root>

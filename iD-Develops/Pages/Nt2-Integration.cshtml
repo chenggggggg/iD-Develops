@@ -12,6 +12,8 @@
     var levelTest = new PublicServiceLink(Localizer["LevelTestButton"], $"/{culture}/level-test");
     var study = PublicServiceText.Lead(Localizer["TailoredParagraph2"]);
     var nextStep = PublicServiceText.Lead(Localizer["TailoredParagraph3"]);
+    var introduction = PublicServiceText.SplitBefore(Localizer["HeroDescription"], Localizer["HeroReassuranceStart"]);
+    var experience = PublicServiceText.SplitBefore(Localizer["WhyUsParagraph1"], Localizer["ExperiencePracticeStart"]);
     var practicalDutch = Localizer["WhyUsParagraph2"].Value;
     var examplesIndex = practicalDutch.IndexOf(Localizer["CultureExamplesStart"].Value, StringComparison.Ordinal);
     var practicalExplanation = examplesIndex > 0 ? practicalDutch[..examplesIndex].TrimEnd() : practicalDutch;
@@ -21,12 +23,18 @@
 }
 
 <section data-testid="service-hero" aria-labelledby="service-title">
-    <div class="public-container grid items-center gap-9 pb-12 pt-10 md:pb-16 md:pt-16 lg:grid-cols-12 lg:gap-10" data-testid="service-frame">
+    <div class="public-container grid items-center gap-8 pb-12 pt-10 md:pb-16 md:pt-16 lg:grid-cols-12 lg:gap-10" data-testid="service-frame">
         <div class="min-w-0 lg:col-span-7">
-            <p class="mb-5 mt-0 text-base font-semibold text-[var(--id-red)]">@Localizer["Title"]</p>
-            <h1 id="service-title" class="m-0 text-[clamp(2.25rem,4vw,3.5rem)] leading-[1.12] tracking-[-0.025em] text-balance text-[var(--serif-blue-dark)]">@Localizer["HeroTitle"]</h1>
-            <p class="mb-0 mt-6 text-lg leading-[1.8] text-[var(--serif-ink)]/85">@Localizer["HeroDescription"]</p>
-            <div class="mt-7 flex flex-wrap gap-3">
+            <h1 id="service-title" class="m-0 text-[clamp(2.25rem,4vw,3.5rem)] leading-[1.12] tracking-[-0.025em] text-balance text-[var(--serif-blue-dark)]">@Localizer["Title"]</h1>
+            <p class="mb-0 mt-4 text-xl leading-relaxed text-[var(--serif-blue-dark)] font-normal tracking-normal">@Localizer["HeroTitle"]</p>
+            <div class="mt-8 flex flex-col gap-6 text-lg leading-relaxed text-[var(--serif-ink)]/85 tracking-normal" data-testid="service-prose">
+                <partial name="_PublicServiceParagraphs" model="introduction.Opening" />
+                @if (!string.IsNullOrWhiteSpace(introduction.Remainder))
+                {
+                    <partial name="_PublicServiceParagraphs" model="introduction.Remainder" />
+                }
+            </div>
+            <div class="mt-8 flex flex-wrap gap-3">
                 <partial name="_PublicServiceAction" model="levelTest" />
                 <a href="@conversation.Url" target="_blank" rel="noopener noreferrer" class="public-btn public-btn-outline max-w-full touch-manipulation gap-3 leading-snug focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--serif-blue-dark)]">@conversation.Label <i class="fa-solid fa-arrow-right shrink-0" aria-hidden="true"></i></a>
             </div>
@@ -36,57 +44,69 @@
 </section>
 
 <section class="border-y border-[var(--serif-border)] bg-[var(--serif-soft)]" aria-labelledby="nt2-goals" data-testid="nt2-goals">
-    <div class="public-container py-10 md:py-12" data-testid="service-frame">
-        <p class="mb-3 mt-0 text-base font-semibold text-[var(--id-red)]">@Localizer["TailoredEyebrow"]</p>
-        <h2 id="nt2-goals" class="mb-5 mt-0 text-3xl leading-tight text-[var(--serif-blue-dark)] md:text-4xl">@Localizer["TailoredTitle"]</h2>
-        <p class="m-0 text-lg leading-[1.8] text-[var(--serif-ink)]/85">@Localizer["TailoredParagraph1"]</p>
+    <div class="public-container grid gap-6 py-12 md:py-16 lg:grid-cols-12 lg:gap-10" data-testid="service-frame">
+        <div class="min-w-0 lg:col-span-5">
+            <p class="mb-3 mt-0 text-base font-semibold text-[var(--id-red)]">@Localizer["TailoredEyebrow"]</p>
+            <h2 id="nt2-goals" class="m-0 text-3xl leading-tight text-[var(--serif-blue-dark)] md:text-4xl">@Localizer["TailoredTitle"]</h2>
+        </div>
+        <p class="m-0 text-lg leading-relaxed text-[var(--serif-ink)]/85 tracking-normal lg:col-span-7">@Localizer["TailoredParagraph1"]</p>
     </div>
 </section>
 
 <section aria-labelledby="nt2-approach" data-testid="nt2-approach">
     <div class="public-container py-12 md:py-16" data-testid="service-frame">
-        <h2 id="nt2-approach" class="mb-8 mt-0 text-3xl leading-tight text-[var(--serif-blue-dark)] md:text-4xl">@Localizer["WhyUsEyebrow"]</h2>
-        <div class="grid items-start gap-9 lg:grid-cols-12 lg:gap-10">
+        <h2 id="nt2-approach" class="mb-6 mt-0 text-3xl leading-tight text-[var(--serif-blue-dark)] md:text-4xl">@Localizer["WhyUsEyebrow"]</h2>
+        <div class="grid items-start gap-8 lg:grid-cols-12 lg:gap-10">
             <div class="min-w-0 lg:col-span-7">
-                <h3 class="mb-4 mt-0 font-[family-name:var(--serif-body)] text-xl font-semibold leading-snug text-[var(--serif-blue-dark)]">@Localizer["PracticalDutchHeading"]</h3>
-                <div class="flex flex-col gap-6 text-lg leading-[1.8] text-[var(--serif-ink)]/85" data-testid="service-prose">
-                    <p class="m-0">@practicalExplanation</p>
+                <h3 class="mb-3 mt-0 font-[family-name:var(--serif-body)] text-xl font-semibold leading-snug text-[var(--serif-blue-dark)] tracking-normal">@Localizer["PracticalDutchHeading"]</h3>
+                <div class="flex flex-col gap-6 text-lg leading-relaxed text-[var(--serif-ink)]/85 tracking-normal" data-testid="service-prose">
+                    <partial name="_PublicServiceParagraphs" model="practicalExplanation" />
                     @if (!string.IsNullOrWhiteSpace(culturalExamples))
                     {
-                        <p class="m-0">@culturalExamples</p>
+                        <partial name="_PublicServiceParagraphs" model="culturalExamples" />
                     }
                 </div>
             </div>
             <div class="min-w-0 lg:col-span-5">
-                <h3 class="mb-4 mt-0 font-[family-name:var(--serif-body)] text-xl font-semibold leading-snug text-[var(--serif-blue-dark)]">@Localizer["PersonalGuidanceHeading"]</h3>
-                <p class="m-0 text-lg leading-[1.8] text-[var(--serif-ink)]/85">@Localizer["WhyUsParagraph3"]</p>
+                <h3 class="mb-3 mt-0 font-[family-name:var(--serif-body)] text-xl font-semibold leading-snug text-[var(--serif-blue-dark)] tracking-normal">@Localizer["PersonalGuidanceHeading"]</h3>
+                <div class="flex flex-col gap-6 text-lg leading-relaxed text-[var(--serif-ink)]/85 tracking-normal">
+                    <partial name="_PublicServiceParagraphs" model='Localizer["WhyUsParagraph3"].Value' />
+                </div>
             </div>
         </div>
-        <div class="mt-9 border-t border-[var(--serif-border)] pt-7">
-            <h3 class="mb-4 mt-0 font-[family-name:var(--serif-body)] text-xl font-semibold leading-snug text-[var(--serif-blue-dark)]">@Localizer["PromiseHeading"]</h3>
-            <p class="m-0 text-lg leading-[1.8] text-[var(--serif-ink)]/85">@Localizer["PromiseParagraph"]</p>
+        <div class="mt-8 grid gap-3 border-t border-[var(--serif-border)] pt-8 lg:grid-cols-12 lg:gap-10">
+            <h3 class="m-0 font-[family-name:var(--serif-body)] text-xl font-semibold leading-snug text-[var(--serif-blue-dark)] tracking-normal lg:col-span-5">@Localizer["PromiseHeading"]</h3>
+            <div class="flex flex-col gap-6 text-lg leading-relaxed text-[var(--serif-ink)]/85 tracking-normal lg:col-span-7">
+                <partial name="_PublicServiceParagraphs" model='Localizer["PromiseParagraph"].Value' />
+            </div>
         </div>
     </div>
 </section>
 
 <section class="border-y border-[var(--serif-border)] bg-white" aria-labelledby="nt2-courses" data-testid="nt2-courses">
     <div class="public-container py-12 md:py-16" data-testid="service-frame">
-        <h2 id="nt2-courses" class="mb-7 mt-0 text-3xl leading-tight text-[var(--serif-blue-dark)] md:text-4xl">@Localizer["OfferEyebrow"]</h2>
-        <div class="grid gap-5 md:grid-cols-2" data-testid="service-offerings">
+        <h2 id="nt2-courses" class="mb-6 mt-0 text-3xl leading-tight text-[var(--serif-blue-dark)] md:text-4xl">@Localizer["OfferEyebrow"]</h2>
+        <div class="grid gap-6 md:grid-cols-2" data-testid="service-offerings">
             <article class="min-w-0 rounded-lg border border-[var(--serif-border)] bg-[var(--serif-bg)] p-6 md:p-8">
-                <h3 class="m-0 font-[family-name:var(--serif-body)] text-xl font-semibold leading-snug text-[var(--serif-blue-dark)]">@Localizer["OfferRegularTitle"]</h3>
-                <p class="mb-0 mt-4 text-lg leading-[1.75] text-[var(--serif-ink)]/85">@Localizer["OfferRegularDescription"]</p>
+                <h3 class="m-0 font-[family-name:var(--serif-body)] text-xl font-semibold leading-snug text-[var(--serif-blue-dark)] tracking-normal">@Localizer["OfferRegularTitle"]</h3>
+                <div class="mt-3 flex flex-col gap-6 text-lg leading-relaxed text-[var(--serif-ink)]/85 tracking-normal">
+                    <partial name="_PublicServiceParagraphs" model='Localizer["OfferRegularDescription"].Value' />
+                </div>
             </article>
             <article class="min-w-0 rounded-lg border border-[var(--serif-border)] bg-[var(--serif-bg)] p-6 md:p-8">
-                <h3 class="m-0 font-[family-name:var(--serif-body)] text-xl font-semibold leading-snug text-[var(--serif-blue-dark)]">@Localizer["OfferDiyTitle"]</h3>
-                <p class="mb-0 mt-4 text-lg leading-[1.75] text-[var(--serif-ink)]/85">@Localizer["OfferDiyDescription"]</p>
+                <h3 class="m-0 font-[family-name:var(--serif-body)] text-xl font-semibold leading-snug text-[var(--serif-blue-dark)] tracking-normal">@Localizer["OfferDiyTitle"]</h3>
+                <div class="mt-3 flex flex-col gap-6 text-lg leading-relaxed text-[var(--serif-ink)]/85 tracking-normal">
+                    <partial name="_PublicServiceParagraphs" model='Localizer["OfferDiyDescription"].Value' />
+                </div>
             </article>
         </div>
-        <div class="mt-8 border-t border-[var(--serif-border)] pt-7">
-            <h3 class="mb-4 mt-0 font-[family-name:var(--serif-body)] text-xl font-semibold leading-snug text-[var(--serif-blue-dark)]">@study.Opening</h3>
+        <div class="mt-8 grid gap-3 border-t border-[var(--serif-border)] pt-8 lg:grid-cols-12 lg:gap-10">
+            <h3 class="m-0 font-[family-name:var(--serif-body)] text-xl font-semibold leading-snug text-[var(--serif-blue-dark)] tracking-normal lg:col-span-5">@study.Opening</h3>
             @if (!string.IsNullOrWhiteSpace(study.Remainder))
             {
-                <p class="m-0 text-lg leading-[1.8] text-[var(--serif-ink)]/85">@study.Remainder</p>
+                <div class="flex flex-col gap-6 text-lg leading-relaxed text-[var(--serif-ink)]/85 tracking-normal lg:col-span-7">
+                    <partial name="_PublicServiceParagraphs" model="study.Remainder" />
+                </div>
             }
         </div>
         @if (showExpandedOffer)
@@ -97,8 +117,10 @@
                     @for (var index = 1; index <= 5; index++)
                     {
                         <article class="grid min-w-0 gap-3 py-6 md:grid-cols-[1fr_2fr] md:gap-10">
-                            <h3 class="m-0 font-[family-name:var(--serif-body)] text-lg font-semibold leading-snug text-[var(--serif-blue-dark)]">@Localizer[$"OfferExtra{index}Title"]</h3>
-                            <p class="m-0 text-lg leading-[1.75] text-[var(--serif-ink)]/85">@Localizer[$"OfferExtra{index}Description"]</p>
+                            <h3 class="m-0 font-[family-name:var(--serif-body)] text-xl font-semibold leading-snug text-[var(--serif-blue-dark)] tracking-normal">@Localizer[$"OfferExtra{index}Title"]</h3>
+                            <div class="flex flex-col gap-6 text-lg leading-relaxed text-[var(--serif-ink)]/85 tracking-normal">
+                                <partial name="_PublicServiceParagraphs" model='Localizer[$"OfferExtra{index}Description"].Value' />
+                            </div>
                         </article>
                     }
                 </div>
@@ -109,10 +131,16 @@
 
 <section aria-labelledby="nt2-trainers" data-testid="nt2-trainers">
     <div class="public-container py-12 md:py-16" data-testid="service-frame">
-        <h2 id="nt2-trainers" class="mb-7 mt-0 text-3xl leading-tight text-[var(--serif-blue-dark)] md:text-4xl">@Localizer["HeroNoteTitle"]</h2>
-        <div class="grid gap-6 text-lg leading-[1.8] text-[var(--serif-ink)]/85 lg:grid-cols-12 lg:gap-10" data-testid="service-prose">
-            <p class="m-0 lg:col-span-4">@Localizer["HeroNoteDescription"]</p>
-            <p class="m-0 lg:col-span-8">@Localizer["WhyUsParagraph1"]</p>
+        <h2 id="nt2-trainers" class="mb-6 mt-0 text-3xl leading-tight text-[var(--serif-blue-dark)] md:text-4xl">@Localizer["HeroNoteTitle"]</h2>
+        <div class="grid gap-6 text-lg leading-relaxed text-[var(--serif-ink)]/85 lg:grid-cols-12 lg:gap-10 tracking-normal" data-testid="service-prose">
+            <p class="m-0 lg:col-span-5">@Localizer["HeroNoteDescription"]</p>
+            <div class="flex flex-col gap-6 lg:col-span-7">
+                <partial name="_PublicServiceParagraphs" model="experience.Opening" />
+                @if (!string.IsNullOrWhiteSpace(experience.Remainder))
+                {
+                    <partial name="_PublicServiceParagraphs" model="experience.Remainder" />
+                }
+            </div>
         </div>
         <div class="mt-6">
             <a href="@contact.Url" class="public-link min-h-11 touch-manipulation focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--serif-blue-dark)]">@contact.Label <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
@@ -124,8 +152,8 @@
 {
     <section class="border-t border-[var(--serif-border)]" aria-labelledby="nt2-testimonials" data-testid="nt2-testimonials">
         <div class="public-container py-12 md:py-16" data-testid="service-frame">
-            <h2 id="nt2-testimonials" class="mb-7 mt-0 text-3xl leading-tight text-[var(--serif-blue-dark)] md:text-4xl">@Localizer["TestimonialsEyebrow"]</h2>
-            <div class="grid gap-8 text-lg italic leading-[1.8] text-[var(--serif-ink)]/85 md:grid-cols-3">
+            <h2 id="nt2-testimonials" class="mb-6 mt-0 text-3xl leading-tight text-[var(--serif-blue-dark)] md:text-4xl">@Localizer["TestimonialsEyebrow"]</h2>
+            <div class="grid gap-8 text-lg italic leading-relaxed text-[var(--serif-ink)]/85 md:grid-cols-3 tracking-normal">
                 @for (var index = 1; index <= 3; index++)
                 {
                     <blockquote class="m-0"><p class="m-0">@Localizer[$"Testimonial{index}"]</p></blockquote>

@@ -229,7 +229,11 @@
     <value>Learning Dutch without giving up your identity</value>
   </data>
   <data name="HeroDescription" xml:space="preserve">
-    <value>You're highly educated, motivated, and probably pretty good at learning things — otherwise you wouldn't be here. And yet it can feel like you've been sent back to kindergarten the moment you try to form a Dutch sentence. That's not strange. That's simply what happens when you learn a new language as an adult: relearning how to ride a bike (important in the Netherlands!), except with words this time.</value>
+    <value>You're highly educated, motivated, and probably pretty good at learning things — otherwise you wouldn't be here.
+
+And yet it can feel like you've been sent back to kindergarten the moment you try to form a Dutch sentence.
+
+That's not strange. That's simply what happens when you learn a new language as an adult: relearning how to ride a bike (important in the Netherlands!), except with words this time.</value>
   </data>
   <data name="LevelTestButton" xml:space="preserve">
     <value>Take the free level test</value>
@@ -244,19 +248,31 @@
     <value>Dominique is mainly your language trainer, but we've both experienced first-hand what it's like to survive in another country without speaking the language well (enough). That experience runs through everything we do.</value>
   </data>
   <data name="PromiseParagraph" xml:space="preserve">
-    <value>We won't tell you it'll all just click in three weeks. What we will tell you: with us, it can be a lot more fun, faster, and a lot less lonely. And that you're welcome — encouraged, even — to practise and make as many mistakes as you like with us.</value>
+    <value>We won't tell you it'll all just click in three weeks. What we will tell you: with us, it can be a lot more fun, faster, and a lot less lonely.
+
+And that you're welcome — encouraged, even — to practise and make as many mistakes as you like with us.</value>
   </data>
   <data name="WhyUsEyebrow" xml:space="preserve">
     <value>More than a language course</value>
   </data>
   <data name="WhyUsParagraph1" xml:space="preserve">
-    <value>We've both lived in other countries without speaking the language. We know what it's like to explain what you need using only hand gestures, to feel intelligent in your own language and completely hopeless in the new one. We use that experience every day — not as an anecdote, but as a compass. We know exactly which mistakes you'll make, because we've made them ourselves, and honestly, sometimes still do (language, by the way, is far from the only thing we've learned through trial and error). But: we enjoy it! And we want that for you too.</value>
+    <value>We've both lived in other countries without speaking the language. We know what it's like to explain what you need using only hand gestures, to feel intelligent in your own language and completely hopeless in the new one.
+
+We use that experience every day — not as an anecdote, but as a compass. We know exactly which mistakes you'll make, because we've made them ourselves, and honestly, sometimes still do (language, by the way, is far from the only thing we've learned through trial and error).
+
+But: we enjoy it! And we want that for you too.</value>
   </data>
   <data name="WhyUsParagraph2" xml:space="preserve">
-    <value>We don't shy away from any topic. With us, you won't just learn textbook Dutch, or the kind of Dutch you hear from a newsreader — you'll learn real Dutch: how it's actually used, what a Dutch person really means (spoiler: often something quite different from what's literally being said), and yes, the nuances, the culture, and the little quirks we're occasionally a bit embarrassed about ourselves. Think of the wonderful world of “de” and “het,” the very precisely-timed 6 PM Dutch dinner, congratulating and kissing EVERYONE at a birthday party, or why we say “gezellig” and “lekker” a hundred times a day while meaning something else half the time. Honesty works better than polite avoidance, and a bit of self-mockery (from both sides) makes learning a lot lighter — and a lot more fun.</value>
+    <value>We don't shy away from any topic. With us, you won't just learn textbook Dutch, or the kind of Dutch you hear from a newsreader — you'll learn real Dutch: how it's actually used, what a Dutch person really means (spoiler: often something quite different from what's literally being said), and yes, the nuances, the culture, and the little quirks we're occasionally a bit embarrassed about ourselves.
+
+Think of the wonderful world of “de” and “het,” the very precisely-timed 6 PM Dutch dinner, congratulating and kissing EVERYONE at a birthday party, or why we say “gezellig” and “lekker” a hundred times a day while meaning something else half the time.
+
+Honesty works better than polite avoidance, and a bit of self-mockery (from both sides) makes learning a lot lighter — and a lot more fun.</value>
   </data>
   <data name="WhyUsParagraph3" xml:space="preserve">
-    <value>With us, you're not a number in a classroom, and not “a student at a distance.” You're a unique, brave person building a new life, and that calls for a mentor who thinks along with you. About the language, yes, but also about everything else: where the nice spots in the Netherlands are, how on earth that one government agency actually works, and why everyone here seems to have an opinion about your bike, your car, your garden...</value>
+    <value>With us, you're not a number in a classroom, and not “a student at a distance.” You're a unique, brave person building a new life, and that calls for a mentor who thinks along with you.
+
+About the language, yes, but also about everything else: where the nice spots in the Netherlands are, how on earth that one government agency actually works, and why everyone here seems to have an opinion about your bike, your car, your garden...</value>
   </data>
   <data name="TailoredEyebrow" xml:space="preserve">
     <value>For everyone, with any goal</value>
@@ -268,7 +284,9 @@
     <value>Whether you just want to pass the mandatory civic integration exams, truly want to master the language to feel fully at home, or need to pass the mandatory B2+ test for your BIG registration as a healthcare professional — we'll guide you there. Every goal calls for a different approach, and we tailor ours to you.</value>
   </data>
   <data name="TailoredParagraph2" xml:space="preserve">
-    <value>Want to study independently, at your own pace, whenever suits you — but without being completely on your own? Then our DIY course is probably for you. Much more affordable than a regular course, but with the backup of a real teacher: you're in direct contact with both your teacher and fellow students whenever you get stuck. The best of both worlds — independence and a safety net.</value>
+    <value>Want to study independently, at your own pace, whenever suits you — but without being completely on your own? Then our DIY course is probably for you.
+
+Much more affordable than a regular course, but with the backup of a real teacher: you're in direct contact with both your teacher and fellow students whenever you get stuck. The best of both worlds — independence and a safety net.</value>
   </data>
   <data name="TailoredParagraph3" xml:space="preserve">
     <value>Curious whether this is right for you? Start with the free level test — it'll immediately show you how good your chances are of succeeding with a DIY track.</value>
@@ -280,19 +298,27 @@
     <value>Regular course (private or group)</value>
   </data>
   <data name="OfferRegularDescription" xml:space="preserve">
-    <value>Custom-built around your level, pace, and goal. From your very first words to the civic integration exam. Price on request — let's just have a chat about it.</value>
+    <value>Custom-built around your level, pace, and goal. From your very first words to the civic integration exam.
+
+Price on request — let's just have a chat about it.</value>
   </data>
   <data name="OfferDiyTitle" xml:space="preserve">
     <value>DIY course — €149 (introductory price)</value>
   </data>
   <data name="OfferDiyDescription" xml:space="preserve">
-    <value>10 lessons spread over 11 weeks, taking you from A1 to A2 or A2 to B1. Includes guidance, direct access to your teacher and fellow students, and complete freedom to study whenever suits you.</value>
+    <value>10 lessons spread over 11 weeks, taking you from A1 to A2 or A2 to B1.
+
+Includes guidance, direct access to your teacher and fellow students, and complete freedom to study whenever suits you.</value>
   </data>
   <data name="OfferExtra1Title" xml:space="preserve">
     <value>Speaking Course — €179</value>
   </data>
   <data name="OfferExtra1Description" xml:space="preserve">
-    <value>4 weeks, 8 lessons, all about daring to speak up and actually doing it. Grammar matters, but a sentence you dare to say out loud at the office drinks is worth just as much. Shorter feedback loops, more practice, groups start with a minimum of 4 participants.</value>
+    <value>4 weeks, 8 lessons, all about daring to speak up and actually doing it.
+
+Grammar matters, but a sentence you dare to say out loud at the office drinks is worth just as much.
+
+Shorter feedback loops, more practice, groups start with a minimum of 4 participants.</value>
   </data>
   <data name="OfferExtra2Title" xml:space="preserve">
     <value>Speed Class / Exam Prep — €49</value>
@@ -304,7 +330,9 @@
     <value>Drop-in Support Sessions — €15 / 15 minutes</value>
   </data>
   <data name="OfferExtra3Description" xml:space="preserve">
-    <value>Stuck on something? Book a short session to work through that one hurdle together. Open to everyone — whether you're already taking a course with us or not.</value>
+    <value>Stuck on something? Book a short session to work through that one hurdle together.
+
+Open to everyone — whether you're already taking a course with us or not.</value>
   </data>
   <data name="OfferExtra4Title" xml:space="preserve">
     <value>Integration Support</value>
@@ -350,5 +378,11 @@
   </data>
   <data name="CultureExamplesStart" xml:space="preserve">
     <value>Think of the wonderful world</value>
+  </data>
+  <data name="HeroReassuranceStart" xml:space="preserve">
+    <value>That's not strange.</value>
+  </data>
+  <data name="ExperiencePracticeStart" xml:space="preserve">
+    <value>We use that experience every day</value>
   </data>
 </root>
