@@ -771,7 +771,7 @@ All keyboard/value-preservation assertions remain; five repeated desktop/mobile 
 
 ## B24 - P0 - Public marketing design foundations
 
-Status: implemented and verified with B25 on `feature/public-service-pages`.
+Status: completed with B25 and merged in [PR #56](https://github.com/chenggggggg/iD-Develops/pull/56).
 Shared hero, action, offering-list, and contact partials establish
 consistent public typography, widths, section spacing, keyboard focus, and responsive
 behavior. Public primary actions use the existing wine-red accent already used by the
@@ -788,7 +788,7 @@ These components are available for B26 without redesigning its page in this PR.
 
 ## B25 - P0 - Public service-page design and information
 
-Status: implemented and verified alongside B24 on `feature/public-service-pages`.
+Status: initial four-page batch merged in [PR #56](https://github.com/chenggggggg/iD-Develops/pull/56).
 The four service routes now use photo-led introductions, clearly grouped
 content, numbered offering lists, and prominent existing next steps. All original rendered
 English/Dutch text blocks were compared against the running redesigned pages: none are
@@ -797,11 +797,37 @@ Eight new browser tests cover 320/390/768/1440px, both languages, keyboard navig
 image loading, header clearance, overflow, and contact/level-test links without JavaScript.
 Responsive WebP variants reuse the existing photographs (13-76 KB each).
 Original assets remain for the separate B15 usage audit and cleanup.
-Verification: Release build, solution formatting check, all 579 unit/integration tests,
+PR #56 verification: Release build, solution formatting check, all 579 unit/integration tests,
 234 Full-mode browser tests, and 42 Marketing-mode browser tests passed. The eight new
 service-page checks also passed separately after isolating the no-JavaScript fallback
 checks from render-blocking third-party stylesheets. Desktop/mobile screenshots were
 inspected. The local application configuration is restored to Full after mode checks.
+
+Design follow-up (P0, Medium): `fix/nt2-personal-development-design` revises NT2 and
+Personal Development in open PR #57. The composition uses one shared outer grid with
+deliberately positioned imagery, introductions, supporting statements, and body text.
+Centered narrow wrappers are removed. Longer passages split at sentence boundaries;
+opening sentences and the free introductory conversation receive appropriate emphasis.
+All English/Dutch words, punctuation, and existing actions remain intact. The installed
+Emil design-engineering, mobile-native, and web-design-guidelines skills inform hierarchy,
+responsive reading order, semantic controls, and focus/touch behavior.
+Browser regressions check common section edges, readable text, paragraph separation,
+and non-overlapping columns. Nine new unit cases protect lossless paragraph splitting.
+Desktop/mobile browser renders were inspected; physical-device testing is unavailable.
+Verification passed: Release build, solution-wide formatting, all 588 unit/integration
+tests, eight Full-mode service-page browser checks, and 42 Marketing-mode browser checks.
+A separate comparison of all eight original localized page bodies found no missing text.
+The local app is restored to Full mode after verification.
+
+NT2 narrative refinement in the same PR follows learner goals -> teaching approach ->
+course choices -> trainers -> testimonials where available -> next step. Company promises
+use ordinary explanatory text; only customer testimonials use quote styling. Cultural
+examples split at a translation-specific editorial boundary instead of a character midpoint.
+The two main course routes remain visible; optional English support services use a labelled,
+keyboard-accessible disclosure. Original copy is retained, with short localized topic labels.
+MCP review covered English desktop and Dutch mobile. Browser checks protect chapter order,
+trainer placement, quote roles, and access to every optional service. Build, formatting,
+588 unit/integration tests, eight Full-mode checks, and 42 Marketing-mode checks pass.
 
 **Estimated size: Large overall.** Delivered as one coherent four-page change using shared components.
 

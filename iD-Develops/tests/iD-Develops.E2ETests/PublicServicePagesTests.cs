@@ -11,7 +11,7 @@ public sealed class PublicServicePagesTests : DiagnosticPageTest
     [
         ("enterprise", "EnterpriseModel",
         [
-            "HeroEyebrow", "HeroTitle", "HeroDescription", "ScheduleConversation", "ContactButton",
+            "Title", "HeroEyebrow", "HeroTitle", "HeroDescription", "ScheduleConversation", "ContactButton",
             "ChallengesEyebrow", "Challenge1", "Challenge2", "Challenge3", "Challenge4", "Challenge5", "ChallengesConclusion",
             "ServicesEyebrow", "ServiceNt2Title", "ServiceNt2Description", "ServiceCommunicationTitle", "ServiceCommunicationDescription",
             "ServiceDevelopmentTitle", "ServiceDevelopmentDescription", "ServiceProgramsTitle", "ServiceProgramsDescription",
@@ -67,19 +67,163 @@ public sealed class PublicServicePagesTests : DiagnosticPageTest
             var text = Normalize(await Page.GetByRole(AriaRole.Main).TextContentAsync() ?? string.Empty);
             foreach (var key in keys)
                 AssertCopy(manager, culture, key, text);
+            await Expect(hero.GetByRole(AriaRole.Heading, new() { Level = 1 }))
+                .ToHaveTextAsync(manager.GetString("Title", CultureInfo.GetCultureInfo(culture))!);
+            await Expect(hero.GetByRole(AriaRole.Heading, new() { Level = 2 })).ToHaveCountAsync(0);
+            await Expect(hero.GetByText(manager.GetString("HeroTitle", CultureInfo.GetCultureInfo(culture))!, new() { Exact = true }))
+                .ToBeVisibleAsync();
+            await Expect(hero.GetByText(manager.GetString("HeroTitle", CultureInfo.GetCultureInfo(culture))!, new() { Exact = true }))
+                .ToHaveCSSAsync("font-weight", "400");
+            foreach (var topic in await Page.Locator("main section h3").AllAsync())
+            {
+                await Expect(topic).ToHaveCSSAsync("font-size", "20px");
+                await Expect(topic).ToHaveCSSAsync("font-weight", "600");
+            }
+            if (route == "language-and-communication")
+            {
+                await Expect(hero.GetByTestId("service-prose").Locator("p")).ToHaveCountAsync(2);
+                await Expect(hero).Not.ToContainTextAsync(manager.GetString("HeroParagraph2", CultureInfo.GetCultureInfo(culture))!);
+                await Expect(Page.GetByTestId("communication-service-introduction"))
+                    .ToHaveTextAsync(manager.GetString("HeroParagraph2", CultureInfo.GetCultureInfo(culture))!);
+                await Expect(Page.GetByTestId("communication-deeper-question").GetByRole(AriaRole.Heading, new() { Level = 3 }))
+                    .ToBeVisibleAsync();
+            }
             if (route == "nt2-integration")
             {
                 var expanded = bool.Parse(manager.GetString("ShowExpandedOffer", CultureInfo.GetCultureInfo(culture))!);
-                await Expect(Page.GetByTestId("service-offerings").Locator("article")).ToHaveCountAsync(expanded ? 7 : 2);
+                await Expect(hero.GetByTestId("service-prose").Locator("p")).ToHaveCountAsync(3);
+                await Expect(Page.GetByTestId("nt2-trainers").GetByTestId("service-prose").Locator("p")).ToHaveCountAsync(4);
+                await Expect(Page.GetByTestId("service-offerings").Locator("article")).ToHaveCountAsync(2);
+                var support = Page.GetByTestId("nt2-additional-support");
+                await Expect(support).ToHaveCountAsync(expanded ? 1 : 0);
                 if (expanded)
                 {
+                    await Expect(support.Locator("article")).ToHaveCountAsync(5);
+                    await Expect(support.Locator("article").First).ToBeHiddenAsync();
+                    await support.Locator("summary").FocusAsync();
+                    await Page.Keyboard.PressAsync("Enter");
+                    await Expect(support.Locator("article").First).ToBeVisibleAsync();
                     for (var index = 1; index <= 5; index++)
                     {
                         AssertCopy(manager, culture, $"OfferExtra{index}Title", text);
                         AssertCopy(manager, culture, $"OfferExtra{index}Description", text);
+                        await Expect(support.GetByRole(AriaRole.Heading, new()
+                        {
+                            Name = manager.GetString($"OfferExtra{index}Title", CultureInfo.GetCultureInfo(culture)),
+                            Exact = true
+                        })).ToBeVisibleAsync();
                     }
+                    await support.Locator("summary").PressAsync("Enter");
+                    await Expect(support.Locator("article").First).ToBeHiddenAsync();
                     AssertCopy(manager, culture, "TestimonialsEyebrow", text);
                     for (var index = 1; index <= 3; index++) AssertCopy(manager, culture, $"Testimonial{index}", text);
+                }
+                await Page.EvaluateAsync("window.scrollTo({ top: 0, behavior: 'instant' })");
+                var previousBottom = 0f;
+                foreach (var chapter in new[] { "service-hero", "nt2-goals", "nt2-approach", "nt2-courses", "nt2-trainers", "service-contact" })
+                {
+                    var bounds = await Page.GetByTestId(chapter).BoundingBoxAsync();
+                    Assert.True(bounds!.Y >= previousBottom - 1, $"NT2 chapter {chapter} must follow the preceding chapter.");
+                    previousBottom = bounds.Y + bounds.Height;
+                }
+                var approach = Page.GetByTestId("nt2-approach");
+                foreach (var key in new[] { "PracticalDutchHeading", "PersonalGuidanceHeading", "PromiseHeading" })
+                    await Expect(approach.GetByRole(AriaRole.Heading, new() { Name = manager.GetString(key, CultureInfo.GetCultureInfo(culture)), Exact = true })).ToBeVisibleAsync();
+                await Expect(approach.GetByTestId("service-prose").Locator("p")).ToHaveCountAsync(3);
+                await Expect(approach.GetByTestId("service-prose").Locator("p").Nth(1))
+                    .ToContainTextAsync(manager.GetString("CultureExamplesStart", CultureInfo.GetCultureInfo(culture))!);
+                await Expect(hero.GetByRole(AriaRole.Heading, new() { Level = 2 })).ToHaveCountAsync(0);
+                await Expect(approach.Locator("aside, blockquote")).ToHaveCountAsync(0);
+                await Expect(Page.Locator("main blockquote")).ToHaveCountAsync(expanded ? 3 : 0);
+            }
+
+            {
+                if (route == "personal-development")
+                {
+                    await Expect(hero.GetByTestId("service-prose"))
+                        .ToContainTextAsync(manager.GetString("HeroDescription", CultureInfo.GetCultureInfo(culture))!);
+                    await Expect(hero.GetByTestId("service-prose").Locator("p")).ToHaveCountAsync(5);
+                    var concern = hero.GetByTestId("development-hero-concern");
+                    await Expect(concern.Locator("p")).ToHaveCountAsync(2);
+                    await Expect(concern).ToHaveCSSAsync("row-gap", "12px");
+                    await Expect(concern.Locator("strong"))
+                        .ToHaveTextAsync(culture == "nl-nl" ? "En toch knaagt er iets." : "And yet something keeps nagging.");
+                    var reassurance = hero.GetByTestId("development-hero-reassurance");
+                    await Expect(reassurance).ToHaveCSSAsync("row-gap", "12px");
+                    await Expect(hero.GetByTestId("service-prose")).ToHaveCSSAsync("row-gap", "24px");
+                    await Expect(reassurance).ToContainTextAsync(manager.GetString("HeroNoteTitle", CultureInfo.GetCultureInfo(culture))!);
+                    await Expect(reassurance).ToContainTextAsync(manager.GetString("HeroNoteDescription", CultureInfo.GetCultureInfo(culture))!);
+                    var reassureBox = await reassurance.BoundingBoxAsync();
+                    var actionsBox = await hero.GetByTestId("development-hero-actions").BoundingBoxAsync();
+                    Assert.True(reassureBox!.Y + reassureBox.Height <= actionsBox!.Y, "Explain the support before inviting the visitor to book.");
+                    var secondary = hero.GetByRole(AriaRole.Link, new() { Name = manager.GetString("ContactButton", CultureInfo.GetCultureInfo(culture)), Exact = true });
+                    await Expect(secondary).ToHaveCSSAsync("text-decoration-line", "underline");
+                    await Expect(secondary).ToHaveCSSAsync("border-top-width", "0px");
+                    var headingBox = await hero.GetByRole(AriaRole.Heading, new() { Level = 1 }).BoundingBoxAsync();
+                    var proseBox = await hero.GetByTestId("service-prose").BoundingBoxAsync();
+                    Assert.InRange(Math.Abs(headingBox!.X - proseBox!.X), 0, 1);
+                    Assert.InRange(Math.Abs(headingBox.X - actionsBox.X), 0, 1);
+                    var photoBox = await hero.Locator("img").BoundingBoxAsync();
+                    if (width >= 1024)
+                        Assert.True(photoBox!.X >= proseBox.X + proseBox.Width, "Keep the photograph beside the continuous text column.");
+                    else
+                        Assert.True(photoBox!.Y >= actionsBox.Y + actionsBox.Height, "The mobile reading order ends with the photograph.");
+                    var approach = Page.Locator("section[aria-labelledby='development-approach']");
+                    await Expect(approach).Not.ToContainTextAsync(manager.GetString("HeroNoteDescription", CultureInfo.GetCultureInfo(culture))!);
+                    await Expect(approach.GetByRole(AriaRole.Heading, new()
+                    {
+                        Name = manager.GetString("ExperienceHeading", CultureInfo.GetCultureInfo(culture)),
+                        Exact = true
+                    })).ToBeVisibleAsync();
+                }
+                var frames = await Page.GetByTestId("service-frame").AllAsync();
+                Assert.True(frames.Count >= (route == "language-and-communication" ? 3 : 4));
+                double[]? sharedEdges = null;
+                foreach (var frame in frames)
+                {
+                    var edges = await frame.EvaluateAsync<double[]>("""
+                        frame => {
+                            const box = frame.getBoundingClientRect(), style = getComputedStyle(frame);
+                            const children = Array.from(frame.children, child => child.getBoundingClientRect())
+                                .filter(box => box.width > 0 && box.height > 0);
+                            return [box.left + parseFloat(style.paddingLeft), box.right - parseFloat(style.paddingRight),
+                                Math.min(...children.map(box => box.left)), Math.max(...children.map(box => box.right))];
+                        }
+                        """);
+                    sharedEdges ??= edges;
+                    Assert.InRange(Math.Abs(edges[0] - sharedEdges[0]), 0, 1);
+                    Assert.InRange(Math.Abs(edges[1] - sharedEdges[1]), 0, 1);
+                    Assert.InRange(Math.Abs(edges[2] - edges[0]), 0, 1);
+                    Assert.InRange(Math.Abs(edges[3] - edges[1]), 0, 1);
+                }
+                await Expect(Page.GetByTestId("service-prose").First).ToBeVisibleAsync();
+                foreach (var prose in await Page.GetByTestId("service-prose").AllAsync())
+                {
+                    // Keep the agreed reading rhythm across all four service pages.
+                    var readable = await prose.EvaluateAsync<bool>("""
+                        prose => {
+                            const paragraphs = Array.from(prose.querySelectorAll('p'));
+                            const boxes = paragraphs.map(p => p.getBoundingClientRect());
+                            if (!paragraphs.every((p, i) => {
+                                const style = getComputedStyle(p), size = parseFloat(style.fontSize);
+                                return size >= 18 && Math.abs(parseFloat(style.lineHeight) / size - 1.625) < 0.03
+                                    && Math.abs(parseFloat(style.letterSpacing) || 0) < 0.05
+                                    && boxes[i].width >= Math.min(innerWidth - 32, 260);
+                            })) return false;
+                            for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
+                                const a = boxes[i], b = boxes[j];
+                                const overlapX = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+                                const overlapY = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+                                if (overlapX > 1 && overlapY > 1) return false;
+                                const related = paragraphs[i].parentElement === paragraphs[j].parentElement
+                                    && paragraphs[i].parentElement.hasAttribute('data-prose-group');
+                                if (overlapX > 1 && Math.max(a.top, b.top) - Math.min(a.bottom, b.bottom) < (related ? 11 : 23)) return false;
+                                if (overlapY > 1 && Math.max(a.left, b.left) - Math.min(a.right, b.right) < 16) return false;
+                            }
+                            return true;
+                        }
+                        """);
+                    Assert.True(readable, $"{route}: text must remain readable and paragraphs must not collide.");
                 }
             }
 

@@ -8,7 +8,7 @@
     var contactUrl = Url.Page("/Contact", new { culture = CultureInfo.CurrentCulture.Name.ToLowerInvariant() })!;
     var conversation = new PublicServiceLink(Localizer["ScheduleConversation"], "https://koalendar.com/e/samenwerken", true);
     var contact = new PublicServiceLink(Localizer["ContactButton"], contactUrl);
-    var hero = new PublicServiceHero(Localizer["HeroEyebrow"], Localizer["HeroTitle"],
+    var hero = new PublicServiceHero(Localizer["Title"], Localizer["HeroTitle"],
         [Localizer["HeroDescription"]], "enterprise", conversation, contact);
     var offerings = new[] { "Nt2", "Communication", "Development", "Programs", "Trainer" }
         .Select(key => new PublicServiceOffering(Localizer[$"Service{key}Title"], Localizer[$"Service{key}Description"])).ToArray();
@@ -20,25 +20,26 @@
 <partial name="_PublicServiceHero" model="hero" />
 
 <section class="bg-[var(--serif-soft)]" aria-labelledby="enterprise-challenges">
-    <div class="public-container grid gap-8 py-14 md:py-20 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
-        <div>
+    <div class="public-container grid gap-6 py-12 md:py-16 lg:grid-cols-12 lg:gap-10" data-testid="service-frame">
+        <div class="min-w-0 lg:col-span-5">
             <h2 id="enterprise-challenges" class="m-0 text-3xl leading-tight text-[var(--serif-blue-dark)] md:text-4xl">@Localizer["ChallengesEyebrow"]</h2>
-            <p class="mb-0 mt-6 text-lg leading-relaxed text-[var(--serif-muted)]">@Localizer["ChallengesConclusion"]</p>
         </div>
-        <ul class="m-0 list-none space-y-0 p-0">
-            @for (var index = 1; index <= 5; index++)
-            {
-                <li class="flex gap-4 border-b border-[var(--serif-border)] py-5 first:pt-0 last:border-0 last:pb-0">
-                    <i class="fa-solid fa-check mt-2 shrink-0 text-sm text-[var(--id-red)]" aria-hidden="true"></i>
-                    <p class="m-0 text-lg leading-relaxed text-[var(--serif-blue-dark)]">@Localizer[$"Challenge{index}"]</p>
-                </li>
-            }
-        </ul>
+        <div class="min-w-0 lg:col-span-7">
+            <ul class="m-0 list-disc pl-5 marker:text-[var(--id-red)]">
+                @for (var index = 1; index <= 5; index++)
+                {
+                    <li class="border-b border-[var(--serif-border)] py-5 pl-1 first:pt-0 last:border-0 last:pb-0">
+                        <p class="m-0 text-lg leading-relaxed text-[var(--serif-ink)]/85 tracking-normal">@Localizer[$"Challenge{index}"]</p>
+                    </li>
+                }
+            </ul>
+            <p class="mb-0 mt-6 text-lg font-semibold leading-relaxed text-[var(--serif-blue-dark)] tracking-normal">@Localizer["ChallengesConclusion"]</p>
+        </div>
     </div>
 </section>
 
-<section class="public-container py-14 md:py-20" aria-labelledby="enterprise-offerings">
-    <h2 id="enterprise-offerings" class="mb-9 mt-0 text-4xl leading-tight text-[var(--serif-blue-dark)] md:text-5xl">@Localizer["ServicesEyebrow"]</h2>
+<section class="public-container py-12 md:py-16" aria-labelledby="enterprise-offerings" data-testid="service-frame">
+    <h2 id="enterprise-offerings" class="mb-6 mt-0 text-3xl leading-tight text-[var(--serif-blue-dark)] md:text-4xl">@Localizer["ServicesEyebrow"]</h2>
     <partial name="_PublicServiceOfferings" model="offerings" />
 </section>
 

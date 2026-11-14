@@ -196,7 +196,11 @@
     <value>For when “is this really it?” keeps circling in your head</value>
   </data>
   <data name="HeroDescription" xml:space="preserve">
-    <value>You might recognize the feeling: from the outside, everything checks out. A job, a home, maybe a family, plans every weekend. And yet something keeps nagging. A sense that you see the world just a little differently from the people around you, or that somewhere along the way, you've lost a piece of yourself.</value>
+    <value>You might recognize the feeling: from the outside, everything checks out. A job, a home, maybe a family, plans every weekend.
+
+And yet something keeps nagging.
+
+A sense that you see the world just a little differently from the people around you, or that somewhere along the way, you've lost a piece of yourself.</value>
   </data>
   <data name="ScheduleConversation" xml:space="preserve">
     <value>Book a conversation</value>
@@ -211,10 +215,14 @@
     <value>Our approach</value>
   </data>
   <data name="ApproachParagraph1" xml:space="preserve">
-    <value>We're not coaches who lean back and hum along — so we'd rather not give ourselves that title. We think with you, reflect, ask the question you're avoiding, and laugh with you along the way. No heroes on a pedestal, but people with real-life experience and a sharp eye for blind spots.</value>
+    <value>We're not coaches who lean back and hum along — so we'd rather not give ourselves that title.
+
+We think with you, reflect, ask the question you're avoiding, and laugh with you along the way. No heroes on a pedestal, but people with real-life experience and a sharp eye for blind spots.</value>
   </data>
   <data name="ApproachParagraph2" xml:space="preserve">
-    <value>We've both turned our lives upside down more than once: sometimes by choice, sometimes because we had no other option. We know what it's like to make big decisions without knowing where they'll lead. We use that experience to help you get to your own answers faster.</value>
+    <value>We've both turned our lives upside down more than once: sometimes by choice, sometimes because we had no other option. We know what it's like to make big decisions without knowing where they'll lead.
+
+We use that experience to help you get to your own answers faster.</value>
   </data>
   <data name="AudienceEyebrow" xml:space="preserve">
     <value>Who this is for</value>
@@ -259,7 +267,9 @@
     <value>One-on-one guidance</value>
   </data>
   <data name="Method1Description" xml:space="preserve">
-    <value>You, one of us, and a conversation without judgment. Sometimes you need a sounding board; sometimes someone needs to hold a mirror up to you. Often, both.</value>
+    <value>You, one of us, and a conversation without judgment.
+
+Sometimes you need a sounding board; sometimes someone needs to hold a mirror up to you. Often, both.</value>
   </data>
   <data name="Method2Title" xml:space="preserve">
     <value>Relationship guidance</value>
@@ -280,9 +290,17 @@
     <value>For teams that want to work better together. See Organizations for more information.</value>
   </data>
   <data name="MethodsConclusion" xml:space="preserve">
-    <value>The first conversation is free. We listen to what is going on, what you need, and whether we are the right people for you. Everything is tailor-made, and we agree on the price after that conversation.</value>
+    <value>The first conversation is free. We listen to what is going on, what you need, and whether we are the right people for you.
+
+Everything is tailor-made, and we agree on the price after that conversation.</value>
   </data>
   <data name="MethodsButton" xml:space="preserve">
     <value>Book a free conversation</value>
+  </data>
+  <data name="GuidancePracticeStart" xml:space="preserve">
+    <value>We think with you,</value>
+  </data>
+  <data name="ExperienceHeading" xml:space="preserve">
+    <value>Our lived experience</value>
   </data>
 </root>

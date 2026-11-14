@@ -1,0 +1,9 @@
+@model string
+@* Service typography: 18px relaxed body; 24px paragraph gaps on the parent.
+   Stacked H2-to-content: 24px; H3-to-content: 12px; topic groups: 32px.
+   Related lead-ins use a data-prose-group with a 12px internal gap.
+   Keep emphasis semantic and reserve italics for quoted customer voices. *@
+@foreach (var paragraph in PublicServiceText.Paragraphs(Model))
+{
+    <p class="m-0">@paragraph</p>
+}

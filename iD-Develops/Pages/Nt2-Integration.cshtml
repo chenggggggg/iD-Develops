@@ -8,69 +8,159 @@
     ViewData["MetaDescription"] = Localizer["MetaDescription"];
     var showExpandedOffer = bool.TryParse(Localizer["ShowExpandedOffer"], out var showExpanded) && showExpanded;
     var conversation = new PublicServiceLink(Localizer["ConversationButton"], "https://koalendar.com/e/meet-with-id", true);
-    var hero = new PublicServiceHero(Localizer["Title"], Localizer["HeroTitle"],
-        [Localizer["HeroDescription"]], "nt2",
-        new PublicServiceLink(Localizer["LevelTestButton"], $"/{culture}/level-test"), conversation,
-        Localizer["HeroNoteTitle"], Localizer["HeroNoteDescription"]);
-    var offerings = new List<PublicServiceOffering>
-    {
-        new(Localizer["OfferRegularTitle"], Localizer["OfferRegularDescription"]),
-        new(Localizer["OfferDiyTitle"], Localizer["OfferDiyDescription"])
-    };
-    if (showExpandedOffer)
-    {
-        offerings.AddRange(Enumerable.Range(1, 5)
-            .Select(index => new PublicServiceOffering(Localizer[$"OfferExtra{index}Title"], Localizer[$"OfferExtra{index}Description"])));
-    }
+    var contact = new PublicServiceLink(Localizer["ContactButton"], Url.Page("/Contact", new { culture })!);
+    var levelTest = new PublicServiceLink(Localizer["LevelTestButton"], $"/{culture}/level-test");
+    var study = PublicServiceText.Lead(Localizer["TailoredParagraph2"]);
+    var nextStep = PublicServiceText.Lead(Localizer["TailoredParagraph3"]);
+    var introduction = PublicServiceText.SplitBefore(Localizer["HeroDescription"], Localizer["HeroReassuranceStart"]);
+    var experience = PublicServiceText.SplitBefore(Localizer["WhyUsParagraph1"], Localizer["ExperiencePracticeStart"]);
+    var practicalDutch = Localizer["WhyUsParagraph2"].Value;
+    var examplesIndex = practicalDutch.IndexOf(Localizer["CultureExamplesStart"].Value, StringComparison.Ordinal);
+    var practicalExplanation = examplesIndex > 0 ? practicalDutch[..examplesIndex].TrimEnd() : practicalDutch;
+    var culturalExamples = examplesIndex > 0 ? practicalDutch[examplesIndex..] : string.Empty;
+    var closing = new PublicServiceContact(nextStep.Opening, [nextStep.Remainder], levelTest,
+        new PublicServiceLink(Localizer["FreeConversationButton"], conversation.Url, true));
 }
 
-<partial name="_PublicServiceHero" model="hero" />
-
-<section class="public-container py-14 md:py-20" aria-labelledby="nt2-approach">
-    <p class="m-0 max-w-4xl border-l-2 border-[var(--id-red)] pl-6 text-xl leading-[1.7] text-[var(--serif-blue-dark)] md:text-2xl">@Localizer["PromiseParagraph"]</p>
-    <div class="mt-12 grid gap-6 md:mt-16 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
-        <h2 id="nt2-approach" class="m-0 text-4xl leading-tight text-[var(--serif-blue-dark)] md:text-5xl">@Localizer["WhyUsEyebrow"]</h2>
-        <div class="space-y-5 text-lg leading-[1.8] text-[var(--serif-muted)]">
-            <p class="m-0">@Localizer["WhyUsParagraph1"]</p>
-            <p class="m-0">@Localizer["WhyUsParagraph2"]</p>
-            <p class="m-0">@Localizer["WhyUsParagraph3"]</p>
-        </div>
-    </div>
-</section>
-
-<section class="bg-[var(--serif-soft)]" aria-labelledby="nt2-tailored">
-    <div class="public-container grid gap-8 py-14 md:py-20 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
-        <div>
-            <p class="mb-4 mt-0 font-[family-name:var(--serif-label)] text-xs tracking-[0.12em] text-[var(--serif-muted)] uppercase">@Localizer["TailoredEyebrow"]</p>
-            <h2 id="nt2-tailored" class="m-0 text-4xl leading-tight text-[var(--serif-blue-dark)] md:text-5xl">@Localizer["TailoredTitle"]</h2>
-        </div>
-        <div class="space-y-5 text-lg leading-[1.8] text-[var(--serif-muted)]">
-            <p class="m-0">@Localizer["TailoredParagraph1"]</p>
-            <p class="m-0">@Localizer["TailoredParagraph2"]</p>
-            <p class="m-0">@Localizer["TailoredParagraph3"]</p>
-        </div>
-    </div>
-</section>
-
-<section class="public-container py-14 md:py-20" aria-labelledby="nt2-offer">
-    <h2 id="nt2-offer" class="mb-9 mt-0 text-4xl leading-tight text-[var(--serif-blue-dark)] md:text-5xl">@Localizer["OfferEyebrow"]</h2>
-    <partial name="_PublicServiceOfferings" model="offerings" />
-    @if (showExpandedOffer)
-    {
-        <div class="mt-10 border-t border-[var(--serif-border)] pt-10 md:mt-14">
-            <h2 class="mb-7 mt-0 text-3xl leading-tight text-[var(--serif-blue-dark)]">@Localizer["TestimonialsEyebrow"]</h2>
-            <div class="grid gap-6 md:grid-cols-3">
-                @for (var index = 1; index <= 3; index++)
+<section data-testid="service-hero" aria-labelledby="service-title">
+    <div class="public-container grid items-center gap-8 pb-12 pt-10 md:pb-16 md:pt-16 lg:grid-cols-12 lg:gap-10" data-testid="service-frame">
+        <div class="min-w-0 lg:col-span-7">
+            <h1 id="service-title" class="m-0 text-[clamp(2.25rem,4vw,3.5rem)] leading-[1.12] tracking-[-0.025em] text-balance text-[var(--serif-blue-dark)]">@Localizer["Title"]</h1>
+            <p class="mb-0 mt-4 text-xl leading-relaxed text-[var(--serif-blue-dark)] font-normal tracking-normal">@Localizer["HeroTitle"]</p>
+            <div class="mt-8 flex flex-col gap-6 text-lg leading-relaxed text-[var(--serif-ink)]/85 tracking-normal" data-testid="service-prose">
+                <partial name="_PublicServiceParagraphs" model="introduction.Opening" />
+                @if (!string.IsNullOrWhiteSpace(introduction.Remainder))
                 {
-                    <blockquote class="m-0 border-l-2 border-[var(--id-red)] pl-5 text-base leading-[1.8] text-[var(--serif-muted)]">
-                        <p class="m-0">@Localizer[$"Testimonial{index}"]</p>
-                    </blockquote>
+                    <partial name="_PublicServiceParagraphs" model="introduction.Remainder" />
+                }
+            </div>
+            <div class="mt-8 flex flex-wrap gap-3">
+                <partial name="_PublicServiceAction" model="levelTest" />
+                <a href="@conversation.Url" target="_blank" rel="noopener noreferrer" class="public-btn public-btn-outline max-w-full touch-manipulation gap-3 leading-snug focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--serif-blue-dark)]">@conversation.Label <i class="fa-solid fa-arrow-right shrink-0" aria-hidden="true"></i></a>
+            </div>
+        </div>
+        <img src="/images/services/nt2-960.webp" srcset="/images/services/nt2-480.webp 480w, /images/services/nt2-960.webp 960w" sizes="(min-width: 1024px) 380px, (min-width: 768px) 700px, calc(100vw - 32px)" width="960" height="640" alt="" fetchpriority="high" class="aspect-[4/3] h-auto w-full rounded-lg object-cover lg:col-span-5 lg:aspect-[4/5]" />
+    </div>
+</section>
+
+<section class="border-y border-[var(--serif-border)] bg-[var(--serif-soft)]" aria-labelledby="nt2-goals" data-testid="nt2-goals">
+    <div class="public-container grid gap-6 py-12 md:py-16 lg:grid-cols-12 lg:gap-10" data-testid="service-frame">
+        <div class="min-w-0 lg:col-span-5">
+            <p class="mb-3 mt-0 text-base font-semibold text-[var(--id-red)]">@Localizer["TailoredEyebrow"]</p>
+            <h2 id="nt2-goals" class="m-0 text-3xl leading-tight text-[var(--serif-blue-dark)] md:text-4xl">@Localizer["TailoredTitle"]</h2>
+        </div>
+        <p class="m-0 text-lg leading-relaxed text-[var(--serif-ink)]/85 tracking-normal lg:col-span-7">@Localizer["TailoredParagraph1"]</p>
+    </div>
+</section>
+
+<section aria-labelledby="nt2-approach" data-testid="nt2-approach">
+    <div class="public-container py-12 md:py-16" data-testid="service-frame">
+        <h2 id="nt2-approach" class="mb-6 mt-0 text-3xl leading-tight text-[var(--serif-blue-dark)] md:text-4xl">@Localizer["WhyUsEyebrow"]</h2>
+        <div class="grid items-start gap-8 lg:grid-cols-12 lg:gap-10">
+            <div class="min-w-0 lg:col-span-7">
+                <h3 class="mb-3 mt-0 font-[family-name:var(--serif-body)] text-xl font-semibold leading-snug text-[var(--serif-blue-dark)] tracking-normal">@Localizer["PracticalDutchHeading"]</h3>
+                <div class="flex flex-col gap-6 text-lg leading-relaxed text-[var(--serif-ink)]/85 tracking-normal" data-testid="service-prose">
+                    <partial name="_PublicServiceParagraphs" model="practicalExplanation" />
+                    @if (!string.IsNullOrWhiteSpace(culturalExamples))
+                    {
+                        <partial name="_PublicServiceParagraphs" model="culturalExamples" />
+                    }
+                </div>
+            </div>
+            <div class="min-w-0 lg:col-span-5">
+                <h3 class="mb-3 mt-0 font-[family-name:var(--serif-body)] text-xl font-semibold leading-snug text-[var(--serif-blue-dark)] tracking-normal">@Localizer["PersonalGuidanceHeading"]</h3>
+                <div class="flex flex-col gap-6 text-lg leading-relaxed text-[var(--serif-ink)]/85 tracking-normal">
+                    <partial name="_PublicServiceParagraphs" model='Localizer["WhyUsParagraph3"].Value' />
+                </div>
+            </div>
+        </div>
+        <div class="mt-8 grid gap-3 border-t border-[var(--serif-border)] pt-8 lg:grid-cols-12 lg:gap-10">
+            <h3 class="m-0 font-[family-name:var(--serif-body)] text-xl font-semibold leading-snug text-[var(--serif-blue-dark)] tracking-normal lg:col-span-5">@Localizer["PromiseHeading"]</h3>
+            <div class="flex flex-col gap-6 text-lg leading-relaxed text-[var(--serif-ink)]/85 tracking-normal lg:col-span-7">
+                <partial name="_PublicServiceParagraphs" model='Localizer["PromiseParagraph"].Value' />
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="border-y border-[var(--serif-border)] bg-white" aria-labelledby="nt2-courses" data-testid="nt2-courses">
+    <div class="public-container py-12 md:py-16" data-testid="service-frame">
+        <h2 id="nt2-courses" class="mb-6 mt-0 text-3xl leading-tight text-[var(--serif-blue-dark)] md:text-4xl">@Localizer["OfferEyebrow"]</h2>
+        <div class="grid gap-6 md:grid-cols-2" data-testid="service-offerings">
+            <article class="min-w-0 rounded-lg border border-[var(--serif-border)] bg-[var(--serif-bg)] p-6 md:p-8">
+                <h3 class="m-0 font-[family-name:var(--serif-body)] text-xl font-semibold leading-snug text-[var(--serif-blue-dark)] tracking-normal">@Localizer["OfferRegularTitle"]</h3>
+                <div class="mt-3 flex flex-col gap-6 text-lg leading-relaxed text-[var(--serif-ink)]/85 tracking-normal">
+                    <partial name="_PublicServiceParagraphs" model='Localizer["OfferRegularDescription"].Value' />
+                </div>
+            </article>
+            <article class="min-w-0 rounded-lg border border-[var(--serif-border)] bg-[var(--serif-bg)] p-6 md:p-8">
+                <h3 class="m-0 font-[family-name:var(--serif-body)] text-xl font-semibold leading-snug text-[var(--serif-blue-dark)] tracking-normal">@Localizer["OfferDiyTitle"]</h3>
+                <div class="mt-3 flex flex-col gap-6 text-lg leading-relaxed text-[var(--serif-ink)]/85 tracking-normal">
+                    <partial name="_PublicServiceParagraphs" model='Localizer["OfferDiyDescription"].Value' />
+                </div>
+            </article>
+        </div>
+        <div class="mt-8 grid gap-3 border-t border-[var(--serif-border)] pt-8 lg:grid-cols-12 lg:gap-10">
+            <h3 class="m-0 font-[family-name:var(--serif-body)] text-xl font-semibold leading-snug text-[var(--serif-blue-dark)] tracking-normal lg:col-span-5">@study.Opening</h3>
+            @if (!string.IsNullOrWhiteSpace(study.Remainder))
+            {
+                <div class="flex flex-col gap-6 text-lg leading-relaxed text-[var(--serif-ink)]/85 tracking-normal lg:col-span-7">
+                    <partial name="_PublicServiceParagraphs" model="study.Remainder" />
+                </div>
+            }
+        </div>
+        @if (showExpandedOffer)
+        {
+            <details class="mt-8 border-t border-[var(--serif-border)] pt-5" data-testid="nt2-additional-support">
+                <summary class="min-h-11 cursor-pointer touch-manipulation font-[family-name:var(--serif-body)] text-xl font-semibold leading-relaxed text-[var(--serif-blue-dark)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--serif-blue-dark)]">@Localizer["AdditionalSupportHeading"]</summary>
+                <div class="mt-4 divide-y divide-[var(--serif-border)]">
+                    @for (var index = 1; index <= 5; index++)
+                    {
+                        <article class="grid min-w-0 gap-3 py-6 md:grid-cols-[1fr_2fr] md:gap-10">
+                            <h3 class="m-0 font-[family-name:var(--serif-body)] text-xl font-semibold leading-snug text-[var(--serif-blue-dark)] tracking-normal">@Localizer[$"OfferExtra{index}Title"]</h3>
+                            <div class="flex flex-col gap-6 text-lg leading-relaxed text-[var(--serif-ink)]/85 tracking-normal">
+                                <partial name="_PublicServiceParagraphs" model='Localizer[$"OfferExtra{index}Description"].Value' />
+                            </div>
+                        </article>
+                    }
+                </div>
+            </details>
+        }
+    </div>
+</section>
+
+<section aria-labelledby="nt2-trainers" data-testid="nt2-trainers">
+    <div class="public-container py-12 md:py-16" data-testid="service-frame">
+        <h2 id="nt2-trainers" class="mb-6 mt-0 text-3xl leading-tight text-[var(--serif-blue-dark)] md:text-4xl">@Localizer["HeroNoteTitle"]</h2>
+        <div class="grid gap-6 text-lg leading-relaxed text-[var(--serif-ink)]/85 lg:grid-cols-12 lg:gap-10 tracking-normal" data-testid="service-prose">
+            <p class="m-0 lg:col-span-5">@Localizer["HeroNoteDescription"]</p>
+            <div class="flex flex-col gap-6 lg:col-span-7">
+                <partial name="_PublicServiceParagraphs" model="experience.Opening" />
+                @if (!string.IsNullOrWhiteSpace(experience.Remainder))
+                {
+                    <partial name="_PublicServiceParagraphs" model="experience.Remainder" />
                 }
             </div>
         </div>
-    }
-    <div class="mt-10 flex flex-wrap gap-3 border-t border-[var(--serif-border)] pt-8">
-        <partial name="_PublicServiceAction" model='new PublicServiceLink(Localizer["ContactButton"], Url.Page("/Contact", new { culture })!)' />
-        <a href="@conversation.Url" target="_blank" rel="noopener noreferrer" class="public-btn public-btn-outline gap-3 leading-snug focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--serif-blue-dark)]">@Localizer["FreeConversationButton"] <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+        <div class="mt-6">
+            <a href="@contact.Url" class="public-link min-h-11 touch-manipulation focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--serif-blue-dark)]">@contact.Label <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+        </div>
     </div>
 </section>
+
+@if (showExpandedOffer)
+{
+    <section class="border-t border-[var(--serif-border)]" aria-labelledby="nt2-testimonials" data-testid="nt2-testimonials">
+        <div class="public-container py-12 md:py-16" data-testid="service-frame">
+            <h2 id="nt2-testimonials" class="mb-6 mt-0 text-3xl leading-tight text-[var(--serif-blue-dark)] md:text-4xl">@Localizer["TestimonialsEyebrow"]</h2>
+            <div class="grid gap-8 text-lg italic leading-relaxed text-[var(--serif-ink)]/85 md:grid-cols-3 tracking-normal">
+                @for (var index = 1; index <= 3; index++)
+                {
+                    <blockquote class="m-0"><p class="m-0">@Localizer[$"Testimonial{index}"]</p></blockquote>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+<partial name="_PublicServiceContact" model="closing" />

@@ -1,13 +1,12 @@
 @model IReadOnlyList<PublicServiceOffering>
-<div class="grid gap-x-12 md:grid-cols-2" data-testid="service-offerings">
+<div data-testid="service-offerings">
     @for (var index = 0; index < Model.Count; index++)
     {
         var offering = Model[index];
-        <article class="grid min-w-0 grid-cols-[2rem_1fr] gap-4 border-t border-[var(--serif-border)] py-7 md:py-9">
-            <span class="pt-1 font-[family-name:var(--serif-label)] text-xs text-[var(--serif-muted)]" aria-hidden="true">@((index + 1).ToString("D2", CultureInfo.InvariantCulture))</span>
-            <div class="min-w-0">
-                <h3 class="m-0 text-2xl leading-snug text-[var(--serif-blue-dark)]">@offering.Title</h3>
-                <p class="mb-0 mt-3 text-base leading-[1.8] text-[var(--serif-muted)]">@offering.Description</p>
+        <article class="grid min-w-0 gap-3 border-t border-[var(--serif-border)] py-6 md:grid-cols-[1fr_2fr] md:gap-10">
+            <h3 class="m-0 font-[family-name:var(--serif-body)] text-xl font-semibold leading-snug text-[var(--serif-blue-dark)] tracking-normal">@offering.Title</h3>
+            <div class="flex flex-col gap-6 text-lg leading-relaxed text-[var(--serif-ink)]/85 tracking-normal">
+                <partial name="_PublicServiceParagraphs" model="offering.Description" />
             </div>
         </article>
     }
