@@ -501,9 +501,9 @@ public sealed class UnifiedAppointmentBookingTests : DiagnosticPageTest
             {
                 releaseScript.TrySetResult();
                 await save;
-                // Drain the delayed handler before removing it; default unroute can
-                // handle its request first and leave the editor script unexecuted.
-                await Page.UnrouteAllAsync(new() { Behavior = UnrouteBehavior.Wait });
+                // Keep this page-scoped handler until context disposal, so cleanup
+                // cannot race delivery/execution of the script. Later requests pass
+                // straight through the already-released gate.
             }
             var rule = await db.ScheduleRosterRules.AsNoTracking().SingleAsync(item => item.CourseClassId == lesson.Id);
             await Expect(edit).ToBeEnabledAsync();
