@@ -250,7 +250,7 @@ jobs:
         run: >-
           dotnet test "$E2E_TEST_PROJECT"
           --configuration Release --no-build
-          --filter "SiteMode=Marketing|FullyQualifiedName~PublicExamAccessTests|FullyQualifiedName~ContactSubmissionTests|FullyQualifiedName~ExpiredExamTests|FullyQualifiedName~ExamResultPresentationTests"
+          --filter "SiteMode=Marketing|FullyQualifiedName~PublicExamAccessTests|FullyQualifiedName~ContactSubmissionTests|FullyQualifiedName~ExpiredExamTests|FullyQualifiedName~ExamResultPresentationTests|FullyQualifiedName~PublicAboutPageTests"
           --logger "trx;LogFileName=marketing-tests.trx"
           --results-directory "${{ runner.temp }}/test-results/marketing"
 

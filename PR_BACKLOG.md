@@ -1,6 +1,6 @@
 ﻿# Planned PR backlog
 
-Updated: 2026-11-12
+Updated: 2026-11-14
 
 This is the combined planning backlog from the staging review and owner meeting.
 B01-B28 are planning IDs, not GitHub PR numbers. Current launch priorities are:
@@ -804,7 +804,7 @@ checks from render-blocking third-party stylesheets. Desktop/mobile screenshots 
 inspected. The local application configuration is restored to Full after mode checks.
 
 Design follow-up (P0, Medium): `fix/nt2-personal-development-design` revises NT2 and
-Personal Development in open PR #57. The composition uses one shared outer grid with
+Personal Development in merged PR #57. The composition uses one shared outer grid with
 deliberately positioned imagery, introductions, supporting statements, and body text.
 Centered narrow wrappers are removed. Longer passages split at sentence boundaries;
 opening sentences and the free introductory conversation receive appropriate emphasis.
@@ -818,6 +818,11 @@ Verification passed: Release build, solution-wide formatting, all 588 unit/integ
 tests, eight Full-mode service-page browser checks, and 42 Marketing-mode browser checks.
 A separate comparison of all eight original localized page bodies found no missing text.
 The local app is restored to Full mode after verification.
+
+PR #57 final verification also covers shared typography and paragraph spacing across
+all four service pages, the refined Personal Development hero, and the Dutch navigation
+heading regression. Release build, solution formatting, 603 unit/integration tests, and
+12 relevant Full-mode public browser checks passed before merge.
 
 NT2 narrative refinement in the same PR follows learner goals -> teaching approach ->
 course choices -> trainers -> testimonials where available -> next step. Company promises
@@ -844,6 +849,16 @@ trainer placement, quote roles, and access to every optional service. Build, for
 
 **Estimated size: Medium.** Focused public page and content review.
 
+Status: implementation verified on `feature/about-page-refresh`.
+The About page shares the service pages' typography, outer
+grid, paragraph spacing, and closing contact component. Separate founder biographies
+and authored paragraph breaks preserve the existing English/Dutch wording. Responsive
+WebP variants reuse the actual founder photo (25/52 KB); the original PNG remains for B15.
+Release build, solution formatting, 603 unit/integration tests, 20 Full-mode public browser
+checks, and 14 Marketing-mode checks pass. Marketing checks confirm account links are
+absent from desktop/mobile navigation and direct Admin/SuperAdmin portal access works.
+Desktop English and mobile Dutch renders have been inspected in the browser.
+
 - Refresh /about using the public foundations and actual company information.
 - Use existing approved imagery and clear contact paths; do not invent company claims.
 - Verify localized copy, responsive layout, headings, links, and image presentation.
@@ -866,6 +881,10 @@ trainer placement, quote roles, and access to every optional service. Build, for
   autodeploy disabled. Further staging updates must not change the live release.
 - Set production SiteMode=Marketing initially. Full launch requires an approved newer image,
   SiteMode=Full, B28 completion, and acceptance of all required customer workflows.
+- Launch acceptance must confirm Log In/Portal links are absent from both desktop and
+  mobile public navigation in Marketing mode, including for signed-in staff. Preserve
+  authorized staff access through the direct portal address. Do not remove authentication
+  code or Full-mode navigation: switching SiteMode back to Full must remain reversible.
 - Retain the active and previous production images for rollback; separate production data,
   persistent signing keys, URLs, and service credentials from staging.
 - Result-link expiry/reissue and a short /results alias remain separate decisions.

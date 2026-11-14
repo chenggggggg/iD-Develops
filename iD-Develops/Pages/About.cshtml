@@ -6,53 +6,60 @@
     ViewData["SeoTitle"] = Localizer["SeoTitle"];
     ViewData["MetaDescription"] = Localizer["MetaDescription"];
     var originParagraph3 = Localizer["OriginParagraph3"].Value;
+    var culture = CultureInfo.CurrentCulture.Name.ToLowerInvariant();
+    var conversation = new PublicServiceLink(Localizer["ScheduleConversation"], "https://koalendar.com/e/meet-with-id", true);
+    var contact = new PublicServiceLink(Localizer["ContactButton"], Url.Page("/Contact", new { culture })!);
+    var closing = new PublicServiceContact(Localizer["ValuesEyebrow"],
+        [Localizer["ValuesParagraph1"], Localizer["ValuesParagraph2"]], conversation, contact);
 }
 
-<section class="public-hero-page">
-    <div class="public-container">
-        <div class="public-hero-grid">
-            <div>
-                <p class="public-eyebrow public-eyebrow-left">@Localizer["Title"]</p>
-                <h1 class="public-hero-title mx-0">@Localizer["HeroTitle"]</h1>
-                <p class="public-hero-copy mx-0">@Localizer["HeroDescription"]</p>
-            </div>
-            <div><img class="public-about-image" src="~/images/aboutus.png" alt="@Localizer["HeroImageAlt"]" /></div>
+<section aria-labelledby="about-title" data-testid="about-hero">
+    <div class="public-container grid gap-8 pb-12 pt-10 md:pb-16 md:pt-16 lg:grid-cols-12 lg:gap-x-10" data-testid="about-frame">
+        <div class="min-w-0 lg:col-span-12">
+            <h1 id="about-title" class="m-0 text-[clamp(2.25rem,4vw,3.5rem)] leading-[1.12] tracking-[-0.025em] text-balance text-[var(--serif-blue-dark)]">@Localizer["Title"]</h1>
+            <p class="mb-0 mt-4 text-xl font-normal leading-relaxed tracking-normal text-[var(--serif-blue-dark)]">@Localizer["HeroTitle"]</p>
+        </div>
+        <div class="flex min-w-0 flex-col gap-6 text-lg leading-relaxed tracking-normal text-[var(--serif-ink)]/85 lg:col-span-7" data-testid="about-prose">
+            <partial name="_PublicServiceParagraphs" model='Localizer["HeroDescription"].Value' />
+        </div>
+        <img src="/images/about/founders-880.webp" srcset="/images/about/founders-480.webp 480w, /images/about/founders-880.webp 880w" sizes="(min-width: 1024px) 380px, (min-width: 768px) 384px, calc(100vw - 32px)" width="880" height="1021" alt="@Localizer["HeroImageAlt"]" fetchpriority="high" class="h-auto w-full max-w-sm justify-self-center object-contain lg:col-span-5 lg:max-w-none lg:self-center" />
+    </div>
+</section>
+
+<section class="border-t border-[var(--serif-border)]" aria-labelledby="about-origins" data-testid="about-origins">
+    <div class="public-container py-12 md:py-16" data-testid="about-frame">
+        <h2 id="about-origins" class="mb-6 mt-0 text-3xl leading-tight text-[var(--serif-blue-dark)] md:text-4xl">@Localizer["OriginEyebrow"]</h2>
+        <div class="grid gap-8 lg:grid-cols-2 lg:gap-10">
+            <article class="min-w-0" aria-labelledby="about-dominique">
+                <h3 id="about-dominique" class="mb-3 mt-0 font-[family-name:var(--serif-body)] text-xl font-semibold leading-snug tracking-normal text-[var(--serif-blue-dark)]">@Localizer["DominiqueHeading"]</h3>
+                <div class="flex flex-col gap-6 text-lg leading-relaxed tracking-normal text-[var(--serif-ink)]/85" data-testid="about-prose">
+                    <partial name="_PublicServiceParagraphs" model='Localizer["OriginParagraph1"].Value' />
+                </div>
+            </article>
+            <article class="min-w-0" aria-labelledby="about-patrick">
+                <h3 id="about-patrick" class="mb-3 mt-0 font-[family-name:var(--serif-body)] text-xl font-semibold leading-snug tracking-normal text-[var(--serif-blue-dark)]">@Localizer["PatrickHeading"]</h3>
+                <div class="flex flex-col gap-6 text-lg leading-relaxed tracking-normal text-[var(--serif-ink)]/85" data-testid="about-prose">
+                    <partial name="_PublicServiceParagraphs" model='Localizer["OriginParagraph2"].Value' />
+                </div>
+            </article>
         </div>
     </div>
 </section>
 
-<section class="public-section">
-    <div class="public-container public-content-narrow mx-auto">
-        <p class="public-eyebrow public-eyebrow-left">@Localizer["OriginEyebrow"]</p>
-        <p class="public-copy">@Localizer["OriginParagraph1"]</p>
-        <p class="public-copy">@Localizer["OriginParagraph2"]</p>
-        @if (!string.IsNullOrWhiteSpace(originParagraph3))
-        {
-            <p class="public-copy">@originParagraph3</p>
-        }
-    </div>
-</section>
-
-<section class="public-section public-section-soft">
-    <div class="public-container">
-        <div class="public-two-column">
-            <div>
-                <p class="public-eyebrow public-eyebrow-left">@Localizer["TogetherEyebrow"]</p>
-                <h2 class="public-section-title">@Localizer["TogetherTitle"]</h2>
-            </div>
-            <p class="public-copy">@Localizer["TogetherDescription"]</p>
+<section class="border-t border-[var(--serif-border)] bg-[var(--serif-soft)]" aria-labelledby="about-together" data-testid="about-together">
+    <div class="public-container grid gap-6 py-12 md:py-16 lg:grid-cols-12 lg:gap-10" data-testid="about-frame">
+        <div class="min-w-0 lg:col-span-5">
+            <p class="mb-3 mt-0 text-base font-semibold text-[var(--id-red)]">@Localizer["TogetherEyebrow"]</p>
+            <h2 id="about-together" class="m-0 text-3xl leading-tight text-[var(--serif-blue-dark)] md:text-4xl">@Localizer["TogetherTitle"]</h2>
+        </div>
+        <div class="flex min-w-0 flex-col gap-6 text-lg leading-relaxed tracking-normal text-[var(--serif-ink)]/85 lg:col-span-7" data-testid="about-prose">
+            @if (!string.IsNullOrWhiteSpace(originParagraph3))
+            {
+                <partial name="_PublicServiceParagraphs" model="originParagraph3" />
+            }
+            <partial name="_PublicServiceParagraphs" model='Localizer["TogetherDescription"].Value' />
         </div>
     </div>
 </section>
 
-<section class="public-section">
-    <div class="public-container public-content-narrow mx-auto">
-        <p class="public-eyebrow public-eyebrow-left">@Localizer["ValuesEyebrow"]</p>
-        <p class="public-copy">@Localizer["ValuesParagraph1"]</p>
-        <p class="public-copy">@Localizer["ValuesParagraph2"]</p>
-        <div class="public-actions justify-start">
-            <a href="https://koalendar.com/e/meet-with-id" target="_blank" rel="noopener noreferrer" class="public-btn public-btn-primary">@Localizer["ScheduleConversation"] <i class="fas fa-arrow-right"></i></a>
-            <a asp-page="/contact" asp-route-culture="@CultureInfo.CurrentCulture.Name.ToLowerInvariant()" class="public-btn public-btn-outline">@Localizer["ContactButton"] <i class="fas fa-arrow-right"></i></a>
-        </div>
-    </div>
-</section>
+<partial name="_PublicServiceContact" model="closing" />
