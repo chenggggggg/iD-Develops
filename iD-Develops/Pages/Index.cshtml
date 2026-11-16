@@ -12,21 +12,23 @@
     ViewData["BodyClass"] = "home-page";
 }
 
-<section class="home-hero">
-    <div class="public-container relative z-10 flex w-full items-center py-16 opacity-0 translate-y-6 transition-[opacity,translate] duration-1000 ease-out md:py-20" data-reveal="load">
+<section class="relative isolate flex min-h-svh items-center overflow-hidden bg-[#FAFAF8] text-[#071F3D]" data-testid="home-hero">
+    <img src="~/images/group-of-businesspeople-in-a-meeting.webp" asp-append-version="true" width="1123" height="750" alt="" aria-hidden="true" fetchpriority="high" decoding="async" class="absolute inset-0 -z-20 size-full object-cover object-[62%_center] md:object-center" data-testid="home-hero-image" />
+    <div aria-hidden="true" class="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(250,250,248,0.97)_0%,rgba(250,250,248,0.87)_100%)] lg:bg-[linear-gradient(90deg,rgba(250,250,248,0.98)_0%,rgba(250,250,248,0.95)_36%,rgba(250,250,248,0.8)_56%,rgba(250,250,248,0.15)_78%,rgba(250,250,248,0)_100%)]"></div>
+    <div class="public-container relative z-10 flex w-full items-center pb-12 pt-28 opacity-0 translate-y-6 transition-[opacity,translate] duration-1000 ease-out md:py-24" data-reveal="load" data-testid="home-hero-copy">
         <div class="max-w-[46rem]">
-            <p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-white/75 [font-family:var(--serif-label)]">iD! Training &amp; Development</p>
-            <h1 class="mb-7 text-[clamp(3.2rem,7vw,6.5rem)] font-medium leading-[0.92] tracking-[-0.045em] text-white [font-family:var(--serif-heading)]"><span class="lg:whitespace-nowrap">@Localizer["HeroTitleLine1"]</span><br /><em class="font-normal text-[#F4C8CD] lg:whitespace-nowrap">@Localizer["HeroTitleLine2"]</em></h1>
-            <p class="home-hero-subtitle"><span>@Localizer["HeroSubtitleLine1"]</span><span>@Localizer["HeroSubtitleLine2"]</span></p>
+            <p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-[#535353] [font-family:var(--serif-label)]">iD! Training &amp; Development</p>
+            <h1 class="mb-7 text-[clamp(3.2rem,7vw,6.5rem)] font-medium leading-[0.92] tracking-[-0.045em] text-[#071F3D] [font-family:var(--serif-heading)]"><span class="lg:whitespace-nowrap">@Localizer["HeroTitleLine1"]</span><br /><em class="font-normal text-[#B23A48] lg:whitespace-nowrap">@Localizer["HeroTitleLine2"]</em></h1>
+            <p class="mb-9 grid max-w-[38rem] gap-1 border-l-2 border-[#B23A48] pl-5 text-lg font-normal leading-[1.55] text-[#333333] md:text-xl"><span>@Localizer["HeroSubtitleLine1"]</span><span class="text-[#535353]">@Localizer["HeroSubtitleLine2"]</span></p>
             <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
-                <a href="@levelTestUrl" class="public-btn public-btn-primary min-h-12 border-[#B23A48] bg-[#B23A48] px-6 text-white shadow-[0_10px_28px_rgba(0,0,0,0.22)] hover:border-[#C84E5F] hover:bg-[#C84E5F] hover:text-white focus:border-[#C84E5F] focus:bg-[#C84E5F] focus:text-white">@Localizer["HeroLevelTestButton"] <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
-                <a asp-page="/contact" asp-route-culture="@routeCulture" class="public-btn public-btn-outline-light min-h-12 border-white/65 bg-black/10 px-6 text-white backdrop-blur-sm hover:border-white hover:bg-white hover:text-[#071F3D] focus:border-white focus:bg-white focus:text-[#071F3D]">@Localizer["HeroContactButton"] <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+                <a href="@levelTestUrl" class="public-btn public-btn-primary min-h-12 px-6">@Localizer["HeroLevelTestButton"] <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+                <a asp-page="/contact" asp-route-culture="@routeCulture" class="public-btn public-btn-outline min-h-12 border-[#071F3D]/45 bg-white/70 px-6 text-[#071F3D] hover:bg-white focus:bg-white">@Localizer["HeroContactButton"] <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
             </div>
             @* Provisional figures — replace with owner-confirmed numbers before launch. *@
-            <ul class="mt-10 flex list-none flex-wrap items-start gap-x-7 gap-y-4 p-0 text-white/85 sm:mt-12 gap-x-9">
-                <li class="flex flex-col gap-0.5"><strong class="text-2xl font-medium leading-none text-white [font-family:var(--serif-heading)]">2,000+</strong><span class="text-[0.68rem] uppercase tracking-[0.12em] [font-family:var(--serif-label)]">@Localizer["LearnersSupported"]</span></li>
-                <li class="flex flex-col gap-0.5"><strong class="text-2xl font-medium leading-none text-white [font-family:var(--serif-heading)]">15+</strong><span class="text-[0.68rem] uppercase tracking-[0.12em] [font-family:var(--serif-label)]">@Localizer["YearsExperience"]</span></li>
-                <li class="flex flex-col gap-0.5"><strong class="text-2xl font-medium leading-none text-white [font-family:var(--serif-heading)]">4.9/5</strong><span class="text-[0.68rem] uppercase tracking-[0.12em] [font-family:var(--serif-label)]">@Localizer["AverageRating"]</span></li>
+            <ul class="mt-10 flex list-none flex-wrap items-start gap-x-7 gap-y-4 p-0 text-[#535353] sm:mt-12 sm:gap-x-9">
+                <li class="flex flex-col gap-0.5"><strong class="text-2xl font-medium leading-none text-[#071F3D] [font-family:var(--serif-heading)]">2,000+</strong><span class="text-[0.68rem] uppercase tracking-[0.12em] [font-family:var(--serif-label)]">@Localizer["LearnersSupported"]</span></li>
+                <li class="flex flex-col gap-0.5"><strong class="text-2xl font-medium leading-none text-[#071F3D] [font-family:var(--serif-heading)]">15+</strong><span class="text-[0.68rem] uppercase tracking-[0.12em] [font-family:var(--serif-label)]">@Localizer["YearsExperience"]</span></li>
+                <li class="flex flex-col gap-0.5"><strong class="text-2xl font-medium leading-none text-[#071F3D] [font-family:var(--serif-heading)]">4.9/5</strong><span class="text-[0.68rem] uppercase tracking-[0.12em] [font-family:var(--serif-label)]">@Localizer["AverageRating"]</span></li>
             </ul>
         </div>
     </div>
