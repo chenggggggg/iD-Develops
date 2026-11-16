@@ -29,7 +29,7 @@ Launch order: B10 -> B22 -> B23 -> B24 -> B25 -> B26 -> B27.
 B15 asset work can run alongside these; broken visible assets are launch blockers,
 while exhaustive unused-image cleanup is supporting work. B10 already covers the
 completion wallpaper. Its current layout shows the image on desktop and prioritizes
-the form on mobile. The brighter homepage hero still awaits the user-supplied image.
+the form on mobile. The owner has supplied the brighter homepage image; its B15 replacement is in progress.
 
 Public result viewing remains independent of portal login. Retain the protected emailed
 link; a record ID alone must not grant access. Signed-in attempts keep their account
@@ -497,7 +497,17 @@ Previously saved product editor PR.
 
 **Estimated size: Medium.** The hero replacement alone is Small; the full raster inventory, conversions, responsive assets, cache/reference checks, and image quality verification are broader.
 
-New homepage media PR; homepage hero replacement awaits the image supplied by the user.
+Homepage replacement verified on `design/brighter-home-hero`, using the owner's
+`group-of-businesspeople-in-a-meeting.webp` (1123x750, about 63 KB), supplied 2026-11-16.
+This focused batch preserves the existing copy and actions, adds prioritized image
+loading, and uses the public navy/wine palette over a light cream overlay. Static
+previews and live English/Dutch desktop, tablet, and mobile renders were inspected,
+including 320px layout clearance and the localized level-test/contact links.
+Tailwind build, Release build, solution formatting, all 603 unit/integration tests,
+242 Full-mode E2E tests, and 42 Marketing-mode E2E tests pass. Public smoke checks
+also passed for 26 localized pages and 14 images, including the supplied hero asset.
+The original local settings were restored after checking Marketing mode.
+The broader unused-image inventory and cleanup remain separate supporting work.
 
 - Replace the current dark hero with the supplied brighter image; tune crop and overlay
   without losing readable text. Do not select/generate the replacement on the user's behalf.
@@ -512,7 +522,7 @@ New homepage media PR; homepage hero replacement awaits the image supplied by th
   image-transformation pipeline deliberately. Do not expose private attachments as media.
 - Avoid a bulk asset migration solely to move files off the application server.
 
-Dependencies: user-supplied hero; align reusable media handling with B16/B17. B10 handles
+Dependencies: supplied hero received; align reusable media handling with B16/B17. B10 handles
 its completion wallpaper independently.
 
 ## B16 - P2 - Blog/news foundation and admin management
@@ -702,7 +712,7 @@ until the company confirms them. Include My Profile/history/refund states in B20
   browser tests, and EF model/migration consistency passed on 2026-11-02.
 - B21: unused purchases may use the refund button; used purchases require contacting
   the company. Defer additional refund rules and legal wording until company approval.
-- B15 awaits the owner's supplied replacement hero image.
+- B15's replacement hero image has been supplied; the focused replacement is in progress.
 
 ## Suggested implementation order
 
@@ -867,7 +877,7 @@ Desktop English and mobile Dutch renders have been inspected in the browser.
 
 **Estimated size: Medium.** Environment configuration and complete public-flow verification.
 
-Status: implementation verified on `ci/production-release`. Production provisioning, DNS cutover,
+Status: implementation merged in [PR #60](https://github.com/chenggggggg/iD-Develops/pull/60). Production provisioning, DNS cutover,
 and live acceptance remain separate from this implementation. The manual workflow
 selects a successful main CI/staging run, requires executed Full/Marketing browser
 checks, resolves its existing image digest, preserves the production app specification,

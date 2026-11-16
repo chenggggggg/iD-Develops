@@ -1704,35 +1704,6 @@
       #FAFAF8;
   }
 
-  .home-hero {
-    @apply relative isolate flex min-h-svh items-center overflow-hidden bg-[#071F3D] text-white;
-    background-image:
-      linear-gradient(90deg, rgba(4, 17, 32, 0.92) 0%, rgba(4, 17, 32, 0.72) 42%, rgba(4, 17, 32, 0.24) 76%, rgba(4, 17, 32, 0.18) 100%),
-      linear-gradient(180deg, rgba(4, 17, 32, 0.08) 55%, rgba(4, 17, 32, 0.55) 100%),
-      url("../images/language-training-personal-development-workspace.webp");
-    background-position: center 58%;
-    background-repeat: no-repeat;
-    background-size: cover;
-  }
-
-  .home-hero-subtitle {
-    @apply mb-9 grid max-w-[38rem] gap-1 border-l-2 border-[#B23A48] pl-5 text-lg font-normal leading-[1.55] text-white/90 md:text-xl;
-  }
-
-  .home-hero-subtitle span:last-child {
-    @apply text-white/70;
-  }
-
-  @media (max-width: 47.999rem) {
-    .home-hero {
-      background-image:
-        linear-gradient(90deg, rgba(4, 17, 32, 0.82) 0%, rgba(4, 17, 32, 0.58) 100%),
-        linear-gradient(180deg, rgba(4, 17, 32, 0.18) 35%, rgba(4, 17, 32, 0.78) 100%),
-        url("../images/language-training-personal-development-workspace.webp");
-      background-position: 52% center;
-    }
-  }
-
   .public-hero-content {
     @apply mx-auto max-w-4xl text-center;
   }
