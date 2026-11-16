@@ -1,0 +1,125 @@
+name: Release production
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_run_id:
+        description: Successful main CI and staging deployment run ID (also used for rollback)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Promote tested image to Marketing production
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment:
+      name: production
+      url: ${{ vars.PRODUCTION_URL }}
+    env:
+      DO_PRODUCTION_APP_ID: ${{ vars.DO_PRODUCTION_APP_ID }}
+      DO_STAGING_APP_ID: ${{ vars.DO_STAGING_APP_ID }}
+      DO_PRODUCTION_SERVICE_NAME: ${{ vars.DO_PRODUCTION_SERVICE_NAME }}
+      DO_REGISTRY_NAME: ${{ vars.DO_REGISTRY_NAME }}
+      DO_IMAGE_REPOSITORY: ${{ vars.DO_IMAGE_REPOSITORY }}
+      PRODUCTION_URL: ${{ vars.PRODUCTION_URL }}
+      PRODUCTION_PORTAL_URL: ${{ vars.PRODUCTION_PORTAL_URL }}
+      STAGING_URL: ${{ vars.STAGING_URL }}
+      RELEASE_RUN_ID: ${{ inputs.release_run_id }}
+    steps:
+      - name: Check out release tooling
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Select a successful tested staging release
+        id: selected
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [[ "$RELEASE_RUN_ID" =~ ^[1-9][0-9]*$ ]] || { echo 'Enter a numeric CI run ID.'; exit 1; }
+          umask 077
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RELEASE_RUN_ID" > "$RUNNER_TEMP/release-run.json"
+          gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/actions/runs/$RELEASE_RUN_ID/jobs?filter=all&per_page=100" > "$RUNNER_TEMP/release-jobs.json"
+          node .github/scripts/production-release.mjs select "$RUNNER_TEMP/release-run.json" "$RUNNER_TEMP/release-jobs.json"
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Resolve existing image digest
+        id: image
+        env:
+          RELEASE_COMMIT: ${{ steps.selected.outputs.commit }}
+        run: |
+          doctl registry login --expiry-seconds 1200
+          image="registry.digitalocean.com/$DO_REGISTRY_NAME/$DO_IMAGE_REPOSITORY"
+          docker pull --platform linux/amd64 "$image:$RELEASE_COMMIT"
+          docker image inspect "$image:$RELEASE_COMMIT" > "$RUNNER_TEMP/release-image.json"
+          node .github/scripts/production-release.mjs image "$RUNNER_TEMP/release-image.json"
+
+      - name: Prepare pinned production specification
+        id: spec
+        env:
+          RELEASE_DIGEST: ${{ steps.image.outputs.digest }}
+          RELEASE_COMMIT: ${{ steps.selected.outputs.commit }}
+        run: |
+          umask 077
+          doctl apps get "$DO_PRODUCTION_APP_ID" --output json > "$RUNNER_TEMP/release-app.json"
+          node .github/scripts/production-release.mjs spec "$RUNNER_TEMP/release-app.json" "$RUNNER_TEMP/release-spec.json"
+          {
+            echo '## Production release'
+            echo "Selected CI run: $RELEASE_RUN_ID"
+            echo "Commit: $RELEASE_COMMIT"
+            echo "Pinned digest: $RELEASE_DIGEST"
+            echo 'Site mode: Marketing'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record rollback image
+        env:
+          PREVIOUS_IMAGE: ${{ steps.spec.outputs.previous }}
+        run: |
+          echo "Previous active image (retain for rollback): $PREVIOUS_IMAGE" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Deploy pinned image
+        timeout-minutes: 18
+        run: >-
+          doctl apps update "$DO_PRODUCTION_APP_ID"
+          --spec "$RUNNER_TEMP/release-spec.json" --update-sources
+          --wait --format ID --no-header
+
+      - name: Verify Marketing production
+        env:
+          RELEASE_COMMIT: ${{ steps.selected.outputs.commit }}
+        run: |
+          base_url="${PRODUCTION_URL%/}"
+          for attempt in {1..60}; do
+            version="$(curl --fail --silent --max-time 5 "$base_url/health/version" || true)"
+            if jq --exit-status --arg commit "$RELEASE_COMMIT" '.version == $commit and .siteMode == "Marketing"' <<< "$version" >/dev/null 2>&1 &&
+              curl --fail --silent --max-time 5 "$base_url/health/ready" >/dev/null; then
+              node .github/scripts/marketing-smoke.mjs
+              exit $?
+            fi
+            sleep 5
+          done
+          echo 'The selected Marketing release did not become ready in time.'
+          exit 1
+
+      - name: Remove temporary provider configuration
+        if: always()
+        run: |
+          rm -f "$RUNNER_TEMP/release-app.json" "$RUNNER_TEMP/release-spec.json"
+          docker logout registry.digitalocean.com || true
