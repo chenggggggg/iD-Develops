@@ -53,9 +53,11 @@ commit to DigitalOcean.
 
 Staging follows the moving `staging` tag. Registry cleanup is manual; see the
 [registry cleanup runbook](.github/REGISTRY_RETENTION.md). Keep live release and rollback
-images when cleaning the registry. Production promotion is planned separately in B27:
-manually select an approved existing image pinned by digest, with production autodeploy
-disabled. B23's `SiteMode=Marketing|Full` controls available features, not deployed versions.
+images when cleaning the registry. The manual **Release production** workflow selects
+an approved successful main/staging CI run and pins its existing image by digest, with
+production autodeploy disabled. Follow the [production release runbook](.github/PRODUCTION_RELEASE.md)
+for environment setup, acceptance, and rollback. `SiteMode=Marketing|Full` controls
+available features, not deployed versions; the first production release uses Marketing.
 
 ## Security
 

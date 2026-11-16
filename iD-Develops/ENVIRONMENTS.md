@@ -1,5 +1,8 @@
 # Environments
 
+For DigitalOcean App Platform production setup, manual image promotion, launch acceptance,
+and rollback, use the [production release runbook](../.github/PRODUCTION_RELEASE.md).
+
 This app supports four first-class ASP.NET Core environments:
 
 - `Local`
@@ -44,7 +47,7 @@ watcher, select the appropriate mode, reload that application, then run the matc
 # Existing local application configured with SiteMode=Full:
 dotnet test tests/iD-Develops.E2ETests/iD-Develops.E2ETests.csproj --configuration Release --no-build --filter "SiteMode!=Marketing"
 # Existing local application configured with SiteMode=Marketing:
-dotnet test tests/iD-Develops.E2ETests/iD-Develops.E2ETests.csproj --configuration Release --no-build --filter "SiteMode=Marketing|FullyQualifiedName~PublicExamAccessTests|FullyQualifiedName~ContactSubmissionTests|FullyQualifiedName~ExpiredExamTests|FullyQualifiedName~ExamResultPresentationTests"
+dotnet test tests/iD-Develops.E2ETests/iD-Develops.E2ETests.csproj --configuration Release --no-build --filter "SiteMode=Marketing|FullyQualifiedName~PublicExamAccessTests|FullyQualifiedName~ContactSubmissionTests|FullyQualifiedName~ExpiredExamTests|FullyQualifiedName~ExamResultPresentationTests|FullyQualifiedName~PublicAboutPageTests"
 ```
 
 Keep test database/mail configuration as described in README.md. Marketing tests require

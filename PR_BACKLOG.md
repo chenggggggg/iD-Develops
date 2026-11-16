@@ -1,6 +1,6 @@
 ﻿# Planned PR backlog
 
-Updated: 2026-11-14
+Updated: 2026-11-16
 
 This is the combined planning backlog from the staging review and owner meeting.
 B01-B28 are planning IDs, not GitHub PR numbers. Current launch priorities are:
@@ -849,7 +849,7 @@ trainer placement, quote roles, and access to every optional service. Build, for
 
 **Estimated size: Medium.** Focused public page and content review.
 
-Status: implementation verified on `feature/about-page-refresh`.
+Status: completed and merged in [PR #58](https://github.com/chenggggggg/iD-Develops/pull/58).
 The About page shares the service pages' typography, outer
 grid, paragraph spacing, and closing contact component. Separate founder biographies
 and authored paragraph breaks preserve the existing English/Dutch wording. Responsive
@@ -866,6 +866,25 @@ Desktop English and mobile Dutch renders have been inspected in the browser.
 ## B27 - P0 - Marketing production launch and acceptance checks
 
 **Estimated size: Medium.** Environment configuration and complete public-flow verification.
+
+Status: implementation verified on `ci/production-release`. Production provisioning, DNS cutover,
+and live acceptance remain separate from this implementation. The manual workflow
+selects a successful main CI/staging run, requires executed Full/Marketing browser
+checks, resolves its existing image digest, preserves the production app specification,
+and pins only its image. It rejects the staging app ID, unintended sources/components,
+Autodeploy, and incorrect Marketing/production runtime settings. No build, image push,
+registry cleanup, or infrastructure creation occurs during promotion. GET-only smoke
+checks cover localized public pages/media, health, and staff-only entry; full live email,
+exam, result-link persistence, and backup checks are documented in the release runbook.
+The recurring-editor timing follow-up is merged in [PR #59](https://github.com/chenggggggg/iD-Develops/pull/59).
+Verification: 75 offline deployment-policy tests, two workflow YAML files and 28 Bash
+steps, real successful GitHub CI metadata, Release build, solution formatting, all 603
+unit/integration tests, all 242 Full-mode E2E tests, and all 42 Marketing-mode E2E tests
+passed. The GET smoke checker also passed against the existing local Marketing app:
+26 localized pages and 13 images. Exact original local settings were restored and the
+existing watcher returned to Full mode. No production resources were created or changed;
+the real provider rollout, production email/DNS, persistent-link redeployment check,
+and live acceptance remain pending the owner's infrastructure setup and activation.
 
 - Prepare production domains/configuration and separate production data from staging/test data.
 - Keep protected-result signing keys persistent across deployments and confirm emailed links

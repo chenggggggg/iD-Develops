@@ -53,6 +53,11 @@ makes the registry read-only, so run it outside deployment/image-push windows.
 
 No registry images or garbage are deleted automatically by this workflow.
 
+Production is pinned by digest through the separate [manual release workflow](PRODUCTION_RELEASE.md).
+Keep its current image and the previous compatible image, including their immutable
+commit tags, so the recorded successful CI runs remain usable for promotion/rollback.
+Advancing `staging` never advances production. A `production` tag is not required.
+
 ## Optional existing retention utility
 
 `.github/scripts/registry-retention.mjs` remains available for separately operated

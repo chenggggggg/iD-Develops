@@ -39,8 +39,8 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Test registry retention policy
-        run: node --test .github/scripts/registry-retention.test.mjs
+      - name: Test deployment policies
+        run: node --test .github/scripts/*.test.mjs
 
       - name: Set up .NET
         uses: actions/setup-dotnet@v6
