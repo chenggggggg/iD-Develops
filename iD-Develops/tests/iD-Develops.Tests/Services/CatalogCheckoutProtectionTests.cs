@@ -760,6 +760,40 @@ public sealed class CatalogCheckoutProtectionTests
         return (user, exam);
     }
 
+    [Fact]
+    public async Task PreviewFlagBlocksStaleCheckoutAndForgedPublicPosts()
+    {
+        using var data = new TestCheckout();
+        var product = await data.ProductAsync();
+        await data.Db.CatalogProducts.Where(item => item.Id == product.Id)
+            .ExecuteUpdateAsync(update => update.SetProperty(item => item.IsPreviewOnly, true));
+        Assert.False(product.IsPreviewOnly);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => data.StartAsync(data.Context(), product, Guid.NewGuid(), new()));
+        var turnstile = new RejectingTurnstile();
+        var result = Assert.IsType<StatusCodeResult>(await data.Page(turnstile).OnPostAsync(product.Slug));
+        Assert.Equal(StatusCodes.Status403Forbidden, result.StatusCode);
+        Assert.Equal(0, turnstile.Calls);
+        Assert.Equal(0, data.Stripe.Creates);
+        Assert.Empty(await data.Db.CatalogCheckoutAttempts.ToListAsync());
+        Assert.Empty(await data.Db.ProductFormSubmissions.ToListAsync());
+    }
+
+    [Fact]
+    public async Task ExistingPaidCheckoutStillFulfillsAfterProductBecomesPreviewOnly()
+    {
+        using var data = new TestCheckout();
+        var product = await data.ProductAsync();
+        await data.StartAsync(data.Context(), product, Guid.NewGuid(), new());
+        product.IsPreviewOnly = true;
+        await data.Db.SaveChangesAsync();
+        data.Stripe.Session!.Status = "complete";
+        data.Stripe.Session.PaymentStatus = "paid";
+        await data.Fulfillment.CompleteAsync(data.Stripe.Session);
+        await data.Fulfillment.CompleteAsync(data.Stripe.Session);
+        Assert.Single(await data.Db.ProductFormSubmissions.ToListAsync());
+        Assert.Single(await data.Db.CatalogCheckoutReceipts.ToListAsync());
+    }
+
     private sealed class TestCheckout : IDisposable
     {
         private readonly SqliteTestDbFactory _factory = new();

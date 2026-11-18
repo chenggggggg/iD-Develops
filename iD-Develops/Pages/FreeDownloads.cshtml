@@ -133,7 +133,7 @@
                                         <input type="hidden"
                                                name="EditInput.OriginalDownloadObjectKey"
                                                value="@download.IncludedBookingBenefitUrl" />
-                                        @if (!string.IsNullOrWhiteSpace(downloadUrl))
+                                        @if (!download.IsPreviewOnly && !string.IsNullOrWhiteSpace(downloadUrl))
                                         {
                                             <a class="free-download-current-link" href="@downloadUrl" target="_blank" rel="noopener" data-current-download-link>
                                                 <i class="fa-solid fa-download" aria-hidden="true"></i>

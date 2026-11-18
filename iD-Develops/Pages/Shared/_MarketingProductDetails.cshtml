@@ -2,7 +2,7 @@
 @model iD_Develops.Pages.ProductModel
 @inject Microsoft.Extensions.Localization.IStringLocalizer<iD_Develops.Pages.ProductModel> Localizer
 
-<div data-marketing-product>
+<div data-marketing-product data-product-preview-only="@Model.Product.IsPreviewOnly.ToString().ToLowerInvariant()">
     <div class="product-page-header">
         <h1 class="product-page-title">@Model.Product.Name</h1>
         @if (!string.IsNullOrWhiteSpace(Model.Product.Summary))
@@ -24,8 +24,11 @@
                 <img src="@Model.ResolvedImageUrl" alt="@Model.Product.Name" class="product-hero-image" />
             }
             <partial name="_CatalogPrice" model="Model.Product" />
-            <p class="mt-5 text-base leading-7">@Localizer["MarketingProductContactMessage"]</p>
-            <a class="public-btn public-btn-primary product-cta" asp-page="/Contact" asp-route-culture="@CultureInfo.CurrentUICulture.Name.ToLowerInvariant()">@Localizer["MarketingProductContactAction"] <span aria-hidden="true">→</span></a>
+            @if (!Model.Product.IsPreviewOnly)
+            {
+                <p class="mt-5 text-base leading-7">@Localizer["MarketingProductContactMessage"]</p>
+                <a class="public-btn public-btn-primary product-cta" asp-page="/Contact" asp-route-culture="@CultureInfo.CurrentUICulture.Name.ToLowerInvariant()">@Localizer["MarketingProductContactAction"] <span aria-hidden="true">→</span></a>
+            }
         </aside>
     </div>
 </div>

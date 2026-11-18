@@ -72,7 +72,7 @@
         <div class="public-alert public-alert-success product-page-alert">@statusMessage</div>
     }
 
-    @if (!Model.IsPreviewMode && !Model.Product.IsSalesActive)
+    @if (!Model.IsPreviewMode && !Model.Product.IsPreviewOnly && !Model.Product.IsSalesActive)
     {
         <div class="public-alert public-alert-warning product-page-alert">
             This offer is currently visible by direct link, but new signups and purchases are paused for now.
@@ -706,6 +706,7 @@
                         <span>Don't display publicly</span>
                     </label>
                 </div>
+                <partial name="_ProductPreviewSettings" model="Model" />
                 <div class="product-advanced-field">
                     <label class="public-label product-admin-label">Attached file</label>
                     <div class="product-file-upload">
@@ -730,7 +731,7 @@
             </div>
         </form>
     }
-    else if (!SiteAccess.PublicTransactionsEnabled)
+    else if (!SiteAccess.PublicTransactionsEnabled || Model.Product.IsPreviewOnly)
     {
         <partial name="_MarketingProductDetails" model="Model" />
     }

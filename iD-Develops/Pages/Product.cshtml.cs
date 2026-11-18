@@ -78,7 +78,7 @@ namespace iD_Develops.Pages
         public int? SelectedVariantId { get; private set; }
         public bool IsPreviewMode { get; private set; }
         public string? AccessToken { get; private set; }
-        public bool CanTakeAction => IsPreviewMode || Product.IsSalesActive;
+        public bool CanTakeAction => !Product.IsPreviewOnly && (IsPreviewMode || Product.IsSalesActive);
         public bool IsAdminEditMode { get; private set; }
         public List<Course> CourseOptions { get; private set; } = new();
         public List<Exam> ExamOptions { get; private set; } = new();
@@ -175,7 +175,7 @@ namespace iD_Develops.Pages
             }
             await ResolveProductFilesAsync(product);
 
-            if (resumeCheckout && !IsPreviewMode)
+            if (resumeCheckout && !IsPreviewMode && !product.IsPreviewOnly)
             {
                 var handoff = _authenticationHandoffService.ValidateToken(portalAccess);
                 var handoffPath = handoff?.ReturnPath.Split('?', 2)[0];
@@ -207,6 +207,11 @@ namespace iD_Develops.Pages
             if (product == null)
             {
                 return NotFound();
+            }
+
+            if (product.IsPreviewOnly)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden);
             }
 
             Product = product;
@@ -370,7 +375,7 @@ namespace iD_Develops.Pages
                 return RedirectToPage(new { slug = product.Slug, access });
             }
 
-            if (!product.IsSalesActive)
+            if (product.IsPreviewOnly || !product.IsSalesActive)
             {
                 HttpContext.Session.Remove(PendingCheckoutSessionKey);
                 TempData["StatusMessage"] = _localizer["SalesPausedShortMessage"].Value;
@@ -671,6 +676,7 @@ namespace iD_Develops.Pages
                     WorkflowType = product.WorkflowType,
                     Status = requestedStatus,
                     IsSalesActive = product.IsSalesActive,
+                    IsPreviewOnly = EditInput.IsPreviewOnly,
                     RequireAccessToken = product.RequireAccessToken,
                     Currency = product.Currency,
                     BasePrice = EditInput.BasePrice,
@@ -1353,6 +1359,7 @@ namespace iD_Develops.Pages
                     ? productTranslation?.ExternalBookingButtonText
                     : product.ExternalBookingButtonText,
                 HideFromProductsPage = product.HideFromProductsPage,
+                IsPreviewOnly = product.IsPreviewOnly,
                 IsFeatured = product.IsFeatured,
                 SortOrder = product.SortOrder,
                 IsHomepageHighlighted = product.IsHomepageHighlighted,
@@ -1588,6 +1595,8 @@ namespace iD_Develops.Pages
             public string? ExternalBookingButtonText { get; set; }
 
             public bool HideFromProductsPage { get; set; }
+
+            public bool IsPreviewOnly { get; set; }
 
             public bool IsFeatured { get; set; }
 

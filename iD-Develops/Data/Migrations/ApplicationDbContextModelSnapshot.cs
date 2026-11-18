@@ -784,6 +784,9 @@ namespace iD_Develops.Data.Migrations
                     b.Property<bool>("IsHomepageHighlighted")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsPreviewOnly")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("IsSalesActive")
                         .HasColumnType("boolean");
 

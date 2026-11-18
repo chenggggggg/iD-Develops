@@ -239,6 +239,7 @@ namespace iD_Develops.Services
             existing.WorkflowType = product.WorkflowType;
             existing.Status = product.Status;
             existing.IsSalesActive = product.IsSalesActive;
+            existing.IsPreviewOnly = product.IsPreviewOnly;
             existing.RequireAccessToken = product.RequireAccessToken;
             existing.Currency = NormalizeCurrency(product.Currency);
             existing.BasePrice = NormalizeMoney(product.BasePrice);
