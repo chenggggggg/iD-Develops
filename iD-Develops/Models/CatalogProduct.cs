@@ -36,6 +36,8 @@ namespace iD_Develops.Models
 
         public bool IsSalesActive { get; set; } = true;
 
+        public bool IsPreviewOnly { get; set; }
+
         [MaxLength(3)]
         public string Currency { get; set; } = "EUR";
 

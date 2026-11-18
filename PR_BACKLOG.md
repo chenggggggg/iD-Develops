@@ -1,9 +1,9 @@
 ﻿# Planned PR backlog
 
-Updated: 2026-11-16
+Updated: 2026-11-18
 
 This is the combined planning backlog from the staging review and owner meeting.
-B01-B28 are planning IDs, not GitHub PR numbers. Current launch priorities are:
+B01-B30 are planning IDs, not GitHub PR numbers. Current launch priorities are:
 P0 marketing-release blockers, P1 supporting work, P2 post-launch improvements.
 This file does not authorize implementation, Git changes, or deployments.
 
@@ -930,6 +930,43 @@ and live acceptance remain pending the owner's infrastructure setup and activati
   the access policy applying to each attempt so mode changes do not disrupt ongoing tests.
 - Marketing mode continues to disallow public registration/login. Do not create accounts
   automatically for Marketing visitors or remove existing records when switching modes.
+
+## B29 - P1 - Preview-only products and navbar language switch
+
+**Estimated size: Medium.** Product setting, server-side action guards, localization,
+and responsive public navigation with browser coverage.
+
+Status: implemented and verified on `feature/product-preview-language-toggle`;
+awaiting PR review and merge. Branch approved 2026-11-18.
+
+- Add a per-product Preview only setting, independent of publication status and the
+  site-wide Marketing/Full mode. Keep product information visible while hiding
+  checkout/signup actions and rejecting new submissions server-side.
+- Preserve existing product behavior by default and already-paid fulfillment.
+- Add a visible globe/EN-or-NL switch in the public navbar, including mobile. Switch
+  directly to the other language without opening a dropdown; retain page/query/fragment
+  where applicable and use a usable navigation link when JavaScript is unavailable.
+
+## B30 - P1 - Homepage service-section loading and scroll performance
+
+**Estimated size: Medium, subject to profiling.** Separate performance PR requested
+2026-11-18; do not implement as part of B29.
+
+- Investigate the visible three-stage loading of Home > What we do: section title,
+  bento/card surfaces, then their images. Identify image request timing, decoding,
+  reveal triggers, animation scheduling, and layout/paint costs before selecting fixes.
+- Bring relevant image readiness and card presentation together so entering the
+  section does not expose a conspicuous incomplete intermediate state.
+- Profile the reported scroll stutter on desktop and mobile; check hover transforms,
+  shadows, gradients, and animation properties without assuming the cause.
+- Preserve the approved content/layout, reduced-motion behavior, keyboard access,
+  and the homepage hero's loading priority. Avoid eagerly loading all below-fold
+  media unless measurements justify it.
+- Verify cold and warm loads, constrained network/CPU conditions, section entry,
+  repeated scrolling, and available desktop/mobile browser traces. Report physical
+  device verification limitations rather than treating emulation as real hardware.
+- Update meaningful browser regressions where behavior changes; do not preserve a
+  harmful loading strategy merely because an existing test asserts its attributes.
 
 ## External references checked
 

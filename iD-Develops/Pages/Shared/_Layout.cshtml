@@ -63,15 +63,18 @@
 <body class="public-site @ViewData["BodyClass"]">
 
     <main class="@(isHomePage ? "!mt-0 !pt-0" : string.Empty)" role="main">
-        <header class="public-header @(isHomePage ? "!fixed" : string.Empty) opacity-0 -translate-y-full transition-[opacity,translate] duration-1000 ease-out" data-reveal="load">
+        <header class="public-header @(isHomePage ? "!fixed" : string.Empty) opacity-0 -translate-y-full @("[@media(scripting:none)]:opacity-100 [@media(scripting:none)]:translate-y-0") transition-[opacity,translate] duration-1000 ease-out" data-reveal="load">
             <div class="public-container">
                 <nav class="public-nav" aria-label="@localizer["Nav_Menu"]">
                     <a class="public-nav-brand" href="@PublicPageHref("/index")">
                         <img src="@logoImage" class="public-nav-logo @logoThemeClass logo-image" alt="Logo" />
                     </a>
-                    <button class="public-menu-toggle" type="button" data-public-menu-toggle aria-controls="sidebarMenu" aria-expanded="false" aria-label="@localizer["Nav_Toggle"]" disabled>
-                        <span class="public-menu-toggle-bars" aria-hidden="true"></span>
-                    </button>
+                    <div class="flex items-center gap-2 justify-self-end lg:hidden">
+                        <partial name="_PublicLanguageSwitch" />
+                        <button class="public-menu-toggle" type="button" data-public-menu-toggle aria-controls="sidebarMenu" aria-expanded="false" aria-label="@localizer["Nav_Toggle"]" disabled>
+                            <span class="public-menu-toggle-bars" aria-hidden="true"></span>
+                        </button>
+                    </div>
                     <div class="hidden lg:contents" id="navbarSupportedContent">
                         <ul class="public-nav-list">
                             <li class="public-nav-item">
@@ -99,6 +102,7 @@
                         </ul>
                         <ul class="public-nav-actions">
                             <partial name="_LoginPartial" />
+                            <li class="public-nav-item"><partial name="_PublicLanguageSwitch" /></li>
                             <li class="public-nav-item">
                                 <a class="public-nav-link public-nav-contact" href="@PublicPageHref("/contact")">@localizer["Nav_Contact"] <i class="fas fa-arrow-right"></i></a>
                             </li>

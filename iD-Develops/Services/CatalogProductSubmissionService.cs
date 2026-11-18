@@ -34,6 +34,9 @@ namespace iD_Develops.Services
             CancellationToken ct = default,
             string? requestKey = null)
         {
+            if (product.IsPreviewOnly)
+                throw new InvalidOperationException("This product is available for information only.");
+
             if (product.ProductType == CatalogProductType.Signup)
             {
                 if (!submittedValues.TryGetValue(SignupPersonalDetails.FullNameKey, out var name) ||

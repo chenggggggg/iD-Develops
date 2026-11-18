@@ -1,0 +1,9 @@
+@model iD_Develops.Pages.ProductModel
+
+<label class="my-4 flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4" data-product-preview-settings>
+    <input asp-for="EditInput.IsPreviewOnly" class="mt-1 size-4 shrink-0 rounded border-slate-300 text-[var(--id-blue)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]" />
+    <span>
+        <span class="block text-sm font-semibold text-slate-900">Preview only</span>
+        <span class="mt-1 block text-sm leading-6 text-slate-600">Show product information without checkout or sign-up. Applies to all languages; publication and visibility settings still apply.</span>
+    </span>
+</label>

@@ -1,0 +1,18 @@
+@using System.Globalization
+@using iD_Develops.Utilities
+@inject iD_Develops.Services.IApplicationUrlService ApplicationUrls
+@inject IViewLocalizer Localizer
+@if (!ApplicationUrls.IsPortalRequest(Context.Request))
+{
+    var targetCulture = PublicLanguageNavigation.OtherCulture(CultureInfo.CurrentUICulture.Name);
+    <a href="@PublicLanguageNavigation.SwitchCulture(Context.Request, targetCulture)" data-lang="@targetCulture" hreflang="@targetCulture"
+       aria-label="@Localizer["SwitchLanguage"]" data-public-language-switch
+       class="inline-flex min-h-11 items-center gap-1.5 rounded-md px-2 text-xs font-medium text-[var(--serif-blue-dark)] no-underline transition-colors hover:bg-[var(--serif-soft)] hover:text-[var(--serif-blue-dark)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-red)]">
+        <svg aria-hidden="true" focusable="false" class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="9" />
+            <ellipse cx="12" cy="12" rx="4" ry="9" />
+            <path d="M3 12h18" />
+        </svg>
+        <span>@Localizer["CurrentLanguageShort"]</span>
+    </a>
+}

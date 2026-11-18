@@ -73,7 +73,7 @@ namespace iD_Develops.Pages
                 return NotFound();
             }
 
-            if (product.Status != CatalogProductStatus.Published && !CanManageProducts())
+            if ((product.Status != CatalogProductStatus.Published || product.IsPreviewOnly) && !CanManageProducts())
             {
                 return NotFound();
             }
@@ -154,6 +154,7 @@ namespace iD_Develops.Pages
                     WorkflowType = product.WorkflowType,
                     Status = CatalogProductStatus.Published,
                     IsSalesActive = product.IsSalesActive,
+                    IsPreviewOnly = product.IsPreviewOnly,
                     RequireAccessToken = product.RequireAccessToken,
                     Currency = product.Currency,
                     BasePrice = product.BasePrice,

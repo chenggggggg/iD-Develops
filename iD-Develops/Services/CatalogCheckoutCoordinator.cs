@@ -17,6 +17,10 @@ public sealed class CatalogCheckoutCoordinator(ApplicationDbContext db, ICatalog
         Guid requestId, Dictionary<string, string> values, string? email, int quantity, int participants,
         string? access, string? userId, CancellationToken ct)
     {
+        if (product.IsPreviewOnly || await db.CatalogProducts.AsNoTracking()
+                .AnyAsync(item => item.Id == product.Id && item.IsPreviewOnly, ct))
+            throw new InvalidOperationException("This product is available for information only.");
+
         if (product.GrantedExamId.HasValue)
         {
             if (quantity != 1 || participants != 1) throw new InvalidOperationException("Exam purchases must have quantity 1 and one participant.");
