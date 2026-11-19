@@ -30,7 +30,7 @@ B15 asset work can run alongside these; broken visible assets are launch blocker
 while exhaustive unused-image cleanup is supporting work. B10 already covers the
 completion wallpaper. Its current layout shows the image on desktop and prioritizes
 the form on mobile. The brighter homepage image is merged in PR #61; the remaining B15
-asset audit and cleanup are implemented and awaiting review.
+asset audit and cleanup are merged in PR #64.
 
 Public result viewing remains independent of portal login. Retain the protected emailed
 link; a record ID alone must not grant access. Signed-in attempts keep their account
@@ -509,7 +509,7 @@ Tailwind build, Release build, solution formatting, all 603 unit/integration tes
 also passed for 26 localized pages and 14 images, including the supplied hero asset.
 The original local settings were restored after checking Marketing mode.
 The remaining asset batch is implemented and verified on `perf/public-image-optimization`,
-approved 2026-11-19; awaiting PR review. The homepage team carousel reuses the
+approved 2026-11-19; merged in PR #64. The homepage team carousel reuses the
 existing responsive founder portraits. Six error illustrations and the slideshow fallback
 use smaller WebP versions without changing their content; illustration transparency is
 unchanged. Removed 24 retired assets with no source or local stored-content references
@@ -726,7 +726,7 @@ until the company confirms them. Include My Profile/history/refund states in B20
 - B21: unused purchases may use the refund button; used purchases require contacting
   the company. Defer additional refund rules and legal wording until company approval.
 - B15's supplied replacement hero is merged in PR #61; the remaining image optimization
-  and cleanup are implemented and verified, awaiting PR review.
+  and cleanup are merged in PR #64.
 
 ## Suggested implementation order
 
@@ -891,6 +891,24 @@ Desktop English and mobile Dutch renders have been inspected in the browser.
 ## B27 - P0 - Marketing production launch and acceptance checks
 
 **Estimated size: Medium.** Environment configuration and complete public-flow verification.
+
+Production preparation, 2026-11-19: the GitHub `production` environment is created
+with a main-only deployment rule and seven non-secret release variables. No paid
+production resources were created and DNS is unchanged. The current DigitalOcean token
+cannot inspect Managed Databases; the existing staging database type/plan still needs
+confirmation. A fresh production database requires reviewed content import and media
+transfer; the existing exam importer creates a draft and retains media references.
+
+Small CI follow-up implemented on `fix/no-script-language-switch-ci`: the merged #64
+run failed the desktop no-JavaScript language-switch check before staging deployment.
+Isolate that fallback-navigation test from third-party asset delivery and use the
+tracked fixture context so failure diagnostics capture the actual page. Keep real
+clicks, keyboard navigation, query preservation, and both language directions.
+Verified locally: Release build, solution formatting, 615 unit/integration tests,
+54 relevant Full-mode browser tests, 74 Marketing-mode browser tests, 75 deployment
+policy tests, and the GET-only release smoke passed. Both moved no-JavaScript cases
+executed in both modes. Original local settings and Full mode were restored. Awaiting
+PR review and successful GitHub CI before production resource creation.
 
 Status: implementation merged in [PR #60](https://github.com/chenggggggg/iD-Develops/pull/60). Production provisioning, DNS cutover,
 and live acceptance remain separate from this implementation. The manual workflow
