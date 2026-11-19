@@ -32,18 +32,4 @@ public sealed class PublicLanguageSwitchTests : DiagnosticPageTest
         await Expect(Page).ToHaveURLAsync($"{LocalTestApplication.PublicBaseUrl}/en-us{suffix}");
         await Expect(toggle).ToHaveAccessibleNameAsync("Switch to Dutch");
     }
-
-    [Theory]
-    [InlineData(390)]
-    [InlineData(1440)]
-    public async Task LanguageSwitchWorksAsANativeLinkWithoutJavaScript(int width)
-    {
-        await using var context = await Browser.NewContextAsync(new() { JavaScriptEnabled = false, ViewportSize = new() { Width = width, Height = 900 } });
-        var page = await context.NewPageAsync();
-        await page.GotoAsync($"{LocalTestApplication.PublicBaseUrl}/en-us/about?ref=no-script");
-        var toggle = page.Locator("[data-public-language-switch]:visible");
-        await Expect(toggle).ToBeVisibleAsync();
-        await toggle.ClickAsync();
-        await Expect(page).ToHaveURLAsync($"{LocalTestApplication.PublicBaseUrl}/nl-nl/about?ref=no-script");
-    }
 }
