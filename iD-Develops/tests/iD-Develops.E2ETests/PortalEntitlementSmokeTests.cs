@@ -201,7 +201,7 @@ public sealed class PortalEntitlementSmokeTests : DiagnosticPageTest
     }
 
     [Fact]
-    public async Task PublicHome_DefersServiceCardImagesWithoutHidingTheGrid()
+    public async Task PublicHome_UsesResponsiveServiceImagesWithoutHidingTheGrid()
     {
         var response = await Page.GotoAsync(
             $"{PublicBaseUrl}/en-us/",
@@ -221,7 +221,7 @@ public sealed class PortalEntitlementSmokeTests : DiagnosticPageTest
             var image = serviceImages.Nth(index);
             await Expect(image).ToHaveAttributeAsync("loading", "lazy");
             await Expect(image).ToHaveAttributeAsync("decoding", "async");
-            await Expect(image).ToHaveAttributeAsync("fetchpriority", "low");
+            await Expect(image).ToHaveAttributeAsync("srcset", new System.Text.RegularExpressions.Regex("480w.*960w"));
         }
     }
 

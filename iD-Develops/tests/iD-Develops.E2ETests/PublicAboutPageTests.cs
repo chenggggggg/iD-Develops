@@ -56,12 +56,21 @@ public sealed class PublicAboutPageTests : DiagnosticPageTest
         await Expect(biographies.Nth(0).Locator("p")).ToHaveCountAsync(3);
         await Expect(biographies.Nth(1).Locator("p")).ToHaveCountAsync(culture == "en-us" ? 3 : 2);
 
-        var previousBottom = 0f;
-        foreach (var chapter in new[] { "about-hero", "about-origins", "about-together", "service-contact" })
+        // Font swaps change wrapping; compare one settled layout instead of boxes from different frames.
+        await Page.EvaluateAsync("() => document.fonts.ready");
+        var chapters = new[] { "about-hero", "about-origins", "about-together", "service-contact" };
+        var chapterBounds = await Page.EvaluateAsync<double[][]>("""
+            ids => ids.map(id => {
+                const box = document.querySelector('[data-testid="' + id + '"]').getBoundingClientRect();
+                return [box.top, box.height];
+            })
+            """, chapters);
+        var previousBottom = 0d;
+        for (var index = 0; index < chapters.Length; index++)
         {
-            var bounds = await Page.GetByTestId(chapter).BoundingBoxAsync();
-            Assert.True(bounds!.Y >= previousBottom - 1, $"{chapter} overlaps the preceding section.");
-            previousBottom = bounds.Y + bounds.Height;
+            var bounds = chapterBounds[index];
+            Assert.True(bounds[0] >= previousBottom - 1, $"{chapters[index]} overlaps the preceding section.");
+            previousBottom = bounds[0] + bounds[1];
         }
 
         double[]? commonEdges = null;
