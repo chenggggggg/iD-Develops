@@ -83,7 +83,7 @@ namespace iD_Develops.Pages.Portal
                     };
                     ThemeClass = "error-theme-info";
                     IconText = "DB";
-                    ImagePath = "/images/error-connectivity.png";
+                    ImagePath = "/images/error-connectivity.webp";
                     ImageAlt = "Database or connectivity issue";
                     PrimaryActionLabel = "Try again";
                     PrimaryActionUrl = localReturnUrl;
@@ -97,7 +97,7 @@ namespace iD_Develops.Pages.Portal
                     Detail = "Please check the input or try the action again from the previous page.";
                     ThemeClass = "error-theme-warning";
                     IconText = "400";
-                    ImagePath = "/images/error-invalid-request.png";
+                    ImagePath = "/images/error-invalid-request.webp";
                     ImageAlt = "Invalid request";
                     PrimaryActionLabel = "Try again";
                     PrimaryActionUrl = localReturnUrl;
@@ -111,7 +111,7 @@ namespace iD_Develops.Pages.Portal
                     Detail = "Please sign in and try again.";
                     ThemeClass = "error-theme-primary";
                     IconText = "401";
-                    ImagePath = "/images/error-authentication.png";
+                    ImagePath = "/images/error-authentication.webp";
                     ImageAlt = "Authentication required";
                     PrimaryActionLabel = "Sign in";
                     PrimaryActionUrl = BuildLoginUrl(localReturnUrl, isPortalRequest);
@@ -125,7 +125,7 @@ namespace iD_Develops.Pages.Portal
                     Detail = "If you believe this is a mistake, contact an administrator.";
                     ThemeClass = "error-theme-violet";
                     IconText = "403";
-                    ImagePath = "/images/error-authorization.png";
+                    ImagePath = "/images/error-authorization.webp";
                     ImageAlt = "Access denied";
                     PrimaryActionLabel = "Go home";
                     PrimaryActionUrl = HomeUrl;
@@ -139,7 +139,7 @@ namespace iD_Develops.Pages.Portal
                     Detail = "The link may be outdated, or the item may have been moved or removed.";
                     ThemeClass = "error-theme-slate";
                     IconText = "404";
-                    ImagePath = "/images/error-not-found.png";
+                    ImagePath = "/images/error-not-found.webp";
                     ImageAlt = "Page not found";
                     PrimaryActionLabel = "Go home";
                     PrimaryActionUrl = HomeUrl;
@@ -153,7 +153,7 @@ namespace iD_Develops.Pages.Portal
                     Detail = "Refresh the page and try again.";
                     ThemeClass = "error-theme-warning";
                     IconText = "409";
-                    ImagePath = "/images/error-invalid-request.png";
+                    ImagePath = "/images/error-invalid-request.webp";
                     ImageAlt = "Request conflict";
                     PrimaryActionLabel = "Refresh and try again";
                     PrimaryActionUrl = localReturnUrl;
@@ -175,7 +175,7 @@ namespace iD_Develops.Pages.Portal
                     Detail = "Please check the input or try the action again from the previous page.";
                     ThemeClass = "error-theme-warning";
                     IconText = "400";
-                    ImagePath = "/images/error-invalid-request.png";
+                    ImagePath = "/images/error-invalid-request.webp";
                     ImageAlt = "Invalid request";
                     break;
                 case StatusCodes.Status401Unauthorized:
@@ -185,7 +185,7 @@ namespace iD_Develops.Pages.Portal
                     Detail = "Please sign in and try again.";
                     ThemeClass = "error-theme-primary";
                     IconText = "401";
-                    ImagePath = "/images/error-authentication.png";
+                    ImagePath = "/images/error-authentication.webp";
                     ImageAlt = "Authentication required";
                     PrimaryActionLabel = "Sign in";
                     PrimaryActionUrl = BuildLoginUrl(localReturnUrl, isPortalRequest);
@@ -197,7 +197,7 @@ namespace iD_Develops.Pages.Portal
                     Detail = "If you believe this is a mistake, contact an administrator.";
                     ThemeClass = "error-theme-violet";
                     IconText = "403";
-                    ImagePath = "/images/error-authorization.png";
+                    ImagePath = "/images/error-authorization.webp";
                     ImageAlt = "Access denied";
                     PrimaryActionLabel = "Go home";
                     PrimaryActionUrl = HomeUrl;
@@ -211,7 +211,7 @@ namespace iD_Develops.Pages.Portal
                     Detail = "The link may be outdated, or the item may have been moved or removed.";
                     ThemeClass = "error-theme-slate";
                     IconText = "404";
-                    ImagePath = "/images/error-not-found.png";
+                    ImagePath = "/images/error-not-found.webp";
                     ImageAlt = "Page not found";
                     PrimaryActionLabel = "Go home";
                     PrimaryActionUrl = HomeUrl;
@@ -225,7 +225,7 @@ namespace iD_Develops.Pages.Portal
                     Detail = "Refresh the page and try again.";
                     ThemeClass = "error-theme-warning";
                     IconText = "409";
-                    ImagePath = "/images/error-invalid-request.png";
+                    ImagePath = "/images/error-invalid-request.webp";
                     ImageAlt = "Request conflict";
                     PrimaryActionLabel = "Refresh and try again";
                     PrimaryActionUrl = localReturnUrl;
@@ -237,7 +237,7 @@ namespace iD_Develops.Pages.Portal
                     Detail = "Try again shortly.";
                     ThemeClass = "error-theme-info";
                     IconText = "503";
-                    ImagePath = "/images/error-unavailable.png";
+                    ImagePath = "/images/error-unavailable.webp";
                     ImageAlt = "Service unavailable";
                     break;
                 default:
@@ -248,7 +248,7 @@ namespace iD_Develops.Pages.Portal
                         Summary = "The request could not be processed in its current form.";
                         Detail = "Please check the input or try the action again from the previous page.";
                         ThemeClass = "error-theme-warning";
-                        ImagePath = "/images/error-invalid-request.png";
+                        ImagePath = "/images/error-invalid-request.webp";
                         ImageAlt = "Invalid request";
                     }
                     else
@@ -258,7 +258,7 @@ namespace iD_Develops.Pages.Portal
                         Summary = "An unexpected server error occurred.";
                         Detail = "Please try again in a moment. If the problem continues, contact support.";
                         ThemeClass = "error-theme-danger";
-                        ImagePath = "/images/error-unavailable.png";
+                        ImagePath = "/images/error-unavailable.webp";
                         ImageAlt = "System or service issue";
                     }
 
