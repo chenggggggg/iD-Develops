@@ -1,6 +1,6 @@
 ﻿# Planned PR backlog
 
-Updated: 2026-11-18
+Updated: 2026-11-19
 
 This is the combined planning backlog from the staging review and owner meeting.
 B01-B30 are planning IDs, not GitHub PR numbers. Current launch priorities are:
@@ -29,7 +29,8 @@ Launch order: B10 -> B22 -> B23 -> B24 -> B25 -> B26 -> B27.
 B15 asset work can run alongside these; broken visible assets are launch blockers,
 while exhaustive unused-image cleanup is supporting work. B10 already covers the
 completion wallpaper. Its current layout shows the image on desktop and prioritizes
-the form on mobile. The owner has supplied the brighter homepage image; its B15 replacement is in progress.
+the form on mobile. The brighter homepage image is merged in PR #61; the remaining B15
+asset audit and cleanup are implemented and awaiting review.
 
 Public result viewing remains independent of portal login. Retain the protected emailed
 link; a record ID alone must not grant access. Signed-in attempts keep their account
@@ -507,7 +508,19 @@ Tailwind build, Release build, solution formatting, all 603 unit/integration tes
 242 Full-mode E2E tests, and 42 Marketing-mode E2E tests pass. Public smoke checks
 also passed for 26 localized pages and 14 images, including the supplied hero asset.
 The original local settings were restored after checking Marketing mode.
-The broader unused-image inventory and cleanup remain separate supporting work.
+The remaining asset batch is implemented and verified on `perf/public-image-optimization`,
+approved 2026-11-19; awaiting PR review. The homepage team carousel reuses the
+existing responsive founder portraits. Six error illustrations and the slideshow fallback
+use smaller WebP versions without changing their content; illustration transparency is
+unchanged. Removed 24 retired assets with no source or local stored-content references
+and eight replaced originals. Retained image assets total 1,305,392 bytes instead of
+32,067,880 bytes. PNG email branding and active logos remain intact.
+Verification: Release build, solution formatting, all 615 unit/integration tests,
+54 relevant Full-mode browser tests, 74 Marketing-mode browser tests, and 75 deployment
+policy tests passed. All 25 retained images served correctly and returned HTTP 304 for
+matching ETags. Release smoke checks passed for 26 localized pages and nine shared images.
+Desktop/mobile team and error-page renders and original/optimized image comparisons were
+inspected. Physical-device and staging stored-content inspection were not performed.
 
 - Replace the current dark hero with the supplied brighter image; tune crop and overlay
   without losing readable text. Do not select/generate the replacement on the user's behalf.
@@ -712,7 +725,8 @@ until the company confirms them. Include My Profile/history/refund states in B20
   browser tests, and EF model/migration consistency passed on 2026-11-02.
 - B21: unused purchases may use the refund button; used purchases require contacting
   the company. Defer additional refund rules and legal wording until company approval.
-- B15's replacement hero image has been supplied; the focused replacement is in progress.
+- B15's supplied replacement hero is merged in PR #61; the remaining image optimization
+  and cleanup are implemented and verified, awaiting PR review.
 
 ## Suggested implementation order
 
@@ -806,7 +820,8 @@ missing. Existing localized offer differences and consultation destinations are 
 Eight new browser tests cover 320/390/768/1440px, both languages, keyboard navigation,
 image loading, header clearance, overflow, and contact/level-test links without JavaScript.
 Responsive WebP variants reuse the existing photographs (13-76 KB each).
-Original assets remain for the separate B15 usage audit and cleanup.
+Original assets were retained for B15's usage audit; that cleanup is now implemented
+on `perf/public-image-optimization` after source and local stored-content checks.
 PR #56 verification: Release build, solution formatting check, all 579 unit/integration tests,
 234 Full-mode browser tests, and 42 Marketing-mode browser tests passed. The eight new
 service-page checks also passed separately after isolating the no-JavaScript fallback
@@ -951,8 +966,7 @@ Status: merged in PR #62, 2026-11-18.
 **Estimated size: Medium.** Separate performance PR requested
 2026-11-18; do not implement as part of B29.
 
-Status: implemented and verified on `perf/home-services-loading`;
-awaiting PR review and merge. Started 2026-11-18.
+Status: completed and merged in [PR #63](https://github.com/chenggggggg/iD-Develops/pull/63), 2026-11-19.
 
 - Investigate the visible three-stage loading of Home > What we do: section title,
   bento/card surfaces, then their images. Identify image request timing, decoding,

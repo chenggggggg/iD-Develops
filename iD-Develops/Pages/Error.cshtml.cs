@@ -95,7 +95,7 @@ namespace iD_Develops.Pages
                     };
                     ThemeClass = "error-theme-info";
                     IconText = "DB";
-                    ImagePath = "/images/error-connectivity.png";
+                    ImagePath = "/images/error-connectivity.webp";
                     ImageAlt = _localizer["DatabaseImageAlt"];
                     PrimaryActionLabel = _localizer["TryAgainAction"];
                     PrimaryActionUrl = localReturnUrl;
@@ -109,7 +109,7 @@ namespace iD_Develops.Pages
                     Detail = _localizer["BadRequestDetail"];
                     ThemeClass = "error-theme-warning";
                     IconText = "400";
-                    ImagePath = "/images/error-invalid-request.png";
+                    ImagePath = "/images/error-invalid-request.webp";
                     ImageAlt = _localizer["BadRequestImageAlt"];
                     PrimaryActionLabel = _localizer["TryAgainAction"];
                     PrimaryActionUrl = localReturnUrl;
@@ -123,7 +123,7 @@ namespace iD_Develops.Pages
                     Detail = _localizer["UnauthorizedDetail"];
                     ThemeClass = "error-theme-primary";
                     IconText = "401";
-                    ImagePath = "/images/error-authentication.png";
+                    ImagePath = "/images/error-authentication.webp";
                     ImageAlt = _localizer["UnauthorizedImageAlt"];
                     PrimaryActionLabel = _localizer["SignInAction"];
                     PrimaryActionUrl = BuildLoginUrl(localReturnUrl, isPortalRequest);
@@ -137,7 +137,7 @@ namespace iD_Develops.Pages
                     Detail = _localizer["ForbiddenDetail"];
                     ThemeClass = "error-theme-violet";
                     IconText = "403";
-                    ImagePath = "/images/error-authorization.png";
+                    ImagePath = "/images/error-authorization.webp";
                     ImageAlt = _localizer["ForbiddenImageAlt"];
                     PrimaryActionLabel = _localizer["GoHomeAction"];
                     PrimaryActionUrl = HomeUrl;
@@ -151,7 +151,7 @@ namespace iD_Develops.Pages
                     Detail = _localizer["NotFoundDetail"];
                     ThemeClass = "error-theme-slate";
                     IconText = "404";
-                    ImagePath = "/images/error-not-found.png";
+                    ImagePath = "/images/error-not-found.webp";
                     ImageAlt = _localizer["NotFoundImageAlt"];
                     PrimaryActionLabel = _localizer["GoHomeAction"];
                     PrimaryActionUrl = HomeUrl;
@@ -165,7 +165,7 @@ namespace iD_Develops.Pages
                     Detail = _localizer["ConflictDetail"];
                     ThemeClass = "error-theme-warning";
                     IconText = "409";
-                    ImagePath = "/images/error-invalid-request.png";
+                    ImagePath = "/images/error-invalid-request.webp";
                     ImageAlt = _localizer["ConflictImageAlt"];
                     PrimaryActionLabel = _localizer["RefreshAction"];
                     PrimaryActionUrl = localReturnUrl;
@@ -187,7 +187,7 @@ namespace iD_Develops.Pages
                     Detail = _localizer["BadRequestDetail"];
                     ThemeClass = "error-theme-warning";
                     IconText = "400";
-                    ImagePath = "/images/error-invalid-request.png";
+                    ImagePath = "/images/error-invalid-request.webp";
                     ImageAlt = _localizer["BadRequestImageAlt"];
                     break;
                 case StatusCodes.Status401Unauthorized:
@@ -197,7 +197,7 @@ namespace iD_Develops.Pages
                     Detail = _localizer["UnauthorizedDetail"];
                     ThemeClass = "error-theme-primary";
                     IconText = "401";
-                    ImagePath = "/images/error-authentication.png";
+                    ImagePath = "/images/error-authentication.webp";
                     ImageAlt = _localizer["UnauthorizedImageAlt"];
                     PrimaryActionLabel = _localizer["SignInAction"];
                     PrimaryActionUrl = BuildLoginUrl(localReturnUrl, isPortalRequest);
@@ -209,7 +209,7 @@ namespace iD_Develops.Pages
                     Detail = _localizer["ForbiddenDetail"];
                     ThemeClass = "error-theme-violet";
                     IconText = "403";
-                    ImagePath = "/images/error-authorization.png";
+                    ImagePath = "/images/error-authorization.webp";
                     ImageAlt = _localizer["ForbiddenImageAlt"];
                     PrimaryActionLabel = _localizer["GoHomeAction"];
                     PrimaryActionUrl = HomeUrl;
@@ -223,7 +223,7 @@ namespace iD_Develops.Pages
                     Detail = _localizer["NotFoundDetail"];
                     ThemeClass = "error-theme-slate";
                     IconText = "404";
-                    ImagePath = "/images/error-not-found.png";
+                    ImagePath = "/images/error-not-found.webp";
                     ImageAlt = _localizer["NotFoundImageAlt"];
                     PrimaryActionLabel = _localizer["GoHomeAction"];
                     PrimaryActionUrl = HomeUrl;
@@ -237,7 +237,7 @@ namespace iD_Develops.Pages
                     Detail = _localizer["ConflictDetail"];
                     ThemeClass = "error-theme-warning";
                     IconText = "409";
-                    ImagePath = "/images/error-invalid-request.png";
+                    ImagePath = "/images/error-invalid-request.webp";
                     ImageAlt = _localizer["ConflictImageAlt"];
                     PrimaryActionLabel = _localizer["RefreshAction"];
                     PrimaryActionUrl = localReturnUrl;
@@ -249,7 +249,7 @@ namespace iD_Develops.Pages
                     Detail = _localizer["ServiceUnavailableDetail"];
                     ThemeClass = "error-theme-info";
                     IconText = "503";
-                    ImagePath = "/images/error-unavailable.png";
+                    ImagePath = "/images/error-unavailable.webp";
                     ImageAlt = _localizer["ServiceUnavailableImageAlt"];
                     break;
                 default:
@@ -260,7 +260,7 @@ namespace iD_Develops.Pages
                         Summary = _localizer["BadRequestSummary"];
                         Detail = _localizer["BadRequestDetail"];
                         ThemeClass = "error-theme-warning";
-                        ImagePath = "/images/error-invalid-request.png";
+                        ImagePath = "/images/error-invalid-request.webp";
                         ImageAlt = _localizer["BadRequestImageAlt"];
                     }
                     else
@@ -270,7 +270,7 @@ namespace iD_Develops.Pages
                         Summary = _localizer["ServerErrorSummary"];
                         Detail = _localizer["ServerErrorDetail"];
                         ThemeClass = "error-theme-danger";
-                        ImagePath = "/images/error-unavailable.png";
+                        ImagePath = "/images/error-unavailable.webp";
                         ImageAlt = _localizer["ServerErrorImageAlt"];
                     }
 

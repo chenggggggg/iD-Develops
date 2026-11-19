@@ -23,7 +23,7 @@
                         <div class="error-visual">
                             @if (!string.IsNullOrWhiteSpace(Model.ImagePath))
                             {
-                                <img src="@Model.ImagePath" alt="@Model.ImageAlt" class="error-illustration" />
+                                <img src="@Model.ImagePath" asp-append-version="true" width="1080" height="1080" decoding="async" alt="@Model.ImageAlt" class="error-illustration" />
                             }
                             else
                             {
