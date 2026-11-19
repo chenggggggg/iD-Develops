@@ -936,8 +936,7 @@ and live acceptance remain pending the owner's infrastructure setup and activati
 **Estimated size: Medium.** Product setting, server-side action guards, localization,
 and responsive public navigation with browser coverage.
 
-Status: implemented and verified on `feature/product-preview-language-toggle`;
-awaiting PR review and merge. Branch approved 2026-11-18.
+Status: merged in PR #62, 2026-11-18.
 
 - Add a per-product Preview only setting, independent of publication status and the
   site-wide Marketing/Full mode. Keep product information visible while hiding
@@ -949,14 +948,25 @@ awaiting PR review and merge. Branch approved 2026-11-18.
 
 ## B30 - P1 - Homepage service-section loading and scroll performance
 
-**Estimated size: Medium, subject to profiling.** Separate performance PR requested
+**Estimated size: Medium.** Separate performance PR requested
 2026-11-18; do not implement as part of B29.
+
+Status: implemented and verified on `perf/home-services-loading`;
+awaiting PR review and merge. Started 2026-11-18.
 
 - Investigate the visible three-stage loading of Home > What we do: section title,
   bento/card surfaces, then their images. Identify image request timing, decoding,
   reveal triggers, animation scheduling, and layout/paint costs before selecting fixes.
 - Bring relevant image readiness and card presentation together so entering the
   section does not expose a conspicuous incomplete intermediate state.
+- Keep a coordinated first-entry fade for the heading and cards, with immediate
+  visibility for reduced motion, keyboard focus, and unavailable scripting.
+- Use the existing shared CSS fade-and-rise and scroll observer; do not introduce
+  a service-specific animation API or timing system.
+- Verify normal wheel scrolling, refreshes at the heading or lower cards, and fast
+  jumps into the section so the reveal does not finish too early or leave content hidden.
+- Keep the cookie-free reveal script executable while consent is pending or blocked;
+  verify with Cookiebot active in Brave as well as deterministic consent-gate regressions.
 - Profile the reported scroll stutter on desktop and mobile; check hover transforms,
   shadows, gradients, and animation properties without assuming the cause.
 - Preserve the approved content/layout, reduced-motion behavior, keyboard access,
