@@ -9,12 +9,15 @@
         ? "/"
         : $"/login?returnUrl={Uri.EscapeDataString("/")}";
     var portalUrl = ApplicationUrls.PortalUrl(portalPath);
+    var loginClass = ViewData["PublicLoginVariant"] as string == "mobile"
+        ? "public-nav-login min-h-12 w-full justify-center rounded-md border border-[var(--serif-border)] bg-white px-4 py-3 text-base font-medium tracking-normal text-[var(--serif-blue-dark)] no-underline transition-colors hover:bg-[var(--serif-bg)] hover:text-[var(--serif-blue-dark)] hover:no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-red)]"
+        : "public-nav-link public-nav-login";
 }
 
 @if (SiteAccess.PublicAccountsEnabled)
 {
 <li class="public-nav-item">
-    <a class="public-nav-link public-nav-login"
+    <a class="@loginClass"
        data-no-navigation-progress="@(!hasPortalSession ? "true" : null)"
        href="@portalUrl">
         <span>@(hasPortalSession ? Localizer["Nav_Portal"] : Localizer["Nav_SignIn"])</span>
