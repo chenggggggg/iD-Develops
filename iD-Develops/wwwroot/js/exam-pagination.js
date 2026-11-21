@@ -25,179 +25,56 @@
             || document.querySelector("[data-question-host]");
     }
 
-    function ensureExamModalStyles() {
-        if (document.getElementById("exam-modal-styles")) return;
-
-        const style = document.createElement("style");
-        style.id = "exam-modal-styles";
-        style.textContent = `
-.exam-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.62);
-  z-index: 40000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-}
-
-.exam-modal {
-  width: min(560px, 100%);
-  background: #ffffff;
-  border-radius: 14px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
-  overflow: hidden;
-}
-
-.exam-modal-header {
-  padding: 16px 18px 10px 18px;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.exam-modal-title {
-  margin: 0;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #111827;
-}
-
-.exam-modal-body {
-  padding: 14px 18px;
-  color: #1f2937;
-  line-height: 1.45;
-}
-
-.exam-modal-body ul {
-  margin: 10px 0 0 18px;
-  padding: 0;
-}
-
-.exam-modal-body li + li {
-  margin-top: 6px;
-}
-
-.exam-modal-footer {
-  padding: 12px 18px 16px 18px;
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  border-top: 1px solid #e9ecef;
-}
-
-.exam-modal-btn {
-  border: 1px solid transparent;
-  border-radius: 10px;
-  padding: 8px 14px;
-  font-weight: 600;
-  font-size: 0.92rem;
-  cursor: pointer;
-}
-
-.exam-modal-btn-secondary {
-  background: #ffffff;
-  color: #1f2937;
-  border-color: #d1d5db;
-}
-
-.exam-modal-btn-primary {
-  background: #1d4ed8;
-  color: #ffffff;
-}
-
-.exam-modal-btn-danger {
-  background: #b91c1c;
-  color: #ffffff;
-}
-`;
-
-        document.head.appendChild(style);
-    }
-
-    function escapeHtml(value) {
-        return String(value ?? "")
-            .replaceAll("&", "&amp;")
-            .replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;")
-            .replaceAll('"', "&quot;")
-            .replaceAll("'", "&#039;");
-    }
-
-    function showExamModal(options) {
-        ensureExamModalStyles();
-
-        const opts = options || {};
-        const title = opts.title || "Confirmation";
-        const message = opts.message || "";
-        const details = Array.isArray(opts.details) ? opts.details : [];
-        const confirmText = opts.confirmText || "Continue";
-        const cancelText = opts.cancelText || "Cancel";
-        const hideCancel = !!opts.hideCancel;
-        const confirmVariant = (opts.confirmVariant || "primary").toLowerCase();
-
-        return new Promise((resolve) => {
-            const overlay = document.createElement("div");
-            overlay.className = "exam-modal-overlay";
-            overlay.setAttribute("role", "presentation");
-
-            const confirmClass = confirmVariant === "danger"
-                ? "exam-modal-btn-danger"
-                : "exam-modal-btn-primary";
-
-            const detailList = details.length > 0
-                ? `<ul>${details.map((x) => `<li>${escapeHtml(x)}</li>`).join("")}</ul>`
-                : "";
-
-            overlay.innerHTML = `
-<div class="exam-modal" role="dialog" aria-modal="true" aria-labelledby="examModalTitle">
-  <div class="exam-modal-header">
-    <h3 class="exam-modal-title" id="examModalTitle">${escapeHtml(title)}</h3>
-  </div>
-  <div class="exam-modal-body">
-    <div>${escapeHtml(message)}</div>
-    ${detailList}
-  </div>
-  <div class="exam-modal-footer">
-    ${hideCancel ? "" : `<button type="button" class="exam-modal-btn exam-modal-btn-secondary" data-action="cancel">${escapeHtml(cancelText)}</button>`}
-    <button type="button" class="exam-modal-btn ${confirmClass}" data-action="confirm">${escapeHtml(confirmText)}</button>
-  </div>
-</div>`;
-
-            const close = (value) => {
-                overlay.remove();
-                resolve(!!value);
-            };
-
-            overlay.addEventListener("click", (event) => {
-                const actionEl = event.target.closest("[data-action]");
-                if (!actionEl) return;
-                if (actionEl.dataset.action === "confirm") close(true);
-                if (actionEl.dataset.action === "cancel") close(false);
-            });
-
-            document.addEventListener("keydown", function onKeyDown(event) {
-                if (!document.body.contains(overlay)) {
-                    document.removeEventListener("keydown", onKeyDown);
-                    return;
-                }
-
-                if (event.key === "Escape" && !hideCancel) {
-                    event.preventDefault();
-                    document.removeEventListener("keydown", onKeyDown);
-                    close(false);
-                }
-            });
-
-            document.body.appendChild(overlay);
+    function showExamModal(missing) {
+        const dialog = document.querySelector("[data-exam-submit-dialog]");
+        if (!dialog || dialog.open) return Promise.resolve(false);
+        dialog.querySelector("#examSubmitMessage").textContent = missing.length === 1
+            ? dialog.dataset.singularMessage
+            : dialog.dataset.pluralMessage.replace("{count}", String(missing.length));
+        const list = dialog.querySelector("[data-exam-missing-list]");
+        list.replaceChildren(...missing.map(number => {
+            const item = document.createElement("li");
+            item.textContent = dialog.dataset.questionMessage.replace("{number}", String(number));
+            return item;
+        }));
+        dialog.returnValue = "";
+        const buttons = Array.from(dialog.querySelectorAll("button"));
+        const trapFocus = event => {
+            if (event.key !== "Tab") return;
+            if (event.shiftKey && document.activeElement === buttons[0]) {
+                event.preventDefault();
+                buttons.at(-1).focus();
+            } else if (!event.shiftKey && document.activeElement === buttons.at(-1)) {
+                event.preventDefault();
+                buttons[0].focus();
+            }
+        };
+        return new Promise(resolve => {
+            dialog.addEventListener("keydown", trapFocus);
+            dialog.addEventListener("close", () => {
+                dialog.removeEventListener("keydown", trapFocus);
+                resolve(dialog.returnValue === "confirm");
+            }, { once: true });
+            dialog.showModal();
+            buttons[0].focus();
         });
     }
-
     function setActiveQuestionButton(questionId) {
         document.querySelectorAll(".question-nav-btn[data-question-id]").forEach(btn => {
             const btnId = Number(btn.dataset.questionId);
             const active = btnId === Number(questionId);
             btn.classList.toggle("is-active", active);
             btn.setAttribute("aria-current", active ? "page" : "false");
+            if (active) {
+                const progress = document.querySelector("[data-exam-progress]");
+                if (progress) progress.textContent = progress.dataset.format.replace("{current}", btn.textContent.trim());
+                const scroller = btn.closest("[data-exam-question-scroll]");
+                if (scroller) {
+                    const buttonRect = btn.getBoundingClientRect();
+                    const scrollRect = scroller.getBoundingClientRect();
+                    scroller.scrollLeft += buttonRect.left - scrollRect.left - (scrollRect.width - buttonRect.width) / 2;
+                }
+            }
         });
     }
 
@@ -426,6 +303,7 @@
 
         host.innerHTML = html;
         setActiveQuestionButton(questionId);
+        if (document.querySelector('[data-exam-progress]')) window.scrollTo({ top: 0, behavior: 'instant' });
 
         try {
             const u = new URL(window.location.href);
@@ -471,6 +349,7 @@
             return { success: false, errorMessage: "Missing examId or recordId." };
         }
 
+        let restoreSubmitFocus = false;
         submitInProgress = true;
         const submitBtn = document.querySelector("#submitExam");
         if (submitBtn) submitBtn.disabled = true;
@@ -508,21 +387,10 @@
                             .filter((x) => Number.isFinite(x) && x > 0)
                         : [];
 
-                    const details = missing.map((questionNumber) => `Question ${questionNumber} is not answered.`);
-                    const message = missing.length === 1
-                        ? "One question is still unanswered. Do you want to submit anyway?"
-                        : `${missing.length} questions are still unanswered. Do you want to submit anyway?`;
-
-                    const submitAnyway = await showExamModal({
-                        title: "Incomplete examination",
-                        message,
-                        details,
-                        confirmText: "Submit anyway",
-                        cancelText: "Cancel",
-                        confirmVariant: "danger"
-                    });
+                    const submitAnyway = await showExamModal(missing);
 
                     if (!submitAnyway) {
+                        restoreSubmitFocus = true;
                         return { success: false, errorMessage: "Unanswered questions remain." };
                     }
                 }
@@ -550,6 +418,7 @@
             if (!timeoutTriggered) {
                 submitInProgress = false;
                 if (submitBtn) submitBtn.disabled = false;
+                if (restoreSubmitFocus) submitBtn?.focus({ preventScroll: true });
             }
         }
     };

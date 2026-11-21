@@ -2,13 +2,19 @@
 @model PaginationModel
 @inject Microsoft.Extensions.Localization.IStringLocalizer<iD_Develops.Pages.Shared.Examination.PaginationModel> Localizer
 
-<div class="exam-pagination-bar">
+@{
+    var isTaking = Model.Mode == PaginationMode.Exam;
+    var currentNumber = Model.QuestionsMetadata?.FirstOrDefault(question => question.QuestionId == Model.CurrentQuestionId)?.QuestionNumber ?? 0;
+    var questionCount = Model.QuestionsMetadata?.Count ?? 0;
+}
+
+<div class="@(isTaking ? "fixed inset-x-0 bottom-0 z-[999] flex border-t border-[var(--id-border)] bg-white pb-[env(safe-area-inset-bottom)] shadow-[0_-2px_14px_rgba(2,7,47,0.06)]" : "exam-pagination-bar")" data-exam-pagination>
 
     <!-- LEFT: question navigation (takes all remaining space) -->
-    <div class="exam-pagination-left">
+    <div class="@(isTaking ? "flex min-w-0 flex-1 items-center overflow-x-auto overscroll-x-contain py-1.5 pl-[max(0.5rem,env(safe-area-inset-left))] pr-[max(0.5rem,env(safe-area-inset-right))] [scrollbar-width:thin]" : "exam-pagination-left")" data-exam-question-scroll>
         @if (Model.Mode != PaginationMode.Start)
         {
-            <div class="question-button-group" role="group" aria-label="@Localizer["QuestionNavigationLabel"]">
+            <div class="@(isTaking ? "flex w-max min-w-full items-stretch gap-1" : "question-button-group")" role="group" aria-label="@Localizer["QuestionNavigationLabel"]">
                 @* Existing questions (Exam + Editing) *@
                 @if (Model.QuestionsMetadata?.Count > 0)
                 {
@@ -17,11 +23,12 @@
                         var isActive = questionMeta.QuestionId == Model.CurrentQuestionId;
 
                         <button type="button"
-                                class="question-nav-btn @(isActive ? "is-active" : "")"
+                                class="question-nav-btn @(isTaking ? "min-h-11 min-w-11 shrink-0 touch-manipulation select-none rounded-lg border-0 px-3" : null) @(isActive ? "is-active" : "")"
                                 data-question-id="@questionMeta.QuestionId"
                                 data-action="load-question"
-                                aria-current="@(isActive ? "page" : null)">
-                            <span class="question-nav-number">@questionMeta.QuestionNumber</span>
+                                aria-current="@(isActive ? "page" : null)"
+                                aria-label="@Localizer["QuestionLabel", questionMeta.QuestionNumber]">
+                            <span class="@(isTaking ? "text-sm font-semibold tabular-nums" : "question-nav-number")">@questionMeta.QuestionNumber</span>
                         </button>
                     }
                 }
@@ -52,13 +59,14 @@
 
 
     <!-- RIGHT: action buttons (ALWAYS pinned right) -->
-    <div class="exam-pagination-right">
+    <div class="@(isTaking ? "flex shrink-0 flex-col items-center justify-center gap-1 border-l border-[var(--id-border)] py-1 pl-2 pr-[max(0.5rem,env(safe-area-inset-right))] sm:flex-row sm:gap-4 sm:py-2 sm:pl-4 sm:pr-[max(1rem,env(safe-area-inset-right))]" : "exam-pagination-right")">
         @if (Model.Mode == PaginationMode.Exam)
         {
             var hasQuestions = Model.QuestionsMetadata?.Count > 0;
+            <span class="text-xs font-medium tabular-nums text-[var(--id-muted)]" role="status" data-exam-progress data-format="@Localizer["QuestionProgress", "{current}", questionCount]">@Localizer["QuestionProgress", currentNumber, questionCount]</span>
             <button type="button"
                     id="submitExam"
-                    class="exam-action-btn exam-action-primary"
+                    class="inline-flex min-h-11 shrink-0 touch-manipulation select-none items-center justify-center rounded-lg border-0 bg-[var(--id-blue)] px-5 py-2 text-sm font-semibold text-white hover:bg-[var(--id-blue-dark)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)] disabled:cursor-not-allowed disabled:opacity-50"
                     disabled="@(!hasQuestions)">
                 @Localizer["SubmitAction"]
             </button>
@@ -188,6 +196,28 @@
 
     </div>
 </div>
+
+@if (isTaking)
+{
+    <dialog class="m-auto w-[calc(100%_-_2rem)] max-w-lg max-h-[calc(100dvh-2rem)] overflow-hidden rounded-2xl border border-slate-200 bg-white p-0 text-[var(--id-ink)] shadow-2xl backdrop:bg-slate-950/60"
+            aria-labelledby="examSubmitTitle" aria-describedby="examSubmitMessage" data-exam-submit-dialog
+            data-singular-message="@Localizer["UnansweredSingular"]" data-plural-message="@Localizer["UnansweredPlural", "{count}"]"
+            data-question-message="@Localizer["UnansweredQuestion", "{number}"]">
+        <form method="dialog" class="m-0 flex max-h-[calc(100dvh-2rem)] flex-col">
+            <header class="shrink-0 border-b border-slate-200 px-5 py-4">
+                <h2 id="examSubmitTitle" class="m-0 text-lg font-semibold">@Localizer["IncompleteTitle"]</h2>
+            </header>
+            <div class="min-h-0 overflow-y-auto overscroll-contain px-5 py-4">
+                <p id="examSubmitMessage" class="m-0 text-base leading-7"></p>
+                <ul class="mt-3 mb-0 list-disc space-y-1 pl-5 text-sm leading-6 text-[var(--id-muted)]" data-exam-missing-list></ul>
+            </div>
+            <footer class="flex shrink-0 flex-wrap justify-end gap-2 border-t border-slate-200 bg-slate-50 px-5 py-3">
+                <button type="submit" value="cancel" autofocus class="min-h-11 touch-manipulation rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]">@Localizer["CancelAction"]</button>
+                <button type="submit" value="confirm" class="min-h-11 touch-manipulation rounded-lg border-0 bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700">@Localizer["SubmitAnywayAction"]</button>
+            </footer>
+        </form>
+    </dialog>
+}
 
 
 

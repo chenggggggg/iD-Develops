@@ -351,6 +351,11 @@ Dependencies: coordinate shared component conventions with B12 without blocking 
 
 ## B09 - P1 - Signup steps and contact notifications
 
+Separate follow-up requested 2026-11-21 (Small): add Reply-To support to contact emails.
+Keep the verified company From address; company notifications should reply to the visitor,
+and visitor acknowledgements should reply to the company. Preserve both existing sends.
+This follows the P0 mobile examination launch work and belongs in its own PR.
+
 **Estimated size: Large.** Expanded signup workflow with built-in personal details and mandatory notifications.
 
 Status: completed and merged in [PR #40](https://github.com/chenggggggg/iD-Develops/pull/40).
@@ -753,7 +758,7 @@ keyboard selection/deselection, focus, help, media controls, saved answers, navi
 and scrolling. Screenshots were inspected. The initial concurrent unit/format run hit three
 database-startup timeouts; the unchanged full unit suite passed when run on its own.
 
-Follow-up requested 2026-11-21 (separate PR after the mobile public-navbar PR):
+P0 marketing-launch follow-up implemented on `fix/examination-mobile-layout` (Medium); awaiting review and publication.
 
 - Review and optimise examination visuals on phones and tablets, including portrait/landscape
   layout, question/context/answer spacing, media, timer/header, pagination, and submit controls.
@@ -761,6 +766,21 @@ Follow-up requested 2026-11-21 (separate PR after the mobile public-navbar PR):
   needs improvement. Preserve autosave, timing, answer state, submission, and result access.
 - Verify touch targets, keyboard/focus, scrolling, and available browser engines; document
   physical-device checks separately from emulation.
+
+Implemented: compact timer/title header; horizontally scrollable question numbers with
+an always-visible Submit action and question count; bounded question media; safe-area
+spacing; readable mobile completion/result views; compact completion-form Turnstile;
+and a localized native submission dialog with scrollable unanswered questions,
+keyboard containment, cancellation, and focus restoration. Custom radio labels retain
+a visible focus outline in Chromium and WebKit. No exam data model or migration changes.
+
+Verification: Release build and formatting; all 615 unit/integration tests; 22 final
+Chromium and 22 WebKit exam layout/workflow checks; all 95 Marketing-mode E2E checks;
+and 75 workflow-policy tests passed. Screenshots were inspected. The new 30-question
+regression reproduced inaccessible navigation before the fix. WebKit additionally exposed
+missing radio focus styling, which was corrected without dropping the outline assertion.
+Original local configuration was restored and the existing app is running in Full mode.
+Physical-device testing was unavailable; browser viewport checks are not hardware checks.
 
 **Estimated size: Medium.** Focused taking-surface layout and responsive/browser regressions.
 

@@ -54,6 +54,7 @@
             try {
                 state.widget = window.turnstile.render(state.element.querySelector("[data-turnstile-widget]"), {
                     sitekey: state.element.dataset.sitekey,
+                    size: state.element.dataset.size || "normal",
                     "response-field": false,
                     "refresh-expired": "auto",
                     "refresh-timeout": "auto",
