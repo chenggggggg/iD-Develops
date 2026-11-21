@@ -1,4 +1,4 @@
-﻿@using iD_Develops.Models
+@using iD_Develops.Models
 @using iD_Develops.Pages.Shared.Examination.Questions
 @model QuestionShellModel
 @inject iD_Develops.Services.IStoragePublicUrlService StoragePublicUrlService
@@ -27,7 +27,7 @@
     };
     var promptId = $"question{question.QuestionNumber}_prompt";
     var richText = "min-w-0 text-base leading-7 [overflow-wrap:anywhere] [&_p]:my-0 [&_p+p]:mt-3 [&_img]:h-auto [&_img]:max-w-full";
-    var choiceLabel = "flex min-h-12 w-full cursor-pointer items-start gap-3 rounded-lg border border-slate-300 bg-white px-4 py-3 text-left text-base leading-6 text-[var(--id-ink)] hover:bg-slate-50 peer-checked:border-[var(--id-blue)] peer-checked:bg-[var(--id-blue-soft)] peer-checked:text-[var(--id-blue)] peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[var(--id-blue)]";
+    var choiceLabel = "flex min-h-12 w-full cursor-pointer items-start gap-3 rounded-lg border border-slate-300 bg-white px-4 py-3 text-left text-base leading-6 text-[var(--id-ink)] hover:bg-slate-50 peer-checked:border-[var(--id-blue)] peer-checked:bg-[var(--id-blue-soft)] peer-checked:text-[var(--id-blue)] peer-focus:outline-2 peer-focus:outline-offset-2 peer-focus:outline-[var(--id-blue)]";
 }
 
 <form id="question-form" class="mx-auto flex w-full min-w-0 max-w-3xl flex-col gap-6 text-left text-[var(--id-ink)]" autocomplete="off">
@@ -51,7 +51,7 @@
             }
             @if (hasImage)
             {
-                <img src="@imageUrl" class="block h-auto w-full max-w-lg rounded-xl" alt="@Localizer["QuestionImageAlt"]" data-exam-question-image />
+                <img src="@imageUrl" class="block max-h-[min(40svh,20rem)] w-full max-w-lg rounded-xl object-contain object-left lg:max-h-96" alt="@Localizer["QuestionImageAlt"]" data-exam-question-image />
             }
         </div>
     }

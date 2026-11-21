@@ -9,10 +9,10 @@
     ViewData["Title"] = Localizer["Title"];
     var primaryButton = "border-0 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[var(--id-blue)] px-5 py-3 text-sm font-semibold text-white no-underline transition-colors hover:bg-[var(--id-blue-dark)] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]";
     var secondaryButton = "inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-[var(--id-ink)] no-underline transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]";
-    var richText = "min-w-0 break-words text-sm leading-7 text-[var(--id-ink)] [&_img]:h-auto [&_img]:max-w-full [&_p]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:text-[var(--id-blue)] [&_a]:underline";
+    var richText = "min-w-0 [overflow-wrap:anywhere] text-base leading-7 text-[var(--id-ink)] [&_img]:h-auto [&_img]:max-w-full [&_p]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:text-[var(--id-blue)] [&_a]:underline";
 }
 
-<section class="mx-auto w-full max-w-6xl px-4 py-10 text-[var(--id-ink)] sm:px-6 sm:py-16" data-exam-result>
+<section class="mx-auto w-full max-w-6xl px-4 py-8 [overflow-wrap:anywhere] text-[var(--id-ink)] sm:px-6 sm:py-16" data-exam-result>
     @if (Model.IsInvalidResult || Model.Summary == null)
     {
         <div class="mx-auto max-w-xl rounded-2xl border border-slate-200 bg-white p-6 text-center sm:p-10" data-result-unavailable>
@@ -37,7 +37,7 @@
                     @Localizer["TimeLimitLabel"]: @(Model.TimeLimitSeconds is > 0 ? iD_Develops.Utilities.ExamDuration.Format(Model.TimeLimitSeconds.Value) : Localizer["NoTimeLimit"].Value)
                 </p>
                 <p class="m-0 mt-6 max-w-2xl text-base leading-7 text-[var(--id-muted)]">@Model.Summary.AdviceText</p>
-                <div class="mt-6 flex flex-wrap gap-3">
+                <div class="mt-6 grid gap-3 sm:flex sm:flex-wrap">
                     <a class="@primaryButton" href="#question-review">@Localizer["ReviewAnswersAction"] <span aria-hidden="true">&darr;</span></a>
                     <a class="@secondaryButton" href="https://koalendar.com/e/test-results-options" target="_blank" rel="noopener noreferrer">@Localizer["AdviceCallButton"] <span aria-hidden="true">&nearr;</span></a>
                 </div>
@@ -81,7 +81,7 @@
                     var badge = question.IsCorrect ? "bg-emerald-50 text-emerald-800" : question.IsAnswered ? "bg-amber-50 text-amber-900" : "bg-slate-100 text-slate-600";
                     <details class="group min-w-0 rounded-xl border border-slate-200 bg-white" open="@(question == Model.Questions[0])" data-question-number="@question.QuestionNumber">
                         <summary class="flex min-h-16 cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-4 py-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)] sm:px-6 [&::-webkit-details-marker]:hidden">
-                            <span class="font-semibold">@Localizer["QuestionFormat", question.QuestionNumber]</span>
+                            <span class="min-w-0 font-semibold">@Localizer["QuestionFormat", question.QuestionNumber]</span>
                             <span class="ml-auto rounded-full px-3 py-1 text-xs font-semibold @badge">@question.ResultLabel</span>
                             <span class="text-[var(--id-muted)] group-open:rotate-180" aria-hidden="true">&#8964;</span>
                         </summary>
@@ -97,7 +97,7 @@
                             }
                             @if (!string.IsNullOrWhiteSpace(question.AudioReference))
                             {
-                                <audio class="w-full" src="@StoragePublicUrls.ResolvePublicUrl(question.AudioReference.Trim().TrimStart('/'))" controls preload="none" aria-label="@Localizer["QuestionAudioLabel"]"></audio>
+                                <audio class="w-full min-w-0" src="@StoragePublicUrls.ResolvePublicUrl(question.AudioReference.Trim().TrimStart('/'))" controls preload="none" aria-label="@Localizer["QuestionAudioLabel"]"></audio>
                             }
                             @if (!string.IsNullOrWhiteSpace(question.HelpHtml))
                             {

@@ -12,14 +12,17 @@ namespace iD_Develops.E2ETests;
 public sealed class ExamResultPresentationTests : DiagnosticPageTest
 {
     [Theory]
-    [InlineData("en-us", false)]
-    [InlineData("en-us", true)]
-    [InlineData("nl-nl", false)]
-    [InlineData("nl-nl", true)]
-    public async Task HistoricalResultAndCompletionRemainReadableAndUseTheActualExamTaken(string culture, bool mobile)
+    [InlineData("en-us", 1440, 1000)]
+    [InlineData("en-us", 390, 844)]
+    [InlineData("en-us", 320, 568)]
+    [InlineData("nl-nl", 1440, 1000)]
+    [InlineData("nl-nl", 390, 844)]
+    [InlineData("nl-nl", 320, 568)]
+    [InlineData("nl-nl", 844, 390)]
+    public async Task HistoricalResultAndCompletionRemainReadableAndUseTheActualExamTaken(string culture, int width, int height)
     {
         await using var data = await ResultFixture.CreateAsync();
-        await Page.SetViewportSizeAsync(mobile ? 390 : 1440, 1000);
+        await Page.SetViewportSizeAsync(width, height);
         var response = await Page.GotoAsync(data.ResultsUrl(culture), new() { WaitUntil = WaitUntilState.DOMContentLoaded });
         Assert.Equal(200, response!.Status);
         AssertPrivateResponse(response);
@@ -52,8 +55,9 @@ public sealed class ExamResultPresentationTests : DiagnosticPageTest
         await Expect(Page.GetByText("Changed question", new() { Exact = true })).ToHaveCountAsync(0);
         await Expect(Page.GetByText("Future option", new() { Exact = false })).ToHaveCountAsync(0);
         Assert.True(await Page.Locator("[data-exam-result]").EvaluateAsync<bool>("element => element.scrollWidth <= element.clientWidth + 1"));
+        Assert.True(await Page.EvaluateAsync<bool>("document.documentElement.scrollWidth <= innerWidth"));
         await Page.EvaluateAsync("window.scrollTo(0, 0)");
-        await Page.ScreenshotAsync(new() { Path = Path.Combine(AppContext.BaseDirectory, $"b10-results-{culture}-{mobile}.png"), FullPage = true });
+        await Page.ScreenshotAsync(new() { Path = Path.Combine(AppContext.BaseDirectory, $"b10-results-{culture}-{width}.png"), FullPage = true });
 
         var completionResponse = await Page.GotoAsync(data.CompletionUrl(culture), new() { WaitUntil = WaitUntilState.DOMContentLoaded });
         AssertPrivateResponse(completionResponse);
@@ -61,13 +65,18 @@ public sealed class ExamResultPresentationTests : DiagnosticPageTest
         await Expect(image).ToHaveJSPropertyAsync("naturalWidth", 1920);
         await Expect(image).ToHaveJSPropertyAsync("naturalHeight", 1080);
         Assert.Contains("exam-completed-wallpaper.webp", await image.GetAttributeAsync("src"));
-        if (mobile) await Expect(Page.Locator("[data-completion-image-panel]")).ToBeHiddenAsync();
+        if (width < 768) await Expect(Page.Locator("[data-completion-image-panel]")).ToBeHiddenAsync();
         else await Expect(Page.Locator("[data-completion-image-panel]")).ToBeVisibleAsync();
         await Expect(Page.GetByLabel(culture == "nl-nl" ? "Naam:" : "Name:", new() { Exact = true })).ToBeEditableAsync();
         await Expect(Page.GetByLabel(culture == "nl-nl" ? "E-mail:" : "Email:", new() { Exact = true })).ToBeEditableAsync();
         await Expect(Page.GetByRole(AriaRole.Button, new() { Name = culture == "nl-nl" ? "Stuur mijn resultaat!" : "Send my results!", Exact = true })).ToBeVisibleAsync();
         Assert.True(await Page.Locator("[data-exam-completion]").EvaluateAsync<bool>("element => element.scrollWidth <= element.clientWidth + 1"));
-        await Page.ScreenshotAsync(new() { Path = Path.Combine(AppContext.BaseDirectory, $"b10-completion-{culture}-{mobile}.png"), FullPage = true });
+        Assert.True(await Page.EvaluateAsync<bool>("document.documentElement.scrollWidth <= innerWidth"));
+        Assert.True(await Page.Locator("#Email").EvaluateAsync<bool>("input => parseFloat(getComputedStyle(input).fontSize) >= 16"));
+        if (await Page.Locator("[data-turnstile-field]").CountAsync() > 0)
+            await Expect(Page.Locator("[data-turnstile-field]")).ToHaveAttributeAsync("data-size", "compact");
+        await Page.GetByLabel(culture == "nl-nl" ? "E-mail:" : "Email:", new() { Exact = true }).FillAsync("mobile@example.test");
+        await Page.ScreenshotAsync(new() { Path = Path.Combine(AppContext.BaseDirectory, $"b10-completion-{culture}-{width}.png"), FullPage = true });
         var record = await data.Db.Records.AsNoTracking().SingleAsync(item => item.Id == data.Record.Id);
         Assert.Equal(ExamStatus.Completed, record.ExamStatus);
         Assert.Equal(2, record.Score);

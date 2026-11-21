@@ -7,17 +7,18 @@
     var primaryButton = "border-0 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[var(--id-blue)] px-5 py-3 text-sm font-semibold text-white no-underline hover:bg-[var(--id-blue-dark)] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)] disabled:cursor-not-allowed disabled:opacity-50";
     var link = "font-semibold text-[var(--id-blue)] underline decoration-slate-300 underline-offset-4 hover:decoration-current focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]";
     var field = "min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-[var(--id-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]";
+    var turnstileViewData = new ViewDataDictionary(ViewData) { ["TurnstileSize"] = "compact" };
 }
 <div class="grid min-h-dvh w-full md:grid-cols-2" data-exam-completion>
     <div class="relative hidden overflow-hidden bg-[var(--id-blue-soft)] md:block" aria-hidden="true" data-completion-image-panel>
         <img class="absolute inset-0 h-full w-full object-cover" src="~/images/exam-completed-wallpaper.webp" asp-append-version="true" width="1920" height="1080" alt="" decoding="async" fetchpriority="high" data-completion-image />
     </div>
-    <section class="flex min-w-0 items-center justify-center px-6 py-12 sm:px-10 md:py-16">
+    <section class="flex min-w-0 items-center justify-center px-4 py-8 [overflow-wrap:anywhere] sm:px-10 sm:py-12 md:py-16">
         <div class="w-full max-w-md">
             <a class="inline-flex rounded focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--id-blue)]" href="@homeUrl">
                 <img class="h-9 w-auto max-w-full" src="~/images/iddevelops-navlogo-dark.png" alt="iD! Training &amp; Development" />
             </a>
-            <p class="m-0 mt-10 text-xs font-semibold uppercase tracking-widest text-[var(--id-blue)]">@Localizer["CompletionEyebrow"]</p>
+            <p class="m-0 mt-8 text-xs font-semibold uppercase tracking-widest text-[var(--id-blue)] sm:mt-10">@Localizer["CompletionEyebrow"]</p>
             @if (!string.IsNullOrWhiteSpace(Model.LevelTestSuccessMessage))
             {
                 <h1 class="m-0 mt-3 text-3xl font-semibold tracking-tight">@Localizer["ThankYouHeading"]</h1>
@@ -62,9 +63,9 @@
                         </div>
                         <div class="flex items-start gap-3">
                             <input class="mt-1 size-4 shrink-0 accent-[var(--id-blue)]" asp-for="SubscribeNewsletter" type="checkbox" />
-                            <label class="text-sm leading-6 text-[var(--id-muted)]" asp-for="SubscribeNewsletter">@Localizer["NewsletterConsent"]</label>
+                            <label class="min-h-11 cursor-pointer text-sm leading-6 text-[var(--id-muted)]" asp-for="SubscribeNewsletter">@Localizer["NewsletterConsent"]</label>
                         </div>
-                        <div class="min-w-0 overflow-x-auto"><partial name="_Turnstile" /></div>
+                        <div class="min-w-0"><partial name="_Turnstile" view-data="turnstileViewData" /></div>
                     }
                     <button type="submit" class="@primaryButton">@(Model.IsSignedInPortalUser ? Localizer["ViewResultsButton"] : Localizer["SendResultsButton"])</button>
                     <div asp-validation-summary="All" class="text-sm leading-6 text-red-800" role="alert"></div>

@@ -14,13 +14,27 @@ public sealed class ExamTakingLayoutTests : DiagnosticPageTest
     [InlineData(false, "nl-nl", 768)]
     [InlineData(false, "nl-nl", 390)]
     [InlineData(false, "en-us", 320)]
+    [InlineData(false, "nl-nl", 844)]
     [InlineData(true, "en-us", 1440)]
     [InlineData(true, "en-us", 390)]
     public async Task TakingLayoutKeepsQuestionsWithAnswersAndPreservesKeyboardAutosave(bool portal, string culture, int width)
     {
         await using var account = await CatalogBrowsingFixture.CreateAsync();
         await using var data = await TakingFixture.CreateAsync(account.User.Id, portal);
-        await Page.SetViewportSizeAsync(width, 900);
+        var height = width switch { 320 => 568, 390 => 844, 844 => 390, _ => 900 };
+        await Page.SetViewportSizeAsync(width, height);
+        await StubMediaAsync();
+        var path = portal ? $"/examination/{data.Record.Id}" : $"/{culture}/examination/level-test/{data.Record.Id}";
+        if (portal)
+            await BrowserLogin.SignInAsync(Page, account.User.Email!, account.Password, path, Page.Locator("#question-form"));
+        else
+            Assert.True((await Page.GotoAsync(LocalTestApplication.PublicBaseUrl + path, new() { WaitUntil = WaitUntilState.DOMContentLoaded }))!.Ok);
+
+        await VerifyTakingLayoutAsync(data, culture, width, portal);
+    }
+
+    private async Task StubMediaAsync()
+    {
         await Page.RouteAsync("**/e2e-exam-context.svg", route => route.FulfillAsync(new()
         {
             ContentType = "image/svg+xml",
@@ -31,12 +45,10 @@ public sealed class ExamTakingLayoutTests : DiagnosticPageTest
             ContentType = "audio/wav",
             BodyBytes = Convert.FromBase64String("UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=")
         }));
-        var path = portal ? $"/examination/{data.Record.Id}" : $"/{culture}/examination/level-test/{data.Record.Id}";
-        if (portal)
-            await BrowserLogin.SignInAsync(Page, account.User.Email!, account.Password, path, Page.Locator("#question-form"));
-        else
-            Assert.True((await Page.GotoAsync(LocalTestApplication.PublicBaseUrl + path, new() { WaitUntil = WaitUntilState.DOMContentLoaded }))!.Ok);
+    }
 
+    private async Task VerifyTakingLayoutAsync(TakingFixture data, string culture, int width, bool portal)
+    {
         await Expect(Page.Locator("#countdown")).ToHaveTextAsync(new Regex(@"^00:\d{2}:\d{2}$"));
         Assert.NotEqual("00:00:00", await Page.Locator("#countdown").InnerTextAsync());
         await Page.WaitForFunctionAsync("document.querySelector('[data-exam-question-image]')?.naturalWidth > 0");
@@ -77,15 +89,27 @@ public sealed class ExamTakingLayoutTests : DiagnosticPageTest
         await Expect(Page.Locator("#question1_A")).ToBeCheckedAsync();
         await SaveAsync(() => Page.Locator("label[for='question1_A']").ClickAsync());
         await Expect(Page.Locator("#question1_A")).Not.ToBeCheckedAsync();
-        await Page.Locator("#question1_A").FocusAsync();
+        // Exercise keyboard entry before selecting and moving between answers.
+        await Page.GetByLabel(culture == "nl-nl" ? "Hulp bij de vraag" : "Question help", new() { Exact = true }).FocusAsync();
+        await Page.Keyboard.PressAsync("Tab");
+        await Expect(Page.Locator("#question1_A")).ToBeFocusedAsync();
         await SaveAsync(() => Page.Keyboard.PressAsync("Space"));
         await SaveAsync(() => Page.Keyboard.PressAsync("ArrowDown"));
         await Expect(Page.Locator("#question1_B")).ToBeCheckedAsync();
         await Expect(Page.Locator("#question1_B")).ToBeFocusedAsync();
-        Assert.True(await Page.Locator("label[for='question1_B']").EvaluateAsync<bool>(
-            "label => parseFloat(getComputedStyle(label).outlineWidth) >= 2 && getComputedStyle(label).outlineStyle !== 'none'"));
+        var focusIndicator = await Page.Locator("label[for='question1_B']").EvaluateAsync<JsonElement>("""
+            label => {
+                const style = getComputedStyle(label);
+                const input = document.getElementById(label.htmlFor);
+                return { width: parseFloat(style.outlineWidth), style: style.outlineStyle,
+                    focused: input.matches(':focus'), visible: input.matches(':focus-visible'),
+                    outlineVariable: style.getPropertyValue('--tw-outline-style') };
+            }
+            """);
+        Assert.True(focusIndicator.GetProperty("width").GetDouble() >= 2 && focusIndicator.GetProperty("style").GetString() != "none", focusIndicator.ToString());
         await Page.EvaluateAsync("window.scrollTo(0, document.documentElement.scrollHeight)");
         await Expect(Page.Locator("label[for='question1_D']")).ToBeInViewportAsync();
+        Assert.True(await Page.EvaluateAsync<bool>("document.querySelector('label[for=\"question1_D\"]').getBoundingClientRect().bottom <= document.querySelector('[data-exam-pagination]').getBoundingClientRect().top"));
         Assert.InRange(await Page.Locator("[data-exam-header]").EvaluateAsync<double>("header => header.getBoundingClientRect().top"), 0, 1);
         await Page.EvaluateAsync("window.scrollTo(0, 0)");
         await Page.ScreenshotAsync(new() { Path = Path.Combine(AppContext.BaseDirectory, $"b22-{(portal ? "portal" : "public")}-{culture}-{width}.png"), FullPage = true });
@@ -116,6 +140,65 @@ public sealed class ExamTakingLayoutTests : DiagnosticPageTest
         Assert.Equal(ExamStatus.InProgress, (await db.Records.SingleAsync(record => record.Id == data.Record.Id)).ExamStatus);
     }
 
+    [Theory]
+    [InlineData("en-us", 320, 568)]
+    [InlineData("nl-nl", 390, 844)]
+    [InlineData("nl-nl", 844, 390)]
+    public async Task LongExamNavigationAndSubmissionRemainReachable(string culture, int width, int height)
+    {
+        await using var account = await CatalogBrowsingFixture.CreateAsync();
+        await using var data = await TakingFixture.CreateAsync(account.User.Id, false, 30);
+        await Page.SetViewportSizeAsync(width, height);
+        await StubMediaAsync();
+        var lastQuestion = data.Exam.Questions.Single(question => question.QuestionNumber == 30);
+        var url = $"{LocalTestApplication.PublicBaseUrl}/{culture}/examination/level-test/{data.Record.Id}?questionId={lastQuestion.Id}";
+        Assert.Equal(200, (await Page.GotoAsync(url, new() { WaitUntil = WaitUntilState.DOMContentLoaded }))!.Status);
+        var submit = Page.Locator("#submitExam");
+        await Page.ScreenshotAsync(new() { Path = Path.Combine(AppContext.BaseDirectory, $"exam-mobile-navigation-{width}.png") });
+        await Expect(submit).ToBeInViewportAsync();
+        var navigation = Page.GetByRole(AriaRole.Group, new() { Name = culture == "nl-nl" ? "Vraagnavigatie" : "Question navigation", Exact = true });
+        var active = navigation.Locator("[aria-current='page']");
+        await Expect(active).ToHaveAttributeAsync("data-question-id", lastQuestion.Id.ToString());
+        await Expect(active).ToBeInViewportAsync();
+        await Expect(Page.Locator("[data-exam-progress]")).ToHaveTextAsync(culture == "nl-nl" ? "Vraag 30 van 30" : "Question 30 of 30");
+        Assert.True(await Page.EvaluateAsync<bool>("document.documentElement.scrollWidth <= innerWidth"));
+
+        await SaveAsync(() => Page.GetByRole(AriaRole.Textbox).FillAsync("My final answer"));
+        await Page.ReloadAsync(new() { WaitUntil = WaitUntilState.DOMContentLoaded });
+        await Expect(Page.GetByRole(AriaRole.Textbox)).ToHaveValueAsync("My final answer");
+        await Expect(active).ToBeInViewportAsync();
+        var first = navigation.Locator("[data-action='load-question']").First;
+        await first.FocusAsync();
+        await Expect(first).ToBeInViewportAsync();
+        await Expect(submit).ToBeInViewportAsync();
+        await first.PressAsync("Enter");
+        await Expect(Page.Locator("#question1_A")).ToBeAttachedAsync();
+        await Expect(Page.Locator("[data-exam-progress]")).ToHaveTextAsync(culture == "nl-nl" ? "Vraag 1 van 30" : "Question 1 of 30");
+        Assert.InRange(await Page.Locator("[data-exam-header]").EvaluateAsync<double>("element => element.getBoundingClientRect().height"), 0, height / 3.0);
+
+        await submit.ClickAsync();
+        var dialog = Page.GetByRole(AriaRole.Dialog);
+        await Expect(dialog).ToBeVisibleAsync();
+        await Expect(dialog.GetByRole(AriaRole.Button, new() { Name = culture == "nl-nl" ? "Annuleren" : "Cancel", Exact = true })).ToBeFocusedAsync();
+        var confirm = dialog.GetByRole(AriaRole.Button, new() { Name = culture == "nl-nl" ? "Toch inleveren" : "Submit anyway", Exact = true });
+        await Expect(confirm).ToBeInViewportAsync();
+        await confirm.FocusAsync();
+        await Page.Keyboard.PressAsync("Tab");
+        await Expect(dialog.GetByRole(AriaRole.Button, new() { Name = culture == "nl-nl" ? "Annuleren" : "Cancel", Exact = true })).ToBeFocusedAsync();
+        await Page.Keyboard.PressAsync("Shift+Tab");
+        await Expect(confirm).ToBeFocusedAsync();
+        await Page.ScreenshotAsync(new() { Path = Path.Combine(AppContext.BaseDirectory, $"exam-mobile-confirmation-{width}.png") });
+        await Page.Keyboard.PressAsync("Escape");
+        await Expect(dialog).Not.ToBeVisibleAsync();
+        await Expect(submit).ToBeFocusedAsync();
+        await submit.ClickAsync();
+        await confirm.ClickAsync();
+        await Expect(Page.Locator("[data-exam-completion]")).ToBeVisibleAsync();
+        await using var db = LocalTestApplication.CreateDbContext();
+        Assert.Equal(ExamStatus.Completed, (await db.Records.SingleAsync(record => record.Id == data.Record.Id)).ExamStatus);
+        Assert.Equal("My final answer", (await db.ParticipantAnswers.SingleAsync(answer => answer.RecordId == data.Record.Id && answer.QuestionId == lastQuestion.Id)).AnswerText);
+    }
+
     private async Task SaveAsync(Func<Task> action)
     {
         var response = await Page.RunAndWaitForResponseAsync(action,
@@ -132,14 +215,14 @@ public sealed class ExamTakingLayoutTests : DiagnosticPageTest
         public Exam Exam { get; private set; } = null!;
         public iD_Develops.Models.Record Record { get; private set; } = null!;
 
-        public static async Task<TakingFixture> CreateAsync(string userId, bool portal)
+        public static async Task<TakingFixture> CreateAsync(string userId, bool portal, int questionCount = 3)
         {
             var fixture = new TakingFixture(LocalTestApplication.CreateDbContext());
-            try { await fixture.SeedAsync(userId, portal); return fixture; }
+            try { await fixture.SeedAsync(userId, portal, questionCount); return fixture; }
             catch { await fixture.DisposeAsync(); throw; }
         }
 
-        private async Task SeedAsync(string userId, bool portal)
+        private async Task SeedAsync(string userId, bool portal, int questionCount)
         {
             Exam = new Exam
             {
@@ -171,6 +254,8 @@ public sealed class ExamTakingLayoutTests : DiagnosticPageTest
                     new TrueOrFalseQuestion { QuestionNumber = 3, Text = "Can you contact your teacher?", Score = 1, CorrectAnswers = [new() { Text = "True" }] }
                 ]
             };
+            for (var number = 4; number <= questionCount; number++)
+                Exam.Questions.Add(new OpenQuestion { QuestionNumber = number, Text = $"Question {number}: explain your answer.", Score = 1, CorrectAnswers = [new() { Text = "Example answer" }] });
             db.Exams.Add(Exam);
             await db.SaveChangesAsync();
             var version = new ExamVersion

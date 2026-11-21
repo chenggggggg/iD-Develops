@@ -7,7 +7,7 @@
 }
 @if (settings.Enabled)
 {
-    <div class="turnstile-field" data-turnstile-field data-sitekey="@(configured ? settings.SiteKey : null)"
+    <div class="turnstile-field" data-turnstile-field data-sitekey="@(configured ? settings.SiteKey : null)" data-size="@(ViewData["TurnstileSize"] as string)"
          data-loading-message="@TurnstileLocalizer["Loading"]"
          data-expired-message="@TurnstileLocalizer["Expired"]"
          data-failed-message="@TurnstileLocalizer["Failed"]"

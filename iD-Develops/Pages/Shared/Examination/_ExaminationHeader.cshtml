@@ -19,8 +19,8 @@
 }
 
 <header class="@(isTaking ? "sticky top-0 z-[990]" : null)" data-exam-header>
-    <nav class="exam-header @(isTaking ? "static!" : null)">
-        <div class="exam-header-inner">
+    <nav class="exam-header @(isTaking ? "static! pt-[env(safe-area-inset-top)]" : null)">
+        <div class="exam-header-inner @(isTaking ? "py-2 pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]" : null)">
             <div class="exam-header-row @(isTaking ? "gap-4" : null)">
 
                 <!-- Left: Timer -->
@@ -148,16 +148,19 @@
                     }
                     else
                     {
-                        <small class="exam-header-label">@(!string.IsNullOrWhiteSpace(Model.ExamTitle) ? Model.ExamTitle : "-")</small>
+                        <small class="@(isTaking ? "line-clamp-2 text-sm font-medium leading-5 text-[var(--id-ink)]" : "exam-header-label")" title="@Model.ExamTitle">@(!string.IsNullOrWhiteSpace(Model.ExamTitle) ? Model.ExamTitle : "-")</small>
                         @if (Model.VersionNumber.HasValue)
                         {
-                            <span class="rounded bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600" data-exam-version>v@(Model.VersionNumber)</span>
+                            <span class="rounded bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600 @(isTaking ? "hidden sm:inline" : null)" data-exam-version>v@(Model.VersionNumber)</span>
                         }
                     }
 
-                    <div class="exam-header-value" id="editorCourseName">
-                        @(!string.IsNullOrWhiteSpace(Model.CourseName) ? Model.CourseName : "-")
-                    </div>
+                    @if (!isTaking || !string.IsNullOrWhiteSpace(Model.CourseName))
+                    {
+                        <div class="@(isTaking ? "line-clamp-1 text-sm font-semibold leading-5" : "exam-header-value")" id="editorCourseName" title="@Model.CourseName">
+                            @(!string.IsNullOrWhiteSpace(Model.CourseName) ? Model.CourseName : "-")
+                        </div>
+                    }
                 </div>
 
                 <!-- Far-right: Settings gear (only in Editing mode) -->
