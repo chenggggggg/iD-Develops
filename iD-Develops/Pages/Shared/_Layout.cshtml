@@ -1,6 +1,7 @@
 @inject IViewLocalizer localizer
 @inject iD_Develops.Services.IApplicationUrlService ApplicationUrls
 @using System.Globalization
+@using Microsoft.AspNetCore.Mvc.ViewFeatures
 
 @{
     var currentCulture = CultureInfo.CurrentCulture.Name;
@@ -39,6 +40,8 @@
     }
 
     var cookiePreferencesHref = $"{PublicPageHref("/cookie-policy")}?preferences=true";
+    var mobileNavLinkClass = "flex min-h-12 items-center rounded-md px-3 py-3 text-base font-medium text-[var(--serif-ink)] no-underline transition-colors hover:bg-[var(--serif-soft)] hover:text-[var(--id-red)] hover:no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-red)]";
+    var mobileLoginViewData = new ViewDataDictionary(ViewData) { ["PublicLoginVariant"] = "mobile" };
 }
 
 <!DOCTYPE html>
@@ -71,7 +74,7 @@
                     </a>
                     <div class="flex items-center gap-2 justify-self-end lg:hidden">
                         <partial name="_PublicLanguageSwitch" />
-                        <button class="public-menu-toggle" type="button" data-public-menu-toggle aria-controls="sidebarMenu" aria-expanded="false" aria-label="@localizer["Nav_Toggle"]" disabled>
+                        <button class="public-menu-toggle touch-manipulation focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-red)]" type="button" data-public-menu-toggle aria-controls="sidebarMenu" aria-haspopup="dialog" aria-expanded="false" aria-label="@localizer["Nav_Toggle"]" disabled>
                             <span class="public-menu-toggle-bars" aria-hidden="true"></span>
                         </button>
                     </div>
@@ -109,40 +112,54 @@
                         </ul>
                     </div>
 
-                    <div class="public-menu-backdrop" data-public-menu-backdrop hidden></div>
-                    <div class="public-mobile-menu" tabindex="-1" id="sidebarMenu" aria-labelledby="sidebarMenuLabel" data-public-menu hidden>
-                        <div class="public-mobile-menu-header">
-                            <h2 class="m-0 text-xl font-semibold text-[#071f3d]" id="sidebarMenuLabel">@localizer["Nav_Menu"]</h2>
-                            <button type="button" class="public-menu-close" data-public-menu-close aria-label="@localizer["Nav_Close"]">&times;</button>
-                        </div>
-                        <ul class="public-mobile-menu-list">
-                            <li class="public-mobile-menu-label">@localizer["Nav_Services"]</li>
-                            <li class="public-nav-item">
-                                <a class="public-nav-link" href="@PublicPageHref("/nt2-integration")">@localizer["Footer_Nt2Integration"]</a>
-                            </li>
-                            <li class="public-nav-item">
-                                <a class="public-nav-link" href="@PublicPageHref("/personal-development")">@localizer["Footer_PersonalDevelopment"]</a>
-                            </li>
-                            <li class="public-nav-item">
-                                <a class="public-nav-link" href="@PublicPageHref("/Language-And-Communication/Index")">@localizer["Footer_LanguageCommunication"]</a>
-                            </li>
-                            <li class="public-nav-item">
-                                <a class="public-nav-link" href="@PublicPageHref("/enterprise")">@localizer["Nav_Organizations"]</a>
-                            </li>
-                            <li class="public-nav-item">
-                                <a class="public-nav-link" href="@PublicPageHref("/Pricing")">@localizer["Nav_Products"]</a>
-                            </li>
-                            <li class="public-nav-item">
-                                <a class="public-nav-link public-nav-contact" href="@PublicPageHref("/contact")">@localizer["Nav_Contact"]</a>
-                            </li>
-                            <partial name="_LoginPartial" />
-                        </ul>
-                    </div>
                 </nav>
             </div>
         </header>
         @RenderBody()
     </main>
+
+    <dialog class="fixed inset-y-0 right-0 left-auto m-0 h-dvh max-h-none w-[min(88vw,360px)] max-w-none overflow-y-auto overscroll-contain border-0 border-l border-[var(--serif-border)] bg-[var(--serif-bg)] p-0 text-[var(--serif-ink)] shadow-[0_24px_60px_rgba(7,31,61,0.18)] backdrop:bg-[#071f3d]/40 open:flex open:flex-col lg:open:hidden"
+            id="sidebarMenu" aria-labelledby="sidebarMenuLabel" data-public-menu>
+        <div class="flex shrink-0 items-center justify-between gap-4 border-b border-[var(--serif-border)] px-6 py-4">
+            <h2 class="m-0 text-xl font-semibold text-[var(--serif-blue-dark)]" id="sidebarMenuLabel">@localizer["Nav_Menu"]</h2>
+            <button type="button" class="public-menu-close size-11 shrink-0 touch-manipulation focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-red)]" data-public-menu-close aria-label="@localizer["Nav_Close"]">&times;</button>
+        </div>
+        <nav class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-5" aria-label="@localizer["Nav_Menu"]">
+            <ul class="m-0 grid list-none gap-1 p-0">
+                <li class="px-3 pb-2 text-xs font-medium uppercase tracking-[0.15em] text-[var(--id-red)] [font-family:var(--serif-label)]">@localizer["Nav_Services"]</li>
+                <li class="public-nav-item">
+                    <a class="@mobileNavLinkClass" href="@PublicPageHref("/nt2-integration")">@localizer["Footer_Nt2Integration"]</a>
+                </li>
+                <li class="public-nav-item">
+                    <a class="@mobileNavLinkClass" href="@PublicPageHref("/personal-development")">@localizer["Footer_PersonalDevelopment"]</a>
+                </li>
+                <li class="public-nav-item">
+                    <a class="@mobileNavLinkClass" href="@PublicPageHref("/Language-And-Communication/Index")">@localizer["Footer_LanguageCommunication"]</a>
+                </li>
+            </ul>
+            <ul class="mx-3 mt-5 mb-0 grid list-none gap-1 border-t border-[var(--serif-border)] p-0 pt-3 [&>li]:-mx-3">
+                <li class="public-nav-item">
+                    <a class="@mobileNavLinkClass" href="@PublicPageHref("/enterprise")">@localizer["Nav_Organizations"]</a>
+                </li>
+                <li class="public-nav-item">
+                    <a class="@mobileNavLinkClass" href="@PublicPageHref("/Pricing")">@localizer["Nav_Products"]</a>
+                </li>
+            </ul>
+        </nav>
+        <div class="shrink-0 border-t border-[var(--serif-border)] bg-[var(--serif-soft)] px-6 py-5">
+            <ul class="m-0 grid list-none gap-3 p-0" data-public-mobile-actions>
+                <li class="public-nav-item">
+                    <a class="flex min-h-12 w-full items-center justify-between gap-3 rounded-md bg-[var(--id-red)] px-4 py-3 text-base font-semibold text-white no-underline transition-colors hover:bg-[#9F2F3D] hover:text-white hover:no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-red)]" href="@PublicPageHref("/contact")">
+                        <span>@localizer["Nav_Contact"]</span>
+                        <svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false">
+                            <path d="M5 12h14m-6-6 6 6-6 6" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </a>
+                </li>
+                <partial name="_LoginPartial" view-data="mobileLoginViewData" />
+            </ul>
+        </div>
+    </dialog>
 
     <footer class="public-footer">
         <div class="public-container">
@@ -255,7 +272,7 @@
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
     <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
     <script src="~/js/home-reveal.js" asp-append-version="true" defer data-cookieconsent="ignore"></script>
-    <script src="~/js/public-layout.js" asp-append-version="true"></script>
+    <script src="~/js/public-layout.js" asp-append-version="true" defer data-cookieconsent="ignore"></script>
     <script src="~/js/feature-slideshow.js" asp-append-version="true"></script>
     <script src="~/js/display-messages.js" asp-append-version="true"></script>
     <script src="~/js/app-dialogs.js" asp-append-version="true"></script>

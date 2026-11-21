@@ -1,6 +1,6 @@
 ﻿# Planned PR backlog
 
-Updated: 2026-11-19
+Updated: 2026-11-21
 
 This is the combined planning backlog from the staging review and owner meeting.
 B01-B30 are planning IDs, not GitHub PR numbers. Current launch priorities are:
@@ -752,6 +752,15 @@ passed. Six new public/Portal scenarios cover 320/390/768/1440px widths, English
 keyboard selection/deselection, focus, help, media controls, saved answers, navigation, reload,
 and scrolling. Screenshots were inspected. The initial concurrent unit/format run hit three
 database-startup timeouts; the unchanged full unit suite passed when run on its own.
+
+Follow-up requested 2026-11-21 (separate PR after the mobile public-navbar PR):
+
+- Review and optimise examination visuals on phones and tablets, including portrait/landscape
+  layout, question/context/answer spacing, media, timer/header, pagination, and submit controls.
+- Include the level-test completion form and result/review screens where their mobile layout
+  needs improvement. Preserve autosave, timing, answer state, submission, and result access.
+- Verify touch targets, keyboard/focus, scrolling, and available browser engines; document
+  physical-device checks separately from emulation.
 
 **Estimated size: Medium.** Focused taking-surface layout and responsive/browser regressions.
 
