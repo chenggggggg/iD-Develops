@@ -11,12 +11,15 @@ namespace iD_Develops.Services;
 
 public sealed class CatalogCheckoutCoordinator(ApplicationDbContext db, ICatalogCheckoutService checkout,
     IStripeCheckoutClient stripe, CatalogProductAccessService accessService, IWebHostEnvironment environment,
-    CatalogCheckoutFulfillmentService fulfillment, IApplicationUrlService urls, CatalogCheckoutAuditService checkoutAudit, IExamVersionService examVersions)
+    CatalogCheckoutFulfillmentService fulfillment, IApplicationUrlService urls, CatalogCheckoutAuditService checkoutAudit, IExamVersionService examVersions, ISiteAccessPolicy siteAccess)
 {
     public async Task<string> StartAsync(HttpContext context, CatalogProduct product, CatalogProductVariant variant,
         Guid requestId, Dictionary<string, string> values, string? email, int quantity, int participants,
         string? access, string? userId, CancellationToken ct)
     {
+        if (!siteAccess.PublicTransactionsEnabled)
+            throw new InvalidOperationException("Checkout is not available in this site mode.");
+
         if (product.IsPreviewOnly || await db.CatalogProducts.AsNoTracking()
                 .AnyAsync(item => item.Id == product.Id && item.IsPreviewOnly, ct))
             throw new InvalidOperationException("This product is available for information only.");

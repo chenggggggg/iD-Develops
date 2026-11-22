@@ -4,7 +4,6 @@
 @using iD_Develops.Utilities
 @model iD_Develops.Pages.ProductModel
 @inject Microsoft.Extensions.Localization.IStringLocalizer<iD_Develops.Pages.ProductModel> Localizer
-@inject iD_Develops.Services.ISiteAccessPolicy SiteAccess
 @{
     Layout = Model.IsAdminEditMode ? "_PortalLayout" : "_Layout";
     ViewData["Title"] = Model.Product?.Name ?? Localizer["ProductFallbackTitle"];
@@ -442,7 +441,7 @@
                         </div>
 
                         <button type="button" class="public-btn public-btn-primary product-cta" disabled>
-                            <i class="@submitIconClass"></i>
+                            <i class="@submitIconClass" aria-hidden="true"></i>
                             @submitText
                         </button>
                     </div>
@@ -731,7 +730,7 @@
             </div>
         </form>
     }
-    else if (!SiteAccess.PublicTransactionsEnabled || Model.Product.IsPreviewOnly)
+    else if (!Model.ProductActionsEnabled)
     {
         <partial name="_MarketingProductDetails" model="Model" />
     }
@@ -924,14 +923,14 @@
                                 <partial name="_Turnstile" />
                             }
                             <button type="submit" class="public-btn public-btn-primary product-cta">
-                                <i class="@submitIconClass"></i>
+                                <i class="@submitIconClass" aria-hidden="true"></i>
                                 @submitText
                             </button>
                         }
                         else
                         {
                             <button type="button" class="public-btn public-btn-primary product-cta" disabled>
-                                <i class="@submitIconClass"></i>
+                                <i class="@submitIconClass" aria-hidden="true"></i>
                                 @submitText
                             </button>
                         }
@@ -968,7 +967,7 @@
                                 <partial name="_Turnstile" />
                             }
                                 <button type="submit" class="public-btn public-btn-primary product-cta">
-                                    <i class="@submitIconClass"></i>
+                                    <i class="@submitIconClass" aria-hidden="true"></i>
                                     @submitText
                                 </button>
                             </form>
@@ -976,7 +975,7 @@
                         else
                         {
                             <a href="@standaloneActionUrl" class="public-btn public-btn-primary product-cta" target="_blank" rel="noopener">
-                                <i class="@submitIconClass"></i>
+                                <i class="@submitIconClass" aria-hidden="true"></i>
                                 @submitText
                             </a>
                         }
@@ -984,7 +983,7 @@
                     else
                     {
                         <button type="button" class="public-btn public-btn-primary product-cta" disabled>
-                            <i class="@submitIconClass"></i>
+                            <i class="@submitIconClass" aria-hidden="true"></i>
                             @submitText
                         </button>
                     }

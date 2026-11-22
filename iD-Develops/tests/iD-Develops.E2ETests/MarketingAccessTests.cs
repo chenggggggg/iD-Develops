@@ -110,13 +110,19 @@ public sealed class MarketingAccessTests : DiagnosticPageTest
     [InlineData("Standard")]
     [InlineData("Credit")]
     [InlineData("Signup")]
-    public async Task ProductsShowInformationAndContactInsteadOfSignupCheckoutOrBooking(string type)
+    public async Task AccountDependentProductsShowInformationAndRejectDirectActions(string type)
     {
         await using var account = await CatalogBrowsingFixture.CreateAsync();
         var product = type == "Credit" ? account.Credit : account.Standard;
         await using var db = LocalTestApplication.CreateDbContext();
         if (type == "Signup")
-            await db.CatalogProducts.Where(item => item.Id == product.Id).ExecuteUpdateAsync(update => update.SetProperty(item => item.ProductType, CatalogProductType.Signup));
+            await db.CatalogProducts.Where(item => item.Id == product.Id).ExecuteUpdateAsync(update => update
+                .SetProperty(item => item.ProductType, CatalogProductType.Signup).SetProperty(item => item.RequiresAccountCreation, true));
+        if (type == "Standard")
+            await db.CatalogProducts.Where(item => item.Id == product.Id).ExecuteUpdateAsync(update => update
+                .SetProperty(item => item.WorkflowType, CatalogWorkflowType.FormThenStripeCheckout));
+        await Page.GotoAsync($"{LocalTestApplication.PublicBaseUrl}/en-us/contact", new() { WaitUntil = WaitUntilState.DOMContentLoaded });
+        var token = await Page.Locator("input[name='__RequestVerificationToken']").First.InputValueAsync();
         var errors = new List<string>();
         Page.PageError += (_, error) => errors.Add(error);
         Assert.Equal(200, (await Page.GotoAsync($"{LocalTestApplication.PublicBaseUrl}/en-us/products/{product.Slug}", new() { WaitUntil = WaitUntilState.DOMContentLoaded }))!.Status);
@@ -125,9 +131,10 @@ public sealed class MarketingAccessTests : DiagnosticPageTest
         await Expect(Page.Locator("[data-signup-step]")).ToHaveCountAsync(0);
         await Expect(Page.GetByRole(AriaRole.Link, new() { Name = "Contact us", Exact = true })).ToHaveAttributeAsync("href", "/en-us/contact");
         Assert.Empty(errors);
+        await PublicProductSubmissionPacing.ReserveAsync();
         var status = await Page.EvaluateAsync<int>("""
-            async () => (await fetch(location.href, {method:'POST',headers:{'X-Requested-With':'XMLHttpRequest'},body:new URLSearchParams({email:'blocked@example.test'})})).status
-            """);
+            async token => (await fetch(location.href, {method:'POST',headers:{'X-Requested-With':'XMLHttpRequest','RequestVerificationToken':token},body:new URLSearchParams({email:'blocked@example.test'})})).status
+            """, token);
         Assert.Equal(403, status);
         Assert.False(await db.CatalogPurchases.AnyAsync(purchase => purchase.CatalogProductId == product.Id));
     }

@@ -19,7 +19,7 @@ namespace iD_Develops.Pages.Portal.Admin.Products
             IApplicationUrlService applicationUrls,
             IPortalAuthenticationHandoffService authenticationHandoffService,
             IApplicationAuditService auditService,
-            IStringLocalizer<iD_Develops.Pages.ProductModel> localizer)
+            IStringLocalizer<iD_Develops.Pages.ProductModel> localizer, ISiteAccessPolicy siteAccess)
             : base(
                 catalogProductService,
                 creditConfigurationService,
@@ -32,7 +32,7 @@ namespace iD_Develops.Pages.Portal.Admin.Products
                 applicationUrls,
                 authenticationHandoffService,
                 auditService,
-                localizer)
+                localizer, siteAccess)
         {
         }
 

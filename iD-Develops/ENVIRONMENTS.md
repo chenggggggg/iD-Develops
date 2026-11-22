@@ -26,13 +26,19 @@ requires an application reload/deployment. Unknown enum values fail configuratio
 
 | Mode | Public experience | Portal access |
 | --- | --- | --- |
-| Marketing | Information, contact, anonymous level testing, protected emailed results; product information links to contact instead of ordering | Admin/SuperAdmin only; no public registration or customer/teacher login, including existing sessions |
+| Marketing | Information, contact, anonymous level testing, protected emailed results; eligible signup/enquiry forms and external booking without accounts | Admin/SuperAdmin only; no public registration or customer/teacher login, including existing sessions |
 | Full | Existing customer features and registration | Existing role/ownership rules apply |
 
 Production and shared defaults use Marketing. Local, Development, and Staging use Full.
 Configure the mode explicitly on each hosted app. Existing customers may need to sign in
 again after Full is restored; accounts, purchases, and exam records are never deleted by
 changing the setting. Staff password recovery and two-factor authentication remain available.
+Public product actions in Marketing require a non-preview product using FormSubmission,
+FormThenExternalBooking, or ExternalBookingOnly, without account creation, course/exam
+grants, or credits. Sales-paused products cannot submit. Stripe checkout remains disabled,
+even for staff; account-dependent products show information and a contact link instead.
+Preview-only products remain information-only in both modes. Publication and access-token
+checks still apply. Staff editor previews do not submit public actions.
 Signed provider callbacks, pending payment returns, and health probes remain operational.
 `/health/version` reports the effective `siteMode` alongside the deployed code version.
 
@@ -47,7 +53,7 @@ watcher, select the appropriate mode, reload that application, then run the matc
 # Existing local application configured with SiteMode=Full:
 dotnet test tests/iD-Develops.E2ETests/iD-Develops.E2ETests.csproj --configuration Release --no-build --filter "SiteMode!=Marketing"
 # Existing local application configured with SiteMode=Marketing:
-dotnet test tests/iD-Develops.E2ETests/iD-Develops.E2ETests.csproj --configuration Release --no-build --filter "SiteMode=Marketing|FullyQualifiedName~PublicExamAccessTests|FullyQualifiedName~ContactSubmissionTests|FullyQualifiedName~ExpiredExamTests|FullyQualifiedName~ExamResultPresentationTests|FullyQualifiedName~PublicAboutPageTests"
+dotnet test tests/iD-Develops.E2ETests/iD-Develops.E2ETests.csproj --configuration Release --no-build --filter "SiteMode=Marketing|FullyQualifiedName~PublicProductActionsTests|FullyQualifiedName~SignupTurnstileTests|FullyQualifiedName~PublicExamAccessTests|FullyQualifiedName~ContactSubmissionTests|FullyQualifiedName~ExpiredExamTests|FullyQualifiedName~ExamResultPresentationTests|FullyQualifiedName~PublicAboutPageTests"
 ```
 
 Keep test database/mail configuration as described in README.md. Marketing tests require
