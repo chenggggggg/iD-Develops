@@ -31,6 +31,7 @@ namespace iD_Develops.Pages
         private readonly IPortalAuthenticationHandoffService _authenticationHandoffService;
         private readonly IApplicationAuditService _auditService;
         private readonly IStringLocalizer<ProductModel> _localizer;
+        private readonly ISiteAccessPolicy _siteAccess;
 
         public ProductModel(
             ICatalogProductService catalogProductService,
@@ -44,7 +45,8 @@ namespace iD_Develops.Pages
             IApplicationUrlService applicationUrls,
             IPortalAuthenticationHandoffService authenticationHandoffService,
             IApplicationAuditService auditService,
-            IStringLocalizer<ProductModel> localizer)
+            IStringLocalizer<ProductModel> localizer,
+            ISiteAccessPolicy siteAccess)
         {
             _catalogProductService = catalogProductService;
             _creditConfigurationService = creditConfigurationService;
@@ -58,6 +60,7 @@ namespace iD_Develops.Pages
             _authenticationHandoffService = authenticationHandoffService;
             _auditService = auditService;
             _localizer = localizer;
+            _siteAccess = siteAccess;
         }
 
         [BindProperty]
@@ -78,7 +81,8 @@ namespace iD_Develops.Pages
         public int? SelectedVariantId { get; private set; }
         public bool IsPreviewMode { get; private set; }
         public string? AccessToken { get; private set; }
-        public bool CanTakeAction => !Product.IsPreviewOnly && (IsPreviewMode || Product.IsSalesActive);
+        public bool ProductActionsEnabled => !Product.IsPreviewOnly && (IsPreviewMode || _siteAccess.CanUseProductActions(Product));
+        public bool CanTakeAction => ProductActionsEnabled && (IsPreviewMode || Product.IsSalesActive);
         public bool IsAdminEditMode { get; private set; }
         public List<Course> CourseOptions { get; private set; } = new();
         public List<Exam> ExamOptions { get; private set; } = new();
@@ -177,6 +181,9 @@ namespace iD_Develops.Pages
 
             if (resumeCheckout && !IsPreviewMode && !product.IsPreviewOnly)
             {
+                if (!_siteAccess.CanUseProductActions(product))
+                    return StatusCode(StatusCodes.Status403Forbidden);
+
                 var handoff = _authenticationHandoffService.ValidateToken(portalAccess);
                 var handoffPath = handoff?.ReturnPath.Split('?', 2)[0];
                 if (handoff == null ||
@@ -209,7 +216,7 @@ namespace iD_Develops.Pages
                 return NotFound();
             }
 
-            if (product.IsPreviewOnly)
+            if (!_siteAccess.CanUseProductActions(product))
             {
                 return StatusCode(StatusCodes.Status403Forbidden);
             }

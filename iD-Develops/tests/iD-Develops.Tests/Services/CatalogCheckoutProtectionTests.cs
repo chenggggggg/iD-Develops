@@ -794,6 +794,42 @@ public sealed class CatalogCheckoutProtectionTests
         Assert.Single(await data.Db.CatalogCheckoutReceipts.ToListAsync());
     }
 
+    [Fact]
+    public async Task MarketingRejectsDirectCheckoutAndResumeBeforeAnySideEffects()
+    {
+        using var data = new TestCheckout(mode: SiteMode.Marketing);
+        var product = await data.ProductAsync();
+        var turnstile = new RejectingTurnstile();
+        var page = data.Page(turnstile, SiteMode.Marketing);
+        var post = Assert.IsType<StatusCodeResult>(await page.OnPostAsync(product.Slug));
+        Assert.Equal(StatusCodes.Status403Forbidden, post.StatusCode);
+        var resume = Assert.IsType<StatusCodeResult>(await page.OnGetAsync(product.Slug, resumeCheckout: true));
+        Assert.Equal(StatusCodes.Status403Forbidden, resume.StatusCode);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => data.StartAsync(data.Context(), product, Guid.NewGuid(), new()));
+        Assert.Equal(0, turnstile.Calls);
+        Assert.Equal(0, data.Stripe.Creates);
+        Assert.Empty(await data.Db.CatalogCheckoutAttempts.ToListAsync());
+        Assert.Empty(await data.Db.ProductFormSubmissions.ToListAsync());
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task MarketingPublicFormsPreservePausedSalesAndSecurityValidation(bool active)
+    {
+        using var data = new TestCheckout();
+        var product = await data.ProductAsync();
+        product.WorkflowType = CatalogWorkflowType.FormSubmission;
+        product.IsSalesActive = active;
+        await data.Db.SaveChangesAsync();
+        var turnstile = new RejectingTurnstile();
+        var page = data.Page(turnstile, SiteMode.Marketing);
+        Assert.IsType<PageResult>(await page.OnPostAsync(product.Slug));
+        Assert.Equal(active ? 1 : 0, turnstile.Calls);
+        Assert.False(page.ModelState.IsValid);
+        Assert.Empty(await data.Db.ProductFormSubmissions.ToListAsync());
+        Assert.Equal(0, data.Stripe.Creates);
+    }
     private sealed class TestCheckout : IDisposable
     {
         private readonly SqliteTestDbFactory _factory = new();
@@ -808,7 +844,7 @@ public sealed class CatalogCheckoutProtectionTests
         public FailOnceCredits Credits { get; }
         private readonly CatalogCheckoutCoordinator _coordinator;
 
-        public TestCheckout(bool failPaymentAudit = false, IStripeRefundClient? refundProvider = null)
+        public TestCheckout(bool failPaymentAudit = false, IStripeRefundClient? refundProvider = null, SiteMode mode = SiteMode.Full)
         {
             Db = _factory.CreateDbContext();
             var auditOptions = new DbContextOptionsBuilder<iD_Develops.Data.ApplicationDbContext>(_factory.Options);
@@ -832,7 +868,7 @@ public sealed class CatalogCheckoutProtectionTests
                 urls, CheckoutAudit, NullLogger<CatalogCheckoutFulfillmentService>.Instance,
                 refundProvider == null ? null : new CatalogRefundService(Db, refundProvider,
                     new ApplicationAuditService(Db, new HttpContextAccessor(), NullLogger<ApplicationAuditService>.Instance), NullLogger<CatalogRefundService>.Instance));
-            _coordinator = new(Db, new CatalogStripeCheckoutService(Stripe), Stripe, Access, new TestEnvironment(), Fulfillment, urls, CheckoutAudit, new ExamVersionService(Db));
+            _coordinator = new(Db, new CatalogStripeCheckoutService(Stripe), Stripe, Access, new TestEnvironment(), Fulfillment, urls, CheckoutAudit, new ExamVersionService(Db), new SiteAccessPolicy(Options.Create(new SiteAccessOptions { SiteMode = mode })));
         }
 
         public async Task<CatalogProduct> ProductAsync()
@@ -862,7 +898,7 @@ public sealed class CatalogCheckoutProtectionTests
             return context;
         }
 
-        public ProductModel Page(ITurnstileService turnstile)
+        public ProductModel Page(ITurnstileService turnstile, SiteMode mode = SiteMode.Full)
         {
             var context = Context();
             context.Request.ContentType = "application/x-www-form-urlencoded";
@@ -871,7 +907,7 @@ public sealed class CatalogCheckoutProtectionTests
                 new CatalogProductFileStorageService(new TestEnvironment(), new ConfigurationBuilder().Build(), new DisabledPresignedUrlService(), null!),
                 new TestEnvironment(), turnstile, _services.GetRequiredService<IApplicationUrlService>(), null!,
                 new ApplicationAuditService(Db, new HttpContextAccessor(), NullLogger<ApplicationAuditService>.Instance),
-                _services.GetRequiredService<IStringLocalizer<ProductModel>>())
+                _services.GetRequiredService<IStringLocalizer<ProductModel>>(), new SiteAccessPolicy(Options.Create(new SiteAccessOptions { SiteMode = mode })))
             {
                 PageContext = new PageContext { HttpContext = context }
             };

@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using iD_Develops.Configuration;
+using iD_Develops.Enums;
 using iD_Develops.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
@@ -11,6 +12,7 @@ public interface ISiteAccessPolicy
     bool IsMarketing { get; }
     bool PublicAccountsEnabled { get; }
     bool PublicTransactionsEnabled { get; }
+    bool CanUseProductActions(CatalogProduct product);
     bool CanUsePortal(ClaimsPrincipal user);
     Task<bool> CanSignInAsync(UserManager<ApplicationUser> users, ApplicationUser user);
 }
@@ -20,6 +22,11 @@ public sealed class SiteAccessPolicy(IOptions<SiteAccessOptions> options) : ISit
     public bool IsMarketing => options.Value.SiteMode == SiteMode.Marketing;
     public bool PublicAccountsEnabled => !IsMarketing;
     public bool PublicTransactionsEnabled => !IsMarketing;
+
+    public bool CanUseProductActions(CatalogProduct product)
+        => !product.IsPreviewOnly && (PublicTransactionsEnabled ||
+            !product.RequiresAuthenticatedAccount && product.WorkflowType is
+                CatalogWorkflowType.FormSubmission or CatalogWorkflowType.FormThenExternalBooking or CatalogWorkflowType.ExternalBookingOnly);
 
     public bool CanUsePortal(ClaimsPrincipal user)
         => !IsMarketing || user.Identity?.IsAuthenticated == true &&

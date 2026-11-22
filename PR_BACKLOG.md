@@ -3,7 +3,7 @@
 Updated: 2026-11-21
 
 This is the combined planning backlog from the staging review and owner meeting.
-B01-B30 are planning IDs, not GitHub PR numbers. Current launch priorities are:
+B01-B34 are planning IDs, not GitHub PR numbers. Current launch priorities are:
 P0 marketing-release blockers, P1 supporting work, P2 post-launch improvements.
 This file does not authorize implementation, Git changes, or deployments.
 
@@ -14,16 +14,50 @@ Preserve uncommitted work and confirm the working tree is clean before switching
 Follow AGENTS.md for Git-operation approvals. B01 was explicitly started on 2026-10-31
 on fix/payment-fulfillment-audit.
 
+## Production review priorities - 2026-11-21
+
+User requested these production issues at P0. This is planning only: no production
+configuration, account roles, authentication policy, or application code changed.
+
+Observed during this review:
+
+- PR #67 is merged as 9b0ea8c0d0fed392d78c0dee29e7e9c0f9a26389. It includes the native
+  horizontal-scroll/mobile examination fix and its long-exam regressions.
+- Production /health/version still reports e49c7f9c3ea6f5636f8cd2ddab0d33b2a928b6ed,
+  SiteMode=Marketing. Staging reports 931529d1453258cecdee908173052d1227717dd3,
+  SiteMode=Full. These are a point-in-time deployment snapshot, not a permanent status.
+- Publish the already-tested PR #67 build through the production promotion workflow
+  after its required CI/staging checks. Do not open a duplicate native-scroll fix PR.
+- Desktop click-and-drag scrolling is not implemented by native overflow alone; B34
+  tracks pointer/touch interaction verification and any remaining implementation.
+- Existing Signup products use product details -> personal details -> product questions
+  -> confirmation. Full name/email are required; phone/address fields are optional.
+  This is an existing Signup-type workflow, not a new mandatory step for every product type.
+- Marketing currently blocks public product actions independently of Preview only.
+  B31 is the newly requested policy change: allow eligible public signup/Koalendar
+  actions while retaining closed customer accounts/Portal access.
+- Production has Admin__Email/Admin__Password settings and no SuperAdmin__Email or
+  SuperAdmin__Password settings. The seeder assigns explicit configured roles; it
+  does not promote an arbitrary first-created user. B33 covers owner configuration.
+- An anonymous HEAD to https://portal.id-develops.com/ returns 403; /login returns 200.
+  SiteAccessMiddleware blocks the anonymous Portal request before the normal Identity
+  login challenge. B32 restores that challenge and preserves the intended destination.
+
+Immediate release action: promote/verify #67. Code follow-up order: B31 -> B32 -> B34;
+B33 is a separate P0 bootstrap-configuration task and may not require a code PR.
+All previous pending PRs, including the B09 contact Reply-To follow-up, remain saved.
 ## Marketing launch scope - owner priorities, 2026-11-10
 
 The first production release presents the company and its services, provides contact,
 and supports the full public level-test journey through emailed results. The existing
 portal remains available through its direct URL for Admin/SuperAdmin operations.
-The approved SiteMode=Marketing policy disables public registration, customer/teacher
+The original B23 SiteMode=Marketing policy disables public registration, customer/teacher
 login and existing sessions, public signup/checkout, and customer Portal access on the
 server. Public information, contact, anonymous level testing, and protected results stay
 available. SiteMode=Full restores normal customer features; existing authorization still
-applies. These application modes are separate from Development/Staging/Production.
+applies. B31 updates the product restriction to permit eligible account-free signup/enquiry
+and external booking; Stripe checkout and account-dependent product actions remain disabled
+in Marketing. These application modes are separate from Development/Staging/Production.
 
 Launch order: B10 -> B22 -> B23 -> B24 -> B25 -> B26 -> B27.
 B15 asset work can run alongside these; broken visible assets are launch blockers,
@@ -88,6 +122,10 @@ work without changing its size. Estimates may change after a focused investigati
 | B26 | Medium | About-page layout, company information, existing imagery, contact paths, and localized responsive checks. |
 | B27 | Medium | Production configuration and data separation, stable result-link keys, production URLs/email, and release smoke checks. |
 | B28 | Medium-Large | Verified account registration/sign-in and secure result claiming for Full launch, with historical Marketing links preserved. |
+| B31 | Medium | Separate product action capabilities from customer account/Portal access; coordinate public views, server guards, signup/booking actions, preview-only flags, and both-mode tests. |
+| B32 | Small | Restore anonymous Portal login challenges, safe return URLs, authenticated-forbidden behavior, and browser/API regressions. |
+| B33 | Small | Configure the explicit production SuperAdmin owner using the existing seeder; verify role claims and document safe setup. Code changes only if investigation shows a gap. |
+| B34 | Small-Medium | Verify actual native scrolling and touch input after #67 deployment; implement any missing desktop drag/accessibility affordances without affecting answer state or Submit. |
 
 ## Completed work excluded from this backlog
 
@@ -758,7 +796,7 @@ keyboard selection/deselection, focus, help, media controls, saved answers, navi
 and scrolling. Screenshots were inspected. The initial concurrent unit/format run hit three
 database-startup timeouts; the unchanged full unit suite passed when run on its own.
 
-P0 marketing-launch follow-up implemented on `fix/examination-mobile-layout` (Medium); awaiting review and publication.
+P0 marketing-launch mobile follow-up completed and merged in [PR #67](https://github.com/chenggggggg/iD-Develops/pull/67), 2026-11-21. Production deployment/acceptance is still pending at this review; B34 tracks remaining desktop drag/scroll interaction work.
 
 - Review and optimise examination visuals on phones and tablets, including portrait/landscape
   layout, question/context/answer spacing, media, timer/header, pagination, and submit controls.
@@ -1039,6 +1077,92 @@ Status: completed and merged in [PR #63](https://github.com/chenggggggg/iD-Devel
 - Update meaningful browser regressions where behavior changes; do not preserve a
   harmful loading strategy merely because an existing test asserts its attributes.
 
+## B31 - P0 - Enable eligible public product signup and booking in Marketing mode
+
+**Estimated size: Medium.** Product-type policy and coordinated public/server guards.
+Status: implemented and verified on fix/marketing-product-actions, 2026-11-22; implementation complete; pending merge.
+
+- Update the earlier B23 blanket transaction restriction to the new approved business
+  requirement: public signup and Koalendar booking work for eligible active products
+  when the product-level Preview only checkbox is off.
+- Keep customer registration/sign-in and customer Portal availability independently
+  controlled. Do not expose the complete unfinished Portal to enable a public form/link.
+- Audit Signup, external booking/Koalendar, and other product workflow/CTA combinations.
+  Make the policy for account-dependent paid/course/credit/exam checkout explicit;
+  confirm any additional customer-account requirement before expanding that scope.
+- Distinguish the persisted IsPreviewOnly product flag from the staff editor Preview
+  tab. Preserve publication, sales-active, access-token, and authorization rules.
+- Coordinate Product.cshtml, ProductModel handlers, SiteAccessPolicy,
+  SiteAccessMiddleware, and downstream action services so a visible CTA can actually
+  complete its permitted workflow. Hiding controls alone must not be the only guard.
+- Preview-only products remain information-only and reject direct action requests.
+  Preserve already-paid fulfillment, signed callbacks, contact, and public level testing.
+- Preserve the existing personal-details-first Signup flow, required name/email,
+  optional phone/address fields, confirmation screen, and mandatory notification emails.
+- Verify Marketing and Full, preview-only on/off, active/paused products, anonymous/staff
+  visitors, signup success/failure, external booking links, and direct POST bypasses.
+
+Verification: Release build and format verification passed; 671 unit/integration tests,
+45 affected Full-mode browser checks, 114 complete Marketing-selection browser checks,
+and 75 deployment-policy tests passed. Original local settings were restored to Full.
+No database migration or new application setting is required. Decorative CTA icons are
+hidden from accessible names. Stripe/account-dependent actions stay restricted in Marketing;
+already-paid fulfillment and signed callbacks retain their existing paths.
+
+## B32 - P0 - Anonymous Portal login redirect with safe return destination
+
+**Estimated size: Small.** Focused authentication/middleware correction.
+Status: confirmed in production and saved, 2026-11-21; not implemented.
+
+- Anonymous browser visits to the Portal root and protected deep links should challenge
+  authentication and redirect to /login with the original local path/query as returnUrl.
+- After an allowed user signs in, return to that destination using the existing safe
+  local-redirect logic. Keep the staff-only Marketing policy and normal Full permissions.
+- Authenticated users without permission should receive Access denied/403 rather than
+  a login loop. Preserve Identity login, 2FA, recovery, logout, and anonymous public exams.
+- Preserve appropriate API/fetch 401/403 responses instead of returning an HTML login page.
+- Root cause: the Marketing Portal branch in SiteAccessMiddleware unconditionally sends
+  403 for non-staff before the configured Identity login challenge can execute.
+- Verify root/deep-link navigation, query preservation, successful staff return, forbidden
+  customer access in Marketing, Full-mode access, and rejection of external return URLs.
+
+## B33 - P0 - Explicit production SuperAdmin owner bootstrap
+
+**Estimated size: Small.** Configuration/deployment task first; code PR only if needed.
+Status: configuration cause confirmed, 2026-11-21; no production changes applied.
+
+- ApplicationDatabaseInitializer already supports separate Admin and SuperAdmin seed
+  settings. Production currently configures only Admin__Email/Admin__Password.
+- Configure the intended owner through SuperAdmin__Email/SuperAdmin__Password using
+  protected environment settings and the existing startup seeder. Do not expose secrets
+  in logs, commits, or the backlog, and do not infer privilege from user creation order.
+- Reuse the intended existing account by email where appropriate. Seeding must be
+  idempotent, preserve its credentials/data, and add only the explicitly configured role.
+- Verify the SuperAdmin role is available after a fresh sign-in and required owner-only
+  pages are accessible. Retain Admin/Teacher/Student authorization boundaries.
+- Never implement automatic promotion of the first public registrant or all Admins.
+- Document exact owner bootstrap setup and verify whether startup checks would improve
+  diagnostics when no SuperAdmin seed is configured. No role/configuration edits are
+  authorized by this backlog entry alone.
+
+## B34 - P0 - Examination pagination dragging and input reachability follow-up
+
+**Estimated size: Small-Medium.** Interaction verification and any remaining scrolling fix.
+Status: saved, 2026-11-21. Native overflow is already fixed by merged PR #67; production
+still runs an older image at the time of this report. Deploy/verify that fix first.
+
+- Reproduce with a realistically long exam and actual input interactions; do not use
+  keyboard focus auto-scrolling as the sole proof that the bar is user-scrollable.
+- Verify mobile swiping, trackpad/horizontal wheel input, scrollbar access, keyboard
+  navigation, active-question visibility, and Submit reachability in the deployed build.
+- Desktop click-and-drag is not part of #67's native overflow implementation. Provide a
+  reliable drag/scroll affordance where needed so off-screen question numbers are reachable.
+- A drag must not accidentally choose another question; ordinary taps/clicks continue
+  to navigate normally. Preserve vertical page scrolling and native touch behavior.
+- Retain autosave, selected answers, question counts, timing, submission, focus, safe-area
+  spacing, and the compact fixed action bar. Check desktop, portrait, and landscape.
+- Add meaningful gesture/input regressions and document physical-device coverage limits.
+  Do not duplicate the merged CSS overflow fix or claim it is deployed from merge alone.
 ## External references checked
 
 - Zoom server-to-server OAuth: https://developers.zoom.us/docs/internal-apps/s2s-oauth/

@@ -63,7 +63,9 @@ belong to the verified Resend domain. Preserve the company's inbox MX records wh
 configuring sending DNS. Follow [the Resend setup](../iD-Develops/ENVIRONMENTS.md#transactional-email-with-resend),
 including domain authentication and a separate production API key.
 
-Marketing mode blocks public checkout, registration, and customer/teacher login;
+Marketing mode permits eligible account-free signup/enquiry forms and external booking
+when Preview only is off. It blocks Stripe checkout, account-dependent product actions,
+registration, and customer/teacher login;
 providing Stripe configuration does not enable those features. Do not reuse staging
 purchase data or production credentials in staging. Configure a production webhook
 destination only for the production account/environment it belongs to.

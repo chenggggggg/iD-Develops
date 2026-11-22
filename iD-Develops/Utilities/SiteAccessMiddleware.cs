@@ -74,10 +74,11 @@ public sealed class SiteAccessMiddleware(RequestDelegate next)
         }
         else if (!isRead)
         {
-            // A product's unnamed POST starts signup/checkout, even for a staff browser.
+            // Product handlers load the current product and enforce its action policy.
+            // Named management handlers remain staff-only.
             var productSubmission = path.Equals("/Product", StringComparison.OrdinalIgnoreCase) &&
                 string.IsNullOrWhiteSpace(context.Request.Query["handler"]);
-            if (productSubmission || !isStaff && !PublicForms.Contains(path))
+            if (!productSubmission && !isStaff && !PublicForms.Contains(path))
             {
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
                 return;
