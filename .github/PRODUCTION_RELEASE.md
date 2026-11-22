@@ -43,7 +43,7 @@ Leave `App__Version` unset: it is baked into the tested image. Do not set a conf
 | `ApplicationUrls__PublicBaseUrl` | `https://id-develops.com` |
 | `ApplicationUrls__PortalBaseUrl` | `https://portal.id-develops.com` |
 | `ConnectionStrings__ApplicationDbContextConnection` | Secret connection string for the separate production database; use its provider-required TLS settings |
-| `Admin__Email`, `Admin__Password` | Actual staff address and a strong production-only bootstrap password |
+| `SuperAdmin__Email`, `SuperAdmin__Password` | Intended owner address and a strong production-only bootstrap password; creates one SuperAdmin owner or adds that role to the existing account without resetting its password |
 | `Mail__Provider` | `Resend` |
 | `Mail__ResendApiKey` | Secret production sending key restricted to the verified domain |
 | `Mail__From` | Verified sender, for example `info@id-develops.com` |
@@ -70,8 +70,30 @@ providing Stripe configuration does not enable those features. Do not reuse stag
 purchase data or production credentials in staging. Configure a production webhook
 destination only for the production account/environment it belongs to.
 
+The startup account is the **SuperAdmin owner** in every environment. There is no separate
+automatically created Admin account. The owner can assign Admin to other accounts through
+**Portal > Admin > Users**. Existing users, passwords, and role assignments are preserved;
+the first registered user is never automatically promoted.
+
+For an existing deployment using `Admin__Email`/`Admin__Password`:
+
+1. Add `SuperAdmin__Email` for the intended existing owner and `SuperAdmin__Password` as
+   encrypted runtime settings in each app. Both values are required for setup. The
+   password is used only when creating a missing account; an existing password stays intact.
+2. Redeploy the currently pinned image, then sign out and sign back in. Verify that the
+   owner can access `/admin/audit-log` and manage staff roles before removing old settings.
+3. Use the updated release workflow, which requires the SuperAdmin settings. Remove the
+   obsolete `Admin__Email`, `Admin__Password`, and any `Admin__FirstName`/`Admin__LastName`
+   settings after the owner is verified. Removing them does not delete or demote accounts.
+   The owner-only startup code ignores legacy Admin settings and reports a warning.
+
+The same owner settings apply to staging; do not rely on its historical database role
+assignments when setting up a fresh environment. Keep production and staging credentials
+separate. Configuration updates for an attached managed database also require
+`database:read` on a DigitalOcean API token; alternatively edit the settings in the Control Panel.
+
 Use separate production credentials for staff sign-in and enable staff two-factor
-authentication. Roles and configured staff users are seeded at startup; approved
+authentication. Roles and the configured owner are set up at startup; approved
 products, exam content, and level-test publication are **not** seeded automatically.
 Copy only reviewed content through an explicit content-transfer process. Do not clone
 the staging database, its learners, purchases, test products, or data-protection keys.

@@ -154,8 +154,8 @@ jobs:
           ApplicationUrls__PublicBaseUrl: http://id.localhost:5000
           ApplicationUrls__PortalBaseUrl: http://portal.id.localhost:5000
           ConnectionStrings__ApplicationDbContextConnection: Host=127.0.0.1;Port=5432;Database=iddevelops_ci;Username=postgres;Password=ci-postgres-password;
-          Admin__Email: admin@example.test
-          Admin__Password: CI-Admin-Password-123!
+          SuperAdmin__Email: owner@example.test
+          SuperAdmin__Password: CI-Owner-Password-123!
           Mail__Provider: File
           Mail__PickupDirectory: ${{ runner.temp }}/e2e-mail
         run: |
@@ -184,8 +184,8 @@ jobs:
         env:
           IDDEVELOPS_E2E_PUBLIC_BASE_URL: http://id.localhost:5000
           IDDEVELOPS_E2E_PORTAL_BASE_URL: http://portal.id.localhost:5000
-          IDDEVELOPS_E2E_EMAIL: admin@example.test
-          IDDEVELOPS_E2E_PASSWORD: CI-Admin-Password-123!
+          IDDEVELOPS_E2E_EMAIL: owner@example.test
+          IDDEVELOPS_E2E_PASSWORD: CI-Owner-Password-123!
           IDDEVELOPS_E2E_DATABASE_CONNECTION: Host=127.0.0.1;Port=5432;Database=iddevelops_ci;Username=postgres;Password=ci-postgres-password;
           IDDEVELOPS_E2E_FILE_MAIL_DIRECTORY: ${{ runner.temp }}/e2e-mail
         run: >-
@@ -206,8 +206,8 @@ jobs:
           ApplicationUrls__PublicBaseUrl: http://id.localhost:5000
           ApplicationUrls__PortalBaseUrl: http://portal.id.localhost:5000
           ConnectionStrings__ApplicationDbContextConnection: Host=127.0.0.1;Port=5432;Database=iddevelops_ci;Username=postgres;Password=ci-postgres-password;
-          Admin__Email: admin@example.test
-          Admin__Password: CI-Admin-Password-123!
+          SuperAdmin__Email: owner@example.test
+          SuperAdmin__Password: CI-Owner-Password-123!
           Mail__Provider: File
           Mail__PickupDirectory: ${{ runner.temp }}/e2e-mail-marketing
         run: |
@@ -243,14 +243,14 @@ jobs:
         env:
           IDDEVELOPS_E2E_PUBLIC_BASE_URL: http://id.localhost:5000
           IDDEVELOPS_E2E_PORTAL_BASE_URL: http://portal.id.localhost:5000
-          IDDEVELOPS_E2E_EMAIL: admin@example.test
-          IDDEVELOPS_E2E_PASSWORD: CI-Admin-Password-123!
+          IDDEVELOPS_E2E_EMAIL: owner@example.test
+          IDDEVELOPS_E2E_PASSWORD: CI-Owner-Password-123!
           IDDEVELOPS_E2E_DATABASE_CONNECTION: Host=127.0.0.1;Port=5432;Database=iddevelops_ci;Username=postgres;Password=ci-postgres-password;
           IDDEVELOPS_E2E_FILE_MAIL_DIRECTORY: ${{ runner.temp }}/e2e-mail-marketing
         run: >-
           dotnet test "$E2E_TEST_PROJECT"
           --configuration Release --no-build
-          --filter "SiteMode=Marketing|FullyQualifiedName~PublicExamPagination|FullyQualifiedName~PublicExamMobileImages|FullyQualifiedName~PortalLoginRedirectTests|FullyQualifiedName~PublicProductActionsTests|FullyQualifiedName~SignupTurnstileTests|FullyQualifiedName~PublicExamAccessTests|FullyQualifiedName~ContactSubmissionTests|FullyQualifiedName~ExpiredExamTests|FullyQualifiedName~ExamResultPresentationTests|FullyQualifiedName~LongExamNavigationAndSubmissionRemainReachable|FullyQualifiedName~PublicAboutPageTests|FullyQualifiedName~PublicLanguageSwitch|FullyQualifiedName~PublicMobileNavigationTests|FullyQualifiedName~HomeServicePerformanceTests|FullyQualifiedName~PublicImageTests"
+          --filter "SiteMode=Marketing|FullyQualifiedName~OwnerBootstrapTests|FullyQualifiedName~PublicExamPagination|FullyQualifiedName~PublicExamMobileImages|FullyQualifiedName~PortalLoginRedirectTests|FullyQualifiedName~PublicProductActionsTests|FullyQualifiedName~SignupTurnstileTests|FullyQualifiedName~PublicExamAccessTests|FullyQualifiedName~ContactSubmissionTests|FullyQualifiedName~ExpiredExamTests|FullyQualifiedName~ExamResultPresentationTests|FullyQualifiedName~LongExamNavigationAndSubmissionRemainReachable|FullyQualifiedName~PublicAboutPageTests|FullyQualifiedName~PublicLanguageSwitch|FullyQualifiedName~PublicMobileNavigationTests|FullyQualifiedName~HomeServicePerformanceTests|FullyQualifiedName~PublicImageTests"
           --logger "trx;LogFileName=marketing-tests.trx"
           --results-directory "${{ runner.temp }}/test-results/marketing"
 

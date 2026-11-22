@@ -38,7 +38,7 @@ public sealed class ApplicationDatabaseInitializer : IApplicationDatabaseInitial
     {
         await _dbContext.Database.MigrateAsync(cancellationToken);
         await EnsureRolesAsync();
-        await EnsureConfiguredUsersAsync();
+        await EnsureConfiguredOwnerAsync();
     }
 
     private async Task EnsureRolesAsync()
@@ -59,13 +59,14 @@ public sealed class ApplicationDatabaseInitializer : IApplicationDatabaseInitial
         }
     }
 
-    private async Task EnsureConfiguredUsersAsync()
+    private async Task EnsureConfiguredOwnerAsync()
     {
-        await EnsureUserAsync(
-            configurationPrefix: "Admin",
-            roleName: "Admin",
-            defaultFirstName: "Admin",
-            defaultLastName: "User");
+        if (!string.IsNullOrWhiteSpace(_configuration["Admin:Email"]) ||
+            !string.IsNullOrWhiteSpace(_configuration["Admin:Password"]))
+        {
+            _logger.LogWarning(
+                "Admin bootstrap settings are no longer used. Configure SuperAdmin:Email and SuperAdmin:Password for the startup owner; manage other staff roles in the Portal.");
+        }
 
         await EnsureUserAsync(
             configurationPrefix: "SuperAdmin",

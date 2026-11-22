@@ -44,7 +44,7 @@ Observed during this review:
   login challenge. B32 restores that challenge and preserves the intended destination.
 
 Immediate release action: promote/verify #67. Code follow-up order: B31 -> B32 -> B34;
-B33 is a separate P0 bootstrap-configuration task and may not require a code PR.
+B33 now also standardizes owner-only startup and release checks; hosted owner configuration remains a separate P0 step.
 All previous pending PRs, including the B09 contact Reply-To follow-up, remain saved.
 ## Marketing launch scope - owner priorities, 2026-11-10
 
@@ -124,7 +124,7 @@ work without changing its size. Estimates may change after a focused investigati
 | B28 | Medium-Large | Verified account registration/sign-in and secure result claiming for Full launch, with historical Marketing links preserved. |
 | B31 | Medium | Separate product action capabilities from customer account/Portal access; coordinate public views, server guards, signup/booking actions, preview-only flags, and both-mode tests. |
 | B32 | Small | Restore anonymous Portal login challenges, safe return URLs, authenticated-forbidden behavior, and browser/API regressions. |
-| B33 | Small | Configure the explicit production SuperAdmin owner using the existing seeder; verify role claims and document safe setup. Code changes only if investigation shows a gap. |
+| B33 | Small-Medium | Standardize one configured SuperAdmin owner across environments; remove automatic Admin seeding, update CI/release configuration, and verify account/password preservation and staff-role management. |
 | B34 | Small-Medium | Fix actual touch, wheel, mouse-drag, and keyboard pagination; move mobile question images above related context while retaining desktop columns, answer state, and Submit. |
 | B35 | Small-Medium | Add missing product-create and product-navigation progress feedback, prevent repeated creation clicks, and cover delayed responses and retries. |
 
@@ -1135,30 +1135,49 @@ XHR/JSON 401s, authenticated forbidden pages, and rejection of external return U
 Customer login, registration, and Portal role restrictions are unchanged. Cleared/invalid
 customer sessions now follow the anonymous login challenge. No migration/settings needed.
 
-## B33 - P0 - Explicit production SuperAdmin owner bootstrap
+## B33 - P0 - Single configured SuperAdmin startup owner
 
-**Estimated size: Small.** Configuration/deployment task first; code PR only if needed.
-Status: configuration cause confirmed, 2026-11-21; no production changes applied.
+**Estimated size: Small-Medium.** Owner seeding, CI/release configuration, safe migration,
+and security regressions. Expanded from the configuration-only task by the user's
+2026-11-22 clarification: the startup account must control everything; ordinary Admin
+accounts are assigned by the owner through user management, not automatically seeded.
+Status: implemented and verified on fix/owner-account-bootstrap, 2026-11-22; ready for PR review.
+Hosted owner configuration and production acceptance remain pending.
 
-- ApplicationDatabaseInitializer already supports separate Admin and SuperAdmin seed
-  settings. Production currently configures only Admin__Email/Admin__Password.
-- Configure the intended owner through SuperAdmin__Email/SuperAdmin__Password using
-  protected environment settings and the existing startup seeder. Do not expose secrets
-  in logs, commits, or the backlog, and do not infer privilege from user creation order.
-- Reuse the intended existing account by email where appropriate. Seeding must be
-  idempotent, preserve its credentials/data, and add only the explicitly configured role.
-- Verify the SuperAdmin role is available after a fresh sign-in and required owner-only
-  pages are accessible. Retain Admin/Teacher/Student authorization boundaries.
-- Never implement automatic promotion of the first public registrant or all Admins.
-- Document exact owner bootstrap setup and verify whether startup checks would improve
-  diagnostics when no SuperAdmin seed is configured. No role/configuration edits are
-  authorized by this backlog entry alone.
+- Use only SuperAdmin__Email/SuperAdmin__Password for owner setup in every environment.
+  Remove automatic Admin creation. Keep all built-in roles and existing users/assignments.
+- Explicitly configured existing accounts gain SuperAdmin without resetting passwords,
+  profile data, or existing roles. Repeated startups must be idempotent.
+- Legacy Admin__ settings must not create or promote an account. Warn about their use;
+  do not automatically promote the first registrant, all Admins, or an inferred user.
+- The SuperAdmin owner can assign Admin to other accounts in Portal > Admin > Users.
+  Preserve existing Admin/Teacher/Student authorization boundaries.
+- Update CI to start with a SuperAdmin owner and the production release policy to require
+  its runtime settings. Update the environment example and migration/setup instructions.
+- Verify fresh-owner creation, existing-account credential preservation, legacy settings,
+  incomplete settings, registration order, owner-only pages, and staff-role management.
+- Before production promotion, add the encrypted SuperAdmin settings in both hosted apps,
+  redeploy and verify the intended owner after a fresh sign-in. Remove obsolete Admin
+  settings after owner access and the updated release workflow are verified.
+- Production/staging configuration is not changed by this code PR. The current local
+  DigitalOcean token cannot update the apps because it lacks database:read. Prior update
+  requests were rejected; no runtime settings or production roles were changed.
+- The ignored local .env was migrated to the owner keys with its existing values retained;
+  no credentials belong in commits, logs, or the backlog.
+
+Verification: Release build and formatting passed; all 693 unit/integration tests,
+all 329 Full-mode browser tests, all 135 CI-selected Marketing browser tests, and
+80 deployment-policy tests passed. Eight new startup cases cover fresh-owner creation,
+idempotence, credential/profile/role preservation, ignored legacy Admin settings,
+incomplete settings, and first-user safety. The new browser flow verifies audit-log
+access and assigning Admin to another account in both modes. Existing ordinary Admin
+permission tests pass. The existing watcher returned to Full mode with the original
+local settings restored. No migration is required; no hosted settings were changed.
 
 ## B34 - P0 - Examination pagination and mobile question layout
 
 **Estimated size: Small-Medium.** Pagination interaction fixes and mobile question-image ordering.
-Status: implemented and verified on fix/exam-pagination-mobile-layout, 2026-11-22;
-ready for PR review. Builds on the native overflow introduced in PR #67.
+Status: completed and merged in [PR #70](https://github.com/chenggggggg/iD-Develops/pull/70), 2026-11-22. Production promotion/acceptance is separate.
 
 - Mobile question layout, requested 2026-11-22: move the question image above the
   scenario/context so it no longer separates related scenario and question text.

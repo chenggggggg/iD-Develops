@@ -231,11 +231,33 @@ public checkout without sharing the portal cookie with the public hostname.
 - `Cookiebot__Cbid`
 - `Cookiebot__BlockingMode`
 - `Cookiebot__DeclarationEnabled`
-- `Admin__Email`
-- `Admin__Password`
-- `SuperAdmin__Email` and `SuperAdmin__Password` when a separate SuperAdmin account is required
+- `SuperAdmin__Email` and `SuperAdmin__Password` for the startup owner
+- `SuperAdmin__FirstName` and `SuperAdmin__LastName` when overriding the default owner name
 
 `Stripe__SecretKey` and `Stripe__WebhookSecret` are optional only in the `Local` environment. `Development`, `Staging`, and `Production` require both because payment fulfillment depends on signed Stripe webhooks.
+
+## Startup owner and staff accounts
+
+Use one explicitly configured **SuperAdmin** owner in Local, Development, Staging, and
+Production. Set `SuperAdmin__Email` and `SuperAdmin__Password` in the environment's
+secret settings (or the ignored local `.env`), not in tracked configuration files.
+Both are required to run owner setup. A fresh database receives that account and the
+SuperAdmin role. If its email already exists, setup adds SuperAdmin without replacing
+its password, profile, or existing roles. Repeated startups do not duplicate the account.
+
+No ordinary Admin account is seeded, and registration order never grants staff access.
+The owner manages other accounts' roles through **Portal > Admin > Users**, including
+assigning Admin where needed. Existing staff accounts and roles are not removed.
+
+`Admin__Email`, `Admin__Password`, `Admin__FirstName`, and `Admin__LastName` are obsolete.
+For local settings, transfer the intended owner's values to the SuperAdmin keys and
+remove the old keys. For existing hosted apps, first add the SuperAdmin settings,
+redeploy, and verify owner access after a fresh sign-in. Then remove the old keys using
+the [production setup sequence](../.github/PRODUCTION_RELEASE.md#1-create-and-configure-the-production-app).
+The updated release policy requires the SuperAdmin keys; legacy Admin settings are
+ignored by startup and cannot substitute for the owner. Production settings must be
+configured before promoting this change. Staging's existing owner role remains stored,
+but fresh staging installations need the same explicit setup.
 
 ## Transactional email with Resend
 
