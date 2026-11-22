@@ -5,6 +5,7 @@ using iD_Develops.Models;
 using iD_Develops.Services;
 using iD_Develops.Tests.Infrastructure;
 using iD_Develops.Utilities;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -41,9 +42,9 @@ public sealed class SiteAccessTests
         { true, "Identity", "/Account/Register", "POST", null, "Admin", 404 },
         { true, "Identity", "/Account/RegisterConfirmation", "GET", null, null, 404 },
         { true, "Identity", "/Account/ExternalLogin", "POST", null, null, 404 },
-        { true, "Identity", "/Account/Manage/Index", "GET", null, null, 404 },
+        { true, "Identity", "/Account/Manage/Index", "GET", null, null, 302 },
         { true, "Identity", "/Account/Manage/Index", "GET", null, "Admin", 200 },
-        { true, null, "/Portal/Home/Index", "GET", null, null, 403 },
+        { true, null, "/Portal/Home/Index", "GET", null, null, 302 },
         { true, null, "/Portal/Home/Index", "GET", null, "Student", 403 },
         { true, null, "/Portal/Home/Index", "GET", null, "Teacher", 403 },
         { true, null, "/Portal/Home/Index", "GET", null, "Admin", 200 },
@@ -139,7 +140,8 @@ public sealed class SiteAccessTests
     private static async Task<int> ExecuteAsync(SiteMode mode, bool portal, string? area, string page,
         string method, string? handler, string? role)
     {
-        var context = new DefaultHttpContext();
+        using var services = new ServiceCollection().AddSingleton<IAuthenticationService>(new ChallengeRecorder()).BuildServiceProvider();
+        var context = new DefaultHttpContext { RequestServices = services };
         context.Request.Host = new HostString(portal ? "portal.id.localhost" : "id.localhost");
         context.Request.Method = method;
         if (handler != null) context.Request.QueryString = QueryString.Create("handler", handler);
@@ -151,6 +153,61 @@ public sealed class SiteAccessTests
         return context.Response.StatusCode;
     }
 
+    [Theory]
+    [InlineData(null, "Accept", "application/json", 401)]
+    [InlineData(null, "X-Requested-With", "XMLHttpRequest", 401)]
+    [InlineData(null, "Sec-Fetch-Mode", "cors", 401)]
+    [InlineData("Student", "Accept", "application/json", 403)]
+    [InlineData("Teacher", "Sec-Fetch-Mode", "cors", 403)]
+    public async Task MarketingApiAndFetchRequestsReturnStatusWithoutHtmlRedirect(string? role, string header, string value, int expected)
+    {
+        var authentication = new ChallengeRecorder();
+        using var services = new ServiceCollection().AddSingleton<IAuthenticationService>(authentication).BuildServiceProvider();
+        var context = new DefaultHttpContext { RequestServices = services };
+        context.Request.Host = new HostString("portal.id.localhost");
+        context.Request.Path = "/profile";
+        context.Request.Headers[header] = value;
+        context.Request.Headers["Sec-Fetch-Dest"] = "empty";
+        if (role != null) context.User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Role, role)], "test"));
+        var called = false;
+        var middleware = new SiteAccessMiddleware(_ => { called = true; return Task.CompletedTask; });
+        await middleware.InvokeAsync(context, Policy(SiteMode.Marketing), Urls());
+        Assert.Equal(expected, context.Response.StatusCode);
+        Assert.Null(authentication.ChallengedScheme);
+        Assert.False(context.Response.Headers.ContainsKey("Location"));
+        Assert.False(called);
+    }
+
+    [Theory]
+    [InlineData("GET")]
+    [InlineData("HEAD")]
+    public async Task MarketingAnonymousNavigationUsesConfiguredIdentityChallenge(string method)
+    {
+        var authentication = new ChallengeRecorder();
+        using var services = new ServiceCollection().AddSingleton<IAuthenticationService>(authentication).BuildServiceProvider();
+        var context = new DefaultHttpContext { RequestServices = services };
+        context.Request.Host = new HostString("portal.id.localhost");
+        context.Request.Path = "/profile";
+        context.Request.Method = method;
+        var middleware = new SiteAccessMiddleware(_ => throw new InvalidOperationException("Protected handler must not run."));
+        await middleware.InvokeAsync(context, Policy(SiteMode.Marketing), Urls());
+        Assert.Equal(IdentityConstants.ApplicationScheme, authentication.ChallengedScheme);
+    }
+
+    private sealed class ChallengeRecorder : IAuthenticationService
+    {
+        public string? ChallengedScheme { get; private set; }
+        public Task ChallengeAsync(HttpContext context, string? scheme, AuthenticationProperties? properties)
+        {
+            ChallengedScheme = scheme;
+            context.Response.StatusCode = StatusCodes.Status302Found;
+            return Task.CompletedTask;
+        }
+        public Task<AuthenticateResult> AuthenticateAsync(HttpContext context, string? scheme) => Task.FromResult(AuthenticateResult.NoResult());
+        public Task ForbidAsync(HttpContext context, string? scheme, AuthenticationProperties? properties) => throw new NotSupportedException();
+        public Task SignInAsync(HttpContext context, string? scheme, ClaimsPrincipal principal, AuthenticationProperties? properties) => throw new NotSupportedException();
+        public Task SignOutAsync(HttpContext context, string? scheme, AuthenticationProperties? properties) => throw new NotSupportedException();
+    }
     private static SiteAccessPolicy Policy(SiteMode mode)
         => new(Options.Create(new SiteAccessOptions { SiteMode = mode }));
 

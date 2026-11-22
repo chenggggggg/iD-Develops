@@ -75,7 +75,11 @@ namespace iD_Develops.Utilities
                 return true;
             }
 
-            return false;
+            // Fetch requests do not necessarily send X-Requested-With or JSON headers.
+            // Fetch Metadata distinguishes them from document/iframe navigation.
+            var mode = context.Request.Headers["Sec-Fetch-Mode"].ToString();
+            var destination = context.Request.Headers["Sec-Fetch-Dest"].ToString();
+            return (mode is "cors" or "same-origin" or "no-cors") && destination == "empty";
         }
 
         public static string GetCultureFromPath(PathString path)

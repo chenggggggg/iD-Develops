@@ -1080,7 +1080,7 @@ Status: completed and merged in [PR #63](https://github.com/chenggggggg/iD-Devel
 ## B31 - P0 - Enable eligible public product signup and booking in Marketing mode
 
 **Estimated size: Medium.** Product-type policy and coordinated public/server guards.
-Status: implemented and verified on fix/marketing-product-actions, 2026-11-22; implementation complete; pending merge.
+Status: completed and merged in PR #68, 2026-11-22 (667beb33c1f878b58984c4e72699c41d573725a9).
 
 - Update the earlier B23 blanket transaction restriction to the new approved business
   requirement: public signup and Koalendar booking work for eligible active products
@@ -1112,7 +1112,7 @@ already-paid fulfillment and signed callbacks retain their existing paths.
 ## B32 - P0 - Anonymous Portal login redirect with safe return destination
 
 **Estimated size: Small.** Focused authentication/middleware correction.
-Status: confirmed in production and saved, 2026-11-21; not implemented.
+Status: implemented and verified on fix/portal-login-redirect, 2026-11-22; implementation complete, pending merge.
 
 - Anonymous browser visits to the Portal root and protected deep links should challenge
   authentication and redirect to /login with the original local path/query as returnUrl.
@@ -1125,6 +1125,14 @@ Status: confirmed in production and saved, 2026-11-21; not implemented.
   403 for non-staff before the configured Identity login challenge can execute.
 - Verify root/deep-link navigation, query preservation, successful staff return, forbidden
   customer access in Marketing, Full-mode access, and rejection of external return URLs.
+
+Verification: Release build and formatting passed; 685 unit/integration tests, 46 affected
+Full-mode browser checks, 127 complete Marketing-selection browser checks, and 75
+deployment-policy tests passed. Original local settings were restored to Full. Browser
+checks include root/deep-link/query preservation, staff return after sign-in, plain fetch/
+XHR/JSON 401s, authenticated forbidden pages, and rejection of external return URLs.
+Customer login, registration, and Portal role restrictions are unchanged. Cleared/invalid
+customer sessions now follow the anonymous login challenge. No migration/settings needed.
 
 ## B33 - P0 - Explicit production SuperAdmin owner bootstrap
 
