@@ -39,6 +39,12 @@ grants, or credits. Sales-paused products cannot submit. Stripe checkout remains
 even for staff; account-dependent products show information and a contact link instead.
 Preview-only products remain information-only in both modes. Publication and access-token
 checks still apply. Staff editor previews do not submit public actions.
+Anonymous protected Portal navigation redirects to /login, retaining its local path/query
+as ReturnUrl. An allowed staff login returns to that destination. API/fetch requests receive
+401 when signed out and 403 when authenticated without permission; browser visits to
+forbidden pages retain their existing access-denied behavior. Invalidated customer sessions
+are treated as signed out after their cookies are cleared. Registration and account entry
+restrictions remain in force in Marketing.
 Signed provider callbacks, pending payment returns, and health probes remain operational.
 `/health/version` reports the effective `siteMode` alongside the deployed code version.
 
@@ -53,7 +59,7 @@ watcher, select the appropriate mode, reload that application, then run the matc
 # Existing local application configured with SiteMode=Full:
 dotnet test tests/iD-Develops.E2ETests/iD-Develops.E2ETests.csproj --configuration Release --no-build --filter "SiteMode!=Marketing"
 # Existing local application configured with SiteMode=Marketing:
-dotnet test tests/iD-Develops.E2ETests/iD-Develops.E2ETests.csproj --configuration Release --no-build --filter "SiteMode=Marketing|FullyQualifiedName~PublicProductActionsTests|FullyQualifiedName~SignupTurnstileTests|FullyQualifiedName~PublicExamAccessTests|FullyQualifiedName~ContactSubmissionTests|FullyQualifiedName~ExpiredExamTests|FullyQualifiedName~ExamResultPresentationTests|FullyQualifiedName~PublicAboutPageTests"
+dotnet test tests/iD-Develops.E2ETests/iD-Develops.E2ETests.csproj --configuration Release --no-build --filter "SiteMode=Marketing|FullyQualifiedName~PortalLoginRedirectTests|FullyQualifiedName~PublicProductActionsTests|FullyQualifiedName~SignupTurnstileTests|FullyQualifiedName~PublicExamAccessTests|FullyQualifiedName~ContactSubmissionTests|FullyQualifiedName~ExpiredExamTests|FullyQualifiedName~ExamResultPresentationTests|FullyQualifiedName~PublicAboutPageTests"
 ```
 
 Keep test database/mail configuration as described in README.md. Marketing tests require

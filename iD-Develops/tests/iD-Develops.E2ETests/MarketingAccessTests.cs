@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -56,7 +57,8 @@ public sealed class MarketingAccessTests : DiagnosticPageTest
         await Page.GetByRole(AriaRole.Button, new() { Name = "Log in", Exact = true }).ClickAsync();
         await Expect(Page.GetByText("Invalid login attempt.", new() { Exact = true })).ToBeVisibleAsync();
         Assert.DoesNotContain(await Context.CookiesAsync(), cookie => cookie.Name == ".iDDevelops.Portal");
-        Assert.Equal(403, (await Page.GotoAsync($"{LocalTestApplication.PortalBaseUrl}/profile"))!.Status);
+        await Page.GotoAsync($"{LocalTestApplication.PortalBaseUrl}/profile");
+        await SiteModeTestSession.AssertLoginRedirectAsync(Page, "/profile");
     }
 
     [Theory]
@@ -98,7 +100,8 @@ public sealed class MarketingAccessTests : DiagnosticPageTest
         await SiteModeTestSession.AddCustomerCookieAsync(Context, account.User);
         Assert.Contains(await Context.CookiesAsync(), cookie => cookie.Name == ".iDDevelops.Portal");
         var response = await Page.GotoAsync($"{LocalTestApplication.PortalBaseUrl}/profile");
-        Assert.Equal(403, response!.Status);
+        Assert.Equal(200, response!.Status);
+        await SiteModeTestSession.AssertLoginRedirectAsync(Page, "/profile");
         var remaining = (await Context.CookiesAsync()).Where(cookie => cookie.Name == ".iDDevelops.Portal")
             .Select(cookie => new { cookie.Name, cookie.Domain, cookie.Path, cookie.Expires }).ToArray();
         var deletionHeaders = (await response.HeadersArrayAsync()).Where(header => header.Name.Equals("set-cookie", StringComparison.OrdinalIgnoreCase))
@@ -228,6 +231,16 @@ public sealed class FullSiteAccessTests : DiagnosticPageTest
 
 internal static class SiteModeTestSession
 {
+    public static async Task AssertLoginRedirectAsync(IPage page, string returnPath)
+    {
+        var location = new Uri(page.Url);
+        var portal = new Uri(LocalTestApplication.PortalBaseUrl);
+        Assert.Equal(portal.GetLeftPart(UriPartial.Authority), location.GetLeftPart(UriPartial.Authority));
+        Assert.Equal("/login", location.AbsolutePath);
+        Assert.Equal(returnPath, QueryHelpers.ParseQuery(location.Query)["ReturnUrl"].ToString());
+        await Assertions.Expect(page.GetByLabel("E-mail")).ToBeVisibleAsync();
+        await Assertions.Expect(page.Locator("[data-portal-page-content]")).ToHaveCountAsync(0);
+    }
     public static async Task AssertModeAsync(IPage page, string expected)
     {
         var response = await page.GotoAsync($"{LocalTestApplication.PublicBaseUrl}/health/version");

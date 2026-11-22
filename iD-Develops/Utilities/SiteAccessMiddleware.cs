@@ -1,4 +1,6 @@
 using iD_Develops.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace iD_Develops.Utilities;
@@ -58,9 +60,14 @@ public sealed class SiteAccessMiddleware(RequestDelegate next)
             // including when an administrator opens their direct URLs.
             var publicAccountEntry = path.StartsWith("/Account/Register", StringComparison.OrdinalIgnoreCase) ||
                 path.Equals("/Account/ExternalLogin", StringComparison.OrdinalIgnoreCase);
-            if (publicAccountEntry || !isStaff && !StaffSignInPages.Contains(path))
+            if (publicAccountEntry)
             {
                 context.Response.StatusCode = StatusCodes.Status404NotFound;
+                return;
+            }
+            if (!isStaff && !StaffSignInPages.Contains(path))
+            {
+                await DenyPortalAccessAsync(context);
                 return;
             }
         }
@@ -68,7 +75,7 @@ public sealed class SiteAccessMiddleware(RequestDelegate next)
         {
             if (!isStaff)
             {
-                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                await DenyPortalAccessAsync(context);
                 return;
             }
         }
@@ -86,5 +93,23 @@ public sealed class SiteAccessMiddleware(RequestDelegate next)
         }
 
         await next(context);
+    }
+
+    private static Task DenyPortalAccessAsync(HttpContext context)
+    {
+        if (context.User.Identity?.IsAuthenticated == true)
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return Task.CompletedTask;
+        }
+        if (DatabaseAvailability.IsAjaxOrApiRequest(context))
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return Task.CompletedTask;
+        }
+
+        // Use the configured cookie handler so it preserves the original path/query
+        // and applies the same login flow as protected pages in Full mode.
+        return context.ChallengeAsync(IdentityConstants.ApplicationScheme);
     }
 }
