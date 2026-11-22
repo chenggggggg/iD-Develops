@@ -8,4 +8,5 @@
   <data name="UnansweredPlural" xml:space="preserve"><value>{0} questions are still unanswered. Do you want to submit anyway?</value></data>
   <data name="UnansweredQuestion" xml:space="preserve"><value>Question {0} is not answered.</value></data>
   <data name="UnansweredSingular" xml:space="preserve"><value>One question is still unanswered. Do you want to submit anyway?</value></data>
+  <data name="QuestionNavigationHelp" xml:space="preserve"><value>Swipe, drag, or scroll to reach more questions. When this navigation is focused, use the arrow keys, Home, or End to scroll.</value></data>
 </root>

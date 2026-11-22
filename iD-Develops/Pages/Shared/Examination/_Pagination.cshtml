@@ -11,7 +11,11 @@
 <div class="@(isTaking ? "fixed inset-x-0 bottom-0 z-[999] flex border-t border-[var(--id-border)] bg-white pb-[env(safe-area-inset-bottom)] shadow-[0_-2px_14px_rgba(2,7,47,0.06)]" : "exam-pagination-bar")" data-exam-pagination>
 
     <!-- LEFT: question navigation (takes all remaining space) -->
-    <div class="@(isTaking ? "flex min-w-0 flex-1 items-center overflow-x-auto overscroll-x-contain py-1.5 pl-[max(0.5rem,env(safe-area-inset-left))] pr-[max(0.5rem,env(safe-area-inset-right))] [scrollbar-width:thin]" : "exam-pagination-left")" data-exam-question-scroll>
+    <div class="@(isTaking ? "flex min-w-0 flex-1 items-center overflow-x-auto overscroll-x-contain select-none data-[overflow=true]:cursor-grab data-[dragging=true]:cursor-grabbing focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--id-blue)] py-1.5 pl-[max(0.5rem,env(safe-area-inset-left))] pr-[max(0.5rem,env(safe-area-inset-right))] [scrollbar-width:thin]" : "exam-pagination-left")" data-exam-question-scroll tabindex="@(isTaking ? 0 : (int?)null)" role="@(isTaking ? "region" : null)" aria-label="@(isTaking ? Localizer["QuestionNavigationLabel"].Value : null)" aria-describedby="@(isTaking ? "examNavigationHelp" : null)">
+        @if (isTaking)
+        {
+            <span id="examNavigationHelp" class="sr-only">@Localizer["QuestionNavigationHelp"]</span>
+        }
         @if (Model.Mode != PaginationMode.Start)
         {
             <div class="@(isTaking ? "flex w-max min-w-full items-stretch gap-1" : "question-button-group")" role="group" aria-label="@Localizer["QuestionNavigationLabel"]">

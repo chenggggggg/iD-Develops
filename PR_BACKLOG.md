@@ -1,9 +1,9 @@
 ﻿# Planned PR backlog
 
-Updated: 2026-11-21
+Updated: 2026-11-22
 
 This is the combined planning backlog from the staging review and owner meeting.
-B01-B34 are planning IDs, not GitHub PR numbers. Current launch priorities are:
+B01-B35 are planning IDs, not GitHub PR numbers. Current launch priorities are:
 P0 marketing-release blockers, P1 supporting work, P2 post-launch improvements.
 This file does not authorize implementation, Git changes, or deployments.
 
@@ -125,7 +125,8 @@ work without changing its size. Estimates may change after a focused investigati
 | B31 | Medium | Separate product action capabilities from customer account/Portal access; coordinate public views, server guards, signup/booking actions, preview-only flags, and both-mode tests. |
 | B32 | Small | Restore anonymous Portal login challenges, safe return URLs, authenticated-forbidden behavior, and browser/API regressions. |
 | B33 | Small | Configure the explicit production SuperAdmin owner using the existing seeder; verify role claims and document safe setup. Code changes only if investigation shows a gap. |
-| B34 | Small-Medium | Verify actual native scrolling and touch input after #67 deployment; implement any missing desktop drag/accessibility affordances without affecting answer state or Submit. |
+| B34 | Small-Medium | Fix actual touch, wheel, mouse-drag, and keyboard pagination; move mobile question images above related context while retaining desktop columns, answer state, and Submit. |
+| B35 | Small-Medium | Add missing product-create and product-navigation progress feedback, prevent repeated creation clicks, and cover delayed responses and retries. |
 
 ## Completed work excluded from this backlog
 
@@ -1112,7 +1113,7 @@ already-paid fulfillment and signed callbacks retain their existing paths.
 ## B32 - P0 - Anonymous Portal login redirect with safe return destination
 
 **Estimated size: Small.** Focused authentication/middleware correction.
-Status: implemented and verified on fix/portal-login-redirect, 2026-11-22; implementation complete, pending merge.
+Status: completed and merged in [PR #69](https://github.com/chenggggggg/iD-Develops/pull/69), 2026-11-22. Production promotion/acceptance is separate.
 
 - Anonymous browser visits to the Portal root and protected deep links should challenge
   authentication and redirect to /login with the original local path/query as returnUrl.
@@ -1153,12 +1154,22 @@ Status: configuration cause confirmed, 2026-11-21; no production changes applied
   diagnostics when no SuperAdmin seed is configured. No role/configuration edits are
   authorized by this backlog entry alone.
 
-## B34 - P0 - Examination pagination dragging and input reachability follow-up
+## B34 - P0 - Examination pagination and mobile question layout
 
-**Estimated size: Small-Medium.** Interaction verification and any remaining scrolling fix.
-Status: saved, 2026-11-21. Native overflow is already fixed by merged PR #67; production
-still runs an older image at the time of this report. Deploy/verify that fix first.
+**Estimated size: Small-Medium.** Pagination interaction fixes and mobile question-image ordering.
+Status: implemented and verified on fix/exam-pagination-mobile-layout, 2026-11-22;
+ready for PR review. Builds on the native overflow introduced in PR #67.
 
+- Mobile question layout, requested 2026-11-22: move the question image above the
+  scenario/context so it no longer separates related scenario and question text.
+  Intended mobile reading order: question image -> scenario/context -> question -> answers.
+- Preserve the existing desktop media arrangement, question content, audio controls,
+  saved answers, help text, responsive image sizing, and header/footer clearance.
+- Apply the ordering consistently through the shared examination taking partial
+  (`Pages/Shared/Examination/Questions/_QuestionBody.Take.cshtml`). Verify questions
+  with image/scenario combinations and without images; avoid empty media gaps.
+- Add browser checks for the mobile element positions and continued desktop layout,
+  alongside the navigation gesture checks below. Include portrait/landscape coverage.
 - Reproduce with a realistically long exam and actual input interactions; do not use
   keyboard focus auto-scrolling as the sole proof that the bar is user-scrollable.
 - Verify mobile swiping, trackpad/horizontal wheel input, scrollbar access, keyboard
@@ -1171,6 +1182,50 @@ still runs an older image at the time of this report. Deploy/verify that fix fir
   spacing, and the compact fixed action bar. Check desktop, portrait, and landscape.
 - Add meaningful gesture/input regressions and document physical-device coverage limits.
   Do not duplicate the merged CSS overflow fix or claim it is deployed from merge alone.
+Implemented: native touch scrolling remains available; desktop mouse dragging suppresses
+accidental question selection, vertical wheel input scrolls question numbers while there
+is room, horizontal trackpad input stays native, and focused navigation supports arrow,
+Page Up/Down, Home, and End keys with localized instructions. Submit remains pinned.
+Below the desktop breakpoint, images precede scenario/context, question, and answers;
+desktop context-left/image-right columns are retained. No migration or settings needed.
+
+Verification: Release build and formatting passed; all 685 unit/integration tests, 29
+Full-mode Chromium exam checks, 28 WebKit exam checks, all 134 CI-selected Marketing
+browser checks, and 75 deployment-policy tests passed. The new checks are included in
+Marketing CI. Chromium native touch swipe/tap is verified through browser input (CDP);
+that protocol-specific case is excluded from the WebKit selection, where the remaining
+exam flows pass. Portrait/landscape screenshots were reviewed; no physical phone was
+available. Original local settings were restored and the existing watcher is in Full mode.
+
+## B35 - P1 - Portal product loading feedback and duplicate-create prevention
+
+**Estimated size: Small-Medium.** Focused follow-up to completed B08; reuse its existing
+button and Portal content-panel progress conventions.
+Status: saved, 2026-11-22. Deferred at the user's request; do not implement with B34.
+
+Reported on Portal > Products (`/products`): Create product and opening a selected
+product give no visible loading feedback. Repeated clicks created eight products while
+the user believed the initial action had not started. Treat this as a reported workflow
+issue; investigate the handlers and confirm its root cause before implementation.
+
+- Create product: immediately show a spinner/busy state on the responsible button and
+  prevent further clicks from creating additional requests while creation is pending.
+- Opening an existing product: show the established Portal content-panel loading state,
+  keeping the left navigation visible; prevent redundant pending navigation clicks.
+- Restore usable controls after failure, give actionable error feedback, and allow an
+  intentional retry. Preserve keyboard access, accessible busy/status announcements,
+  successful navigation, and browser Back behavior.
+- Investigate whether creation also needs server-side request deduplication; do not
+  assume a visual spinner alone protects against duplicate records.
+- Add delayed-response browser regressions: one creation after rapid repeated clicks,
+  visible progress for product navigation, and recovery/retry following failure.
+- First inspect why these controls do not use B08's existing loading implementation.
+  Wire them into that system and reuse its spinners, busy states, and duplicate-submit
+  handling. Do not create a new loading feature or parallel implementation unless a
+  demonstrated gap requires a minimal extension of the existing system. No global popup.
+
+This is supporting Portal work, not a blocker for the public marketing launch.
+
 ## External references checked
 
 - Zoom server-to-server OAuth: https://developers.zoom.us/docs/internal-apps/s2s-oauth/
