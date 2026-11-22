@@ -35,10 +35,14 @@
 
     @if (hasScenario || hasImage || hasAudio)
     {
-        <div class="grid min-w-0 items-start gap-5 @(hasImage && (hasScenario || hasAudio) ? "sm:grid-cols-2" : null)" data-exam-context-media>
+        <div class="grid min-w-0 items-start gap-5 @(hasImage && (hasScenario || hasAudio) ? "lg:grid-cols-2" : null)" data-exam-context-media>
+            @if (hasImage)
+            {
+                <img src="@imageUrl" class="block max-h-[min(40svh,20rem)] w-full max-w-lg rounded-xl object-contain object-left lg:order-2 lg:max-h-96" alt="@Localizer["QuestionImageAlt"]" data-exam-question-image />
+            }
             @if (hasScenario || hasAudio)
             {
-                <div class="flex min-w-0 flex-col gap-5">
+                <div class="flex min-w-0 flex-col gap-5 lg:order-1">
                     @if (hasScenario)
                     {
                         <div class="@richText" data-exam-context>@Html.Raw(question.Scenario)</div>
@@ -49,10 +53,7 @@
                     }
                 </div>
             }
-            @if (hasImage)
-            {
-                <img src="@imageUrl" class="block max-h-[min(40svh,20rem)] w-full max-w-lg rounded-xl object-contain object-left lg:max-h-96" alt="@Localizer["QuestionImageAlt"]" data-exam-question-image />
-            }
+
         </div>
     }
 

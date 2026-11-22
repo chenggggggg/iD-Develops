@@ -199,6 +199,187 @@ public sealed class ExamTakingLayoutTests : DiagnosticPageTest
         Assert.Equal("My final answer", (await db.ParticipantAnswers.SingleAsync(answer => answer.RecordId == data.Record.Id && answer.QuestionId == lastQuestion.Id)).AnswerText);
     }
 
+    [Theory]
+    [InlineData(1440, 900)]
+    [InlineData(390, 844)]
+    public async Task PublicExamPaginationSupportsMouseWheelDragAndKeyboardWithoutAccidentalNavigation(int width, int height)
+    {
+        await using var account = await CatalogBrowsingFixture.CreateAsync();
+        await using var data = await TakingFixture.CreateAsync(account.User.Id, portal: false, questionCount: 30);
+        await Page.SetViewportSizeAsync(width, height);
+        await StubMediaAsync();
+        await Page.GotoAsync($"{LocalTestApplication.PublicBaseUrl}/en-us/examination/level-test/{data.Record.Id}", new() { WaitUntil = WaitUntilState.DOMContentLoaded });
+        await SaveAsync(() => Page.Locator("label[for='question1_B']").ClickAsync());
+        var navigation = Page.Locator("[data-exam-question-scroll]");
+        await Expect(navigation).ToHaveAttributeAsync("data-overflow", "true");
+        var current = await Page.Locator("#questionId").InputValueAsync();
+        var questionRequests = 0;
+        Page.Request += (_, request) => { if (request.Url.Contains("handler=QuestionShell")) questionRequests++; };
+        var bounds = (await navigation.BoundingBoxAsync())!;
+        await navigation.FocusAsync();
+        await Page.Keyboard.PressAsync("Home");
+        await Page.Mouse.MoveAsync(bounds.X + bounds.Width / 2, bounds.Y + 22);
+        var pageTop = await Page.EvaluateAsync<double>("scrollY");
+        await Page.Mouse.WheelAsync(0, 160);
+        await Page.WaitForFunctionAsync("document.querySelector('[data-exam-question-scroll]').scrollLeft > 20");
+        Assert.InRange(Math.Abs(await Page.EvaluateAsync<double>("scrollY") - pageTop), 0, 1);
+        await Page.Keyboard.PressAsync("Home");
+        await Page.Mouse.WheelAsync(160, 0);
+        await Page.WaitForFunctionAsync("document.querySelector('[data-exam-question-scroll]').scrollLeft > 20");
+        await Page.Keyboard.PressAsync("Home");
+        var start = await navigation.EvaluateAsync<JsonElement>("""
+            element => {
+                const track = element.getBoundingClientRect();
+                const button = [...element.querySelectorAll('button')].filter(button => {
+                    const rect = button.getBoundingClientRect();
+                    return rect.left >= track.left && rect.right <= track.right - 6;
+                }).at(-1).getBoundingClientRect();
+                return {x:button.left + button.width / 2, y:button.top + button.height / 2};
+            }
+            """);
+        await Page.Mouse.MoveAsync((float)start.GetProperty("x").GetDouble(), (float)start.GetProperty("y").GetDouble());
+        await Page.Mouse.DownAsync();
+        await Page.Mouse.MoveAsync(bounds.X + 12, (float)start.GetProperty("y").GetDouble(), new() { Steps = 12 });
+        await Expect(navigation).ToHaveAttributeAsync("data-dragging", "true");
+        await Page.Mouse.UpAsync();
+        await Page.EvaluateAsync("() => new Promise(requestAnimationFrame)");
+        Assert.True(await navigation.EvaluateAsync<double>("element => element.scrollLeft") > 20);
+        Assert.Equal(current, await Page.Locator("#questionId").InputValueAsync());
+        Assert.Equal(0, questionRequests);
+        await Expect(Page.Locator("#submitExam")).ToBeInViewportAsync();
+        await navigation.FocusAsync();
+        await Page.Keyboard.PressAsync("End");
+        var last = navigation.Locator("button").Last;
+        await Expect(last).ToBeInViewportAsync();
+        // At the horizontal boundary, vertical wheel input must remain usable.
+        await Page.EvaluateAsync("window.scrollTo(0, 0)");
+        await Page.Mouse.MoveAsync(bounds.X + bounds.Width / 2, bounds.Y + 22);
+        await Page.Mouse.WheelAsync(0, 120);
+        await Page.WaitForFunctionAsync("scrollY > 5");
+        await last.FocusAsync();
+        await Page.Keyboard.PressAsync("Enter");
+        await Expect(Page.GetByRole(AriaRole.Textbox)).ToBeVisibleAsync();
+        await SaveAsync(() => Page.GetByRole(AriaRole.Textbox).FillAsync("Saved after scrolling"));
+        await navigation.FocusAsync();
+        await Page.Keyboard.PressAsync("Home");
+        var first = navigation.Locator("button").First;
+        await Expect(first).ToBeInViewportAsync();
+        await first.ClickAsync();
+        await Expect(Page.Locator("#question1_B")).ToBeCheckedAsync();
+        await Page.Locator("#submitExam").ClickAsync();
+        await Expect(Page.GetByRole(AriaRole.Dialog)).ToBeVisibleAsync();
+        await Page.Keyboard.PressAsync("Escape");
+        await using var db = LocalTestApplication.CreateDbContext();
+        var lastQuestion = data.Exam.Questions.Single(question => question.QuestionNumber == 30);
+        Assert.Equal("Saved after scrolling", (await db.ParticipantAnswers.SingleAsync(answer => answer.RecordId == data.Record.Id && answer.QuestionId == lastQuestion.Id)).AnswerText);
+    }
+
+    [Theory]
+    [InlineData(320, 568)]
+    [InlineData(390, 844)]
+    [InlineData(844, 390)]
+    [InlineData(1440, 900)]
+    public async Task PublicExamMobileImagesPrecedeRelatedTextAndDesktopKeepsItsColumns(int width, int height)
+    {
+        await using var account = await CatalogBrowsingFixture.CreateAsync();
+        await using var data = await TakingFixture.CreateAsync(account.User.Id, portal: false);
+        await using var db = LocalTestApplication.CreateDbContext();
+        await db.ExamVersionQuestions.Where(question => question.ExamVersionId == data.Record.ExamVersionId)
+            .ExecuteUpdateAsync(update => update.SetProperty(question => question.ImageReference, $"{LocalTestApplication.PublicBaseUrl}/e2e-exam-context.svg")
+                .SetProperty(question => question.Scenario, "<p>Read this scenario together with the question that follows.</p>"));
+        await Page.SetViewportSizeAsync(width, height);
+        await StubMediaAsync();
+        await Page.GotoAsync($"{LocalTestApplication.PublicBaseUrl}/en-us/examination/level-test/{data.Record.Id}", new() { WaitUntil = WaitUntilState.DOMContentLoaded });
+        foreach (var question in data.Exam.Questions.OrderBy(question => question.QuestionNumber))
+        {
+            if (question.QuestionNumber != 1) await GoToQuestionAsync(question.Id);
+            await Page.WaitForFunctionAsync("document.querySelector('[data-exam-question-image]')?.naturalWidth > 0");
+            var layout = await Page.EvaluateAsync<JsonElement>("""
+                () => {
+                    const rect = selector => {
+                        const value = document.querySelector(selector).getBoundingClientRect();
+                        return {top:value.top,bottom:value.bottom,left:value.left,right:value.right,height:value.height};
+                    };
+                    return {image:rect('[data-exam-question-image]'),context:rect('[data-exam-context]'),question:rect('[data-exam-question]'),
+                        answers:rect('#question-answers'),header:rect('[data-exam-header]'),overflow:document.documentElement.scrollWidth > innerWidth};
+                }
+                """);
+            var image = layout.GetProperty("image");
+            var context = layout.GetProperty("context");
+            var prompt = layout.GetProperty("question");
+            if (width < 1024)
+            {
+                Assert.True(image.GetProperty("bottom").GetDouble() <= context.GetProperty("top").GetDouble(), layout.ToString());
+                Assert.True(context.GetProperty("bottom").GetDouble() <= prompt.GetProperty("top").GetDouble(), layout.ToString());
+                Assert.True(image.GetProperty("height").GetDouble() <= height * 0.4 + 1, layout.ToString());
+                if (question.QuestionNumber != 2)
+                    Assert.InRange(prompt.GetProperty("top").GetDouble() - context.GetProperty("bottom").GetDouble(), 16, 32);
+            }
+            else
+            {
+                Assert.True(image.GetProperty("left").GetDouble() >= context.GetProperty("right").GetDouble(), layout.ToString());
+                Assert.InRange(Math.Abs(image.GetProperty("top").GetDouble() - context.GetProperty("top").GetDouble()), 0, 1);
+            }
+            Assert.True(layout.GetProperty("answers").GetProperty("top").GetDouble() > prompt.GetProperty("bottom").GetDouble(), layout.ToString());
+            Assert.False(layout.GetProperty("overflow").GetBoolean());
+            if (question.QuestionNumber == 1)
+                await Page.ScreenshotAsync(new() { Path = Path.Combine(AppContext.BaseDirectory, "test-results", $"exam-image-order-{width}.png"), FullPage = true });
+        }
+    }
+
+    [Fact]
+    public async Task PublicExamPaginationChromiumTouchSwipeKeepsTapNavigationWorking()
+    {
+        await using var account = await CatalogBrowsingFixture.CreateAsync();
+        await using var data = await TakingFixture.CreateAsync(account.User.Id, portal: false, questionCount: 30);
+        await using var mobile = await Browser.NewContextAsync(new() { ViewportSize = new() { Width = 390, Height = 844 }, IsMobile = true, HasTouch = true });
+        var page = await mobile.NewPageAsync();
+        await page.RouteAsync("**/e2e-exam-context.svg", route => route.FulfillAsync(new() { ContentType = "image/svg+xml", Body = "<svg xmlns='http://www.w3.org/2000/svg' width='400' height='480'><rect width='400' height='480' fill='#005190'/></svg>" }));
+        await page.GotoAsync($"{LocalTestApplication.PublicBaseUrl}/en-us/examination/level-test/{data.Record.Id}", new() { WaitUntil = WaitUntilState.DOMContentLoaded });
+        var navigation = page.Locator("[data-exam-question-scroll]");
+        await Expect(navigation).ToHaveAttributeAsync("data-overflow", "true");
+        var current = await page.Locator("#questionId").InputValueAsync();
+        var bounds = (await navigation.BoundingBoxAsync())!;
+        var cdp = await mobile.NewCDPSessionAsync(page);
+        var y = bounds.Y + 22;
+        var start = bounds.X + bounds.Width - 24;
+        await cdp.SendAsync("Input.dispatchTouchEvent", new Dictionary<string, object> { ["type"] = "touchStart", ["touchPoints"] = new[] { new { x = start, y, id = 0 } } });
+        for (var step = 1; step <= 10; step++)
+        {
+            await cdp.SendAsync("Input.dispatchTouchEvent", new Dictionary<string, object> { ["type"] = "touchMove", ["touchPoints"] = new[] { new { x = start - step * 16, y, id = 0 } } });
+            await page.EvaluateAsync("() => new Promise(requestAnimationFrame)");
+        }
+        await cdp.SendAsync("Input.dispatchTouchEvent", new Dictionary<string, object> { ["type"] = "touchEnd", ["touchPoints"] = Array.Empty<object>() });
+        await page.WaitForFunctionAsync("document.querySelector('[data-exam-question-scroll]').scrollLeft > 40");
+        Assert.Equal(current, await page.Locator("#questionId").InputValueAsync());
+        await Expect(page.Locator("#submitExam")).ToBeInViewportAsync();
+        await page.WaitForFunctionAsync("""
+            async () => {
+                const element = document.querySelector('[data-exam-question-scroll]');
+                const left = element.scrollLeft;
+                for (let frame = 0; frame < 4; frame++) {
+                    await new Promise(requestAnimationFrame);
+                    if (Math.abs(element.scrollLeft - left) > 0.5) return false;
+                }
+                return true;
+            }
+            """);
+        // Tap a visible number after the native swipe, without focus/scrollIntoView.
+        var target = await navigation.EvaluateAsync<JsonElement>("""
+            element => {
+                const track = element.getBoundingClientRect();
+                const button = [...element.querySelectorAll('button')].find(button => {
+                    const rect = button.getBoundingClientRect();
+                    return rect.left >= track.left + 4 && rect.right <= track.right - 4 && button.getAttribute('aria-current') !== 'page';
+                });
+                const rect = button.getBoundingClientRect();
+                return {id:button.dataset.questionId,x:rect.left+rect.width/2,y:rect.top+rect.height/2};
+            }
+            """);
+        await page.Touchscreen.TapAsync((float)target.GetProperty("x").GetDouble(), (float)target.GetProperty("y").GetDouble());
+        await Expect(page.Locator("#questionId")).ToHaveValueAsync(target.GetProperty("id").GetString()!);
+        await cdp.DetachAsync();
+    }
     private async Task SaveAsync(Func<Task> action)
     {
         var response = await Page.RunAndWaitForResponseAsync(action,
@@ -207,8 +388,11 @@ public sealed class ExamTakingLayoutTests : DiagnosticPageTest
         Assert.True((await response.JsonAsync())!.Value.GetProperty("success").GetBoolean());
     }
 
-    private Task GoToQuestionAsync(int questionId)
-        => Page.Locator($"[data-action='load-question'][data-question-id='{questionId}']").ClickAsync();
+    private async Task GoToQuestionAsync(int questionId)
+    {
+        await Page.Locator($"[data-action='load-question'][data-question-id='{questionId}']").ClickAsync();
+        await Expect(Page.Locator("#questionId")).ToHaveValueAsync(questionId.ToString());
+    }
 
     private sealed class TakingFixture(ApplicationDbContext db) : IAsyncDisposable
     {

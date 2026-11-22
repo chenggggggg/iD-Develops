@@ -8,4 +8,5 @@
   <data name="UnansweredPlural" xml:space="preserve"><value>{0} vragen zijn nog onbeantwoord. Wil je toch inleveren?</value></data>
   <data name="UnansweredQuestion" xml:space="preserve"><value>Vraag {0} is niet beantwoord.</value></data>
   <data name="UnansweredSingular" xml:space="preserve"><value>Er is nog een vraag onbeantwoord. Wil je toch inleveren?</value></data>
+  <data name="QuestionNavigationHelp" xml:space="preserve"><value>Veeg, sleep of scrol om meer vragen te bereiken. Gebruik de pijltjestoetsen, Home of End om te scrollen wanneer deze navigatie de focus heeft.</value></data>
 </root>

@@ -257,6 +257,89 @@
         }, delayMs);
     }
 
+    function wireQuestionScroller() {
+        const scroller = document.querySelector("[data-exam-question-scroll]");
+        if (!scroller || !document.querySelector("[data-exam-progress]")) return;
+
+        let drag = null;
+        let suppressMouseClick = false;
+        const maximum = () => Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+        const updateOverflow = () => { scroller.dataset.overflow = String(maximum() > 1); };
+        const scrollTo = position => { scroller.scrollLeft = Math.max(0, Math.min(maximum(), position)); };
+        updateOverflow();
+        const observer = new ResizeObserver(updateOverflow);
+        observer.observe(scroller);
+        const group = scroller.querySelector("[role='group']");
+        if (group) observer.observe(group);
+
+        scroller.addEventListener("pointerdown", event => {
+            // Touch/pen panning and pinch zoom stay entirely native. Do not capture
+            // mouse input on the scrollbar itself, or its thumb stops working.
+            if (event.isPrimary) suppressMouseClick = false;
+            if (event.pointerType !== "mouse" || event.button !== 0 || !event.isPrimary) return;
+            if (maximum() <= 1 || event.clientY >= scroller.getBoundingClientRect().top + scroller.clientHeight) return;
+            drag = { id: event.pointerId, x: event.clientX, y: event.clientY, left: scroller.scrollLeft, active: false };
+        });
+        scroller.addEventListener("pointermove", event => {
+            if (!drag || drag.id !== event.pointerId) return;
+            const delta = event.clientX - drag.x;
+            if (!drag.active) {
+                if (Math.abs(delta) < 6) return;
+                if (Math.abs(event.clientY - drag.y) > Math.abs(delta)) { drag = null; return; }
+                drag.active = true;
+                scroller.dataset.dragging = "true";
+                scroller.setPointerCapture(event.pointerId);
+            }
+            event.preventDefault();
+            scrollTo(drag.left - delta);
+        });
+        const finishDrag = event => {
+            if (!drag || drag.id !== event.pointerId) return;
+            suppressMouseClick = drag.active;
+            drag = null;
+            delete scroller.dataset.dragging;
+            if (scroller.hasPointerCapture(event.pointerId)) scroller.releasePointerCapture(event.pointerId);
+        };
+        scroller.addEventListener("pointerup", finishDrag);
+        scroller.addEventListener("pointercancel", finishDrag);
+        scroller.addEventListener("lostpointercapture", finishDrag);
+        scroller.addEventListener("pointerleave", event => {
+            if (drag && !drag.active) finishDrag(event);
+        });
+        scroller.addEventListener("click", event => {
+            // A drag can synthesize a click on the question beneath the release.
+            // Keyboard activation has detail=0 and must continue to work.
+            if (!suppressMouseClick || event.detail === 0) return;
+            suppressMouseClick = false;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+        }, true);
+
+        scroller.addEventListener("wheel", event => {
+            // Horizontal trackpads, Shift+wheel, and pinch zoom retain browser behavior.
+            if (event.ctrlKey || event.shiftKey || Math.abs(event.deltaX) >= Math.abs(event.deltaY)) return;
+            const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? scroller.clientWidth : 1;
+            const next = Math.max(0, Math.min(maximum(), scroller.scrollLeft + event.deltaY * unit));
+            if (Math.abs(next - scroller.scrollLeft) < 1) return;
+            event.preventDefault();
+            scrollTo(next);
+        }, { passive: false });
+        scroller.addEventListener("keydown", event => {
+            if (event.target !== scroller || event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) return;
+            const step = Math.max(44, scroller.clientWidth * 0.8);
+            const target = {
+                ArrowLeft: scroller.scrollLeft - 44,
+                ArrowRight: scroller.scrollLeft + 44,
+                PageUp: scroller.scrollLeft - step,
+                PageDown: scroller.scrollLeft + step,
+                Home: 0,
+                End: maximum()
+            }[event.key];
+            if (target === undefined) return;
+            event.preventDefault();
+            scrollTo(target);
+        });
+    }
     function wireTakeAutosave() {
         document.addEventListener("input", (e) => {
             const el = e.target;
@@ -450,6 +533,7 @@
             }
         }
 
+        wireQuestionScroller();
         wireTakeAutosave();
     });
 })();
