@@ -75,7 +75,7 @@ namespace iD_Develops.Pages
                 return Page();
             }
 
-            OperationResult result = await _mailService.SendAsync("/wwwroot/templates/ContactFormTemplate.cshtml", contactFormData, mailSettings.To, subject, mailSettings.ContactEmail);
+            OperationResult result = await _mailService.SendAsync("/wwwroot/templates/ContactFormTemplate.cshtml", contactFormData, mailSettings.To, subject, mailSettings.ContactEmail, replyToEmail: From);
             if (!result.Success)
             {
                 EmailIsSent = "failed";
@@ -87,7 +87,7 @@ namespace iD_Develops.Pages
                 contactFormData,
                 From,
                 _localizer["AcknowledgementSubject"],
-                mailSettings.ContactEmail);
+                mailSettings.NoReplyEmail);
 
             EmailIsSent = confirmation.Success ? "success" : "confirmation-failed";
             if (!confirmation.Success)

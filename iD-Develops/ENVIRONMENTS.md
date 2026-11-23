@@ -259,12 +259,31 @@ ignored by startup and cannot substitute for the owner. Production settings must
 configured before promoting this change. Staging's existing owner role remains stored,
 but fresh staging installations need the same explicit setup.
 
+## Functional browser tests and external consent delivery
+
+The isolated Full and Marketing CI applications set `Cookiebot__Enabled=false`.
+Functional regressions must not depend on the live consent CDN responding: a stalled
+parser-blocking SDK request can prevent `DOMContentLoaded` even when the application
+returns its page promptly. Consent-specific browser scenarios supply controlled SDK
+mocks. Local Portal login-redirect regressions also block that external SDK request while
+keeping first-party scripts, real sign-in, and all redirect/security assertions active.
+Production/staging consent settings and application loading behavior are not changed.
+
 ## Transactional email with Resend
 
 `Local` and CI use `Mail__Provider=File`, which renders messages under
 `App_Data/Mail` without contacting an external provider. Development, staging,
 and production default to `Resend`. MailKit/MimeKit and SMTP delivery have been
 removed; `Mail__Provider=MailKit` is no longer a supported setting.
+
+Contact notifications keep the configured company sender address and set `Reply-To` to
+the visitor's validated email, so the team can use Reply in its inbox. The visitor
+receives a separate confirmation from `Mail:NoReplyEmail` without Reply-To. It is not
+linked to the company-notification conversation; subsequent company/visitor replies use
+their ordinary mail clients.
+The existing mail service passes the optional Reply-To address to Resend; the File
+provider records the same header for local/CI verification. Other emails omit it unless
+explicitly requested. No additional Resend settings, API keys, or DNS changes are needed.
 
 ### Resend and DNS setup
 

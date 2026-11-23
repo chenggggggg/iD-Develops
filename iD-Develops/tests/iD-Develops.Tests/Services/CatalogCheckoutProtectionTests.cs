@@ -952,10 +952,10 @@ public sealed class CatalogCheckoutProtectionTests
     {
         public int Calls { get; private set; }
         public bool FailNext { get; set; }
-        public Task<OperationResult> SendAsync<T>(string path, T model, string recipient, string subject, byte[]? attachment = null, string? attachmentFileName = null, CancellationToken ct = default, string? idempotencyKey = null)
-            => SendAsync(path, model, recipient, subject, null, attachment, attachmentFileName, ct);
+        public Task<OperationResult> SendAsync<T>(string path, T model, string recipient, string subject, byte[]? attachment = null, string? attachmentFileName = null, CancellationToken ct = default, string? idempotencyKey = null, string? replyToEmail = null)
+            => SendAsync(path, model, recipient, subject, null, attachment, attachmentFileName, ct, idempotencyKey, replyToEmail);
         public Task<OperationResult> SendAsync<T>(string path, T model, string recipient, string subject, string? fromEmail,
-            byte[]? attachment = null, string? attachmentFileName = null, CancellationToken ct = default, string? idempotencyKey = null)
+            byte[]? attachment = null, string? attachmentFileName = null, CancellationToken ct = default, string? idempotencyKey = null, string? replyToEmail = null)
         {
             Calls++;
             var success = !FailNext;

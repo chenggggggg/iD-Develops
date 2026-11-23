@@ -8,12 +8,12 @@ namespace iD_Develops.Services;
 public sealed class MailService(ResendMailClient client, IOptions<MailSettings> options, ILogger<MailService> logger) : IMailService
 {
     public Task<OperationResult> SendAsync<TModel>(string templatePath, TModel model, string recipientEmail, string subject,
-        byte[]? attachment = null, string? attachmentFileName = null, CancellationToken ct = default, string? idempotencyKey = null)
-        => SendAsync(templatePath, model, recipientEmail, subject, null, attachment, attachmentFileName, ct, idempotencyKey);
+        byte[]? attachment = null, string? attachmentFileName = null, CancellationToken ct = default, string? idempotencyKey = null, string? replyToEmail = null)
+        => SendAsync(templatePath, model, recipientEmail, subject, null, attachment, attachmentFileName, ct, idempotencyKey, replyToEmail);
 
     public async Task<OperationResult> SendAsync<TModel>(string templatePath, TModel model, string recipientEmail, string subject,
         string? fromEmail, byte[]? attachment = null, string? attachmentFileName = null, CancellationToken ct = default,
-        string? idempotencyKey = null)
+        string? idempotencyKey = null, string? replyToEmail = null)
     {
         try
         {
@@ -22,7 +22,7 @@ public sealed class MailService(ResendMailClient client, IOptions<MailSettings> 
             if (string.IsNullOrWhiteSpace(from))
                 throw new InvalidOperationException("Mail:From must be configured for Resend mail.");
             var html = await RazorTemplateEngine.RenderAsync(templatePath, model);
-            return await client.SendAsync(from, recipientEmail, subject, html, attachment, attachmentFileName, idempotencyKey, ct);
+            return await client.SendAsync(from, recipientEmail, subject, html, attachment, attachmentFileName, idempotencyKey, ct, replyToEmail);
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
         catch (Exception exception)

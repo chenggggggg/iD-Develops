@@ -18,7 +18,7 @@ public sealed class ResendMailClientTests
         using var http = new HttpClient(handler);
         var client = Create(http);
         var result = await client.SendAsync("billing@example.test", "customer@example.test", "Your receipt", "<p>Receipt</p>",
-            [1, 2, 3], "receipt.pdf", "notification/123", default);
+            [1, 2, 3], "receipt.pdf", "notification/123", default, " visitor@example.test ");
         Assert.True(result.Success);
         var request = Assert.Single(handler.Requests);
         Assert.Equal("https://api.resend.com/emails", request.Url);
@@ -30,6 +30,7 @@ public sealed class ResendMailClientTests
         var body = json.RootElement;
         Assert.Equal("iD! Training & Development <billing@example.test>", body.GetProperty("from").GetString());
         Assert.Equal("customer@example.test", body.GetProperty("to")[0].GetString());
+        Assert.Equal("visitor@example.test", body.GetProperty("reply_to").GetString());
         Assert.Equal("Your receipt", body.GetProperty("subject").GetString());
         Assert.Equal("<p>Receipt</p>", body.GetProperty("html").GetString());
         Assert.Equal("receipt.pdf", body.GetProperty("attachments")[0].GetProperty("filename").GetString());
@@ -180,6 +181,43 @@ public sealed class ResendMailClientTests
         using var http = new HttpClient(handler);
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => Send(Create(http), cancellation.Token));
         Assert.Single(handler.Requests);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task UnspecifiedReplyToIsOmittedFromProviderPayload(string? replyTo)
+    {
+        using var handler = new RecordingHandler((_, _) => Task.FromResult(Accepted()));
+        using var http = new HttpClient(handler);
+        var result = await Create(http).SendAsync("info@example.test", "customer@example.test", "Subject", "<p>Hello</p>",
+            null, null, null, default, replyTo);
+
+        Assert.True(result.Success);
+        using var body = JsonDocument.Parse(Assert.Single(handler.Requests).Body);
+        Assert.False(body.RootElement.TryGetProperty("reply_to", out _));
+    }
+
+    [Fact]
+    public async Task RetriesPreserveReplyToAndIdempotencyKey()
+    {
+        var calls = 0;
+        using var handler = new RecordingHandler((_, _) => Task.FromResult(++calls == 1
+            ? Error(HttpStatusCode.ServiceUnavailable, "service_unavailable") : Accepted()));
+        using var http = new HttpClient(handler);
+        var result = await Create(http).SendAsync("info@example.test", "team@example.test", "Contact", "<p>Hello</p>",
+            null, null, "contact/reply-test", default, "visitor@example.test");
+
+        Assert.True(result.Success);
+        Assert.Equal(2, handler.Requests.Count);
+        Assert.Equal(handler.Requests[0].Body, handler.Requests[1].Body);
+        Assert.All(handler.Requests, request =>
+        {
+            Assert.Equal("contact/reply-test", request.Key);
+            using var body = JsonDocument.Parse(request.Body);
+            Assert.Equal("visitor@example.test", body.RootElement.GetProperty("reply_to").GetString());
+        });
     }
 
     private static ResendMailClient Create(HttpClient http, string? key = "test-only-key")
