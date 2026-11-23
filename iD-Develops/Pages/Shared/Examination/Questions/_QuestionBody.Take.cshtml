@@ -26,7 +26,7 @@
         _ => savedAnswer
     };
     var promptId = $"question{question.QuestionNumber}_prompt";
-    var richText = "min-w-0 text-base leading-7 [overflow-wrap:anywhere] [&_p]:my-0 [&_p+p]:mt-3 [&_img]:h-auto [&_img]:max-w-full";
+    var richText = "min-w-0 text-base leading-7 [overflow-wrap:anywhere] [&_p]:my-0 [&_p+p]:mt-3 [&_img]:h-auto [&_img]:max-w-full [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li+li]:mt-2";
     var choiceLabel = "flex min-h-12 w-full cursor-pointer items-start gap-3 rounded-lg border border-slate-300 bg-white px-4 py-3 text-left text-base leading-6 text-[var(--id-ink)] hover:bg-slate-50 peer-checked:border-[var(--id-blue)] peer-checked:bg-[var(--id-blue-soft)] peer-checked:text-[var(--id-blue)] peer-focus:outline-2 peer-focus:outline-offset-2 peer-focus:outline-[var(--id-blue)]";
 }
 
@@ -83,7 +83,7 @@
                     (Key: "D", Text: multipleChoiceQuestion.MultipleChoiceAnswer?.AnswerD)
                 };
                 <div class="grid gap-2 rounded-xl border border-[var(--id-border)] bg-white p-2 sm:p-3">
-                    @foreach (var choice in choices)
+                    @foreach (var choice in choices.Where(choice => !choices.Any(item => !string.IsNullOrWhiteSpace(item.Text)) || !string.IsNullOrWhiteSpace(choice.Text)))
                     {
                         var choiceId = $"question{question.QuestionNumber}_{choice.Key}";
                         <div class="relative min-w-0">
@@ -98,6 +98,22 @@
                         </div>
                     }
                 </div>
+            }
+            else if (question is OpenQuestion open && open.OpenAnswerFields.Count > 0)
+            {
+                iD_Develops.Services.OpenAnswerService.TryRead(Model.SavedAnswerText, out var savedInputs);
+                <fieldset class="space-y-4 rounded-xl border border-[var(--id-border)] bg-white p-4 sm:p-5" aria-labelledby="@promptId" data-open-answer-inputs>
+                    <p class="m-0 text-sm leading-6 text-slate-600">@Localizer["AnswerEveryInput"]</p>
+                    @for (var index = 0; index < open.OpenAnswerFields.Count; index++)
+                    {
+                        var field = open.OpenAnswerFields[index];
+                        var inputId = $"question{question.QuestionNumber}_open_{field.Key}";
+                        <div class="min-w-0">
+                            <label for="@inputId" class="mb-2 block text-sm font-semibold text-[var(--id-ink)]">@(string.IsNullOrWhiteSpace(field.Label) ? Localizer["AnswerInputLabel", index + 1] : field.Label)</label>
+                            <textarea id="@inputId" name="open_@field.Key" data-open-answer="@field.Key" rows="2" maxlength="10000" class="min-h-24 w-full min-w-0 resize-y rounded-lg border border-slate-300 bg-white px-4 py-3 text-base leading-7 text-[var(--id-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]">@savedInputs.GetValueOrDefault(field.Key)</textarea>
+                        </div>
+                    }
+                </fieldset>
             }
             else if (question is OpenQuestion)
             {

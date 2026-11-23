@@ -13,7 +13,7 @@
 <partial name="/Pages/Shared/Examination/_ExaminationHeader.cshtml"
          model="Model.Header" />
 
-<div class="exam-container">
+<div class="exam-container pb-28 sm:pb-16">
     <p class="my-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-600">Saved changes apply to new attempts. Existing attempts keep their original exam version. Publish or unpublish to control availability.</p>
     @if (!Model.UploadsEnabled)
     {
@@ -39,6 +39,8 @@
     <partial name="_ValidationScriptsPartial" />
     <script src="~/js/exam-connectivity.js"></script>
     <script src="~/js/exam-rich-edit-fields.js" asp-append-version="true"></script>
+    <script src="~/js/question-scoring.js" asp-append-version="true"></script>
+    <script src="~/js/open-answer-editor.js" asp-append-version="true"></script>
     <script src="~/js/exam-editor.js" asp-append-version="true"></script>
     <script src="~/js/exam-header-inline-edit.js" asp-append-version="true"></script>
 }

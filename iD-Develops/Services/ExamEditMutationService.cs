@@ -38,6 +38,26 @@ namespace iD_Develops.Services
             if (!await CanManageExamAsync(command.ExamId, userId, isAdmin))
                 return new SaveQuestionResult { Success = false, StatusCode = StatusCodes.Status403Forbidden, ErrorMessage = "You do not have permission to manage this exam." };
 
+            if (command.Score.HasValue && (!double.IsFinite(command.Score.Value) || command.Score <= 0))
+                return new SaveQuestionResult { Success = false, StatusCode = StatusCodes.Status400BadRequest, ErrorMessage = "Maximum points must be greater than zero." };
+
+            if (command.OpenAnswerFieldsJson != null)
+            {
+                try
+                {
+                    if (command.Kind != "Open")
+                        throw new System.ComponentModel.DataAnnotations.ValidationException("Answer inputs apply only to open questions.");
+                    var fields = OpenAnswerFieldJson.Deserialize(command.OpenAnswerFieldsJson);
+                    if (fields.Count == 0)
+                        throw new System.ComponentModel.DataAnnotations.ValidationException("Keep at least one answer input.");
+                    OpenAnswerService.Validate(fields, command.Score);
+                }
+                catch (Exception ex) when (ex is System.Text.Json.JsonException or System.ComponentModel.DataAnnotations.ValidationException)
+                {
+                    return new SaveQuestionResult { Success = false, StatusCode = StatusCodes.Status400BadRequest, ErrorMessage = ex.Message };
+                }
+            }
+
             if (command.QuestionId <= 0)
             {
                 var existingQuestion = await _questionService.GetQuestionByNumberForUpdateAsync(
@@ -354,7 +374,23 @@ namespace iD_Develops.Services
                     });
                 }
 
-                var hasCorrectAnswer = question.CorrectAnswers.Any(a => !string.IsNullOrWhiteSpace(a.Text));
+                if (question is OpenQuestion configured && configured.OpenAnswerFields.Count > 0)
+                {
+                    try { OpenAnswerService.Validate(configured.OpenAnswerFields, question.Score); }
+                    catch (System.ComponentModel.DataAnnotations.ValidationException ex)
+                    {
+                        errors.Add(new
+                        {
+                            code = "INVALID_OPEN_INPUTS",
+                            questionId = question.Id,
+                            questionNumber = question.QuestionNumber,
+                            message = $"Question {question.QuestionNumber}: {ex.Message}"
+                        });
+                    }
+                }
+                var hasCorrectAnswer = question is OpenQuestion open && open.OpenAnswerFields.Count > 0
+                    ? open.OpenAnswerFields.All(field => field.AcceptedAnswers.Count > 0)
+                    : question.CorrectAnswers.Any(a => !string.IsNullOrWhiteSpace(a.Text));
                 questionStates.Add((question.Id, question.QuestionNumber, hasCorrectAnswer));
 
                 if (question is MultipleChoiceQuestion mcq)
@@ -369,21 +405,26 @@ namespace iD_Develops.Services
                                     + (string.IsNullOrWhiteSpace(answerC) ? 0 : 1)
                                     + (string.IsNullOrWhiteSpace(answerD) ? 0 : 1);
 
-                    if (filledCount > 0 && filledCount < 4)
+                    if (filledCount == 1)
                     {
-                        var missing = new List<string>();
-                        if (string.IsNullOrWhiteSpace(answerA)) missing.Add("A");
-                        if (string.IsNullOrWhiteSpace(answerB)) missing.Add("B");
-                        if (string.IsNullOrWhiteSpace(answerC)) missing.Add("C");
-                        if (string.IsNullOrWhiteSpace(answerD)) missing.Add("D");
-
                         errors.Add(new
                         {
-                            code = "MCQ_OPTIONS_MIXED",
+                            code = "MCQ_TOO_FEW_OPTIONS",
                             questionId = question.Id,
                             questionNumber = question.QuestionNumber,
-                            missingOptions = missing,
-                            message = $"Question {question.QuestionNumber}: when any MCQ option text is provided, all options A-D must have text (or leave all empty to use default A/B/C/D labels). Missing: {string.Join(", ", missing)}."
+                            message = $"Question {question.QuestionNumber}: provide at least two option texts, or leave all empty to use A/B/C/D image labels."
+                        });
+                    }
+                    var visibleKeys = new[] { (Key: "A", Text: answerA), (Key: "B", Text: answerB), (Key: "C", Text: answerC), (Key: "D", Text: answerD) }
+                        .Where(option => !string.IsNullOrWhiteSpace(option.Text)).Select(option => option.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
+                    if (filledCount > 0 && question.CorrectAnswers.Any(answer => !visibleKeys.Contains(answer.Text.Trim())))
+                    {
+                        errors.Add(new
+                        {
+                            code = "MCQ_CORRECT_OPTION_EMPTY",
+                            questionId = question.Id,
+                            questionNumber = question.QuestionNumber,
+                            message = $"Question {question.QuestionNumber}: the correct answer must refer to a visible option."
                         });
                     }
                 }
@@ -462,6 +503,8 @@ namespace iD_Develops.Services
 
         private async Task ApplyPatchAsync(Question question, SaveQuestionCommand command)
         {
+            if (question is OpenQuestion open && command.OpenAnswerFieldsJson != null)
+                open.OpenAnswerFields = OpenAnswerFieldJson.Deserialize(command.OpenAnswerFieldsJson);
             await _questionService.ApplyAutosavePatchAsync(
                 question,
                 command.Text,
@@ -470,7 +513,7 @@ namespace iD_Develops.Services
                 command.Feedback,
                 command.FunFact,
                 command.Score,
-                command.OpenCorrectAnswerText,
+                question is OpenQuestion configured && configured.OpenAnswerFields.Count > 0 ? null : command.OpenCorrectAnswerText,
                 command.MultipleChoiceAnswerA,
                 command.MultipleChoiceAnswerB,
                 command.MultipleChoiceAnswerC,

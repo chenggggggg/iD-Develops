@@ -1,4 +1,4 @@
-﻿using iD_Develops.Models;
+using iD_Develops.Models;
 
 namespace iD_Develops.Services
 {
@@ -26,11 +26,22 @@ namespace iD_Develops.Services
             {
                 var participantAnswer = participantAnswers.Find(a => a.QuestionId == q.Id);
                 if (participantAnswer == null) continue;
+                participantAnswer.IsCorrect = false;
+                participantAnswer.AwardedScore = 0;
+                if (q is OpenQuestion open && open.OpenAnswerFields.Count > 0)
+                {
+                    var awarded = OpenAnswerService.Evaluate(open, participantAnswer.AnswerText);
+                    participantAnswer.AwardedScore = awarded;
+                    participantAnswer.IsCorrect = awarded >= OpenAnswerService.MaximumScore(q.Score);
+                    score += awarded;
+                    continue;
+                }
 
                 if (EvaluateQuestion(q, participantAnswer, out var matchingCorrectAnswer) && matchingCorrectAnswer != null)
                 {
-                    participantAnswer.IsCorrect = true;
-                    score += CalculateScore(q, matchingCorrectAnswer);
+                    participantAnswer.AwardedScore = ExamScoring.LegacyAward(q, matchingCorrectAnswer);
+                    participantAnswer.IsCorrect = participantAnswer.AwardedScore >= ExamScoring.MaximumPoints(q.Score);
+                    score += participantAnswer.AwardedScore;
                 }
             }
 
@@ -115,24 +126,8 @@ namespace iD_Develops.Services
             }
         }
 
-        private double CalculateScore(Question question, CorrectAnswer correctAnswer)
-        {
-            if (question?.Score > 0)
-                return question.Score.Value;
-
-            return correctAnswer?.Score > 0 ? correctAnswer.Score.Value : 1;
-        }
-
         private static double ResolveMaxScore(Exam exam)
-        {
-            var summedQuestionScore = exam?.Questions?
-                .Select(q => q.Score.HasValue && q.Score.Value > 0 ? q.Score.Value : 1d)
-                .DefaultIfEmpty(0d)
-                .Sum() ?? 0d;
-
-            return summedQuestionScore;
-        }
-
+            => ExamScoring.TotalMaximum(exam.Questions);
         private string RemoveHtmlTags(string input)
         {
             if (string.IsNullOrWhiteSpace(input)) return input;

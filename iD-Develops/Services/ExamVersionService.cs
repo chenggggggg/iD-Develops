@@ -170,6 +170,8 @@ namespace iD_Develops.Services
             liveQuestion.Feedback = string.Empty;
             liveQuestion.FunFact = string.Empty;
             liveQuestion.CorrectAnswers = new List<CorrectAnswer>();
+            if (liveQuestion is OpenQuestion open)
+                open.OpenAnswerFields = OpenAnswerFieldJson.Copy(open.OpenAnswerFields, hideAnswers: true);
             return liveQuestion;
         }
 
@@ -416,6 +418,7 @@ namespace iD_Develops.Services
                 AnswerB = (question as MultipleChoiceQuestion)?.MultipleChoiceAnswer?.AnswerB,
                 AnswerC = (question as MultipleChoiceQuestion)?.MultipleChoiceAnswer?.AnswerC,
                 AnswerD = (question as MultipleChoiceQuestion)?.MultipleChoiceAnswer?.AnswerD,
+                OpenAnswerFields = question is OpenQuestion open ? OpenAnswerFieldJson.Copy(open.OpenAnswerFields) : [],
                 CorrectAnswers = question.CorrectAnswers
                     .Where(a => !string.IsNullOrWhiteSpace(a.Text))
                     .Select(a => new ExamVersionCorrectAnswer
@@ -485,6 +488,7 @@ namespace iD_Develops.Services
                 },
                 _ => new OpenQuestion
                 {
+                    OpenAnswerFields = OpenAnswerFieldJson.Copy(snapshot.OpenAnswerFields, sanitizeForTake),
                     Id = snapshot.SourceQuestionId,
                     ExamId = examId,
                     QuestionNumber = snapshot.QuestionNumber,

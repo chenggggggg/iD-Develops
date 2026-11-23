@@ -140,7 +140,7 @@ namespace iD_Develops.Services
 
         public async Task<List<int>> GetAnsweredQuestionsAsync(Guid recordId)
         {
-            return await _dbContext.ParticipantAnswers
+            var answers = await _dbContext.ParticipantAnswers
                 .AsNoTracking()
                 .Where(pa =>
                     pa.RecordId == recordId &&
@@ -150,9 +150,11 @@ namespace iD_Develops.Services
                 .Join(_dbContext.Questions.AsNoTracking(),
                       pa => pa.QuestionId,
                       q => q.Id,
-                      (pa, q) => q.QuestionNumber)
-                .OrderBy(qn => qn)
+                      (pa, q) => new { q.QuestionNumber, pa.AnswerText })
+                .OrderBy(item => item.QuestionNumber)
                 .ToListAsync();
+            return answers.Where(item => OpenAnswerService.IsComplete(item.AnswerText))
+                .Select(item => item.QuestionNumber).ToList();
         }
     }
 }

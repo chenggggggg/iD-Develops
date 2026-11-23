@@ -278,6 +278,7 @@ namespace iD_Develops.Services
                 AnswerB = multipleChoice?.MultipleChoiceAnswer?.AnswerB,
                 AnswerC = multipleChoice?.MultipleChoiceAnswer?.AnswerC,
                 AnswerD = multipleChoice?.MultipleChoiceAnswer?.AnswerD,
+                OpenAnswerFields = question is OpenQuestion open ? OpenAnswerFieldJson.Copy(open.OpenAnswerFields) : [],
                 CorrectAnswers = question.CorrectAnswers
                     .Where(a => !a.IsDeleted)
                     .Select(a => new ExamTransferCorrectAnswer
@@ -304,7 +305,7 @@ namespace iD_Develops.Services
                     }
                 },
                 "TrueOrFalse" => new TrueOrFalseQuestion(),
-                "Open" => new OpenQuestion(),
+                "Open" => new OpenQuestion { OpenAnswerFields = OpenAnswerFieldJson.Copy(definition.OpenAnswerFields) },
                 _ => throw new ValidationException($"Question {definition.QuestionNumber} has an unsupported type.")
             };
 
@@ -332,10 +333,10 @@ namespace iD_Develops.Services
 
         private static void ValidatePackage(ExamTransferPackage package)
         {
-            if (package.FormatVersion != ExamTransferPackage.CurrentFormatVersion)
+            if (package.FormatVersion is not (2 or ExamTransferPackage.CurrentFormatVersion))
             {
                 throw new ValidationException(
-                    $"This exam export uses format version {package.FormatVersion}. Only version {ExamTransferPackage.CurrentFormatVersion} is supported.");
+                    $"This exam export uses format version {package.FormatVersion}. Supported versions are 2 and {ExamTransferPackage.CurrentFormatVersion}.");
             }
 
             var exam = package.Exam ?? throw new ValidationException("The file does not contain an exam definition.");
@@ -403,6 +404,15 @@ namespace iD_Develops.Services
                 ValidateOptionalText(question.ImageReference, $"Question {question.QuestionNumber} image reference", MaximumTextLength);
                 ValidateOptionalText(question.AudioReference, $"Question {question.QuestionNumber} audio reference", MaximumTextLength);
 
+                question.OpenAnswerFields ??= [];
+                if (package.FormatVersion < 3 && question.OpenAnswerFields.Count > 0)
+                    throw new ValidationException("Multiple open answer inputs require exam format version 3.");
+                if (question.Type != "Open" && question.OpenAnswerFields.Count > 0)
+                    throw new ValidationException($"Question {question.QuestionNumber}: answer inputs apply only to open questions.");
+                try { OpenAnswerService.Validate(question.OpenAnswerFields, question.Score); }
+                catch (ValidationException ex) { throw new ValidationException($"Question {question.QuestionNumber}: {ex.Message}"); }
+                if (question.OpenAnswerFields.Count > 0 && question.CorrectAnswers?.Count > 0)
+                    throw new ValidationException($"Question {question.QuestionNumber}: use accepted answers inside each input, not both answer formats.");
                 question.CorrectAnswers ??= new List<ExamTransferCorrectAnswer>();
                 if (question.CorrectAnswers.Count > MaximumCorrectAnswersPerQuestion)
                 {

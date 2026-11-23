@@ -4,7 +4,7 @@ namespace iD_Develops.Services
 {
     public sealed class ExamTransferPackage
     {
-        public const int CurrentFormatVersion = 2;
+        public const int CurrentFormatVersion = 3;
 
         public int FormatVersion { get; set; } = CurrentFormatVersion;
         public DateTime ExportedAtUtc { get; set; }
@@ -53,6 +53,7 @@ namespace iD_Develops.Services
         public string? AnswerB { get; set; }
         public string? AnswerC { get; set; }
         public string? AnswerD { get; set; }
+        public List<iD_Develops.Models.OpenAnswerField> OpenAnswerFields { get; set; } = [];
         public List<ExamTransferCorrectAnswer> CorrectAnswers { get; set; } = new();
     }
 

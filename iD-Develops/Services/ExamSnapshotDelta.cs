@@ -57,6 +57,22 @@ internal static class ExamSnapshotDelta
                 JsonSerializer.SerializeToNode(new { answer.Text, answer.Score })!));
             node["CorrectAnswerOrder"] = new JsonArray(node["CorrectAnswers"]!.AsObject()
                 .Select(answer => (JsonNode?)JsonValue.Create(answer.Key)).ToArray());
+            if (question.OpenAnswerFields.Count > 0)
+            {
+                var fields = new JsonObject();
+                foreach (var field in question.OpenAnswerFields)
+                {
+                    var item = JsonSerializer.SerializeToNode(new { field.Key, field.Label })!.AsObject();
+                    item["AcceptedAnswers"] = ContentCollection(field.AcceptedAnswers.Select(answer =>
+                        JsonSerializer.SerializeToNode(new { answer.Text, answer.Score })!));
+                    item["AcceptedAnswerOrder"] = new JsonArray(item["AcceptedAnswers"]!.AsObject()
+                        .Select(answer => (JsonNode?)JsonValue.Create(answer.Key)).ToArray());
+                    fields.Add(field.Key, item);
+                }
+                node["OpenAnswerFields"] = fields;
+                node["OpenAnswerFieldOrder"] = new JsonArray(question.OpenAnswerFields
+                    .Select(field => (JsonNode?)JsonValue.Create(field.Key)).ToArray());
+            }
             questions.Add(question.SourceQuestionId.ToString(System.Globalization.CultureInfo.InvariantCulture), node);
         }
         document["Questions"] = questions;
@@ -78,7 +94,25 @@ internal static class ExamSnapshotDelta
             var answerOrder = node["CorrectAnswerOrder"]!.AsArray().Select(key => key!.GetValue<string>()).ToList();
             node.Remove("CorrectAnswers");
             node.Remove("CorrectAnswerOrder");
+            var fields = node["OpenAnswerFields"] as JsonObject;
+            var fieldOrder = node["OpenAnswerFieldOrder"] as JsonArray;
+            node.Remove("OpenAnswerFields");
+            node.Remove("OpenAnswerFieldOrder");
             var question = node.Deserialize<ExamVersionQuestion>()!;
+            if (fields != null && fieldOrder != null)
+            {
+                question.OpenAnswerFields = fieldOrder.Select(key =>
+                {
+                    var field = fields[key!.GetValue<string>()]!.AsObject();
+                    return new OpenAnswerField
+                    {
+                        Key = field["Key"]!.GetValue<string>(),
+                        Label = field["Label"]!.GetValue<string>(),
+                        AcceptedAnswers = field["AcceptedAnswerOrder"]!.AsArray()
+                            .Select(answer => field["AcceptedAnswers"]![answer!.GetValue<string>()]!.Deserialize<OpenAcceptedAnswer>()!).ToList()
+                    };
+                }).ToList();
+            }
             question.CorrectAnswers = answerOrder.Select((key, index) =>
             {
                 var value = answers[key]!.Deserialize<ExamVersionCorrectAnswer>()!;

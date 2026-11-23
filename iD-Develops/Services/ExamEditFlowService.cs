@@ -99,10 +99,7 @@ namespace iD_Develops.Services
         private async Task<List<ResultGradeBandInputModel>> BuildGradeBandInputsAsync(Exam exam)
         {
             var questions = await _questionService.GetQuestionsForExamForEditAsync(exam.Id);
-            var maximumScore = questions
-                .Select(q => q.Score.HasValue && q.Score.Value > 0 ? q.Score.Value : 1d)
-                .DefaultIfEmpty(0d)
-                .Sum();
+            var maximumScore = ExamScoring.TotalMaximum(questions);
 
             var sortedBands = exam.GradeBands
                 .OrderBy(b => b.MinimumScore)
@@ -154,6 +151,7 @@ namespace iD_Develops.Services
             {
                 "Open" => new OpenQuestion
                 {
+                    OpenAnswerFields = [new OpenAnswerField { Key = "answer-1" }],
                     Id = 0,
                     Text = string.Empty,
                     QuestionNumber = questionNumber,

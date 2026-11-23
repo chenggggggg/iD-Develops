@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace iD_Develops.Models
 {
@@ -17,5 +17,7 @@ namespace iD_Develops.Models
         public Record Record { get; set; }
         [NotMapped]
         public bool IsCorrect { get; set; }
+        [NotMapped]
+        public double AwardedScore { get; set; }
     }
 }

@@ -1,0 +1,29 @@
+@using iD_Develops.Models
+@using iD_Develops.Services
+@model Question
+@{
+    var maximum = ExamScoring.MaximumPoints(Model.Score);
+    var points = maximum.ToString("G", System.Globalization.CultureInfo.InvariantCulture);
+    var open = Model is OpenQuestion;
+}
+<section class="mt-6 min-w-0 max-w-3xl rounded-xl border border-slate-200 bg-slate-50 p-4 sm:p-5" data-question-scoring data-scoring-kind="@(open ? "Open" : Model is MultipleChoiceQuestion ? "MultipleChoice" : "TrueOrFalse")">
+    <div class="grid min-w-0 gap-4 sm:grid-cols-[12rem_minmax(0,1fr)] sm:items-start">
+        <div class="min-w-0">
+            <label for="questionMaximumPoints" class="block text-sm font-semibold text-[var(--id-ink)]">Maximum points</label>
+            <input id="questionMaximumPoints" name="Score" type="number" min="0" step="any" required readonly aria-busy="true" value="@points" aria-describedby="questionPointsHelp questionPointsError" data-question-maximum class="mt-2 min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-[var(--id-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]" />
+            <p id="questionPointsError" class="mt-2 text-sm leading-6 text-red-700" data-question-points-error role="alert" hidden></p>
+        </div>
+        <div class="flex min-w-0 flex-col gap-2 text-sm leading-6 [overflow-wrap:anywhere]">
+            <p class="m-0 font-semibold text-[var(--id-ink)]" data-question-award-summary>@(open ? $"Up to {points} points for this whole question." : $"Correct: {points} points. Incorrect or unanswered: 0.")</p>
+            <p id="questionPointsHelp" class="m-0 text-slate-600">This maximum counts once toward the exam total.</p>
+            @if (open)
+            {
+                <p class="m-0 text-slate-600">Open inputs are marked together. Every input must match an accepted answer; the lowest matching award is used. Alternatives and inputs do not add extra points.</p>
+            }
+            else
+            {
+                <p class="m-0 text-slate-600">The selected correct answer earns the full question maximum.</p>
+            }
+        </div>
+    </div>
+</section>

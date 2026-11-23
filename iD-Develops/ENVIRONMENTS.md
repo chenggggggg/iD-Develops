@@ -638,6 +638,32 @@ For Cloudflare R2, use:
 - `Storage__PublicBaseUrl=<R2_PUBLIC_OR_CUSTOM_DOMAIN>`
 - `Storage__CdnBaseUrl=<R2_PUBLIC_OR_CUSTOM_DOMAIN>`
 
+## Exam answer-input schema
+
+The multiple-open-answer migration adds JSONB definitions to live questions and legacy
+snapshot roots. Existing free-text responses are retained; attempts use their original
+snapshot. Incremental snapshots store changes by stable input key and accepted-answer
+content, so editing a label or one alternative does not copy unchanged question data.
+Startup applies the migration through the existing initialization process; no new
+configuration or external service is needed.
+
+Exam exports now use format 3. The importer still accepts format-2 files with the original
+single-answer representation. Files with `OpenAnswerFields` must use format 3; older
+applications reject that version rather than silently dropping the input definitions.
+Each input has a stable `Key`, a plain-text `Label`, and `AcceptedAnswers` containing
+`Text` and optional `Score`. A missing score awards the question's full points. Every
+input must match; the lowest matched award determines the question's score. An empty
+accepted-answer list earns no automatic points and requires human review. Matching
+ignores capitalization, repeated whitespace, and one final full stop. Existing attempts
+without input definitions keep their original single-answer matching rules.
+The editor uses one **Maximum points** control for every question type. It contributes
+once to the exam total. Multiple-choice and true/false correct answers earn that full
+maximum. Open alternatives use **Points awarded** (blank means full maximum); multiple
+inputs share the question maximum and are marked together, rather than summed.
+Invalid maxima or alternative awards remain unsaved, with inline feedback and the
+existing save-failed status. The server independently validates awards and bounds
+legacy fallback scoring to the same maximum used by totals and result displays.
+
 ## Notes
 
 - PostgreSQL Docker health checks use `pg_isready`.

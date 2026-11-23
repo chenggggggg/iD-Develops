@@ -157,7 +157,7 @@ namespace iD_Develops.Pages.Portal.Exams
         {
             answersByQuestionId.TryGetValue(question.Id, out var participantAnswer);
             var questionScore = ResolveQuestionScore(question);
-            var awardedScore = participantAnswer?.IsCorrect == true ? questionScore : 0d;
+            var awardedScore = participantAnswer?.AwardedScore ?? 0d;
 
             return new QuestionReviewItem(
                 question.QuestionNumber,
@@ -214,6 +214,8 @@ namespace iD_Develops.Pages.Portal.Exams
 
         private static string FormatCorrectAnswers(Question question)
         {
+            if (question is OpenQuestion open && open.OpenAnswerFields.Count > 0)
+                return OpenAnswerService.FormatAcceptedAnswers(open, "—");
             if (question.CorrectAnswers == null || question.CorrectAnswers.Count == 0)
                 return "No model answer provided";
 
@@ -222,6 +224,8 @@ namespace iD_Develops.Pages.Portal.Exams
 
         private static string FormatAnswer(Question question, string? answerText, string emptyFallback)
         {
+            if (question is OpenQuestion open && open.OpenAnswerFields.Count > 0)
+                return OpenAnswerService.FormatAnswer(open, answerText, emptyFallback);
             if (string.IsNullOrWhiteSpace(answerText))
                 return emptyFallback;
 
@@ -295,7 +299,7 @@ namespace iD_Develops.Pages.Portal.Exams
         }
 
         private static double ResolveQuestionScore(Question question)
-            => question.Score.HasValue && question.Score.Value > 0 ? question.Score.Value : 1d;
+            => ExamScoring.MaximumPoints(question.Score);
 
         private static string ResolveResultLabel(double awardedScore, double questionScore)
         {

@@ -440,6 +440,8 @@
     }
 
     function getBtnGroup() {
+        const editorGroup = document.querySelector('[data-editor-question-buttons]');
+        if (editorGroup) return editorGroup;
         const addBtn = document.querySelector(".question-add-btn")
             || document.querySelector('[data-action="add-question"]');
 
@@ -480,6 +482,12 @@
         if (active) {
             active.classList.add("is-active");
             active.setAttribute("aria-current", "page");
+            const scroller = active.closest('[data-editor-question-buttons]');
+            if (scroller) {
+                const buttonRect = active.getBoundingClientRect();
+                const scrollRect = scroller.getBoundingClientRect();
+                scroller.scrollLeft += buttonRect.left - scrollRect.left - (scrollRect.width - buttonRect.width) / 2;
+            }
         }
     }
 
@@ -763,6 +771,11 @@
 
         const examId = getExamId();
         if (!examId) throw new Error("Missing ExamId.");
+
+        if (window.questionScoring && !window.questionScoring.validate(form)) {
+            if (!silentStatus) showStatus(host, "Save failed", statusToken);
+            throw new Error("Check the points fields before saving.");
+        }
 
         // Identify current shell before any mutation
         const shellKeyBefore = getActiveShellKey();
@@ -1061,6 +1074,7 @@
             if (!fp) return;
 
             setLastSavedFingerprint(shellKey, fp);
+            form.dataset.examAutosaveReady = 'true';
 
             const token = nextStatusToken();
             showStatus(host, "Up-to-date", token); // or whatever your neutral label is

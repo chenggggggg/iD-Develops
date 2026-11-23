@@ -168,33 +168,12 @@
         </div>
     </div>
 
-    @* QUESTION TYPE INPUTS *@
-    @if (Model is OpenQuestion)
-    {
-        var openCorrect = Model?.CorrectAnswers?.FirstOrDefault()?.Text ?? "";
+    <partial name="/Pages/Shared/Examination/Questions/_QuestionScoring.Edit.cshtml" model="Model" />
 
-        <div class="question-narrow">
-            <div>
-                <div class="mt-4 exam-rich-field" data-exam-rich-field>
-                    <div class="question-rich-header">
-                        <div>
-                            <label class="portal-info-label">Correct answer (Open):</label>
-                            <small class="exam-field-help">
-                                The automatic evaluation for open answers might be inaccurate. Recommended to leave this empty for manual evaluation.
-                            </small>
-                        </div>
-                        <i class="fa-solid fa-pencil exam-rich-pencil" aria-hidden="true"></i>
-                    </div>
-                    <div class="exam-rich-preview" data-exam-rich-preview data-placeholder="Enter correct answer here...">
-                        @Html.Raw(openCorrect)
-                    </div>
-                    <textarea class="portal-field tinymce exam-rich-textarea"
-                              name="OpenCorrectAnswerText"
-                              rows="4"
-                              data-exam-rich-textarea>@openCorrect</textarea>
-                </div>
-            </div>
-        </div>
+    @* QUESTION TYPE INPUTS *@
+    @if (Model is OpenQuestion openQuestion)
+    {
+        <partial name="/Pages/Shared/Examination/Questions/_OpenAnswerFields.Edit.cshtml" model="openQuestion" />
     }
     else if (Model is MultipleChoiceQuestion)
     {
@@ -210,7 +189,7 @@
 
                 <div class="exam-field-help mb-3">
                     Mark the correct answer (optional). <br />
-                    Empty answer fields will automatically show as "A", "B", "C", or "D" during the exam.
+                    Use two to four text options; empty options are hidden. Leave every option empty to show A, B, C, and D with an image.
                 </div>
 
                 <div class="question-option-row">
@@ -351,7 +330,7 @@
         </div>
     </div>
 
-    <div class="question-edit-grid question-narrow mb-4">
+    <div class="question-narrow mb-4">
 
         <div class="exam-rich-field" data-exam-rich-field>
             <div class="question-rich-header">
@@ -369,16 +348,7 @@
                       rows="2"
                       data-exam-rich-textarea>@(Model?.FunFact ?? string.Empty)</textarea>
         </div>
-        <div>
-            <label class="portal-info-label">Points:</label>
-            <small class="exam-field-help">How many points this question is worth. Defaults to 1.</small>
-            <input class="portal-field"
-                   type="number"
-                   name="Score"
-                   min="0.01"
-                   step="0.01"
-                   value="@((Model?.Score.HasValue == true && Model.Score.Value > 0 ? Model.Score.Value : 1).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))" />
-        </div>
+
     </div>
 
     <div class="question-delete-wrap">

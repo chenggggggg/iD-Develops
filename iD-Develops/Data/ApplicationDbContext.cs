@@ -430,6 +430,17 @@ namespace iD_Develops.Data
                 .HasValue<TrueOrFalseQuestion>("TrueOrFalse")
                 .HasValue<OpenQuestion>("Open");
 
+            var openAnswerComparer = new ValueComparer<List<OpenAnswerField>>(
+                (left, right) => OpenAnswerFieldJson.Serialize(left) == OpenAnswerFieldJson.Serialize(right),
+                value => OpenAnswerFieldJson.Serialize(value).GetHashCode(),
+                value => OpenAnswerFieldJson.Deserialize(OpenAnswerFieldJson.Serialize(value)));
+            modelBuilder.Entity<OpenQuestion>().Property(question => question.OpenAnswerFields)
+                .HasConversion(value => OpenAnswerFieldJson.Serialize(value), value => OpenAnswerFieldJson.Deserialize(value))
+                .HasColumnType("jsonb").Metadata.SetValueComparer(openAnswerComparer);
+            modelBuilder.Entity<ExamVersionQuestion>().Property(question => question.OpenAnswerFields)
+                .HasConversion(value => OpenAnswerFieldJson.Serialize(value), value => OpenAnswerFieldJson.Deserialize(value))
+                .HasColumnType("jsonb").Metadata.SetValueComparer(openAnswerComparer);
+
             modelBuilder.Entity<MultipleChoiceQuestion>()
                 .HasOne(mq => mq.MultipleChoiceAnswer)
                 .WithOne()

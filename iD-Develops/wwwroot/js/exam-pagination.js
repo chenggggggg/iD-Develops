@@ -101,6 +101,12 @@
     }
 
     function getRawCurrentAnswer() {
+        const openInputs = Array.from(document.querySelectorAll('[data-open-answer]'));
+        if (openInputs.length > 0) {
+            const answers = Object.fromEntries(openInputs.map(input => [input.dataset.openAnswer, input.value ?? ""]));
+            return Object.values(answers).every(value => value.trim() === "") ? ""
+                : JSON.stringify({ format: "open-answers-v1", answers });
+        }
         const checkedRadio = document.querySelector('input[type="radio"][name="answer"]:checked');
         if (checkedRadio) return checkedRadio.value ?? "";
 
@@ -344,7 +350,7 @@
         document.addEventListener("input", (e) => {
             const el = e.target;
             if (!el) return;
-            if (el.matches('textarea[name="answer"], input[type="text"][name="answer"]')) {
+            if (el.matches('textarea[name="answer"], input[type="text"][name="answer"], [data-open-answer]')) {
                 queueAutosave(1200);
             }
         });
@@ -360,7 +366,7 @@
         document.addEventListener("blur", (e) => {
             const el = e.target;
             if (!el) return;
-            if (el.matches('textarea[name="answer"], input[type="text"][name="answer"]')) {
+            if (el.matches('textarea[name="answer"], input[type="text"][name="answer"], [data-open-answer]')) {
                 queueAutosave(0);
             }
         }, true);
