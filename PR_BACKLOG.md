@@ -407,6 +407,17 @@ omission, and stable retry bodies/keys. Resend HTTP was mocked; browser mail use
 No real emails were sent. Original local settings and Full mode were restored. No
 migration or new environment/provider/DNS configuration is required.
 
+CI follow-up on the same open PR #72, 2026-11-23: run 45110906763 timed out before the
+external-return-URL assertion. Its trace shows `/login` HTTP 200 in about 6 ms and all
+first-party resources loaded; the synchronous `consent.cookiebot.com/uc.js` request never
+finished. Isolate the external SDK in CI and local redirect tests without changing real
+authentication or redirect assertions. Verified: Release build, formatting verification,
+all 698 unit/integration tests, 80 deployment-policy checks, three consecutive 13-case
+login regression runs, all 329 Full-mode and 135 Marketing browser checks. Production
+consent loading is unchanged. Original local settings were restored. Review this
+external startup dependency separately in the B20
+runtime/UI audit before proposing any loader change that could affect consent blocking.
+
 **Estimated size: Large.** Expanded signup workflow with built-in personal details and mandatory notifications.
 
 Status: completed and merged in [PR #40](https://github.com/chenggggggg/iD-Develops/pull/40).

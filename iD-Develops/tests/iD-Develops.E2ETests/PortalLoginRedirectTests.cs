@@ -4,6 +4,13 @@ namespace iD_Develops.E2ETests;
 
 public sealed class PortalLoginRedirectTests : DiagnosticPageTest
 {
+    public override async Task InitializeAsync()
+    {
+        await base.InitializeAsync();
+        // A stalled consent CDN must not decide whether authentication regressions run.
+        // Keep the application, its validation scripts, and all sign-in requests real.
+        await Context.RouteAsync("https://consent.cookiebot.com/**", route => route.AbortAsync());
+    }
     [Theory]
     [InlineData("/")]
     [InlineData("/profile?tab=security&source=calendar%2Froster")]
@@ -78,8 +85,9 @@ public sealed class PortalLoginRedirectTests : DiagnosticPageTest
             externalRequests.Add(route.Request.Url);
             return route.AbortAsync();
         });
-        await Page.GotoAsync(LocalTestApplication.PortalBaseUrl + "/login?returnUrl=" + Uri.EscapeDataString(returnUrl),
+        var response = await Page.GotoAsync(LocalTestApplication.PortalBaseUrl + "/login?returnUrl=" + Uri.EscapeDataString(returnUrl),
             new() { WaitUntil = WaitUntilState.DOMContentLoaded });
+        Assert.Equal(200, response!.Status);
         await Page.GetByLabel("E-mail").FillAsync(account.User.Email!);
         await Page.GetByLabel("Password", new() { Exact = true }).FillAsync(account.Password);
         await Page.GetByRole(AriaRole.Button, new() { Name = "Log in", Exact = true }).ClickAsync();

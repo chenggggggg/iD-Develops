@@ -156,6 +156,8 @@ jobs:
           ConnectionStrings__ApplicationDbContextConnection: Host=127.0.0.1;Port=5432;Database=iddevelops_ci;Username=postgres;Password=ci-postgres-password;
           SuperAdmin__Email: owner@example.test
           SuperAdmin__Password: CI-Owner-Password-123!
+          # Consent-specific tests provide controlled SDK mocks; avoid the live CDN.
+          Cookiebot__Enabled: 'false'
           Mail__Provider: File
           Mail__PickupDirectory: ${{ runner.temp }}/e2e-mail
         run: |
@@ -208,6 +210,8 @@ jobs:
           ConnectionStrings__ApplicationDbContextConnection: Host=127.0.0.1;Port=5432;Database=iddevelops_ci;Username=postgres;Password=ci-postgres-password;
           SuperAdmin__Email: owner@example.test
           SuperAdmin__Password: CI-Owner-Password-123!
+          # Consent-specific tests provide controlled SDK mocks; avoid the live CDN.
+          Cookiebot__Enabled: 'false'
           Mail__Provider: File
           Mail__PickupDirectory: ${{ runner.temp }}/e2e-mail-marketing
         run: |

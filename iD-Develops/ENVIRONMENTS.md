@@ -259,6 +259,16 @@ ignored by startup and cannot substitute for the owner. Production settings must
 configured before promoting this change. Staging's existing owner role remains stored,
 but fresh staging installations need the same explicit setup.
 
+## Functional browser tests and external consent delivery
+
+The isolated Full and Marketing CI applications set `Cookiebot__Enabled=false`.
+Functional regressions must not depend on the live consent CDN responding: a stalled
+parser-blocking SDK request can prevent `DOMContentLoaded` even when the application
+returns its page promptly. Consent-specific browser scenarios supply controlled SDK
+mocks. Local Portal login-redirect regressions also block that external SDK request while
+keeping first-party scripts, real sign-in, and all redirect/security assertions active.
+Production/staging consent settings and application loading behavior are not changed.
+
 ## Transactional email with Resend
 
 `Local` and CI use `Mail__Provider=File`, which renders messages under
