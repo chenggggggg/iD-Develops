@@ -266,6 +266,15 @@ but fresh staging installations need the same explicit setup.
 and production default to `Resend`. MailKit/MimeKit and SMTP delivery have been
 removed; `Mail__Provider=MailKit` is no longer a supported setting.
 
+Contact notifications keep the configured company sender address and set `Reply-To` to
+the visitor's validated email, so the team can use Reply in its inbox. The visitor
+receives a separate confirmation from `Mail:NoReplyEmail` without Reply-To. It is not
+linked to the company-notification conversation; subsequent company/visitor replies use
+their ordinary mail clients.
+The existing mail service passes the optional Reply-To address to Resend; the File
+provider records the same header for local/CI verification. Other emails omit it unless
+explicitly requested. No additional Resend settings, API keys, or DNS changes are needed.
+
 ### Resend and DNS setup
 
 1. In [Resend Domains](https://resend.com/domains), add `id-develops.com` to preserve

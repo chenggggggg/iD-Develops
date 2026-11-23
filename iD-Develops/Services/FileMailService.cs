@@ -29,8 +29,8 @@ namespace iD_Develops.Services
             string subject,
             byte[]? attachment = null,
             string? attachmentFileName = null,
-            CancellationToken ct = default, string? idempotencyKey = null)
-            => await SendAsync(templatePath, model, recipientEmail, subject, null, attachment, attachmentFileName, ct, idempotencyKey);
+            CancellationToken ct = default, string? idempotencyKey = null, string? replyToEmail = null)
+            => await SendAsync(templatePath, model, recipientEmail, subject, null, attachment, attachmentFileName, ct, idempotencyKey, replyToEmail);
 
         public async Task<OperationResult> SendAsync<TModel>(
             string templatePath,
@@ -40,7 +40,7 @@ namespace iD_Develops.Services
             string? fromEmail,
             byte[]? attachment = null,
             string? attachmentFileName = null,
-            CancellationToken ct = default, string? idempotencyKey = null)
+            CancellationToken ct = default, string? idempotencyKey = null, string? replyToEmail = null)
         {
             try
             {
@@ -57,6 +57,7 @@ namespace iD_Develops.Services
                 var header = new StringBuilder()
                     .AppendLine($"To: {recipientEmail}")
                     .AppendLine($"From: {ResolveFromAddress(fromEmail)}")
+                    .Append(string.IsNullOrWhiteSpace(replyToEmail) ? string.Empty : $"Reply-To: {replyToEmail.Trim()}{Environment.NewLine}")
                     .AppendLine($"Subject: {subject}")
                     .AppendLine($"GeneratedUtc: {DateTime.UtcNow:O}")
                     .AppendLine()

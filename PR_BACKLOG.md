@@ -1,6 +1,6 @@
 ﻿# Planned PR backlog
 
-Updated: 2026-11-22
+Updated: 2026-11-23
 
 This is the combined planning backlog from the staging review and owner meeting.
 B01-B35 are planning IDs, not GitHub PR numbers. Current launch priorities are:
@@ -390,10 +390,22 @@ Dependencies: coordinate shared component conventions with B12 without blocking 
 
 ## B09 - P1 - Signup steps and contact notifications
 
-Separate follow-up requested 2026-11-21 (Small): add Reply-To support to contact emails.
-Keep the verified company From address; company notifications should reply to the visitor,
-and visitor acknowledgements should reply to the company. Preserve both existing sends.
-This follows the P0 mobile examination launch work and belongs in its own PR.
+Separate follow-up requested 2026-11-21 (Small): add Reply-To to the company contact
+notification so staff can reply directly to the visitor. Clarified 2026-11-23: the
+visitor confirmation comes from Mail:NoReplyEmail without Reply-To and is separate from
+the conversation. The visitor first sees that conversation when the company replies;
+subsequent company/visitor replies use their normal email clients. Preserve both sends.
+Follow-up status: implemented and verified on fix/contact-email-reply-to, 2026-11-23;
+ready for PR review. Reuses the existing mail service and both providers. Preserves the company
+sender, localized feedback, validation, and error handling; confirmation uses the existing
+configured no-reply address with no Reply-To header or links to the conversation.
+Verification after clarification: Release build, full formatting, all 698 unit/integration
+tests, all three Full-mode contact browser checks (English/Dutch sends and validation),
+and all 135 CI-selected Marketing browser checks passed. Tests check visitor Reply-To
+only on the company notification, no-reply confirmation sender with no Reply-To, default
+omission, and stable retry bodies/keys. Resend HTTP was mocked; browser mail used File.
+No real emails were sent. Original local settings and Full mode were restored. No
+migration or new environment/provider/DNS configuration is required.
 
 **Estimated size: Large.** Expanded signup workflow with built-in personal details and mandatory notifications.
 
@@ -1141,7 +1153,7 @@ customer sessions now follow the anonymous login challenge. No migration/setting
 and security regressions. Expanded from the configuration-only task by the user's
 2026-11-22 clarification: the startup account must control everything; ordinary Admin
 accounts are assigned by the owner through user management, not automatically seeded.
-Status: implemented and verified on fix/owner-account-bootstrap, 2026-11-22; ready for PR review.
+Status: code completed and merged in [PR #71](https://github.com/chenggggggg/iD-Develops/pull/71), 2026-11-23.
 Hosted owner configuration and production acceptance remain pending.
 
 - Use only SuperAdmin__Email/SuperAdmin__Password for owner setup in every environment.

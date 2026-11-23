@@ -11,7 +11,7 @@ namespace iD_Develops.Services;
 public sealed class ResendMailClient(HttpClient httpClient, IOptions<MailSettings> options, ILogger<ResendMailClient> logger)
 {
     public async Task<OperationResult> SendAsync(string from, string recipient, string subject, string html,
-        byte[]? attachment, string? attachmentFileName, string? idempotencyKey, CancellationToken ct)
+        byte[]? attachment, string? attachmentFileName, string? idempotencyKey, CancellationToken ct, string? replyToEmail = null)
     {
         ct.ThrowIfCancellationRequested();
         if (string.IsNullOrWhiteSpace(options.Value.ResendApiKey))
@@ -26,6 +26,7 @@ public sealed class ResendMailClient(HttpClient httpClient, IOptions<MailSetting
             from = $"iD! Training & Development <{from}>",
             to = new[] { recipient },
             subject,
+            reply_to = string.IsNullOrWhiteSpace(replyToEmail) ? null : replyToEmail.Trim(),
             html,
             attachments = attachment != null && !string.IsNullOrWhiteSpace(attachmentFileName)
                 ? new[] { new { filename = attachmentFileName, content = Convert.ToBase64String(attachment) } }

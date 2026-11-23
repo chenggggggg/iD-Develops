@@ -43,7 +43,10 @@ public sealed class ContactModelTests
             Assert.Equal("sender@example.test", receipt.Recipient);
             Assert.Equal("/wwwroot/templates/ContactAcknowledgementTemplate.cshtml", receipt.Template);
             Assert.StartsWith(expectedSubject, receipt.Subject, StringComparison.Ordinal);
-            Assert.All(harness.Mail.Sent, mail => Assert.Equal("contact@example.test", mail.From));
+            Assert.Equal("contact@example.test", notification.From);
+            Assert.Equal("no-reply@example.test", receipt.From);
+            Assert.Equal("sender@example.test", notification.ReplyTo);
+            Assert.Null(receipt.ReplyTo);
         }
         finally
         {
@@ -109,13 +112,28 @@ public sealed class ContactModelTests
         Assert.Empty(harness.Mail.Sent);
     }
 
+    [Fact]
+    public async Task MissingContactAddress_ConfirmationStillUsesNoReplyWithoutReplyTo()
+    {
+        using var harness = new Harness();
+        harness.Settings.ContactEmail = " ";
+
+        await harness.Page.OnPostAsync();
+
+        Assert.Equal("success", harness.Page.EmailIsSent);
+        Assert.Equal("sender@example.test", harness.Mail.Sent[0].ReplyTo);
+        Assert.Null(harness.Mail.Sent[1].ReplyTo);
+        Assert.Equal("no-reply@example.test", harness.Mail.Sent[1].From);
+    }
+
     private sealed class Harness : IDisposable
     {
         private readonly ServiceProvider _services;
         public MailSettings Settings { get; } = new()
         {
             To = "team@example.test",
-            ContactEmail = "contact@example.test"
+            ContactEmail = "contact@example.test",
+            NoReplyEmail = "no-reply@example.test"
         };
         public RecordingMailService Mail { get; }
         public StubTurnstile Turnstile { get; } = new();
@@ -149,21 +167,21 @@ public sealed class ContactModelTests
         public void Dispose() => _services.Dispose();
     }
 
-    private sealed record SentMail(string Template, ContactFormData Model, string Recipient, string Subject, string? From);
+    private sealed record SentMail(string Template, ContactFormData Model, string Recipient, string Subject, string? From, string? ReplyTo);
 
     private sealed class RecordingMailService(bool[] results) : IMailService
     {
         public List<SentMail> Sent { get; } = new();
 
         public Task<OperationResult> SendAsync<TModel>(string templatePath, TModel model, string recipientEmail, string subject,
-            byte[]? attachment = null, string? attachmentFileName = null, CancellationToken ct = default, string? idempotencyKey = null)
-            => SendAsync(templatePath, model, recipientEmail, subject, null, attachment, attachmentFileName, ct);
+            byte[]? attachment = null, string? attachmentFileName = null, CancellationToken ct = default, string? idempotencyKey = null, string? replyToEmail = null)
+            => SendAsync(templatePath, model, recipientEmail, subject, null, attachment, attachmentFileName, ct, idempotencyKey, replyToEmail);
 
         public Task<OperationResult> SendAsync<TModel>(string templatePath, TModel model, string recipientEmail, string subject,
-            string? fromEmail, byte[]? attachment = null, string? attachmentFileName = null, CancellationToken ct = default, string? idempotencyKey = null)
+            string? fromEmail, byte[]? attachment = null, string? attachmentFileName = null, CancellationToken ct = default, string? idempotencyKey = null, string? replyToEmail = null)
         {
             var success = Sent.Count >= results.Length || results[Sent.Count];
-            Sent.Add(new SentMail(templatePath, Assert.IsType<ContactFormData>(model), recipientEmail, subject, fromEmail));
+            Sent.Add(new SentMail(templatePath, Assert.IsType<ContactFormData>(model), recipientEmail, subject, fromEmail, replyToEmail));
             return Task.FromResult(new OperationResult { Success = success });
         }
     }

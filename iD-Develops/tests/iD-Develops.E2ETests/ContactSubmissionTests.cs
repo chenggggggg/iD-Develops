@@ -28,6 +28,13 @@ public sealed class ContactSubmissionTests : Microsoft.Playwright.Xunit.PageTest
             Assert.Equal(2, mails.Count);
             var receipt = Assert.Single(mails, mail => mail.Body.StartsWith($"To: {recipient}", StringComparison.Ordinal));
             var notification = Assert.Single(mails, mail => mail.Path != receipt.Path);
+            Assert.Contains($"Reply-To: {recipient}\n", notification.Body.Replace("\r\n", "\n"), StringComparison.Ordinal);
+            var companySender = notification.Body.Split('\n').Single(line => line.StartsWith("From: ", StringComparison.Ordinal))[6..].Trim();
+            Assert.NotEqual(recipient, companySender);
+            var confirmationSender = receipt.Body.Split('\n').Single(line => line.StartsWith("From: ", StringComparison.Ordinal))[6..].Trim();
+            Assert.NotEqual(companySender, confirmationSender);
+            Assert.StartsWith("no-reply@", confirmationSender, StringComparison.Ordinal);
+            Assert.DoesNotContain("\nReply-To: ", receipt.Body.Replace("\r\n", "\n"), StringComparison.Ordinal);
             Assert.Contains("Subject: Contact Form | E2E contact inquiry", notification.Body, StringComparison.Ordinal);
             Assert.Contains("Private submission text for our team.", notification.Body, StringComparison.Ordinal);
             Assert.Contains($"Subject: {subject}", receipt.Body, StringComparison.Ordinal);
