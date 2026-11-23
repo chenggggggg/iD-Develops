@@ -136,10 +136,15 @@ namespace iD_Develops.Pages.Portal.Examination
             string? multipleChoiceCorrect,
             string? trueOrFalseCorrect,
             string? imageReference,
-            string? audioReference)
+            string? audioReference,
+            string? openAnswerFieldsJson = null)
         {
             if (!await CanManageExamAsync(examId))
                 return Forbid();
+
+            if ((ModelState.TryGetValue(nameof(score), out var scoreState) && scoreState.Errors.Count > 0) ||
+                (Request.Form.ContainsKey("Score") && string.IsNullOrWhiteSpace(Request.Form["Score"])))
+                return BadRequest(new { success = false, errorMessage = "Maximum points must be a number greater than zero." });
 
             var result = await _examEditMutationService.SaveQuestionAsync(new SaveQuestionCommand
             {
@@ -154,6 +159,7 @@ namespace iD_Develops.Pages.Portal.Examination
                 FunFact = funFact,
                 Score = score,
                 OpenCorrectAnswerText = openCorrectAnswerText,
+                OpenAnswerFieldsJson = openAnswerFieldsJson,
                 MultipleChoiceAnswerA = multipleChoiceAnswerA,
                 MultipleChoiceAnswerB = multipleChoiceAnswerB,
                 MultipleChoiceAnswerC = multipleChoiceAnswerC,

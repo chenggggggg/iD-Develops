@@ -4,21 +4,22 @@
 
 @{
     var isTaking = Model.Mode == PaginationMode.Exam;
+    var isEditing = Model.Mode == PaginationMode.Editing;
     var currentNumber = Model.QuestionsMetadata?.FirstOrDefault(question => question.QuestionId == Model.CurrentQuestionId)?.QuestionNumber ?? 0;
     var questionCount = Model.QuestionsMetadata?.Count ?? 0;
 }
 
-<div class="@(isTaking ? "fixed inset-x-0 bottom-0 z-[999] flex border-t border-[var(--id-border)] bg-white pb-[env(safe-area-inset-bottom)] shadow-[0_-2px_14px_rgba(2,7,47,0.06)]" : "exam-pagination-bar")" data-exam-pagination>
+<div class="@(isTaking ? "fixed inset-x-0 bottom-0 z-[999] flex border-t border-[var(--id-border)] bg-white pb-[env(safe-area-inset-bottom)] shadow-[0_-2px_14px_rgba(2,7,47,0.06)]" : isEditing ? "exam-pagination-bar h-auto flex-col sm:h-[50px] sm:flex-row" : "exam-pagination-bar")" data-exam-pagination>
 
     <!-- LEFT: question navigation (takes all remaining space) -->
-    <div class="@(isTaking ? "flex min-w-0 flex-1 items-center overflow-x-auto overscroll-x-contain select-none data-[overflow=true]:cursor-grab data-[dragging=true]:cursor-grabbing focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--id-blue)] py-1.5 pl-[max(0.5rem,env(safe-area-inset-left))] pr-[max(0.5rem,env(safe-area-inset-right))] [scrollbar-width:thin]" : "exam-pagination-left")" data-exam-question-scroll tabindex="@(isTaking ? 0 : (int?)null)" role="@(isTaking ? "region" : null)" aria-label="@(isTaking ? Localizer["QuestionNavigationLabel"].Value : null)" aria-describedby="@(isTaking ? "examNavigationHelp" : null)">
+    <div class="@(isTaking ? "flex min-w-0 flex-1 items-center overflow-x-auto overscroll-x-contain select-none data-[overflow=true]:cursor-grab data-[dragging=true]:cursor-grabbing focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--id-blue)] py-1.5 pl-[max(0.5rem,env(safe-area-inset-left))] pr-[max(0.5rem,env(safe-area-inset-right))] [scrollbar-width:thin]" : isEditing ? "exam-pagination-left min-h-12 w-full sm:w-auto" : "exam-pagination-left")" data-exam-question-scroll tabindex="@(isTaking ? 0 : (int?)null)" role="@(isTaking ? "region" : null)" aria-label="@(isTaking ? Localizer["QuestionNavigationLabel"].Value : null)" aria-describedby="@(isTaking ? "examNavigationHelp" : null)">
         @if (isTaking)
         {
             <span id="examNavigationHelp" class="sr-only">@Localizer["QuestionNavigationHelp"]</span>
         }
         @if (Model.Mode != PaginationMode.Start)
         {
-            <div class="@(isTaking ? "flex w-max min-w-full items-stretch gap-1" : "question-button-group")" role="group" aria-label="@Localizer["QuestionNavigationLabel"]">
+            <div class="@(isTaking ? "flex w-max min-w-full items-stretch gap-1" : isEditing ? "question-button-group flex min-w-0 flex-1 items-stretch overflow-x-auto overscroll-x-contain [scrollbar-width:thin]" : "question-button-group")" role="group" data-editor-question-buttons="@(isEditing ? "true" : null)" aria-label="@Localizer["QuestionNavigationLabel"]">
                 @* Existing questions (Exam + Editing) *@
                 @if (Model.QuestionsMetadata?.Count > 0)
                 {
@@ -42,28 +43,27 @@
                         @Localizer["NoQuestions"]
                     </div>
                 }
-
-                @if (Model.Mode == PaginationMode.Editing)
-                {
-                    <details class="question-add-menu">
-                        <summary class="question-add-btn" aria-label="@Localizer["AddQuestionLabel"]">
-                            +
-                        </summary>
-
-                        <div class="question-add-menu-list">
-                            <button type="button" class="question-add-menu-item js-add-draft" data-question-type="Open">@Localizer["OpenQuestion"]</button>
-                            <button type="button" class="question-add-menu-item js-add-draft" data-question-type="MultipleChoice">@Localizer["MultipleChoice"]</button>
-                            <button type="button" class="question-add-menu-item js-add-draft" data-question-type="TrueOrFalse">@Localizer["TrueFalse"]</button>
-                        </div>
-                    </details>
-                }
             </div>
+            @if (Model.Mode == PaginationMode.Editing)
+            {
+                <details class="question-add-menu">
+                    <summary class="question-add-btn" aria-label="@Localizer["AddQuestionLabel"]">
+                        +
+                    </summary>
+
+                    <div class="question-add-menu-list">
+                        <button type="button" class="question-add-menu-item js-add-draft" data-question-type="Open">@Localizer["OpenQuestion"]</button>
+                        <button type="button" class="question-add-menu-item js-add-draft" data-question-type="MultipleChoice">@Localizer["MultipleChoice"]</button>
+                        <button type="button" class="question-add-menu-item js-add-draft" data-question-type="TrueOrFalse">@Localizer["TrueFalse"]</button>
+                    </div>
+                </details>
+            }
         }
     </div>
 
 
     <!-- RIGHT: action buttons (ALWAYS pinned right) -->
-    <div class="@(isTaking ? "flex shrink-0 flex-col items-center justify-center gap-1 border-l border-[var(--id-border)] py-1 pl-2 pr-[max(0.5rem,env(safe-area-inset-right))] sm:flex-row sm:gap-4 sm:py-2 sm:pl-4 sm:pr-[max(1rem,env(safe-area-inset-right))]" : "exam-pagination-right")">
+    <div class="@(isTaking ? "flex shrink-0 flex-col items-center justify-center gap-1 border-l border-[var(--id-border)] py-1 pl-2 pr-[max(0.5rem,env(safe-area-inset-right))] sm:flex-row sm:gap-4 sm:py-2 sm:pl-4 sm:pr-[max(1rem,env(safe-area-inset-right))]" : isEditing ? "exam-pagination-right min-h-12 w-full shrink-0 justify-end border-t border-[var(--id-border)] sm:w-auto sm:border-t-0" : "exam-pagination-right")">
         @if (Model.Mode == PaginationMode.Exam)
         {
             var hasQuestions = Model.QuestionsMetadata?.Count > 0;

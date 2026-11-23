@@ -90,7 +90,15 @@ namespace iD_Develops.Services
                     };
                 }
 
+                var accessState = await _recordService.GetAttemptAccessStateAsync(recordId, examId);
+                var question = accessState.Exists
+                    ? await _examVersionService.GetQuestionForTakeAsync(accessState.ExamId, questionId, accessState.ExamVersionId)
+                    : null;
+                if (question == null)
+                    throw new FormatException("Question does not belong to this exam attempt.");
                 var answerText = formData["answer"].ToString();
+                if (question is OpenQuestion open)
+                    answerText = OpenAnswerService.NormalizeSubmission(open, answerText);
                 var source = string.IsNullOrWhiteSpace(formData["source"]) ? "manual" : formData["source"].ToString().Trim();
 
                 var saved = await _participantAnswerService.SaveParticipantAnswerAsync(new ParticipantAnswer

@@ -2342,6 +2342,10 @@ namespace iD_Develops.Data.Migrations
                     b.Property<string>("MessageBeforeQuestion")
                         .HasColumnType("text");
 
+                    b.Property<string>("OpenAnswerFields")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
                     b.Property<int>("QuestionNumber")
                         .HasColumnType("integer");
 
@@ -3415,6 +3419,10 @@ namespace iD_Develops.Data.Migrations
             modelBuilder.Entity("iD_Develops.Models.OpenQuestion", b =>
                 {
                     b.HasBaseType("iD_Develops.Models.Question");
+
+                    b.Property<string>("OpenAnswerFields")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
 
                     b.ToTable("Questions");
 

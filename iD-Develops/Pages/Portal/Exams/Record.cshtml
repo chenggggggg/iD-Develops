@@ -165,7 +165,7 @@
                                     }
                                     else
                                     {
-                                        <p class="portal-copy">@question.SubmittedAnswer</p>
+                                        <p class="portal-copy whitespace-pre-line">@question.SubmittedAnswer</p>
                                     }
                                 </div>
                             </div>
@@ -200,7 +200,7 @@
                                     }
                                     else
                                     {
-                                        <p class="portal-copy">@question.CorrectAnswer</p>
+                                        <p class="portal-copy whitespace-pre-line">@question.CorrectAnswer</p>
                                     }
                                 </div>
                             </div>
@@ -216,7 +216,7 @@
                                     }
                                     else
                                     {
-                                        <div>@Html.Raw(question.FeedbackHtml)</div>
+                                        <div class="space-y-3 leading-7 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li+li]:mt-2">@Html.Raw(question.FeedbackHtml)</div>
                                     }
                                 </div>
                             </div>
@@ -229,7 +229,7 @@
                                     }
                                     else
                                     {
-                                        <div>@Html.Raw(question.FunFactHtml)</div>
+                                        <div class="space-y-3 leading-7 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li+li]:mt-2">@Html.Raw(question.FunFactHtml)</div>
                                     }
                                 </div>
                             </div>

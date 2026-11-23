@@ -1,0 +1,45 @@
+@using iD_Develops.Models
+@using iD_Develops.Services
+@model OpenQuestion
+@{
+    var legacy = Model.OpenAnswerFields.Count == 0;
+    var fields = legacy ? new List<OpenAnswerField>
+    {
+        new()
+        {
+            Key = "answer-1",
+            AcceptedAnswers = Model.CorrectAnswers.Where(answer => !answer.IsDeleted).Select(answer => new OpenAcceptedAnswer
+            {
+                Text = System.Text.RegularExpressions.Regex.Replace(System.Net.WebUtility.HtmlDecode(System.Text.RegularExpressions.Regex.Replace(answer.Text, "<[^>]+>", " ")), @"\s+", " ").Trim(),
+                Score = ExamScoring.LegacyAward(Model, answer) < ExamScoring.MaximumPoints(Model.Score)
+                    ? ExamScoring.LegacyAward(Model, answer) : null
+            }).ToList()
+        }
+    } : Model.OpenAnswerFields;
+}
+<section class="mt-6 min-w-0 max-w-3xl" data-open-answer-editor>
+    <h3 class="text-lg font-semibold text-[var(--id-ink)]">Open answer inputs</h3>
+    <p class="mt-2 text-sm leading-6 text-slate-600">Add one input for each blank or subquestion. They share the Maximum points above; their points are not added together.</p>
+    <details class="mt-2 text-sm leading-6 text-slate-600">
+        <summary class="inline-flex min-h-11 cursor-pointer items-center rounded-lg px-1 font-semibold text-[var(--id-blue)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]">Automatic marking rules</summary>
+        <p class="mt-2">Accepted answers are alternatives for the same input. Capitalization, extra spaces, and a final full stop are ignored. Leave Points awarded empty to use the question maximum, or enter a lower award. All inputs must match; the lowest matching award is the question's score. Inputs without accepted answers need manual review.</p>
+    </details>
+    <input type="hidden" name="OpenAnswerFieldsJson" value="@OpenAnswerFieldJson.Serialize(fields)" data-open-fields-json />
+    <div class="mt-4 space-y-4" data-open-fields>
+        @foreach (var field in fields)
+        {
+            <partial name="/Pages/Shared/Examination/Questions/_OpenAnswerField.Edit.cshtml" model="field" />
+        }
+    </div>
+    <div class="mt-4 flex flex-wrap items-center gap-3">
+        <button type="button" class="inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-[var(--id-blue)] transition-colors hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)] disabled:cursor-not-allowed disabled:opacity-40" data-open-action="add-field" disabled><i class="fa-solid fa-plus" aria-hidden="true"></i>Add answer input</button>
+        <span class="text-sm text-slate-500" data-open-count>@fields.Count / 20 inputs</span>
+    </div>
+    <p class="mt-2 text-sm text-slate-600" role="status" aria-live="polite" data-open-editor-status></p>
+    <template data-open-field-template>
+        <partial name="/Pages/Shared/Examination/Questions/_OpenAnswerField.Edit.cshtml" model="new OpenAnswerField()" />
+    </template>
+    <template data-open-alternative-template>
+        <partial name="/Pages/Shared/Examination/Questions/_OpenAcceptedAnswer.Edit.cshtml" model="new OpenAcceptedAnswer()" />
+    </template>
+</section>

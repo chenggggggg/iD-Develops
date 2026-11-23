@@ -234,7 +234,7 @@ namespace iD_Develops.Pages.Examination
             => Math.Abs(value % 1) < 0.001 ? value.ToString("0", CultureInfo.InvariantCulture) : value.ToString("0.##", CultureInfo.InvariantCulture);
 
         private static double ResolveQuestionScore(Question question)
-            => question.Score.HasValue && question.Score.Value > 0 ? question.Score.Value : 1d;
+            => ExamScoring.MaximumPoints(question.Score);
 
         private static double ResolveMaxScore(Exam exam)
         {
@@ -246,6 +246,8 @@ namespace iD_Develops.Pages.Examination
 
         private string FormatCorrectAnswers(Question question)
         {
+            if (question is OpenQuestion open && open.OpenAnswerFields.Count > 0)
+                return OpenAnswerService.FormatAcceptedAnswers(open, "—");
             if (question.CorrectAnswers == null || question.CorrectAnswers.Count == 0)
                 return _localizer["NoModelAnswer"];
 
@@ -254,6 +256,8 @@ namespace iD_Develops.Pages.Examination
 
         private static string FormatAnswer(Question question, string? answerText, string emptyFallback)
         {
+            if (question is OpenQuestion open && open.OpenAnswerFields.Count > 0)
+                return OpenAnswerService.FormatAnswer(open, answerText, emptyFallback);
             if (string.IsNullOrWhiteSpace(answerText))
                 return emptyFallback;
 

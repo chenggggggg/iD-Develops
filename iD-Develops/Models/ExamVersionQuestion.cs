@@ -26,6 +26,7 @@ namespace iD_Develops.Models
         public string? AnswerB { get; set; }
         public string? AnswerC { get; set; }
         public string? AnswerD { get; set; }
+        public List<OpenAnswerField> OpenAnswerFields { get; set; } = [];
         public ICollection<ExamVersionCorrectAnswer> CorrectAnswers { get; set; } = new List<ExamVersionCorrectAnswer>();
     }
 }

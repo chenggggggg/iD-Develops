@@ -37,6 +37,8 @@ namespace iD_Develops.Services
 
             // Ensure no correct answers leak out
             q.CorrectAnswers = new List<CorrectAnswer>();
+            if (q is OpenQuestion open)
+                open.OpenAnswerFields = OpenAnswerFieldJson.Copy(open.OpenAnswerFields, hideAnswers: true);
 
             return q;
         }

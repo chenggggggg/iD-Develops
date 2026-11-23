@@ -68,7 +68,26 @@
                     <li>A: @question.AnswerA</li><li>B: @question.AnswerB</li><li>C: @question.AnswerC</li><li>D: @question.AnswerD</li>
                 </ul>
             }
-            <p class="mt-4 text-sm font-semibold">Points: @(question.Score ?? 1)</p>
+            <p class="mt-4 text-sm font-semibold">Maximum points: @iD_Develops.Services.ExamScoring.MaximumPoints(question.Score)</p>
+            @if (question.OpenAnswerFields.Count > 0)
+            {
+                <div class="mt-4 space-y-3">
+                    @foreach (var field in question.OpenAnswerFields)
+                    {
+                        <div class="rounded-lg border border-slate-200 p-3">
+                            <h4 class="text-sm font-semibold">@field.Label</h4>
+                            <ul class="mt-2 list-inside list-disc text-sm">
+                                @foreach (var answer in field.AcceptedAnswers)
+                                {
+                                    <li>@answer.Text · @(answer.Score?.ToString() ?? "Full points")</li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                </div>
+            }
+            @if (question.OpenAnswerFields.Count == 0)
+            {
             <p class="mt-4 text-sm font-semibold">Correct answers</p>
             <ul class="mt-2 list-inside list-disc text-sm">
                 @foreach (var answer in question.CorrectAnswers)
@@ -76,6 +95,7 @@
                     <li>@answer.Text · @(answer.Score?.ToString() ?? "Default points")</li>
                 }
             </ul>
+            }
             <div class="prose mt-4 max-w-none">@Html.Raw(question.Feedback)</div>
             <div class="prose mt-4 max-w-none">@Html.Raw(question.FunFact)</div>
         </article>

@@ -3,7 +3,7 @@
 Updated: 2026-11-23
 
 This is the combined planning backlog from the staging review and owner meeting.
-B01-B35 are planning IDs, not GitHub PR numbers. Current launch priorities are:
+B01-B36 are planning IDs, not GitHub PR numbers. Current launch priorities are:
 P0 marketing-release blockers, P1 supporting work, P2 post-launch improvements.
 This file does not authorize implementation, Git changes, or deployments.
 
@@ -1267,6 +1267,49 @@ issue; investigate the handlers and confirm its root cause before implementation
   demonstrated gap requires a minimal extension of the existing system. No global popup.
 
 This is supporting Portal work, not a blocker for the public marketing launch.
+
+## B36 - A2 exam import and multiple open-answer inputs
+
+Status: implemented and verified on `feature/multiple-open-exam-answers`, 2026-11-23; approved for commit, push, and PR publication. User explicitly requested this PR
+and approved its dedicated branch.
+Estimated size: Medium-Large; exam schema, editor, taking flow, scoring, snapshots,
+import/export, results, and browser regressions form one coherent change.
+
+- Add labelled inputs with stable keys, accepted alternatives, and optional partial-credit
+  awards. Preserve old single-answer attempts; configured multi-input questions require
+  every input to match. Keep partial/empty responses saveable and show incomplete inputs
+  in the existing submit warning. Reuse existing autosave, navigation, and status feedback.
+- Use Tailwind for editor cards/controls and desktop/mobile answer fields. Keep keyboard
+  focus after additions/removals/reordering and wait for the autosave shell to be ready.
+- Use one Maximum points control above the answers for every question type. Label open
+  alternative awards explicitly, show their allowed range/full-credit value, and keep
+  invalid points unsaved with inline feedback plus the existing save-failed status.
+  Share maximum resolution across scoring, totals, grade-band settings, and results;
+  bound legacy fallback awards to that maximum. Preserve legacy partial awards on edit.
+- Keep mobile editor question navigation in its own scrollable row, separate from the
+  Publish controls, with the add-question menu available outside the scrolling numbers.
+- Persist definitions in additive JSONB columns and keep incremental snapshot changes
+  scoped to changed keys/content. Hide all accepted answers from exam-taking views.
+- Export format 3 with backward-compatible format-2 imports. Preserve readable grouped
+  answers in public/Portal results and snapshot review. No new external service/settings.
+- Prepare Test A2 from the two supplied Word documents: 60 questions (43 multiple-choice,
+  17 open), 60 maximum points, 40 minutes as confirmed by the user. Question 60 has two
+  inputs (`om`, `te`) for one joint point; question 1 includes the source's half-credit
+  alternatives. Retain question 48 answer B and remove its feedback per the user's decision.
+- Deliver a separate A2 import JSON and a source/formatting review list in the supplied
+  A2 folder; preserve its existing reference JSON and both Word files. Media remains unset.
+
+Verification: Release build and full formatting checks, all 729 unit/integration tests,
+75 related Full-mode exam browser checks (including the normal-student Portal flow),
+all 141 selected Marketing browser checks, and 80 deployment-policy tests passed.
+JavaScript syntax, migration/model parity,
+and full A2 import/publication/export/scoring in an isolated in-memory database passed.
+All 59 retained feedback entries were checked against the source wording and arrows;
+question 48 is intentionally empty. Desktop/mobile screenshots were reviewed; no physical
+phone was available. Exact original local settings, consent, and Full mode were restored.
+No production data, real emails, or hosted settings were changed. The supplied Word files
+and original reference JSON remain untouched; the finalized files are test-a2.exam.json
+and test-a2-review.txt in the supplied A2 folder. Use format 3 after this PR is deployed.
 
 ## External references checked
 

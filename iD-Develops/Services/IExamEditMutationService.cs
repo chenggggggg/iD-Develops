@@ -16,6 +16,7 @@ namespace iD_Develops.Services
         public string? FunFact { get; init; }
         public double? Score { get; init; }
         public string? OpenCorrectAnswerText { get; init; }
+        public string? OpenAnswerFieldsJson { get; init; }
         public string? MultipleChoiceAnswerA { get; init; }
         public string? MultipleChoiceAnswerB { get; init; }
         public string? MultipleChoiceAnswerC { get; init; }

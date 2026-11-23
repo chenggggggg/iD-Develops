@@ -1,0 +1,16 @@
+@model iD_Develops.Models.OpenAcceptedAnswer
+<div class="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,1fr)_6rem_auto] items-end gap-2" data-open-alternative>
+    <label class="col-span-2 min-w-0 text-sm font-medium text-slate-700 sm:col-span-1">
+        <span data-open-alternative-caption>Accepted answer</span>
+        <input type="text" value="@Model.Text" maxlength="10000" class="mt-1 min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-[var(--id-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]" data-open-accepted-text />
+    </label>
+    <div class="w-28 min-w-0 sm:w-auto">
+        <label class="block text-sm font-medium text-slate-700">
+            Points awarded
+            <input type="number" value="@Model.Score?.ToString(System.Globalization.CultureInfo.InvariantCulture)" min="0" step="any" placeholder="Full" class="mt-1 min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-[var(--id-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]" data-open-accepted-score />
+        </label>
+        <p class="m-0 mt-1 text-xs leading-5 text-slate-500" data-open-award-limit></p>
+    </div>
+    <button type="button" class="inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-[var(--id-blue)] transition-colors hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)] disabled:cursor-not-allowed disabled:opacity-40" data-open-action="remove-alternative" aria-label="Remove accepted answer" disabled><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+    <p class="col-span-2 m-0 text-sm leading-6 text-red-700 sm:col-span-3" data-open-award-error role="alert" hidden></p>
+</div>
