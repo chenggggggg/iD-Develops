@@ -31,13 +31,13 @@ function app() {
     ApplicationUrls__PublicBaseUrl: config.publicUrl, ApplicationUrls__PortalBaseUrl: config.portalUrl,
     Mail__Provider: 'Resend', ConnectionStrings__ApplicationDbContextConnection: 'encrypted database setting',
     Mail__ResendApiKey: 'encrypted API key', Mail__From: 'info@example.test', Mail__To: 'info@example.test',
-    Admin__Email: 'staff@example.test', Admin__Password: 'encrypted password', Stripe__SecretKey: 'encrypted key', Stripe__WebhookSecret: 'encrypted key',
+    SuperAdmin__Email: 'staff@example.test', SuperAdmin__Password: 'encrypted password', Stripe__SecretKey: 'encrypted key', Stripe__WebhookSecret: 'encrypted key',
   };
   return { id: config.appId, spec: {
     name: 'production', region: 'ams', databases: [{ name: 'production-db' }],
     domains: [{ domain: 'example.test' }, { domain: 'portal.example.test' }],
     envs: Object.entries(values).map(([key, value]) => {
-      const secret = ['ConnectionStrings__ApplicationDbContextConnection', 'Mail__ResendApiKey', 'Admin__Password', 'Stripe__SecretKey', 'Stripe__WebhookSecret'].includes(key);
+      const secret = ['ConnectionStrings__ApplicationDbContextConnection', 'Mail__ResendApiKey', 'SuperAdmin__Password', 'Stripe__SecretKey', 'Stripe__WebhookSecret'].includes(key);
       return { key, value: secret ? `EV[1:opaque-${key}]` : value, scope: 'RUN_TIME', type: secret ? 'SECRET' : 'GENERAL' };
     }),
     services: [{ name: 'web', http_port: 8080, instance_count: 1, image: {
@@ -116,7 +116,15 @@ for (const [name, edit] of [
   ['environment override', data => data.spec.envs.push({ key: 'DOTNET_ENVIRONMENT', value: 'Staging' })],
   ['build-only connection', data => data.spec.envs.find(item => item.key === 'ConnectionStrings__ApplicationDbContextConnection').scope = 'BUILD_TIME'],
   ['missing sender key', data => data.spec.envs.find(item => item.key === 'Mail__ResendApiKey').value = ''],
-  ['masked provider secrets', data => data.spec.envs.find(item => item.key === 'Admin__Password').value = '********'],
+  ['masked provider secrets', data => data.spec.envs.find(item => item.key === 'SuperAdmin__Password').value = '********'],
+  ['missing owner email', data => data.spec.envs = data.spec.envs.filter(item => item.key !== 'SuperAdmin__Email')],
+  ['missing owner password', data => data.spec.envs = data.spec.envs.filter(item => item.key !== 'SuperAdmin__Password')],
+  ['build-only owner email', data => data.spec.envs.find(item => item.key === 'SuperAdmin__Email').scope = 'BUILD_TIME'],
+  ['build-only owner password', data => data.spec.envs.find(item => item.key === 'SuperAdmin__Password').scope = 'BUILD_TIME'],
+  ['legacy Admin settings without an owner', data => {
+    data.spec.envs.find(item => item.key === 'SuperAdmin__Email').key = 'Admin__Email';
+    data.spec.envs.find(item => item.key === 'SuperAdmin__Password').key = 'Admin__Password';
+  }],
 ]) test(`refuses ${name} before producing a deployable spec`, () => { const data = app(); edit(data); assert.throws(() => pinProduction(data, config, digest)); });
 
 test('release configuration rejects shared app IDs, insecure URLs, and missing names', () => {

@@ -110,7 +110,7 @@ export function pinProduction(apps, config, digest) {
     requireCondition(setting?.value === expected && setting.scope !== 'BUILD_TIME', `Configure production runtime ${key} before releasing.`);
   }
   for (const key of ['ConnectionStrings__ApplicationDbContextConnection', 'Mail__ResendApiKey', 'Mail__From', 'Mail__To',
-    'Admin__Email', 'Admin__Password', 'Stripe__SecretKey', 'Stripe__WebhookSecret']) {
+    'SuperAdmin__Email', 'SuperAdmin__Password', 'Stripe__SecretKey', 'Stripe__WebhookSecret']) {
     const setting = environment.get(keyName(key));
     requireCondition(typeof setting?.value === 'string' && setting.value.trim() && setting.scope !== 'BUILD_TIME',
       `Configure production runtime ${key} before releasing.`);
