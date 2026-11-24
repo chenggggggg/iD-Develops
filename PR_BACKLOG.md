@@ -3,7 +3,7 @@
 Updated: 2026-11-24
 
 This is the combined planning backlog from the staging review and owner meeting.
-B01-B38 are planning IDs, not GitHub PR numbers. Current launch priorities are:
+B01-B39 are planning IDs, not GitHub PR numbers. Current launch priorities are:
 P0 marketing-release blockers, P1 supporting work, P2 post-launch improvements.
 This file does not authorize implementation, Git changes, or deployments.
 
@@ -1389,8 +1389,9 @@ commit/push, production configuration, or deployment is authorized by saving thi
 
 Estimated size: Medium. Approved on 2026-11-24 on `fix/open-answer-group-scoring`,
 including commit, push, and PR creation after verification. B37 is merged as PR #74
-and deployed to Marketing production. This fix is open as
-[PR #75](https://github.com/chenggggggg/iD-Develops/pull/75); keep it separate until merged.
+and deployed to Marketing production. This fix is merged as
+[PR #75](https://github.com/chenggggggg/iD-Develops/pull/75). Its main CI run encountered
+the intermittent no-script navigation failure tracked separately in B39.
 
 - Derive each input maximum from its highest accepted-alternative award and sum input
   maxima for the question total. Sum matching input awards, including partial credit
@@ -1416,6 +1417,35 @@ Desktop/mobile screenshots were reviewed; no physical phone was available. Origi
 local settings, Full mode, and public-test assignments were restored. No production
 records, exam content, or real email were changed. Staging deploys through the normal
 main-merge workflow.
+
+## B39 - P0 - Stabilize no-JavaScript level-test navigation checks
+
+Estimated size: Small. Dedicated branch `fix/no-script-level-test-ci` approved on
+2026-11-24 after PR #75 merged; implementation and verification are complete. The user
+explicitly approved committing, pushing, and opening this follow-up PR after verification.
+
+- The failing no-script selection check used a second, untraced browser context and
+  uncontrolled font/icon CDN stylesheets. Its CI trace contained no page requests.
+  Holding the font stylesheet reproduced the click-stability timeout on the actual
+  local level-test page; releasing that stylesheet allowed native navigation.
+- Move no-script checks into a managed context with JavaScript disabled from creation,
+  using the existing diagnostic base and the same CDN isolation as other native-link
+  checks. Keep application CSS and native mouse/keyboard navigation real; wait for
+  stylesheet loading, without forced clicks, sleeps, retries, or longer test timeouts.
+- Cover A1 and A2 in English/Dutch on mobile/desktop, checking the exact selected
+  heading, introduction, Start action, touch target, destination, and absence of
+  attempt/snapshot creation while browsing. Preserve regular visual and timed-test flows.
+- Include the new no-script class in Marketing CI. Replace one case with four broader
+  cases, for 351 Full-mode and 156 Marketing checks. Reuse the existing serialized
+  public-test fixture and restore local public assignments after every case.
+
+No application code, exam content, migration, production setting, or real email is
+changed by this follow-up. Three focused no-script runs passed. Release build, full
+formatting, all 750 unit/integration tests, all 351 Full-mode and 156 Marketing CI-selected
+browser checks, and 80 deployment-policy tests passed. The managed trace now captures
+the actual page/network rather than an unused context. Original local settings, Full
+mode, consent configuration, and public-test assignments were restored. Publishing
+proceeds under the user's explicit approval; staging follows the normal main merge.
 
 ## External references checked
 

@@ -143,20 +143,6 @@ public sealed class PublicLevelTestSelectionTests : DiagnosticPageTest
         await Expect(Page.GetByText("Settings saved.", new() { Exact = false })).ToBeVisibleAsync();
     }
 
-    [Fact]
-    public async Task ChoiceAndIntroductionRemainUsableWithoutJavaScript()
-    {
-        await using var fixture = await SelectionFixture.CreateAsync();
-        await using var context = await Browser.NewContextAsync(new() { JavaScriptEnabled = false, ViewportSize = new() { Width = 390, Height = 844 } });
-        await context.RouteAsync("https://consent.cookiebot.com/**", route => route.AbortAsync());
-        var page = await context.NewPageAsync();
-        await page.GotoAsync(LocalTestApplication.PublicBaseUrl + "/en-us/level-test", new() { WaitUntil = WaitUntilState.DOMContentLoaded });
-        await page.Locator("[data-level-test-choice='a2'] a").ClickAsync();
-        await Expect(page.GetByRole(AriaRole.Heading, new() { Name = "A2 level test", Exact = true })).ToBeVisibleAsync();
-        await Expect(page.GetByRole(AriaRole.Button, new() { Name = "Start A2 test", Exact = true })).ToBeVisibleAsync();
-        Assert.Equal(0, await fixture.RecordCountAsync(fixture.Exams[1].Id));
-    }
-
     private async Task SaveAnswerAsync(Func<Task> action)
     {
         var response = await Page.RunAndWaitForResponseAsync(action, response => response.Request.Method == "POST" && response.Url.Contains("handler=SubmitAnswer", StringComparison.Ordinal));
@@ -171,7 +157,7 @@ public sealed class PublicLevelTestSelectionTests : DiagnosticPageTest
         return path;
     }
 
-    private sealed class SelectionFixture(ApplicationDbContext db) : IAsyncDisposable
+    internal sealed class SelectionFixture(ApplicationDbContext db) : IAsyncDisposable
     {
         public ApplicationDbContext Db => db;
         public List<Exam> Exams { get; } = [];
