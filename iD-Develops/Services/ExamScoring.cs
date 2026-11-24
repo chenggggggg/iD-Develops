@@ -8,7 +8,14 @@ public static class ExamScoring
         => score.HasValue && double.IsFinite(score.Value) && score.Value > 0 ? score.Value : 1d;
 
     public static double TotalMaximum(IEnumerable<Question> questions)
-        => questions.Sum(question => MaximumPoints(question.Score));
+        => questions.Sum(MaximumPoints);
+
+    public static double MaximumPoints(Question question)
+        => question is OpenQuestion open ? OpenAnswerService.MaximumScore(open) : MaximumPoints(question.Score);
+
+    public static double MaximumPoints(ExamVersionQuestion question)
+        => question.QuestionType == "Open" ? OpenAnswerService.MaximumScore(new OpenQuestion
+        { Score = question.Score, OpenAnswerFields = question.OpenAnswerFields }) : MaximumPoints(question.Score);
 
     public static double LegacyAward(Question question, CorrectAnswer answer)
     {

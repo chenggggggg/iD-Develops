@@ -4,7 +4,7 @@ namespace iD_Develops.Services
 {
     public sealed class ExamTransferPackage
     {
-        public const int CurrentFormatVersion = 3;
+        public const int CurrentFormatVersion = 4;
 
         public int FormatVersion { get; set; } = CurrentFormatVersion;
         public DateTime ExportedAtUtc { get; set; }

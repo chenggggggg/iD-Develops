@@ -498,7 +498,14 @@ namespace iD_Develops.Services
         private async Task ApplyPatchAsync(Question question, SaveQuestionCommand command)
         {
             if (question is OpenQuestion open && command.OpenAnswerFieldsJson != null)
+            {
                 open.OpenAnswerFields = OpenAnswerFieldJson.Deserialize(command.OpenAnswerFieldsJson);
+                // Resolve legacy blank awards before replacing Score with the derived total.
+                open.Score = question.Score ?? command.Score;
+                foreach (var field in open.OpenAnswerFields)
+                    foreach (var answer in field.AcceptedAnswers)
+                        answer.Score = OpenAnswerService.ResolveAward(open, answer);
+            }
             await _questionService.ApplyAutosavePatchAsync(
                 question,
                 command.Text,
@@ -506,7 +513,8 @@ namespace iD_Develops.Services
                 command.Scenario,
                 command.Feedback,
                 command.FunFact,
-                command.Score,
+                question is OpenQuestion withInputs && withInputs.OpenAnswerFields.Count > 0
+                    ? OpenAnswerService.MaximumScore(withInputs) : command.Score,
                 question is OpenQuestion configured && configured.OpenAnswerFields.Count > 0 ? null : command.OpenCorrectAnswerText,
                 command.MultipleChoiceAnswerA,
                 command.MultipleChoiceAnswerB,

@@ -3,7 +3,7 @@
 Updated: 2026-11-24
 
 This is the combined planning backlog from the staging review and owner meeting.
-B01-B37 are planning IDs, not GitHub PR numbers. Current launch priorities are:
+B01-B38 are planning IDs, not GitHub PR numbers. Current launch priorities are:
 P0 marketing-release blockers, P1 supporting work, P2 post-launch improvements.
 This file does not authorize implementation, Git changes, or deployments.
 
@@ -1384,6 +1384,38 @@ and content checks in each environment: image promotion does not copy exam data.
 Dependencies: B36's multiple-open-answer support (PR #73) for A2, and the correct A1/A2
 exam content/media configured in the target environment. No implementation, branch,
 commit/push, production configuration, or deployment is authorized by saving this item.
+
+## B38 - P0 - Independent open-answer input scoring
+
+Estimated size: Medium. Approved on 2026-11-24 on `fix/open-answer-group-scoring`,
+including commit, push, and PR creation after verification. B37 is merged as PR #74
+and deployed to Marketing production. This fix is open as
+[PR #75](https://github.com/chenggggggg/iD-Develops/pull/75); keep it separate until merged.
+
+- Derive each input maximum from its highest accepted-alternative award and sum input
+  maxima for the question total. Sum matching input awards, including partial credit
+  when another input is wrong or blank; never sum alternatives within one input.
+- Make open-question Maximum points read-only, display input maxima, require explicit
+  numeric awards in the editor, and independently calculate the persisted total server-side.
+- Use the same calculation for grading, settings totals, snapshots, import/export, and
+  public/Portal result review. Public results show earned/max points and partial status.
+- Preserve original snapshot keys and answers. Resolve legacy blank awards by dividing
+  the original question total between inputs, then materialize explicit awards on edit
+  or transfer. Export format 4; accept formats 2/3 for existing files. No migration required.
+- Regression-check the reported two 0.5-point om/te inputs, independent partial credit,
+  alternatives, invalid awards, stale posted maxima, old snapshots, transfer compatibility,
+  and responsive editor/result flows in Full and Marketing modes.
+
+Verification passed: Release build, full formatting, all 750 unit/integration tests,
+all 348 Full-mode CI-selected browser tests, all 153 Marketing CI-selected browser
+checks, and 80 deployment-policy tests. The focused 19 media-warning scenarios also
+passed. Media-persistence tests now confirm the calculated maximum is read-only and
+save an editable input label, checking both database persistence and unchanged media
+warnings/retry controls; they no longer attempt to edit the derived maximum.
+Desktop/mobile screenshots were reviewed; no physical phone was available. Original
+local settings, Full mode, and public-test assignments were restored. No production
+records, exam content, or real email were changed. Staging deploys through the normal
+main-merge workflow.
 
 ## External references checked
 

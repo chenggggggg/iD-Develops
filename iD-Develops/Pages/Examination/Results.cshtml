@@ -78,11 +78,14 @@
             <div class="mt-6 grid min-w-0 gap-3">
                 @foreach (var question in Model.Questions)
                 {
-                    var badge = question.IsCorrect ? "bg-emerald-50 text-emerald-800" : question.IsAnswered ? "bg-amber-50 text-amber-900" : "bg-slate-100 text-slate-600";
+                    var badge = question.IsCorrect ? "bg-emerald-50 text-emerald-800" : question.AwardedScore > 0 ? "bg-amber-50 text-amber-900" : question.IsAnswered ? "bg-red-50 text-red-800" : "bg-slate-100 text-slate-600";
                     <details class="group min-w-0 rounded-xl border border-slate-200 bg-white" open="@(question == Model.Questions[0])" data-question-number="@question.QuestionNumber">
                         <summary class="flex min-h-16 cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-4 py-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)] sm:px-6 [&::-webkit-details-marker]:hidden">
                             <span class="min-w-0 font-semibold">@Localizer["QuestionFormat", question.QuestionNumber]</span>
-                            <span class="ml-auto rounded-full px-3 py-1 text-xs font-semibold @badge">@question.ResultLabel</span>
+                            <span class="ml-auto flex shrink-0 flex-col items-end gap-1 sm:flex-row sm:items-center sm:gap-3">
+                                <span class="text-xs tabular-nums text-[var(--id-muted)]" data-question-points>@Localizer["PointsFormat", question.AwardedScore.ToString("0.##"), question.MaximumScore.ToString("0.##")]</span>
+                                <span class="rounded-full px-3 py-1 text-xs font-semibold @badge" data-question-result>@question.ResultLabel</span>
+                            </span>
                             <span class="text-[var(--id-muted)] group-open:rotate-180" aria-hidden="true">&#8964;</span>
                         </summary>
                         <div class="flex min-w-0 flex-col gap-6 border-t border-slate-100 px-4 py-6 sm:px-6">

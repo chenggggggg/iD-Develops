@@ -11,18 +11,17 @@
             AcceptedAnswers = Model.CorrectAnswers.Where(answer => !answer.IsDeleted).Select(answer => new OpenAcceptedAnswer
             {
                 Text = System.Text.RegularExpressions.Regex.Replace(System.Net.WebUtility.HtmlDecode(System.Text.RegularExpressions.Regex.Replace(answer.Text, "<[^>]+>", " ")), @"\s+", " ").Trim(),
-                Score = ExamScoring.LegacyAward(Model, answer) < ExamScoring.MaximumPoints(Model.Score)
-                    ? ExamScoring.LegacyAward(Model, answer) : null
+                Score = ExamScoring.LegacyAward(Model, answer)
             }).ToList()
         }
-    } : Model.OpenAnswerFields;
+    } : OpenAnswerService.ExplicitFields(Model);
 }
 <section class="mt-6 min-w-0 max-w-3xl" data-open-answer-editor>
     <h3 class="text-lg font-semibold text-[var(--id-ink)]">Open answer inputs</h3>
-    <p class="mt-2 text-sm leading-6 text-slate-600">Add one input for each blank or subquestion. They share the Maximum points above; their points are not added together.</p>
+    <p class="mt-2 text-sm leading-6 text-slate-600">Add one input for each blank or subquestion. Each input earns its own points. Their maxima add up to the question's calculated maximum above.</p>
     <details class="mt-2 text-sm leading-6 text-slate-600">
         <summary class="inline-flex min-h-11 cursor-pointer items-center rounded-lg px-1 font-semibold text-[var(--id-blue)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]">Automatic marking rules</summary>
-        <p class="mt-2">Accepted answers are alternatives for the same input. Capitalization, extra spaces, and a final full stop are ignored. Leave Points awarded empty to use the question maximum, or enter a lower award. All inputs must match; the lowest matching award is the question's score. Inputs without accepted answers need manual review.</p>
+        <p class="mt-2">The highest accepted-answer award is the maximum for that input. A matching alternative earns its own award; alternatives within one input are not added together. Incorrect or blank inputs earn zero while other inputs can still earn points. Capitalization, extra spaces, and a final full stop are ignored. Inputs without accepted answers reserve one point and need manual review.</p>
     </details>
     <input type="hidden" name="OpenAnswerFieldsJson" value="@OpenAnswerFieldJson.Serialize(fields)" data-open-fields-json />
     <div class="mt-4 space-y-4" data-open-fields>
@@ -40,6 +39,6 @@
         <partial name="/Pages/Shared/Examination/Questions/_OpenAnswerField.Edit.cshtml" model="new OpenAnswerField()" />
     </template>
     <template data-open-alternative-template>
-        <partial name="/Pages/Shared/Examination/Questions/_OpenAcceptedAnswer.Edit.cshtml" model="new OpenAcceptedAnswer()" />
+        <partial name="/Pages/Shared/Examination/Questions/_OpenAcceptedAnswer.Edit.cshtml" model="new OpenAcceptedAnswer { Score = 1 }" />
     </template>
 </section>
