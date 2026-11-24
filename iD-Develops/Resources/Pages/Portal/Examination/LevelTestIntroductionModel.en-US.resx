@@ -12,7 +12,7 @@
   <data name="BenefitsParagraph1" xml:space="preserve"><value>The test looks at the foundation you need to continue working towards level A2. At the end, you will see your score and what it means for your next step.</value></data>
   <data name="BenefitsParagraph2" xml:space="preserve"><value>Use the result as practical guidance. The test is designed to help you move forward; it is not an official exam or recognised proof of your language level.</value></data>
   <data name="DurationFormat" xml:space="preserve"><value>{0} minutes</value></data>
-  <data name="DurationLabel" xml:space="preserve"><value>Allow</value></data>
+  <data name="DurationLabel" xml:space="preserve"><value>Time limit</value></data>
   <data name="Eyebrow" xml:space="preserve"><value>Free Dutch level test</value></data>
   <data name="Heading" xml:space="preserve"><value>How strong is your Dutch?</value></data>
   <data name="HighScoreLabel" xml:space="preserve"><value>A1 foundation reached</value></data>
@@ -43,4 +43,33 @@
   <data name="UntimedExplanation" xml:space="preserve"><value>Work at your own pace. You do not need an account.</value></data>
   <data name="UntimedStartText" xml:space="preserve"><value>There is no time limit. Choose a quiet moment and work at your own pace.</value></data>
   <data name="UntimedBeforeStep1Text" xml:space="preserve"><value>Choose a quiet moment when you will not be interrupted. There is no time limit.</value></data>
+  <data name="SelectionMetaDescription" xml:space="preserve"><value>Choose the A1 or A2 Dutch level test and receive personal results and feedback by email.</value></data>
+  <data name="SelectionEyebrow" xml:space="preserve"><value>Dutch level tests</value></data>
+  <data name="SelectionHeading" xml:space="preserve"><value>Where does your Dutch stand?</value></data>
+  <data name="SelectionIntroduction" xml:space="preserve"><value>A little clarity makes your next step easier. Choose the level you want to check: A1 or A2.</value></data>
+  <data name="SelectionReassurance" xml:space="preserve"><value>Both tests are free. Afterwards, leave your name and email to receive your score, feedback and personal result overview.</value></data>
+  <data name="ChooseTestHeading" xml:space="preserve"><value>Choose your test</value></data>
+  <data name="FreeTestsNote" xml:space="preserve"><value>Free · Work at your own level</value></data>
+  <data name="A1Eyebrow" xml:space="preserve"><value>The foundations</value></data>
+  <data name="A2Eyebrow" xml:space="preserve"><value>A step further</value></data>
+  <data name="A1Description" xml:space="preserve"><value>Check your basic Dutch: familiar words, simple sentences and everyday situations. A useful starting point before working towards A2.</value></data>
+  <data name="A2Description" xml:space="preserve"><value>Already know the basics? Check how you use Dutch in everyday conversations and texts before taking your next step towards B1.</value></data>
+  <data name="QuestionCountLabel" xml:space="preserve"><value>Questions</value></data>
+  <data name="ChooseLevelButton" xml:space="preserve"><value>Choose {0}</value></data>
+  <data name="TestUnavailable" xml:space="preserve"><value>The {0} test is currently unavailable. Please try again later.</value></data>
+  <data name="ChooseHelp" xml:space="preserve"><value>Not sure which test fits you? We are happy to help you choose.</value></data>
+  <data name="ContactAction" xml:space="preserve"><value>Get in touch</value></data>
+  <data name="ProcessHeading" xml:space="preserve"><value>Good to know before you begin</value></data>
+  <data name="ProcessBeforeTitle" xml:space="preserve"><value>Make some room</value></data>
+  <data name="ProcessBeforeText" xml:space="preserve"><value>The introduction shows the time available for your chosen test. Pick a quiet moment when you can focus.</value></data>
+  <data name="ProcessDuringTitle" xml:space="preserve"><value>Show what you know</value></data>
+  <data name="ProcessDuringText" xml:space="preserve"><value>Work independently, without a dictionary or translation tool. Your answers are saved as you go.</value></data>
+  <data name="ProcessAfterTitle" xml:space="preserve"><value>Find your next step</value></data>
+  <data name="ProcessAfterText" xml:space="preserve"><value>Your personal overview includes your score and feedback on your answers. This is guidance, not an official language certificate.</value></data>
+  <data name="BackToTests" xml:space="preserve"><value>Compare both tests</value></data>
+  <data name="SelectedTitle" xml:space="preserve"><value>{0} level test</value></data>
+  <data name="ReadyHeading" xml:space="preserve"><value>Ready to begin?</value></data>
+  <data name="ExplicitTimerNote" xml:space="preserve"><value>Your timer starts only when you press Start. Work independently and submit before your time runs out; otherwise the test is submitted automatically.</value></data>
+  <data name="UntimedStartNote" xml:space="preserve"><value>This test has no time limit. Work independently and submit when you are finished.</value></data>
+  <data name="StartLevelButton" xml:space="preserve"><value>Start {0} test</value></data>
 </root>

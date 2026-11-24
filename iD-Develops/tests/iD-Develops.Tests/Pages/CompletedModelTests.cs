@@ -397,6 +397,47 @@ public sealed class CompletedModelTests
         Assert.Empty(model.Questions);
     }
 
+    [Theory]
+    [InlineData("level-test", "A1", "A1 advice")]
+    [InlineData("level-test-a2", "A2", "A2 advice")]
+    public async Task BothPublicTestsKeepTheirOwnCompletionGradeAndEmailAfterReconfiguration(string slug, string name, string advice)
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var exam = SeedLevelTestExam(db);
+        exam.PublicSlug = slug;
+        exam.Name = name;
+        exam.ResultGradeDisplayMode = iD_Develops.Enums.ResultGradeDisplayMode.GradeBands;
+        exam.GradeBands = [new ExamGradeBand { MinimumScore = 0, LabelPrimary = advice, LabelSecondary = advice }];
+        exam.CompletionTextPrimary = exam.CompletionTextSecondary = advice;
+        await db.SaveChangesAsync();
+        var versions = new ExamVersionService(db);
+        var snapshot = (await versions.GetOrCreateAttemptVersionAsync(exam.Id))!;
+        var record = SeedCompletedRecord(db, exam);
+        record.ExamVersionId = snapshot.ExamVersionId;
+        exam.PublicSlug = null;
+        exam.Name = "Changed live exam";
+        exam.PublishStatus = ExamPublishStatus.Archived;
+        await db.SaveChangesAsync();
+        var harness = await TestHarness.CreateAsync(db);
+        var completion = harness.CreateModel(versionService: versions);
+        completion.RecordId = record.Id;
+        Assert.IsType<PageResult>(await completion.OnGetAsync());
+        Assert.True(completion.ShowLevelTestCompletedPartial);
+        Assert.Equal(name, completion.LevelTestName);
+        var results = harness.CreateResultsModel(record.Id, versions);
+        await results.OnGetAsync(CancellationToken.None);
+        Assert.False(results.IsInvalidResult);
+        Assert.Equal(name, results.Summary!.ExamName);
+        Assert.Equal(advice, results.Summary.GradeValue);
+        completion.Name = "Learner";
+        completion.Email = "learner@example.test";
+        Assert.IsType<RedirectToPageResult>(await completion.OnPostSubmitFormAsync());
+        var email = Assert.IsType<TestResultData>(Assert.Single(harness.MailService.SentMessages).Model);
+        Assert.Equal(name, email.ExamName);
+        Assert.Equal(advice, email.ResultLevel);
+    }
+
     private static Exam SeedLevelTestExam(ApplicationDbContext db)
     {
         var exam = new Exam

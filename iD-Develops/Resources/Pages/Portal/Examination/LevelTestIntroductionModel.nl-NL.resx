@@ -12,7 +12,7 @@
   <data name="BenefitsParagraph1" xml:space="preserve"><value>De test kijkt naar de basis die je nodig hebt om verder te werken richting niveau A2. Na afloop zie je je score en lees je wat die score betekent voor jouw volgende stap.</value></data>
   <data name="BenefitsParagraph2" xml:space="preserve"><value>Gebruik de uitslag als praktisch advies. De test is bedoeld om je op weg te helpen en is geen officieel examen of erkend bewijs van je taalniveau.</value></data>
   <data name="DurationFormat" xml:space="preserve"><value>{0} minuten</value></data>
-  <data name="DurationLabel" xml:space="preserve"><value>Reken op</value></data>
+  <data name="DurationLabel" xml:space="preserve"><value>Tijdslimiet</value></data>
   <data name="Eyebrow" xml:space="preserve"><value>Gratis Nederlandse niveautest</value></data>
   <data name="Heading" xml:space="preserve"><value>Hoe goed is jouw Nederlands?</value></data>
   <data name="HighScoreLabel" xml:space="preserve"><value>A1-basis bereikt</value></data>
@@ -43,4 +43,33 @@
   <data name="UntimedExplanation" xml:space="preserve"><value>Werk in je eigen tempo. Je hebt geen account nodig.</value></data>
   <data name="UntimedStartText" xml:space="preserve"><value>Er is geen tijdslimiet. Kies een rustig moment en werk in je eigen tempo.</value></data>
   <data name="UntimedBeforeStep1Text" xml:space="preserve"><value>Kies een rustig moment waarop je niet gestoord wordt. Er is geen tijdslimiet.</value></data>
+  <data name="SelectionMetaDescription" xml:space="preserve"><value>Kies de A1- of A2-niveautest Nederlands en ontvang je persoonlijke resultaat en feedback per e-mail.</value></data>
+  <data name="SelectionEyebrow" xml:space="preserve"><value>Niveautests Nederlands</value></data>
+  <data name="SelectionHeading" xml:space="preserve"><value>Waar sta jij met je Nederlands?</value></data>
+  <data name="SelectionIntroduction" xml:space="preserve"><value>Met wat meer inzicht wordt je volgende stap makkelijker. Kies het niveau dat je wilt toetsen: A1 of A2.</value></data>
+  <data name="SelectionReassurance" xml:space="preserve"><value>Beide tests zijn gratis. Laat na afloop je naam en e-mailadres achter en ontvang je score, feedback en persoonlijke resultatenoverzicht.</value></data>
+  <data name="ChooseTestHeading" xml:space="preserve"><value>Kies je test</value></data>
+  <data name="FreeTestsNote" xml:space="preserve"><value>Gratis · Toets op jouw niveau</value></data>
+  <data name="A1Eyebrow" xml:space="preserve"><value>De basis</value></data>
+  <data name="A2Eyebrow" xml:space="preserve"><value>Een stap verder</value></data>
+  <data name="A1Description" xml:space="preserve"><value>Toets je basiskennis Nederlands: bekende woorden, eenvoudige zinnen en dagelijkse situaties. Een goed vertrekpunt als je verder wilt richting A2.</value></data>
+  <data name="A2Description" xml:space="preserve"><value>Ken je de basis al? Toets hoe je het Nederlands gebruikt in dagelijkse gesprekken en teksten, voordat je verdergaat richting B1.</value></data>
+  <data name="QuestionCountLabel" xml:space="preserve"><value>Vragen</value></data>
+  <data name="ChooseLevelButton" xml:space="preserve"><value>Kies {0}</value></data>
+  <data name="TestUnavailable" xml:space="preserve"><value>De {0}-test is op dit moment niet beschikbaar. Probeer het later opnieuw.</value></data>
+  <data name="ChooseHelp" xml:space="preserve"><value>Weet je niet welke test bij je past? We helpen je graag kiezen.</value></data>
+  <data name="ContactAction" xml:space="preserve"><value>Neem contact op</value></data>
+  <data name="ProcessHeading" xml:space="preserve"><value>Goed om te weten voordat je begint</value></data>
+  <data name="ProcessBeforeTitle" xml:space="preserve"><value>Neem de tijd</value></data>
+  <data name="ProcessBeforeText" xml:space="preserve"><value>Bij de introductie zie je hoeveel tijd je hebt voor de gekozen test. Kies een rustig moment waarop je je kunt concentreren.</value></data>
+  <data name="ProcessDuringTitle" xml:space="preserve"><value>Laat zien wat je weet</value></data>
+  <data name="ProcessDuringText" xml:space="preserve"><value>Werk zelfstandig, zonder woordenboek of vertaalhulp. Je antwoorden worden tussendoor opgeslagen.</value></data>
+  <data name="ProcessAfterTitle" xml:space="preserve"><value>Ontdek je volgende stap</value></data>
+  <data name="ProcessAfterText" xml:space="preserve"><value>Je persoonlijke overzicht bevat je score en feedback op je antwoorden. Het geeft je richting, maar is geen officieel taalcertificaat.</value></data>
+  <data name="BackToTests" xml:space="preserve"><value>Bekijk beide tests</value></data>
+  <data name="SelectedTitle" xml:space="preserve"><value>Niveautest {0}</value></data>
+  <data name="ReadyHeading" xml:space="preserve"><value>Klaar om te beginnen?</value></data>
+  <data name="ExplicitTimerNote" xml:space="preserve"><value>De tijd gaat pas in als je op Start klikt. Werk zelfstandig en lever in voordat de tijd om is; anders wordt de test automatisch ingeleverd.</value></data>
+  <data name="UntimedStartNote" xml:space="preserve"><value>Deze test heeft geen tijdslimiet. Werk zelfstandig en lever in als je klaar bent.</value></data>
+  <data name="StartLevelButton" xml:space="preserve"><value>Start {0}-test</value></data>
 </root>

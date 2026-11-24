@@ -22,7 +22,7 @@
 
             <div style="background: #ffffff; border-radius: 18px; overflow: hidden; border: 1px solid #dce7f2; box-shadow: 0 18px 45px rgba(7, 27, 73, 0.08);">
                 <div style="background: #071b49; padding: 34px 32px 30px; color: #ffffff;">
-                    <p style="margin: 0 0 10px; color: #9fd2f2; font-size: 13px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase;">Dutch level test</p>
+                    <p style="margin: 0 0 10px; color: #9fd2f2; font-size: 13px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase;">@(string.IsNullOrWhiteSpace(Model.ExamName) ? "Dutch level test" : Model.ExamName)</p>
                     <h1 style="margin: 0; font-size: 32px; line-height: 1.16; font-weight: 700;">Your result is ready</h1>
                     <p style="margin: 14px 0 0; color: #dbeafe; font-size: 16px; line-height: 1.55;">Hi @Model.DisplayName, thanks for completing the test.</p>
                 </div>

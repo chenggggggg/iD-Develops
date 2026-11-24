@@ -6,6 +6,7 @@ namespace iD_Develops.Models
     public class TestResultData
     {
         public string DisplayName { get; set; }
+        public string ExamName { get; set; } = string.Empty;
         // Sender
         public string From { get; set; }
         // Content

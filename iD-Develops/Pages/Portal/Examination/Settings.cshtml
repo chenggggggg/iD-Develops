@@ -193,9 +193,17 @@
                             <input asp-for="Settings.IsPublicLevelTest" class="mt-1 h-4 w-4 rounded border-slate-300 text-[#B23A48] focus:ring-[#B23A48]" />
                             <span>
                                 <span class="block text-sm font-semibold text-[#10224d]">Use as public level test</span>
-                                <span class="mt-1 block text-sm leading-6 text-slate-600">Connect this exam to the public level-test page and its Start button. Only one exam can be selected. The exam must still be published with questions before visitors can begin it.</span>
+                                <span class="mt-1 block text-sm leading-6 text-slate-600">Connect this exam to the public level-test page and its Start button. Select one exam for A1 and a separate exam for A2. The exam must still be published with questions before visitors can begin it.</span>
                             </span>
                         </label>
+                        <div class="mt-4 max-w-sm">
+                            <label asp-for="Settings.PublicLevelTestLevel" class="block text-sm font-semibold text-[var(--id-ink)]">Public test level</label>
+                            <select asp-for="Settings.PublicLevelTestLevel" class="portal-field mt-2 min-h-11 text-base">
+                                <option value="a1">A1</option>
+                                <option value="a2">A2</option>
+                            </select>
+                            <p class="mt-2 text-sm leading-6 text-slate-600">This choice applies when Use as public level test is checked. Publish the exam to make it available to visitors.</p>
+                        </div>
                         <span asp-validation-for="Settings.IsPublicLevelTest" class="portal-validation-message"></span>
                     </div>
                 }

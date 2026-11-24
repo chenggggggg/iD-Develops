@@ -1,9 +1,9 @@
 ﻿# Planned PR backlog
 
-Updated: 2026-11-23
+Updated: 2026-11-24
 
 This is the combined planning backlog from the staging review and owner meeting.
-B01-B36 are planning IDs, not GitHub PR numbers. Current launch priorities are:
+B01-B37 are planning IDs, not GitHub PR numbers. Current launch priorities are:
 P0 marketing-release blockers, P1 supporting work, P2 post-launch improvements.
 This file does not authorize implementation, Git changes, or deployments.
 
@@ -13,6 +13,13 @@ change set, publish it, and confirm that PR is merged before beginning the next 
 Preserve uncommitted work and confirm the working tree is clean before switching tasks.
 Follow AGENTS.md for Git-operation approvals. B01 was explicitly started on 2026-10-31
 on fix/payment-fulfillment-audit.
+
+## Marketing launch priority update - 2026-11-24
+
+B37 is the next top-priority P0 implementation after the current PR is merged. It takes
+precedence over B35 and other supporting/post-launch work: provide one general level-test
+page offering A1 and A2, with each selected test retaining its own introduction and results.
+This saves the requested scope only; it does not authorize implementation or Git operations.
 
 ## Production review priorities - 2026-11-21
 
@@ -127,6 +134,7 @@ work without changing its size. Estimates may change after a focused investigati
 | B33 | Small-Medium | Standardize one configured SuperAdmin owner across environments; remove automatic Admin seeding, update CI/release configuration, and verify account/password preservation and staff-role management. |
 | B34 | Small-Medium | Fix actual touch, wheel, mouse-drag, and keyboard pagination; move mobile question images above related context while retaining desktop columns, answer state, and Submit. |
 | B35 | Small-Medium | Add missing product-create and product-navigation progress feedback, prevent repeated creation clicks, and cover delayed responses and retries. |
+| B37 | Medium-Large | Shared A1/A2 selection-page design plus public-test configuration/routing, exam-specific introductions and results, historical-link compatibility, and both-mode browser regressions. |
 
 ## Completed work excluded from this backlog
 
@@ -1270,8 +1278,7 @@ This is supporting Portal work, not a blocker for the public marketing launch.
 
 ## B36 - A2 exam import and multiple open-answer inputs
 
-Status: implemented and verified on `feature/multiple-open-exam-answers`, 2026-11-23; approved for commit, push, and PR publication. User explicitly requested this PR
-and approved its dedicated branch.
+Status: completed and merged in [PR #73](https://github.com/chenggggggg/iD-Develops/pull/73), 2026-11-23.
 Estimated size: Medium-Large; exam schema, editor, taking flow, scoring, snapshots,
 import/export, results, and browser regressions form one coherent change.
 
@@ -1310,6 +1317,73 @@ phone was available. Exact original local settings, consent, and Full mode were 
 No production data, real emails, or hosted settings were changed. The supplied Word files
 and original reference JSON remain untouched; the finalized files are test-a2.exam.json
 and test-a2-review.txt in the supplied A2 folder. Use format 3 after this PR is deployed.
+
+## B37 - P0 - Shared A1/A2 level-test selection page for marketing launch
+
+**Estimated size: Medium-Large.** The current public flow supports one designated
+`level-test` exam; this requires a complete two-test journey as well as the page redesign.
+Status: implemented and verified on `feature/a1-a2-level-test-selection`, 2026-11-24.
+Implementation and the dedicated branch were explicitly approved. Top priority for the
+marketing launch, before B35 and other supporting/post-launch work. Commit, push, and
+PR creation were explicitly approved, including the supplied Dominique homepage portrait;
+no hosted configuration or deployment has been changed.
+
+Requested journey: Level test CTA -> general level-test page -> choose/start A1 or A2.
+
+- Keep one localized general landing page at `/level-test`, reached from existing public
+  level-test CTAs. Explain the purpose and common process once, rather than repeating
+  full introductions, benefits, instructions, or score guides for both tests.
+- Redesign that page within the existing public identity, with clear, equally accessible
+  A1 and A2 choices. Use concise level-specific guidance and the selected exam's actual
+  duration/details to help visitors choose. Do not assume identical timing, scoring, or
+  recommendations, and avoid a repetitive pair of long landing-page sections.
+- Show any necessary test-specific introduction after selection, using the configured
+  exam content where applicable. Keep the selection flow compact; browsing or choosing
+  a level must not start a timed attempt until the visitor explicitly starts the test.
+- Extend the existing designated-public-test configuration and server-side routing to
+  support two independently configured/published tests. Current code hardcodes the single
+  `level-test` slug in selection, completion, and results; do not solve this by only
+  duplicating frontend buttons or exposing arbitrary private exams by ID.
+- Carry the selected test and immutable attempt version through start, autosave, expiry,
+  submission, completion, and emailed results. Reuse shared templates/components while
+  retaining the correct exam introduction, title/level, maximum score, grade bands,
+  feedback, and recommendations for A1 versus A2. Do not apply A1's score guide to A2.
+- Preserve existing in-progress attempts, completed records, and protected emailed result
+  links, including legacy `level-test` snapshots. Marketing visitors retain the existing
+  public test/result workflow; this PR does not change account/Portal access policy.
+- Handle one unavailable/unpublished test independently so the other remains usable;
+  give clear availability feedback and never silently start the other level.
+- Verify English/Dutch, desktop/mobile, keyboard/focus and navigation semantics, explicit
+  start timing, both test journeys and their own result emails, unavailable/forged
+  selections, and historical protected links in relevant Full/Marketing browser tests.
+  Use the installed UI/UX skills when implementing and review the rendered design.
+
+Implementation notes: reuse the existing public A1 `level-test` designation and add the
+A2 `level-test-a2` slot; no schema migration or new environment variables are needed.
+Admins choose the public level in Exam settings, one exam per slot, and publish each
+exam. The generic page shows shared guidance once, then each selection shows its own
+configured introduction and explicit Start action. Existing record/snapshot routes and
+protected token purposes are preserved. Completion and email identify the exam; result
+email links now preserve the English/Dutch route. Occupied-slot validation now renders
+beside the public-test setting. No content/media is imported or replaced automatically.
+
+Verification: Release build, full formatting, all 739 unit/integration tests, 7 new
+Full-mode browser checks plus 75 related existing exam regressions (82 total), the exact
+148 selected Marketing browser checks, 80 deployment-policy tests, and git diff --check
+passed. Desktop/mobile Chromium screenshots were reviewed; physical-device verification
+was not available. The original local settings, consent configuration, Full mode, and
+public-test assignments were restored. Only dedicated local test data and File mail were
+used; no production data, real email, or hosted setting was changed. The supplied Dominique
+JPEG is converted to responsive 480/880-pixel WebP portraits (31/63 KB) and replaces only
+her homepage portrait; Patrick and the About page retain their existing assets. All 26
+homepage image/performance browser checks passed again in both Full and Marketing modes
+after the portrait change, with desktop/mobile crops visually reviewed. Release build,
+format verification, and all 739 unit/integration tests also passed after that addition.
+Repeat the explicit A1/A2 assignments
+and content checks in each environment: image promotion does not copy exam data.
+Dependencies: B36's multiple-open-answer support (PR #73) for A2, and the correct A1/A2
+exam content/media configured in the target environment. No implementation, branch,
+commit/push, production configuration, or deployment is authorized by saving this item.
 
 ## External references checked
 

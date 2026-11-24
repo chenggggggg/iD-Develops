@@ -638,6 +638,37 @@ For Cloudflare R2, use:
 - `Storage__PublicBaseUrl=<R2_PUBLIC_OR_CUSTOM_DOMAIN>`
 - `Storage__CdnBaseUrl=<R2_PUBLIC_OR_CUSTOM_DOMAIN>`
 
+## Public A1 and A2 level tests
+
+`/{culture}/level-test` is the shared selection page. The A1 and A2 introductions live at
+`/{culture}/level-test/a1` and `/a2`; viewing these pages does not create an attempt.
+The explicit Start action creates a record using that exam's current immutable version,
+questions, and duration. Completion, grading, result emails, and protected review links
+continue to use the version attached to the record.
+
+In Portal > Exams > Settings, an Admin/SuperAdmin must check **Use as public level test**
+and choose **Public test level: A1 or A2**. Only one exam can occupy each level. Publish
+that exam with questions before it becomes available. A draft, absent, or empty test is
+shown as unavailable without disabling the other level. Imported exams are not assigned
+or published automatically; use the existing A1/A2 content and media rather than replacing
+or reimporting manually corrected questions merely to enable the selector.
+
+The existing `level-test` designation is retained as the A1 slot; A2 uses `level-test-a2`.
+Verify that the intended exam occupies each slot. Previously issued result links and
+legacy `level-test` snapshots remain supported, including after the live exam is changed
+or archived. No schema migration, new environment variable, or SiteMode policy change is
+needed. Result email links now explicitly retain the test's English/Dutch route culture.
+
+The public introduction uses Introduction primary for English and Introduction secondary
+for Dutch, falling back to the other field when empty. Completion text and grade labels
+retain their existing Dutch-primary/English-secondary convention. Both tests use their
+own stored content and grade bands; the general page has no shared A1-only score guide.
+
+Staging and production have separate databases. Promoting an image does not copy exams,
+media, corrections, publication state, or these public-test assignments. Configure and
+verify both intended exams in each environment before advertising both tests. Public
+attempt/result routes remain record-based and protected result-token purposes are unchanged.
+
 ## Exam answer-input schema
 
 The multiple-open-answer migration adds JSONB definitions to live questions and legacy

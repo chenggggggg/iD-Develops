@@ -32,6 +32,7 @@ public sealed class PublicImageTests : DiagnosticPageTest
             await image.EvaluateAsync("image => image.decode()");
             var source = await image.EvaluateAsync<string>("image => image.currentSrc");
             imageSources.Add(source);
+            Assert.Contains(index == 0 ? "/images/about/dominique-portrait-" : "/images/about/founders-", source, StringComparison.Ordinal);
             var bytes = await Page.EvaluateAsync<int>("async url => (await (await fetch(url, {cache:'no-store'})).arrayBuffer()).byteLength", source);
             Assert.InRange(bytes, 1, 65000);
             Assert.InRange(await image.EvaluateAsync<int>("image => image.naturalWidth"), 1, 880);
@@ -40,7 +41,7 @@ public sealed class PublicImageTests : DiagnosticPageTest
             await Expect(image).ToHaveAttributeAsync("height", "1021");
             await Expect(profiles.Nth(index).GetByRole(AriaRole.Link)).ToHaveAttributeAsync("href", $"/{culture}/about");
         }
-        Assert.Single(imageSources);
+        Assert.Equal(2, imageSources.Count);
         Assert.True(await Page.EvaluateAsync<bool>("() => document.documentElement.scrollWidth <= innerWidth"));
     }
 
