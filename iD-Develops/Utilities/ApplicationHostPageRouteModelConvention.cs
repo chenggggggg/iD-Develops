@@ -110,7 +110,7 @@ namespace iD_Develops.Utilities
 
             if (string.Equals(model.ViewEnginePath, "/Portal/Examination/Level-Test-Introduction", StringComparison.OrdinalIgnoreCase))
             {
-                ReplaceSelectors(model, Route("{culture=en-us}/level-test", _publicHosts));
+                ReplaceSelectors(model, Route("{culture=en-us}/level-test/{level?}", _publicHosts));
                 return;
             }
 

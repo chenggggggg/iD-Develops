@@ -8,7 +8,6 @@ namespace iD_Develops.Services
 {
     public sealed class ExamEditMutationService : IExamEditMutationService
     {
-        private const string PublicLevelTestSlug = "level-test";
 
         private readonly IExamService _examService;
         private readonly IQuestionService _questionService;
@@ -144,6 +143,20 @@ namespace iD_Develops.Services
             if (exam == null)
                 return new SettingsMutationResult { Success = false, StatusCode = StatusCodes.Status404NotFound };
 
+            var publicSlug = PublicLevelTests.SlugForLevel(settings.PublicLevelTestLevel);
+            if (isAdmin && settings.IsPublicLevelTest)
+            {
+                if (publicSlug == null)
+                    return new SettingsMutationResult { Success = false, StatusCode = StatusCodes.Status400BadRequest, ErrorMessage = "Choose A1 or A2 for the public level test." };
+                if (!await _examService.IsPublicSlugAvailableAsync(publicSlug, examId))
+                    return new SettingsMutationResult
+                    {
+                        Success = false,
+                        StatusCode = StatusCodes.Status409Conflict,
+                        ErrorMessage = $"Another exam is already configured as the public {settings.PublicLevelTestLevel.ToUpperInvariant()} test. Disable that setting on the other exam first."
+                    };
+            }
+
             exam.Name = settings.Name?.Trim();
             exam.TimeLimitSeconds = settings.TimeLimitSeconds;
             exam.DifficultyValue = settings.DifficultyValue ?? 0;
@@ -168,26 +181,7 @@ namespace iD_Develops.Services
             }
 
             if (isAdmin)
-            {
-                if (settings.IsPublicLevelTest)
-                {
-                    if (!await _examService.IsPublicSlugAvailableAsync(PublicLevelTestSlug, examId))
-                    {
-                        return new SettingsMutationResult
-                        {
-                            Success = false,
-                            StatusCode = StatusCodes.Status409Conflict,
-                            ErrorMessage = "Another exam is already configured as the public level test. Disable that setting first."
-                        };
-                    }
-
-                    exam.PublicSlug = PublicLevelTestSlug;
-                }
-                else if (string.Equals(exam.PublicSlug, PublicLevelTestSlug, StringComparison.OrdinalIgnoreCase))
-                {
-                    exam.PublicSlug = null;
-                }
-            }
+                exam.PublicSlug = settings.IsPublicLevelTest ? publicSlug : PublicLevelTests.IsPublicTest(exam.PublicSlug) ? null : exam.PublicSlug;
 
             await _examService.SaveChangesAsync();
             return new SettingsMutationResult { Success = true, StatusCode = StatusCodes.Status200OK };

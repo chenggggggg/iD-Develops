@@ -20,7 +20,6 @@ namespace iD_Develops.Pages.Portal.Examination
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public class CompletedModel : PageModel
     {
-        private const string LevelTestPublicSlug = "level-test";
         private const string ClaimPurpose = "LevelTestResultClaim:v1";
 
         [BindProperty(SupportsGet = true)]
@@ -36,6 +35,7 @@ namespace iD_Develops.Pages.Portal.Examination
         public bool SubscribeNewsletter { get; set; }
 
         public bool ShowLevelTestCompletedPartial { get; private set; }
+        public string? LevelTestName { get; private set; }
         public bool IsSignedInPortalUser { get; private set; }
 
         [TempData]
@@ -386,12 +386,16 @@ namespace iD_Develops.Pages.Portal.Examination
 
         private async Task<bool> IsFinishedLevelTestRecordAsync(Record? record)
         {
-            return record != null
-                && record.ExamStatus == ExamStatus.Completed
-                && string.Equals(record.ExamVersion?.ChangesJson != null
-                        ? (await _examVersionService.GetPublishedDescriptorAsync(record.ExamId, record.ExamVersionId))?.PublicSlug
-                        : record.ExamVersionId.HasValue ? record.ExamVersion?.PublicSlug : record.Exam?.PublicSlug,
-                    LevelTestPublicSlug, StringComparison.OrdinalIgnoreCase);
+            if (record == null || record.ExamStatus != ExamStatus.Completed)
+                return false;
+            var descriptor = record.ExamVersion?.ChangesJson != null
+                ? await _examVersionService.GetPublishedDescriptorAsync(record.ExamId, record.ExamVersionId) : null;
+            var slug = record.ExamVersion?.ChangesJson != null ? descriptor?.PublicSlug
+                : record.ExamVersionId.HasValue ? record.ExamVersion?.PublicSlug : record.Exam?.PublicSlug;
+            if (!PublicLevelTests.IsPublicTest(slug))
+                return false;
+            LevelTestName = descriptor?.ExamTitle ?? record.ExamVersion?.Name ?? record.Exam?.Name;
+            return true;
         }
 
         private bool IsPortalUser()
@@ -419,6 +423,7 @@ namespace iD_Develops.Pages.Portal.Examination
             var levelTestFormData = new TestResultData
             {
                 DisplayName = Name,
+                ExamName = exam.Name,
                 From = _mailSettings.From,
                 Body = _localizer["EmailBodyFormat", score],
                 Subject = _localizer["EmailSubject"],
@@ -475,7 +480,7 @@ namespace iD_Develops.Pages.Portal.Examination
             return Url.Page(
                 "/Examination/Results",
                 pageHandler: null,
-                values: new { recordId, token },
+                values: new { culture = Request.RouteValues["culture"]?.ToString() ?? System.Globalization.CultureInfo.CurrentUICulture.Name.ToLowerInvariant(), recordId, token },
                 protocol: Request.Scheme) ?? string.Empty;
         }
 

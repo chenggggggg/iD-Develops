@@ -19,6 +19,10 @@
                 <img class="h-9 w-auto max-w-full" src="~/images/iddevelops-navlogo-dark.png" alt="iD! Training &amp; Development" />
             </a>
             <p class="m-0 mt-8 text-xs font-semibold uppercase tracking-widest text-[var(--id-blue)] sm:mt-10">@Localizer["CompletionEyebrow"]</p>
+            @if (!string.IsNullOrWhiteSpace(Model.LevelTestName))
+            {
+                <p class="m-0 mt-3 text-base font-semibold text-[var(--id-ink)]" data-completed-test>@Model.LevelTestName</p>
+            }
             @if (!string.IsNullOrWhiteSpace(Model.LevelTestSuccessMessage))
             {
                 <h1 class="m-0 mt-3 text-3xl font-semibold tracking-tight">@Localizer["ThankYouHeading"]</h1>

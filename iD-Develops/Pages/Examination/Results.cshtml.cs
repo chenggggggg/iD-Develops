@@ -17,7 +17,6 @@ namespace iD_Develops.Pages.Examination
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public class ResultsModel : PageModel
     {
-        private const string LevelTestPublicSlug = "level-test";
         private const string PublicResultPurpose = "LevelTestPublicResult:v1";
 
         public sealed record ResultSummaryViewModel(
@@ -120,7 +119,7 @@ namespace iD_Develops.Pages.Examination
             }
 
             var exam = await _examVersionService.GetExamForEvaluationAsync(record!.ExamId, record.ExamVersionId);
-            if (exam == null || !string.Equals(exam.PublicSlug, LevelTestPublicSlug, StringComparison.OrdinalIgnoreCase))
+            if (exam == null || !PublicLevelTests.IsPublicTest(exam.PublicSlug))
             {
                 IsInvalidResult = true;
                 return Page();
@@ -216,10 +215,9 @@ namespace iD_Develops.Pages.Examination
         {
             return record != null
                 && record.ExamStatus == ExamStatus.Completed
-                && string.Equals(record.ExamVersion?.ChangesJson != null
+                && PublicLevelTests.IsPublicTest(record.ExamVersion?.ChangesJson != null
                         ? (await _examVersionService.GetPublishedDescriptorAsync(record.ExamId, record.ExamVersionId))?.PublicSlug
-                        : record.ExamVersionId.HasValue ? record.ExamVersion?.PublicSlug : record.Exam?.PublicSlug,
-                    LevelTestPublicSlug, StringComparison.OrdinalIgnoreCase);
+                        : record.ExamVersionId.HasValue ? record.ExamVersion?.PublicSlug : record.Exam?.PublicSlug);
         }
 
         private string? ResolveLocalized(string? primary, string? secondary)

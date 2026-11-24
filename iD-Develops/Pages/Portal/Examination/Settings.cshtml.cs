@@ -97,7 +97,7 @@ namespace iD_Develops.Pages.Portal.Examination
                 if (!string.IsNullOrWhiteSpace(result.ErrorMessage) &&
                     result.StatusCode is StatusCodes.Status400BadRequest or StatusCodes.Status409Conflict)
                 {
-                    ModelState.AddModelError(nameof(Settings.IsPublicLevelTest), result.ErrorMessage);
+                    ModelState.AddModelError("Settings.IsPublicLevelTest", result.ErrorMessage);
                     var pageData = await _examEditFlowService.LoadPageAsync(ExamId, 0, CurrentUserId, (User.IsInRole("Admin") || User.IsInRole("SuperAdmin")));
                     if (pageData == null)
                         return NotFound();

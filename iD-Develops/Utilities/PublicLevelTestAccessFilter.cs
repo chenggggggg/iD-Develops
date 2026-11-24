@@ -42,7 +42,7 @@ public sealed class PublicLevelTestAccessFilter(ApplicationDbContext db, IExamVe
         var record = await db.Records.AsNoTracking().Where(record => record.Id == recordId && !record.IsDeleted)
             .Select(record => new { record.ExamId, record.ExamVersionId }).SingleOrDefaultAsync(context.HttpContext.RequestAborted);
         var descriptor = record == null ? null : await versions.GetPublishedDescriptorAsync(record.ExamId, record.ExamVersionId);
-        if (!string.Equals(descriptor?.PublicSlug, "level-test", StringComparison.OrdinalIgnoreCase))
+        if (!PublicLevelTests.IsPublicTest(descriptor?.PublicSlug))
         {
             context.Result = new NotFoundResult();
             return;

@@ -1,121 +1,113 @@
 @page
+@using System.Globalization
 @model iD_Develops.Pages.Portal.Examination.LevelTestIntroductionModel
 @inject Microsoft.Extensions.Localization.IStringLocalizer<iD_Develops.Pages.Portal.Examination.LevelTestIntroductionModel> Localizer
 @{
     Layout = "/Pages/Shared/_Layout.cshtml";
-    var duration = Model.DurationDisplay;
-
-    ViewData["Title"] = Localizer["Title"];
-    ViewData["MetaDescription"] = Localizer["MetaDescription"];
+    var culture = CultureInfo.CurrentUICulture.Name.ToLowerInvariant();
+    var test = Model.SelectedTest;
+    var level = Model.SelectedLevel?.ToUpperInvariant();
+    var overview = $"/{culture}/level-test";
+    ViewData["Title"] = level == null ? Localizer["Title"].Value : Localizer["SelectedTitle", level].Value;
+    ViewData["MetaDescription"] = Localizer["SelectionMetaDescription"];
     ViewData["BodyClass"] = "level-test-introduction-page";
     ViewData["UsePublicNavigation"] = true;
+    var action = "public-btn public-btn-primary min-h-12 touch-manipulation select-none gap-3 px-6 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#B23A48]";
+    var rich = "text-base leading-8 text-[#535353] [overflow-wrap:anywhere] [&_p]:m-0 [&_p+p]:mt-5 [&_a]:font-semibold [&_a]:underline [&_a]:underline-offset-4 [&_ul]:my-5 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:my-5 [&_ol]:list-decimal [&_ol]:pl-6 [&_li+li]:mt-2 [&_h2]:mt-8 [&_h2]:mb-3 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:text-[#071F3D] [&_img]:h-auto [&_img]:max-w-full";
 }
-
-<section class="border-b border-[#D8D3CC] bg-[#FAFAF8]">
-    <div class="public-container grid gap-12 py-16 md:py-24 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-end lg:gap-20">
-        <div class="max-w-4xl">
-            <p class="mb-6 text-xs font-medium uppercase tracking-[0.22em] text-[#B23A48] [font-family:var(--serif-label)]">@Localizer["Eyebrow"]</p>
-            <h1 class="m-0 max-w-[14ch] text-[clamp(3rem,7vw,6rem)] font-medium leading-[0.98] tracking-[-0.04em] text-[#071F3D] [font-family:var(--serif-heading)]">@Localizer["Heading"]</h1>
-            <p class="mt-8 mb-0 max-w-[43rem] text-lg leading-[1.75] text-[#535353] md:text-xl">
-                @Localizer["Introduction"]
-            </p>
-        </div>
-        <aside class="border-t border-[#071F3D] pt-6 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-10" aria-label="@Localizer["PracticalInformationLabel"]">
-            <p class="m-0 text-xs font-medium uppercase tracking-[0.18em] text-[#6B6B6B] [font-family:var(--serif-label)]">@Localizer["DurationLabel"]</p>
-            <p class="mt-3 mb-0 text-4xl font-semibold leading-none text-[#071F3D] [font-family:var(--serif-heading)]">@duration</p>
-            <p class="mt-5 mb-0 text-sm leading-6 text-[#6B6B6B]">@Localizer[Model.HasTimeLimit ? "TimerExplanation" : "UntimedExplanation"]</p>
-            <a href="#start-level-test" class="mt-7 inline-flex items-center gap-3 text-sm font-semibold text-[#B23A48] underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-[#B23A48] focus-visible:outline-offset-4">
-                @Localizer["ReadOnButton"]
-                <i class="fa-solid fa-arrow-down-long" aria-hidden="true"></i>
-            </a>
-        </aside>
-    </div>
-</section>
-
-<section class="bg-white py-16 md:py-24">
-    <div class="public-container grid gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.72fr)] lg:gap-24">
-        <article>
-            <p class="mb-4 text-xs font-medium uppercase tracking-[0.2em] text-[#B23A48] [font-family:var(--serif-label)]">@Localizer["BenefitsEyebrow"]</p>
-            <h2 class="m-0 max-w-[18ch] text-[clamp(2.2rem,4.5vw,3.8rem)] font-medium leading-[1.08] tracking-[-0.025em] text-[#071F3D] [font-family:var(--serif-heading)]">@Localizer["BenefitsHeading"]</h2>
-            <div class="mt-8 max-w-[45rem] space-y-5 text-[1.05rem] leading-[1.8] text-[#535353]">
-                <p class="m-0">@Localizer["BenefitsParagraph1"]</p>
-                <p class="m-0">@Localizer["BenefitsParagraph2"]</p>
-            </div>
-        </article>
-        <aside class="border-t border-[#D8D3CC] pt-8 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-12">
-            <h2 class="m-0 text-2xl font-semibold text-[#071F3D] [font-family:var(--serif-heading)]">@Localizer["BeforeHeading"]</h2>
-            <ol class="mt-8 mb-0 grid list-none gap-7 p-0">
-                <li class="grid grid-cols-[2rem_1fr] gap-4"><span class="text-sm font-semibold text-[#B23A48]">01</span><div><h3 class="m-0 text-base font-semibold text-[#071F3D]">@Localizer["BeforeStep1Heading"]</h3><p class="mt-2 mb-0 leading-7 text-[#6B6B6B]">@Localizer[Model.HasTimeLimit ? "BeforeStep1Text" : "UntimedBeforeStep1Text", duration]</p></div></li>
-                <li class="grid grid-cols-[2rem_1fr] gap-4"><span class="text-sm font-semibold text-[#B23A48]">02</span><div><h3 class="m-0 text-base font-semibold text-[#071F3D]">@Localizer["BeforeStep2Heading"]</h3><p class="mt-2 mb-0 leading-7 text-[#6B6B6B]">@Localizer["BeforeStep2Text"]</p></div></li>
-                <li class="grid grid-cols-[2rem_1fr] gap-4"><span class="text-sm font-semibold text-[#B23A48]">03</span><div><h3 class="m-0 text-base font-semibold text-[#071F3D]">@Localizer["BeforeStep3Heading"]</h3><p class="mt-2 mb-0 leading-7 text-[#6B6B6B]">@Localizer["BeforeStep3Text"]</p></div></li>
-            </ol>
-        </aside>
-    </div>
-</section>
-
-<section id="score-guide" class="border-y border-[#C9D6DF] bg-[#EEF4F7] py-16 md:py-24">
-    <div class="public-container">
-        <div class="grid gap-6 md:grid-cols-[minmax(0,0.7fr)_minmax(0,1fr)] md:items-end md:gap-16">
+@if (level == null)
+{
+    <section class="border-b border-[#D8D3CC] bg-[#FAFAF8]" aria-labelledby="level-test-title">
+        <div class="public-container grid gap-8 py-14 sm:py-20 lg:grid-cols-[1.1fr_0.9fr] lg:items-end lg:gap-20">
             <div>
-                <p class="mb-4 text-xs font-medium uppercase tracking-[0.2em] text-[#B23A48] [font-family:var(--serif-label)]">@Localizer["ScoreGuideEyebrow"]</p>
-                <h2 class="m-0 text-[clamp(2.2rem,4.5vw,3.8rem)] font-medium leading-[1.08] text-[#071F3D] [font-family:var(--serif-heading)]">@Localizer["ScoreGuideHeading"]</h2>
+                <p class="m-0 mb-5 text-xs font-semibold uppercase tracking-[0.18em] text-[#B23A48]">@Localizer["SelectionEyebrow"]</p>
+                <h1 id="level-test-title" class="m-0 max-w-[14ch] text-[clamp(2.75rem,6vw,5rem)] font-medium leading-[1.04] tracking-[-0.035em] text-[#071F3D] [font-family:var(--serif-heading)]">@Localizer["SelectionHeading"]</h1>
             </div>
-            <p class="m-0 max-w-[40rem] text-lg leading-8 text-[#535353]">@Localizer["ScoreGuideIntroduction"]</p>
+            <div class="max-w-xl text-lg leading-8 text-[#535353]">
+                <p class="m-0">@Localizer["SelectionIntroduction"]</p>
+                <p class="m-0 mt-4 text-base leading-7">@Localizer["SelectionReassurance"]</p>
+            </div>
         </div>
-
-        <div class="mt-12 border-t border-[#9FB1BD]">
-            <article class="grid gap-4 border-b border-[#9FB1BD] py-7 md:grid-cols-[13rem_1fr] md:gap-12">
-                <div>
-                    <p class="m-0 text-2xl font-semibold text-[#071F3D] [font-family:var(--serif-heading)]">@Localizer["HighScoreRange"]</p>
-                    <p class="mt-2 mb-0 text-xs font-semibold uppercase tracking-[0.16em] text-[#39705F]">@Localizer["HighScoreLabel"]</p>
-                </div>
-                <p class="m-0 max-w-[48rem] text-[1.05rem] leading-8 text-[#3F505A]">@Localizer["HighScoreText"]</p>
-            </article>
-            <article class="grid gap-4 border-b border-[#9FB1BD] py-7 md:grid-cols-[13rem_1fr] md:gap-12">
-                <div>
-                    <p class="m-0 text-2xl font-semibold text-[#071F3D] [font-family:var(--serif-heading)]">@Localizer["MiddleScoreRange"]</p>
-                    <p class="mt-2 mb-0 text-xs font-semibold uppercase tracking-[0.16em] text-[#A46722]">@Localizer["MiddleScoreLabel"]</p>
-                </div>
-                <p class="m-0 max-w-[48rem] text-[1.05rem] leading-8 text-[#3F505A]">@Localizer["MiddleScoreText"]</p>
-            </article>
-            <article class="grid gap-4 border-b border-[#9FB1BD] py-7 md:grid-cols-[13rem_1fr] md:gap-12">
-                <div>
-                    <p class="m-0 text-2xl font-semibold text-[#071F3D] [font-family:var(--serif-heading)]">@Localizer["LowScoreRange"]</p>
-                    <p class="mt-2 mb-0 text-xs font-semibold uppercase tracking-[0.16em] text-[#B23A48]">@Localizer["LowScoreLabel"]</p>
-                </div>
-                <p class="m-0 max-w-[48rem] text-[1.05rem] leading-8 text-[#3F505A]">
-                    @Localizer["LowScoreText"]
-                    <a class="font-semibold text-[#8F2D3A] underline decoration-[#B23A48]/40 underline-offset-4 hover:decoration-[#B23A48]" href="mailto:info@id-develops.com">info@id-develops.com</a>.
-                </p>
-            </article>
+    </section>
+    <section class="bg-white py-12 sm:py-16" aria-labelledby="choose-test-title">
+        <div class="public-container">
+            <div class="mb-8 flex flex-wrap items-baseline justify-between gap-3">
+                <h2 id="choose-test-title" class="m-0 text-2xl font-medium text-[#071F3D] [font-family:var(--serif-heading)] sm:text-3xl">@Localizer["ChooseTestHeading"]</h2>
+                <p class="m-0 text-sm leading-6 text-[#6B6B6B]">@Localizer["FreeTestsNote"]</p>
+            </div>
+            <div class="grid border-y border-[#D8D3CC] md:grid-cols-2">
+                @foreach (var option in Model.Tests)
+                {
+                    var upper = option.Level.ToUpperInvariant();
+                    <article class="flex min-w-0 flex-col py-8 first:border-b first:border-[#D8D3CC] last:pb-4 sm:py-10 md:first:border-r md:first:border-b-0 md:first:pr-10 md:last:pb-10 md:last:pl-10 lg:first:pr-16 lg:last:pl-16" data-level-test-choice="@option.Level">
+                        <div class="flex items-baseline justify-between gap-4">
+                            <h3 class="m-0 text-6xl font-medium tracking-[-0.04em] text-[#071F3D] [font-family:var(--serif-heading)]">@upper</h3>
+                            <span class="text-xs font-semibold uppercase tracking-[0.12em] text-[#B23A48]">@Localizer[option.Level == "a1" ? "A1Eyebrow" : "A2Eyebrow"]</span>
+                        </div>
+                        <p class="m-0 mt-5 max-w-lg text-lg leading-8 text-[#535353]">@Localizer[option.Level == "a1" ? "A1Description" : "A2Description"]</p>
+                        @if (option.IsAvailable)
+                        {
+                            <dl class="mt-6 mb-8 flex flex-wrap gap-x-10 gap-y-4 text-sm">
+                                <div><dt class="text-[#6B6B6B]">@Localizer["DurationLabel"]</dt><dd class="m-0 mt-1 font-semibold tabular-nums text-[#071F3D]">@Model.FormatDuration(option)</dd></div>
+                                <div><dt class="text-[#6B6B6B]">@Localizer["QuestionCountLabel"]</dt><dd class="m-0 mt-1 font-semibold tabular-nums text-[#071F3D]">@option.QuestionCount</dd></div>
+                            </dl>
+                            <a class="@action mt-auto self-start" href="@($"{overview}/{option.Level}")">@Localizer["ChooseLevelButton", upper]<i class="fa-solid fa-arrow-right-long" aria-hidden="true"></i></a>
+                        }
+                        else
+                        {
+                            <p class="m-0 mt-6 mb-8 text-sm leading-6 text-[#6B6B6B]" role="status">@Localizer["TestUnavailable", upper]</p>
+                            <button class="@action mt-auto self-start disabled:cursor-not-allowed disabled:opacity-50" type="button" disabled>@Localizer["ChooseLevelButton", upper]</button>
+                        }
+                    </article>
+                }
+            </div>
+            <p class="m-0 mt-6 max-w-2xl text-sm leading-7 text-[#6B6B6B]">@Localizer["ChooseHelp"] <a class="font-semibold text-[#B23A48] underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4" href="@($"/{culture}/contact")">@Localizer["ContactAction"]</a></p>
         </div>
-    </div>
-</section>
-
-<section id="start-level-test" class="bg-[#071F3D] py-16 text-white md:py-24">
-    <div class="public-container grid gap-10 md:grid-cols-[minmax(0,1fr)_auto] md:items-end md:gap-16">
-        <div>
-            <p class="mb-4 text-xs font-medium uppercase tracking-[0.2em] text-[#F4C8CD] [font-family:var(--serif-label)]">@Localizer["StartEyebrow"]</p>
-            <h2 class="m-0 max-w-[16ch] text-[clamp(2.5rem,5vw,4.5rem)] font-medium leading-[1.02] tracking-[-0.03em] text-white [font-family:var(--serif-heading)]">@Localizer["StartHeading"]</h2>
-            <p class="mt-6 mb-0 max-w-[39rem] text-lg leading-8 text-white/70">@Localizer[Model.HasTimeLimit ? "StartText" : "UntimedStartText", duration]</p>
+    </section>
+    <section class="bg-[#EEF4F7] py-12 sm:py-16" aria-labelledby="test-process-title">
+        <div class="public-container">
+            <h2 id="test-process-title" class="m-0 text-2xl font-medium text-[#071F3D] [font-family:var(--serif-heading)] sm:text-3xl">@Localizer["ProcessHeading"]</h2>
+            <ol class="mt-8 mb-0 grid list-none gap-7 p-0 md:grid-cols-3 md:gap-10">
+                <li class="border-t border-[#C9D6DF] pt-5"><h3 class="m-0 text-base font-semibold text-[#071F3D]">@Localizer["ProcessBeforeTitle"]</h3><p class="m-0 mt-3 text-base leading-7 text-[#535353]">@Localizer["ProcessBeforeText"]</p></li>
+                <li class="border-t border-[#C9D6DF] pt-5"><h3 class="m-0 text-base font-semibold text-[#071F3D]">@Localizer["ProcessDuringTitle"]</h3><p class="m-0 mt-3 text-base leading-7 text-[#535353]">@Localizer["ProcessDuringText"]</p></li>
+                <li class="border-t border-[#C9D6DF] pt-5"><h3 class="m-0 text-base font-semibold text-[#071F3D]">@Localizer["ProcessAfterTitle"]</h3><p class="m-0 mt-3 text-base leading-7 text-[#535353]">@Localizer["ProcessAfterText"]</p></li>
+            </ol>
         </div>
-
-        <div>
-            @if (Model.IsLevelTestAvailable)
-            {
-                <form method="post" asp-page-handler="CreateRecord">
-                    <button type="submit" class="public-btn public-btn-primary min-h-14 border-[#B23A48] bg-[#B23A48] px-7 text-white shadow-[0_12px_28px_rgba(0,0,0,0.22)] hover:border-[#C84E5F] hover:bg-[#C84E5F] focus:border-[#C84E5F] focus:bg-[#C84E5F]">
-                        @Localizer["StartButton"]
-                        <i class="fa-solid fa-arrow-right-long" aria-hidden="true"></i>
-                    </button>
-                </form>
-            }
-            else
-            {
-                <div class="max-w-md border border-white/20 bg-white/10 p-5 text-sm leading-6 text-white" role="alert">
-                    @Localizer["UnavailableMessage"]
-                </div>
-            }
+    </section>
+}
+else
+{
+    <section class="bg-[#FAFAF8] py-12 sm:py-16" aria-labelledby="selected-test-title" data-selected-level="@Model.SelectedLevel">
+        <div class="public-container">
+            <a href="@overview" class="inline-flex min-h-11 items-center gap-3 text-sm font-semibold text-[#B23A48] underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4"><i class="fa-solid fa-arrow-left-long" aria-hidden="true"></i>@Localizer["BackToTests"]</a>
+            <div class="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start lg:gap-20">
+                <article class="min-w-0">
+                    <p class="m-0 mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#B23A48]">@Localizer["SelectionEyebrow"]</p>
+                    <h1 id="selected-test-title" class="m-0 text-[clamp(2.75rem,6vw,4.5rem)] font-medium leading-[1.04] tracking-[-0.035em] text-[#071F3D] [font-family:var(--serif-heading)]">@Localizer["SelectedTitle", level]</h1>
+                    @if (test?.IsAvailable == true)
+                    {
+                        <div class="@rich mt-8" data-test-introduction>@Html.Raw(Model.IntroductionHtml)</div>
+                    }
+                    else
+                    {
+                        <p class="m-0 mt-6 text-lg leading-8 text-[#535353]" role="status">@Localizer["TestUnavailable", level]</p>
+                    }
+                </article>
+                @if (test?.IsAvailable == true)
+                {
+                    <aside class="min-w-0 border-t border-[#D8D3CC] pt-6 lg:border-t-0 lg:border-l lg:pt-1 lg:pl-8" aria-labelledby="start-test-title">
+                        <h2 id="start-test-title" class="m-0 text-2xl font-medium text-[#071F3D] [font-family:var(--serif-heading)]">@Localizer["ReadyHeading"]</h2>
+                        <dl class="my-6 grid grid-cols-2 gap-4 text-sm">
+                            <div><dt class="text-[#6B6B6B]">@Localizer["DurationLabel"]</dt><dd class="m-0 mt-2 font-semibold tabular-nums text-[#071F3D]">@Model.DurationDisplay</dd></div>
+                            <div><dt class="text-[#6B6B6B]">@Localizer["QuestionCountLabel"]</dt><dd class="m-0 mt-2 font-semibold tabular-nums text-[#071F3D]">@test.QuestionCount</dd></div>
+                        </dl>
+                        <p class="m-0 mb-6 text-sm leading-7 text-[#535353]">@Localizer[Model.HasTimeLimit ? "ExplicitTimerNote" : "UntimedStartNote"]</p>
+                        <form method="post" asp-page-handler="CreateRecord" asp-route-level="@Model.SelectedLevel" data-submit-feedback>
+                            <button type="submit" class="@action w-full justify-between">@Localizer["StartLevelButton", level]<i class="fa-solid fa-arrow-right-long" aria-hidden="true"></i></button>
+                        </form>
+                    </aside>
+                }
+            </div>
         </div>
-    </div>
-</section>
+    </section>
+}
