@@ -27,6 +27,9 @@ public sealed class ExamMediaSavePersistenceTests : Microsoft.Playwright.Xunit.P
         await Page.GetByRole(AriaRole.Button, new() { Name = "Log in", Exact = true }).ClickAsync();
         await Page.WaitForURLAsync($"{LocalTestApplication.PortalBaseUrl}{path}");
         await Expect(Page.Locator("input[name='QuestionId']")).ToHaveValueAsync(questionId.ToString());
+        await Expect(Page.Locator("[data-open-answer-editor]")).ToHaveAttributeAsync("data-open-editor-ready", "true");
+        await Expect(Page.GetByRole(AriaRole.Spinbutton, new() { Name = "Maximum points", Exact = true }))
+            .ToHaveAttributeAsync("readonly", "");
 
         // Enable only this page's picker; the upload endpoint is intercepted above.
         // The running Local environment still has object storage disabled.
@@ -40,12 +43,16 @@ public sealed class ExamMediaSavePersistenceTests : Microsoft.Playwright.Xunit.P
         var feedback = Page.Locator($"[data-{kind}-ui] [data-media-feedback]");
         await Expect(feedback).ToBeVisibleAsync();
         await Expect(feedback).ToContainTextAsync("not saved");
+        var updatedLabel = $"Answer saved after failed {kind} upload";
         var saved = await Page.RunAndWaitForResponseAsync(
-            () => Page.Locator("input[name='Score']").FillAsync("7"),
+            () => Page.Locator("[data-open-label]").FillAsync(updatedLabel),
             response => response.Url.Contains("handler=SaveQuestion", StringComparison.Ordinal) && response.Request.Method == "POST");
         Assert.True(saved.Ok);
+        Assert.True((await saved.JsonAsync())!.Value.GetProperty("success").GetBoolean());
         await using var db = LocalTestApplication.CreateDbContext();
-        Assert.Equal(7, await db.Questions.Where(question => question.Id == questionId).Select(question => question.Score).SingleAsync());
+        var savedQuestion = await db.OpenQuestions.AsNoTracking().SingleAsync(question => question.Id == questionId);
+        Assert.Equal(updatedLabel, savedQuestion.OpenAnswerFields.Single().Label);
+        Assert.Equal(2, savedQuestion.Score);
         await Expect(feedback).ToContainTextAsync("not saved");
         await Expect(Page.Locator("#editorSaveStatus")).ToHaveTextAsync("Media not saved");
         await Expect(Page.GetByRole(AriaRole.Button, new() { Name = $"Retry {kind} save", Exact = true })).ToBeVisibleAsync();

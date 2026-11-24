@@ -1389,7 +1389,8 @@ commit/push, production configuration, or deployment is authorized by saving thi
 
 Estimated size: Medium. Approved on 2026-11-24 on `fix/open-answer-group-scoring`,
 including commit, push, and PR creation after verification. B37 is merged as PR #74
-and deployed to Marketing production. Keep this fix separate until reviewed and merged.
+and deployed to Marketing production. This fix is open as
+[PR #75](https://github.com/chenggggggg/iD-Develops/pull/75); keep it separate until merged.
 
 - Derive each input maximum from its highest accepted-alternative award and sum input
   maxima for the question total. Sum matching input awards, including partial credit
@@ -1406,14 +1407,15 @@ and deployed to Marketing production. Keep this fix separate until reviewed and 
   and responsive editor/result flows in Full and Marketing modes.
 
 Verification passed: Release build, full formatting, all 750 unit/integration tests,
-71 related Full-mode browser checks (12 focused scoring checks plus 59 exam regressions),
-all 153 exact CI-selected Marketing browser checks, and 80 deployment-policy tests.
-The final fractional-credit comparison was followed by another full build/unit/format
-verification and a successful rerun of all 12 focused browser checks. Desktop/mobile
-screenshots were reviewed; no physical phone was available. Original local settings,
-Full mode, and public-test assignments were restored. No production records, exam
-content, or real email were changed. Ready for the authorized commit/push and PR;
-staging deploys through the normal main-merge workflow.
+all 348 Full-mode CI-selected browser tests, all 153 Marketing CI-selected browser
+checks, and 80 deployment-policy tests. The focused 19 media-warning scenarios also
+passed. Media-persistence tests now confirm the calculated maximum is read-only and
+save an editable input label, checking both database persistence and unchanged media
+warnings/retry controls; they no longer attempt to edit the derived maximum.
+Desktop/mobile screenshots were reviewed; no physical phone was available. Original
+local settings, Full mode, and public-test assignments were restored. No production
+records, exam content, or real email were changed. Staging deploys through the normal
+main-merge workflow.
 
 ## External references checked
 
