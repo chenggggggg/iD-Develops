@@ -299,7 +299,7 @@ namespace iD_Develops.Pages.Portal.Exams
         }
 
         private static double ResolveQuestionScore(Question question)
-            => ExamScoring.MaximumPoints(question.Score);
+            => ExamScoring.MaximumPoints(question);
 
         private static string ResolveResultLabel(double awardedScore, double questionScore)
         {

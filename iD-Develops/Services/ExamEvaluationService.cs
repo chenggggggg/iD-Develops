@@ -32,7 +32,7 @@ namespace iD_Develops.Services
                 {
                     var awarded = OpenAnswerService.Evaluate(open, participantAnswer.AnswerText);
                     participantAnswer.AwardedScore = awarded;
-                    participantAnswer.IsCorrect = awarded >= OpenAnswerService.MaximumScore(q.Score);
+                    participantAnswer.IsCorrect = awarded > 0 && awarded >= OpenAnswerService.MaximumScore(open);
                     score += awarded;
                     continue;
                 }

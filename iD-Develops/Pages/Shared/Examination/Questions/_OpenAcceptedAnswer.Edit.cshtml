@@ -7,7 +7,7 @@
     <div class="w-28 min-w-0 sm:w-auto">
         <label class="block text-sm font-medium text-slate-700">
             Points awarded
-            <input type="number" value="@Model.Score?.ToString(System.Globalization.CultureInfo.InvariantCulture)" min="0" step="any" placeholder="Full" class="mt-1 min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-[var(--id-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]" data-open-accepted-score />
+            <input type="number" value="@Model.Score?.ToString(System.Globalization.CultureInfo.InvariantCulture)" min="0" step="any" required class="mt-1 min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-[var(--id-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]" data-open-accepted-score />
         </label>
         <p class="m-0 mt-1 text-xs leading-5 text-slate-500" data-open-award-limit></p>
     </div>

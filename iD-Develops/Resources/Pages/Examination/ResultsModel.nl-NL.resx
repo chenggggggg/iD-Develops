@@ -30,6 +30,8 @@
   <data name="LevelLabel" xml:space="preserve"><value>Niveau</value></data>
   <data name="AdviceTitle" xml:space="preserve"><value>Wat dit betekent</value></data>
   <data name="CorrectLabel" xml:space="preserve"><value>Goed</value></data>
+  <data name="PartialLabel" xml:space="preserve"><value>Gedeeltelijk goed</value></data>
+  <data name="IncorrectLabel" xml:space="preserve"><value>Onjuist</value></data>
   <data name="ReviewLabel" xml:space="preserve"><value>Bekijken</value></data>
   <data name="NoAnswerSubmitted" xml:space="preserve"><value>Geen antwoord gegeven</value></data>
   <data name="NoModelAnswer" xml:space="preserve"><value>Geen modelantwoord beschikbaar</value></data>

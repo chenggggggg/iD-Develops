@@ -2,6 +2,7 @@
 @model OpenAnswerField
 <fieldset class="min-w-0 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:p-5" data-open-field data-open-key="@Model.Key" disabled>
     <legend class="px-1 text-sm font-semibold text-[var(--id-ink)]" data-open-field-caption>Answer input</legend>
+    <p class="mb-3 text-sm font-semibold text-[var(--id-blue)]" data-open-group-maximum></p>
     <div class="mb-4 flex flex-wrap justify-end gap-2">
         <button type="button" class="inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-[var(--id-blue)] transition-colors hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)] disabled:cursor-not-allowed disabled:opacity-40" data-open-action="move-up" aria-label="Move answer input up" disabled><i class="fa-solid fa-arrow-up" aria-hidden="true"></i></button>
         <button type="button" class="inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-[var(--id-blue)] transition-colors hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)] disabled:cursor-not-allowed disabled:opacity-40" data-open-action="move-down" aria-label="Move answer input down" disabled><i class="fa-solid fa-arrow-down" aria-hidden="true"></i></button>

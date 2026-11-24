@@ -273,12 +273,12 @@ namespace iD_Develops.Services
                 Scenario = question.Scenario,
                 Feedback = question.Feedback,
                 FunFact = question.FunFact,
-                Score = question.Score,
+                Score = question is OpenQuestion ? ExamScoring.MaximumPoints(question) : question.Score,
                 AnswerA = multipleChoice?.MultipleChoiceAnswer?.AnswerA,
                 AnswerB = multipleChoice?.MultipleChoiceAnswer?.AnswerB,
                 AnswerC = multipleChoice?.MultipleChoiceAnswer?.AnswerC,
                 AnswerD = multipleChoice?.MultipleChoiceAnswer?.AnswerD,
-                OpenAnswerFields = question is OpenQuestion open ? OpenAnswerFieldJson.Copy(open.OpenAnswerFields) : [],
+                OpenAnswerFields = question is OpenQuestion open ? OpenAnswerService.ExplicitFields(open) : [],
                 CorrectAnswers = question.CorrectAnswers
                     .Where(a => !a.IsDeleted)
                     .Select(a => new ExamTransferCorrectAnswer
@@ -318,6 +318,11 @@ namespace iD_Develops.Services
             question.Feedback = NormalizeOptional(definition.Feedback);
             question.FunFact = NormalizeOptional(definition.FunFact);
             question.Score = definition.Score;
+            if (question is OpenQuestion open && open.OpenAnswerFields.Count > 0)
+            {
+                open.OpenAnswerFields = OpenAnswerService.ExplicitFields(open);
+                question.Score = OpenAnswerService.MaximumScore(open);
+            }
             question.IsDeleted = false;
             question.CorrectAnswers = definition.CorrectAnswers
                 .Select(a => new CorrectAnswer
@@ -333,10 +338,10 @@ namespace iD_Develops.Services
 
         private static void ValidatePackage(ExamTransferPackage package)
         {
-            if (package.FormatVersion is not (2 or ExamTransferPackage.CurrentFormatVersion))
+            if (package.FormatVersion is not (2 or 3 or ExamTransferPackage.CurrentFormatVersion))
             {
                 throw new ValidationException(
-                    $"This exam export uses format version {package.FormatVersion}. Supported versions are 2 and {ExamTransferPackage.CurrentFormatVersion}.");
+                    $"This exam export uses format version {package.FormatVersion}. Supported versions are 2, 3 and {ExamTransferPackage.CurrentFormatVersion}.");
             }
 
             var exam = package.Exam ?? throw new ValidationException("The file does not contain an exam definition.");

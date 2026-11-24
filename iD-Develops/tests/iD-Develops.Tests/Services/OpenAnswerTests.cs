@@ -13,11 +13,11 @@ public sealed class OpenAnswerTests
     [Theory]
     [InlineData("om", "te", 1)]
     [InlineData(" OM ", "Te.", 1)]
-    [InlineData("om", "", 0)]
-    [InlineData("", "te", 0)]
+    [InlineData("om", "", 0.5)]
+    [InlineData("", "te", 0.5)]
     [InlineData("te", "om", 0)]
-    [InlineData("wrong", "te", 0)]
-    public void MultipleInputsMustAllMatchWithoutMultiplyingTheQuestionScore(string first, string second, double expected)
+    [InlineData("wrong", "te", 0.5)]
+    public void MultipleInputsEarnIndependentCreditWithoutMultiplyingLegacyFullAwards(string first, string second, double expected)
     {
         var question = PairedQuestion();
         var participant = new ParticipantAnswer { QuestionId = question.Id, AnswerText = Submission(first, second) };
@@ -64,13 +64,13 @@ public sealed class OpenAnswerTests
     }
 
     [Fact]
-    public void InvalidConfigurationsCannotDefineDuplicateInputsOrInflatedPoints()
+    public void InvalidConfigurationsCannotDefineDuplicateInputsOrInvalidPoints()
     {
         var fields = PairedQuestion().OpenAnswerFields;
         fields[1].Key = fields[0].Key;
         Assert.Throws<ValidationException>(() => OpenAnswerService.Validate(fields, 1));
         fields[1].Key = "second";
-        fields[0].AcceptedAnswers[0].Score = 2;
+        fields[0].AcceptedAnswers[0].Score = -1;
         Assert.Throws<ValidationException>(() => OpenAnswerService.Validate(fields, 1));
         fields[0].AcceptedAnswers[0].Score = double.NaN;
         Assert.Throws<ValidationException>(() => OpenAnswerService.Validate(fields, 1));
@@ -90,7 +90,7 @@ public sealed class OpenAnswerTests
         var saved = OpenAnswerService.NormalizeSubmission(question, json);
         Assert.True(OpenAnswerService.TryRead(saved, out var values));
         Assert.All(values.Values, value => Assert.Equal(text, value));
-        Assert.Equal(1, OpenAnswerService.Evaluate(question, saved));
+        Assert.Equal(1, OpenAnswerService.Evaluate(question, saved), 12);
     }
 
     [Theory]

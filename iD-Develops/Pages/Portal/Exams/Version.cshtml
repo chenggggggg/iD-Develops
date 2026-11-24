@@ -68,7 +68,7 @@
                     <li>A: @question.AnswerA</li><li>B: @question.AnswerB</li><li>C: @question.AnswerC</li><li>D: @question.AnswerD</li>
                 </ul>
             }
-            <p class="mt-4 text-sm font-semibold">Maximum points: @iD_Develops.Services.ExamScoring.MaximumPoints(question.Score)</p>
+            <p class="mt-4 text-sm font-semibold">Maximum points: @iD_Develops.Services.ExamScoring.MaximumPoints(question)</p>
             @if (question.OpenAnswerFields.Count > 0)
             {
                 <div class="mt-4 space-y-3">

@@ -30,6 +30,8 @@
   <data name="LevelLabel" xml:space="preserve"><value>Level</value></data>
   <data name="AdviceTitle" xml:space="preserve"><value>What this means</value></data>
   <data name="CorrectLabel" xml:space="preserve"><value>Correct</value></data>
+  <data name="PartialLabel" xml:space="preserve"><value>Partially correct</value></data>
+  <data name="IncorrectLabel" xml:space="preserve"><value>Incorrect</value></data>
   <data name="ReviewLabel" xml:space="preserve"><value>Review</value></data>
   <data name="NoAnswerSubmitted" xml:space="preserve"><value>No answer submitted</value></data>
   <data name="NoModelAnswer" xml:space="preserve"><value>No model answer provided</value></data>

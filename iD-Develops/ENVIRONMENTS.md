@@ -678,22 +678,37 @@ content, so editing a label or one alternative does not copy unchanged question 
 Startup applies the migration through the existing initialization process; no new
 configuration or external service is needed.
 
-Exam exports now use format 3. The importer still accepts format-2 files with the original
-single-answer representation. Files with `OpenAnswerFields` must use format 3; older
-applications reject that version rather than silently dropping the input definitions.
+Exam exports now use format 4 for independent input scoring. The importer still accepts
+format-2 single-answer files and format-3 multiple-input files. Older applications reject
+format 4 rather than silently applying their previous joint-input marking rule.
 Each input has a stable `Key`, a plain-text `Label`, and `AcceptedAnswers` containing
-`Text` and optional `Score`. A missing score awards the question's full points. Every
-input must match; the lowest matched award determines the question's score. An empty
-accepted-answer list earns no automatic points and requires human review. Matching
+`Text` and `Score`. The highest award in each input is its maximum; input maxima are
+summed for the question maximum and matching awards are summed for the earned score.
+Alternatives within one input compete; they are never added together. Incorrect or blank
+inputs earn zero independently. For legacy keys with missing awards, the original question
+maximum is divided equally between its inputs, preserving the original full-credit total.
+The editor/importer/exporter materialize these defaults as explicit numeric awards.
+An empty accepted-answer list reserves one point, earns no automatic points, and requires
+human review. Matching
 ignores capitalization, repeated whitespace, and one final full stop. Existing attempts
 without input definitions keep their original single-answer matching rules.
 The editor uses one **Maximum points** control for every question type. It contributes
-once to the exam total. Multiple-choice and true/false correct answers earn that full
-maximum. Open alternatives use **Points awarded** (blank means full maximum); multiple
-inputs share the question maximum and are marked together, rather than summed.
+once to the exam total. For open questions it is read-only and calculated from the input
+awards; each input shows its own maximum. Multiple-choice and true/false maxima remain
+editable and their correct answers earn that full maximum. Open alternatives require
+numeric **Points awarded** values. Two matching half-point inputs earn one point together;
+one matching input earns half a point. Public results show earned/maximum points and
+Correct / Partially correct / Incorrect / Unanswered states.
 Invalid maxima or alternative awards remain unsaved, with inline feedback and the
 existing save-failed status. The server independently validates awards and bounds
 legacy fallback scoring to the same maximum used by totals and result displays.
+
+This grading correction uses each attempt's original snapshot and answers; it never
+substitutes a live answer key or rewrites snapshot content. Existing result pages
+re-evaluate those preserved answers with the corrected arithmetic. The existing account
+record-summary service refreshes its stored score when summaries are requested; this
+release does not run a bulk regrade or resend previously delivered result emails.
+No new migration, environment variable, exam reimport, or provider setup is required.
 
 ## Notes
 

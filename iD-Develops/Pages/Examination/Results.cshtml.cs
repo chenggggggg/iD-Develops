@@ -49,7 +49,9 @@ namespace iD_Develops.Pages.Examination
             string? ScenarioHtml,
             string? HelpHtml,
             string? ImageReference,
-            string? AudioReference);
+            string? AudioReference,
+            double AwardedScore,
+            double MaximumScore);
 
         public sealed record MultipleChoiceOptionReviewItem(
             string Key,
@@ -182,7 +184,8 @@ namespace iD_Develops.Pages.Examination
             return new QuestionReviewItem(
                 question.QuestionNumber,
                 question.Text,
-                isCorrect ? _localizer["CorrectLabel"] : isAnswered ? _localizer["ReviewLabel"] : _localizer["UnansweredLabel"],
+                isCorrect ? _localizer["CorrectLabel"] : participantAnswer?.AwardedScore > 0 ? _localizer["PartialLabel"]
+                    : isAnswered ? _localizer["IncorrectLabel"] : _localizer["UnansweredLabel"],
                 isCorrect,
                 isAnswered,
                 FormatAnswer(question, participantAnswer?.AnswerText, emptyFallback: _localizer["NoAnswerSubmitted"]),
@@ -193,7 +196,9 @@ namespace iD_Develops.Pages.Examination
                 question.Scenario,
                 question.MessageBeforeQuestion,
                 question.ImageReference,
-                question.AudioReference);
+                question.AudioReference,
+                participantAnswer?.AwardedScore ?? 0,
+                ResolveQuestionScore(question));
         }
 
         private bool IsValidPublicResultToken(Guid recordId, string token)
@@ -232,7 +237,7 @@ namespace iD_Develops.Pages.Examination
             => Math.Abs(value % 1) < 0.001 ? value.ToString("0", CultureInfo.InvariantCulture) : value.ToString("0.##", CultureInfo.InvariantCulture);
 
         private static double ResolveQuestionScore(Question question)
-            => ExamScoring.MaximumPoints(question.Score);
+            => ExamScoring.MaximumPoints(question);
 
         private static double ResolveMaxScore(Exam exam)
         {

@@ -20,7 +20,6 @@ public static class OpenAnswerService
         if (questionScore.HasValue && (!double.IsFinite(questionScore.Value) || questionScore < 0))
             throw new ValidationException("Question points must be a finite number of zero or greater.");
         var keys = new HashSet<string>(StringComparer.Ordinal);
-        var maximum = MaximumScore(questionScore);
         foreach (var field in fields)
         {
             if (field == null || !Regex.IsMatch(field.Key ?? "", "^[a-zA-Z0-9_-]{1,64}$") || !keys.Add(field.Key!))
@@ -33,9 +32,15 @@ public static class OpenAnswerService
             {
                 if (answer == null || string.IsNullOrWhiteSpace(answer.Text) || answer.Text.Length > MaximumAnswerLength)
                     throw new ValidationException("Accepted answers must contain text and cannot exceed 10,000 characters.");
-                if (answer.Score.HasValue && (!double.IsFinite(answer.Score.Value) || answer.Score < 0 || answer.Score > maximum))
-                    throw new ValidationException("Accepted-answer points must be between zero and the question's maximum points.");
+                if (answer.Score.HasValue && (!double.IsFinite(answer.Score.Value) || answer.Score < 0))
+                    throw new ValidationException("Accepted-answer points must be a finite number of zero or greater.");
             }
+        }
+        if (fields.Count > 0)
+        {
+            var maximum = MaximumScore(new OpenQuestion { Score = questionScore, OpenAnswerFields = fields });
+            if (!double.IsFinite(maximum) || maximum <= 0)
+                throw new ValidationException("The answer inputs must have a finite total greater than zero.");
         }
     }
 
@@ -83,17 +88,41 @@ public static class OpenAnswerService
     public static double Evaluate(OpenQuestion question, string? text)
     {
         if (!TryRead(text, out var answers) || answers.Count != question.OpenAnswerFields.Count) return 0;
-        var score = MaximumScore(question.Score);
+        double score = 0;
         foreach (var field in question.OpenAnswerFields)
         {
-            if (!answers.TryGetValue(field.Key, out var value) || string.IsNullOrWhiteSpace(value)) return 0;
+            if (!answers.TryGetValue(field.Key, out var value)) return 0;
+            if (string.IsNullOrWhiteSpace(value)) continue;
             var matching = field.AcceptedAnswers.Where(answer => Normalize(answer.Text) == Normalize(value))
-                .Select(answer => answer.Score ?? MaximumScore(question.Score)).DefaultIfEmpty(0).Max();
-            // All inputs belong to one question: one correct blank must not earn the
-            // whole question's points. The lowest matching award determines its score.
-            score = Math.Min(score, matching);
+                .Select(answer => ResolveAward(question, answer)).DefaultIfEmpty(0).Max();
+            // Alternatives compete within one input; separate inputs contribute separately.
+            score += matching;
         }
-        return Math.Clamp(score, 0, MaximumScore(question.Score));
+        return Math.Clamp(score, 0, MaximumScore(question));
+    }
+
+    // Old format-3 keys used a blank award for the whole question's "Full" value.
+    // Divide that default between inputs so existing om/te keys retain their one-point total.
+    // The editor writes explicit awards; subsequent changes never depend on this fallback.
+    public static double ResolveAward(OpenQuestion question, OpenAcceptedAnswer answer)
+        => answer.Score.HasValue && double.IsFinite(answer.Score.Value)
+            ? Math.Max(0, answer.Score.Value)
+            : MaximumScore(question.Score) / Math.Max(1, question.OpenAnswerFields.Count);
+
+    public static double InputMaximum(OpenQuestion question, OpenAnswerField field)
+        => field.AcceptedAnswers.Select(answer => ResolveAward(question, answer)).DefaultIfEmpty(1).Max();
+
+    public static double MaximumScore(OpenQuestion question)
+        => question.OpenAnswerFields.Count == 0 ? MaximumScore(question.Score)
+            : question.OpenAnswerFields.Sum(field => InputMaximum(question, field));
+
+    public static List<OpenAnswerField> ExplicitFields(OpenQuestion question)
+    {
+        var fields = OpenAnswerFieldJson.Copy(question.OpenAnswerFields);
+        foreach (var field in fields)
+            foreach (var answer in field.AcceptedAnswers)
+                answer.Score = ResolveAward(question, answer);
+        return fields;
     }
 
     public static string FormatAnswer(OpenQuestion question, string? text, string emptyFallback)
@@ -105,7 +134,11 @@ public static class OpenAnswerService
 
     public static string FormatAcceptedAnswers(OpenQuestion question, string emptyFallback)
         => string.Join("\n", question.OpenAnswerFields.Select((field, index) =>
-            $"{Label(field, index)}: {(field.AcceptedAnswers.Count == 0 ? emptyFallback : string.Join(" / ", field.AcceptedAnswers.Select(answer => answer.Text + (answer.Score.HasValue ? $" ({answer.Score.Value.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)})" : ""))))}"));
+        {
+            var alternatives = field.AcceptedAnswers.Select(answer =>
+                $"{answer.Text} ({ResolveAward(question, answer).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)})");
+            return $"{Label(field, index)}: {(field.AcceptedAnswers.Count == 0 ? emptyFallback : string.Join(" / ", alternatives))}";
+        }));
 
     private static string Label(OpenAnswerField field, int index) => string.IsNullOrWhiteSpace(field.Label) ? (index + 1).ToString() : field.Label;
     public static double MaximumScore(double? score) => ExamScoring.MaximumPoints(score);

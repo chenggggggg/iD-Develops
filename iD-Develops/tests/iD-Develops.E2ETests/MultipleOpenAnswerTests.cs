@@ -86,6 +86,9 @@ public sealed class MultipleOpenAnswerTests : DiagnosticPageTest
         await Expect(Page.Locator("[data-question-number='1'] dd").First).ToContainTextAsync("First missing word: OM");
         await Expect(Page.Locator("[data-question-number='1'] dd").First).ToContainTextAsync("Second missing word: te");
         await Expect(Page.Locator("[data-question-number='1'] dd").Last).ToContainTextAsync("First missing word: om");
+        await Expect(Page.Locator("[data-question-number='1'] [data-question-points]")).ToHaveTextAsync(culture == "nl-nl" ? "1 / 1 punten" : "1 / 1 points");
+        await Expect(Page.Locator("[data-question-number='1'] [data-question-result]")).ToHaveTextAsync(culture == "nl-nl" ? "Goed" : "Correct");
+        await Expect(Page.Locator("[data-question-number='2'] [data-question-result]")).ToHaveTextAsync(culture == "nl-nl" ? "Gedeeltelijk goed" : "Partially correct");
         Assert.True(await Page.EvaluateAsync<bool>("document.documentElement.scrollWidth <= innerWidth"));
     }
 
@@ -120,16 +123,16 @@ public sealed class MultipleOpenAnswerTests : DiagnosticPageTest
         await fields.First.GetByRole(AriaRole.Button, new() { Name = "Add accepted answer", Exact = true }).ClickAsync();
         await EditAsync(() => fields.First.GetByRole(AriaRole.Textbox, new() { Name = "Accepted answer 2", Exact = true }).FillAsync("alternative"));
         var points = fields.First.GetByRole(AriaRole.Spinbutton, new() { Name = "Points awarded", Exact = true }).Last;
-        await points.FillAsync("2");
+        await points.FillAsync("-1");
         await Expect(points).ToHaveAttributeAsync("aria-invalid", "true");
-        await Expect(fields.First.Locator("[data-open-award-error]").Last).ToContainTextAsync("Enter 0 to 1 points");
+        await Expect(fields.First.Locator("[data-open-award-error]").Last).ToContainTextAsync("zero or greater");
         await Expect(Page.Locator("#editorSaveStatus")).ToContainTextAsync("Save failed");
         // Bypass client validation to verify that the server independently rejects the award.
         Assert.Equal(400, await PostEditorFormAsync());
         await using (var persisted = LocalTestApplication.CreateDbContext())
         {
             var unchanged = await persisted.OpenQuestions.AsNoTracking().SingleAsync(question => question.Id == questionId);
-            Assert.Null(unchanged.OpenAnswerFields[0].AcceptedAnswers.Single(answer => answer.Text == "alternative").Score);
+            Assert.Equal(1, unchanged.OpenAnswerFields[0].AcceptedAnswers.Single(answer => answer.Text == "alternative").Score);
         }
         await EditAsync(() => points.FillAsync("0.5"));
         await Page.ReloadAsync(new() { WaitUntil = WaitUntilState.DOMContentLoaded });
@@ -179,21 +182,25 @@ public sealed class MultipleOpenAnswerTests : DiagnosticPageTest
             await Expect(maximum).ToHaveCountAsync(1);
             await Expect(maximum).ToHaveValueAsync("1");
             await Expect(panel).ToContainTextAsync("This maximum counts once toward the exam total.");
-            await maximum.FillAsync("0");
-            await Expect(maximum).ToHaveAttributeAsync("aria-invalid", "true");
-            await Expect(panel.Locator("[data-question-points-error]")).ToBeVisibleAsync();
-            await Expect(Page.Locator("#editorSaveStatus")).ToContainTextAsync("Save failed");
-            Assert.Equal(400, await PostEditorFormAsync());
-            await EditAsync(() => maximum.FillAsync("2"));
             if (id == open.Id)
             {
-                await Expect(panel).ToContainTextAsync("Open inputs are marked together.");
+                await Expect(maximum).ToHaveAttributeAsync("readonly", "");
+                await Expect(panel).ToContainTextAsync("Calculated from the highest award in each answer input.");
                 var award = Page.Locator("[data-open-field]").First.GetByRole(AriaRole.Spinbutton, new() { Name = "Points awarded", Exact = true });
-                await Expect(award).ToHaveAttributeAsync("max", "2");
-                await Expect(award).ToHaveAttributeAsync("placeholder", "Full (2)");
+                await EditAsync(() => award.FillAsync("2"));
+                await Expect(maximum).ToHaveValueAsync("2.5");
+                await Expect(Page.Locator("[data-open-group-maximum]").First).ToContainTextAsync("2 points");
             }
             else
+            {
+                await maximum.FillAsync("0");
+                await Expect(maximum).ToHaveAttributeAsync("aria-invalid", "true");
+                await Expect(panel.Locator("[data-question-points-error]")).ToBeVisibleAsync();
+                await Expect(Page.Locator("#editorSaveStatus")).ToContainTextAsync("Save failed");
+                Assert.Equal(400, await PostEditorFormAsync());
+                await EditAsync(() => maximum.FillAsync("2"));
                 await Expect(panel.Locator("[data-question-award-summary]")).ToHaveTextAsync("Correct: 2 points. Incorrect or unanswered: 0.");
+            }
             await Expect(Page.Locator("#editorSaveStatus")).ToContainTextAsync("Up-to-date");
             await panel.EvaluateAsync("element => element.scrollIntoView({ block: 'center' })");
             Assert.True(await panel.EvaluateAsync<bool>("element => element.scrollWidth <= element.clientWidth + 1"));
@@ -203,9 +210,48 @@ public sealed class MultipleOpenAnswerTests : DiagnosticPageTest
         await Expect(Page.GetByRole(AriaRole.Spinbutton, new() { Name = "Maximum points", Exact = true })).ToHaveValueAsync("2");
         await using var db = LocalTestApplication.CreateDbContext();
         var saved = await db.Questions.AsNoTracking().Where(question => question.ExamId == data.Exam.Id).ToListAsync();
-        Assert.Equal(2, saved.Single(question => question.Id == open.Id).Score);
+        Assert.Equal(2.5, saved.Single(question => question.Id == open.Id).Score);
         Assert.Equal(2, saved.Single(question => question.Id == trueFalse.Id).Score);
-        Assert.Equal(8, ExamScoring.TotalMaximum(saved));
+        Assert.Equal(8.5, ExamScoring.TotalMaximum(saved));
+    }
+
+    [Theory]
+    [InlineData("en-us", 1440, "om", "te", 1, "Correct")]
+    [InlineData("nl-nl", 320, "om", "te", 1, "Goed")]
+    [InlineData("en-us", 320, "om", "", 0.5, "Partially correct")]
+    [InlineData("nl-nl", 1440, "wrong", "te", 0.5, "Gedeeltelijk goed")]
+    [InlineData("en-us", 1440, "wrong", "wrong", 0, "Incorrect")]
+    public async Task ExistingSnapshotResultsShowIndependentInputCreditAndIgnoreLiveAnswerEdits(
+        string culture, int width, string first, string second, double expectedScore, string expectedLabel)
+    {
+        await using var account = await CatalogBrowsingFixture.CreateAsync(administrator: true);
+        await using var data = await AnswerFixture.CreateAsync(account.User.Id, false);
+        var questionId = data.Exam.Questions.Single(question => question.QuestionNumber == 1).Id;
+        await using (var db = LocalTestApplication.CreateDbContext())
+        {
+            await db.Records.Where(record => record.Id == data.Record.Id).ExecuteUpdateAsync(update =>
+                update.SetProperty(record => record.ExamStatus, ExamStatus.Completed)
+                    .SetProperty(record => record.EndDateTime, DateTime.UtcNow));
+            db.ParticipantAnswers.Add(new()
+            {
+                QuestionId = questionId,
+                RecordId = data.Record.Id,
+                AnswerText = System.Text.Json.JsonSerializer.Serialize(new { format = "open-answers-v1", answers = new { first, second } })
+            });
+            var liveQuestion = await db.OpenQuestions.SingleAsync(question => question.Id == questionId);
+            liveQuestion.OpenAnswerFields[0].AcceptedAnswers = [new() { Text = "changed live key", Score = 9 }];
+            await db.SaveChangesAsync();
+        }
+        await Page.SetViewportSizeAsync(width, 1000);
+        Assert.Equal(200, (await Page.GotoAsync(data.ResultsUrl(culture), new() { WaitUntil = WaitUntilState.DOMContentLoaded }))!.Status);
+        var review = Page.Locator("[data-question-number='1']");
+        await Expect(review.Locator("[data-question-result]")).ToHaveTextAsync(expectedLabel);
+        var score = expectedScore.ToString("0.##", System.Globalization.CultureInfo.GetCultureInfo(culture));
+        await Expect(review.Locator("[data-question-points]")).ToHaveTextAsync($"{score} / 1 {(culture == "nl-nl" ? "punten" : "points")}");
+        await Expect(review.Locator("dd").Last).ToContainTextAsync("om (0.5)");
+        Assert.DoesNotContain("changed live key", await review.InnerTextAsync());
+        Assert.True(await Page.EvaluateAsync<bool>("document.documentElement.scrollWidth <= innerWidth"));
+        await Page.ScreenshotAsync(new() { Path = Path.Combine(AppContext.BaseDirectory, $"open-answer-credit-{culture}-{width}-{expectedScore}.png"), FullPage = true });
     }
 
     private Task<int> PostEditorFormAsync() => Page.EvaluateAsync<int>("""
@@ -260,8 +306,8 @@ public sealed class MultipleOpenAnswerTests : DiagnosticPageTest
                 Questions =
                 [
                     new OpenQuestion { QuestionNumber = 1, Text = "Complete both missing words.", Scenario = "Ik vind het leuk ____ een nieuwe taal ____ leren.", Score = 1,
-                        OpenAnswerFields = [new() { Key = "first", Label = "First missing word", AcceptedAnswers = [new() { Text = "om" }] },
-                            new() { Key = "second", Label = "Second missing word", AcceptedAnswers = [new() { Text = "te" }] }] },
+                        OpenAnswerFields = [new() { Key = "first", Label = "First missing word", AcceptedAnswers = [new() { Text = "om", Score = 0.5 }] },
+                            new() { Key = "second", Label = "Second missing word", AcceptedAnswers = [new() { Text = "te", Score = 0.5 }] }] },
                     new OpenQuestion { QuestionNumber = 2, Text = "Name the compound word, including its article.", Score = 1,
                         OpenAnswerFields = [new() { Key = "word", Label = "Compound word", AcceptedAnswers = [new() { Text = "de zonnebril" }, new() { Text = "een zonnebril" }, new() { Text = "zonnebril", Score = 0.5 }] }] },
                     new OpenQuestion { QuestionNumber = 3, Text = "Legacy city answer", Score = 1, CorrectAnswers = [new() { Text = "Amsterdam" }] },

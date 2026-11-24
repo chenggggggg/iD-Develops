@@ -2,7 +2,7 @@
 @using iD_Develops.Services
 @model Question
 @{
-    var maximum = ExamScoring.MaximumPoints(Model.Score);
+    var maximum = ExamScoring.MaximumPoints(Model);
     var points = maximum.ToString("G", System.Globalization.CultureInfo.InvariantCulture);
     var open = Model is OpenQuestion;
 }
@@ -18,7 +18,7 @@
             <p id="questionPointsHelp" class="m-0 text-slate-600">This maximum counts once toward the exam total.</p>
             @if (open)
             {
-                <p class="m-0 text-slate-600">Open inputs are marked together. Every input must match an accepted answer; the lowest matching award is used. Alternatives and inputs do not add extra points.</p>
+                <p class="m-0 text-slate-600">Calculated from the highest award in each answer input. Change the input awards below to update this total. Correct inputs can earn partial credit independently.</p>
             }
             else
             {
