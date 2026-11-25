@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -143,4 +143,6 @@
   <data name="ProductType_FreeDownload" xml:space="preserve"><value>Free download</value></data>
   <data name="ProductType_Standard" xml:space="preserve"><value>Standard product</value></data>
   <data name="ProductType_Signup" xml:space="preserve"><value>Sign-up</value></data>
+  <data name="PricingFreeDownloadsIntroduction" xml:space="preserve"><value>Looking for free learning materials?</value></data>
+  <data name="PricingFreeDownloadsAction" xml:space="preserve"><value>Free downloads</value></data>
 </root>
