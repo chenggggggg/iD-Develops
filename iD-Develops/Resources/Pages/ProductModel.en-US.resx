@@ -65,7 +65,7 @@
   <data name="UnlimitedPurchasedAttempts" xml:space="preserve"><value>Unlimited attempts per purchase</value></data>
   <data name="PurchasedAttemptCount" xml:space="preserve"><value>{0} attempts per purchase</value></data>
   <data name="ProductFormHeading" xml:space="preserve"><value>Product form</value></data>
-  <data name="ProductFormFixedFieldsHelp" xml:space="preserve"><value>Products with a form always start with personal details: name and email are required, phone and address are optional. Add only additional questions below.</value></data>
+  <data name="ProductFormFixedFieldsHelp" xml:space="preserve"><value>Full name and email address are always required. Phone and address are optional. Products with a form collect these details in the first step. Add only additional questions below.</value></data>
   <data name="ProductFormProgressLabel" xml:space="preserve"><value>Product form progress</value></data>
   <data name="ProductFormQuestionsHelp" xml:space="preserve"><value>Complete the questions below, then continue with this product.</value></data>
   <data name="ProductFormNoQuestions" xml:space="preserve"><value>No additional questions. You can continue now.</value></data>

@@ -170,9 +170,18 @@
                                 <p class="public-catalog-summary">@download.Summary</p>
                                 @if (!string.IsNullOrWhiteSpace(downloadUrl))
                                 {
-                                    <a class="public-btn public-btn-outline mt-6" href="@downloadUrl" target="_blank" rel="noopener">
-                                        <i class="fa-solid fa-download" aria-hidden="true"></i>@Localizer["DownloadButton"]
-                                    </a>
+                                    @if (download.HasCustomerForm)
+                                    {
+                                        <a class="public-btn public-btn-outline mt-6" asp-page="/Product" asp-route-culture="@System.Globalization.CultureInfo.CurrentUICulture.Name.ToLowerInvariant()" asp-route-slug="@download.Slug">
+                                            @Localizer["ContinueToDownload"] <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a class="public-btn public-btn-outline mt-6" href="@downloadUrl" target="_blank" rel="noopener">
+                                            <i class="fa-solid fa-download" aria-hidden="true"></i>@Localizer["DownloadButton"]
+                                        </a>
+                                    }
                                 }
                             </div>
                         </article>

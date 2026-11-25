@@ -1501,10 +1501,13 @@ Estimated size: Medium-Large. High-priority implementation and Git workflow auth
 on 2026-11-25. Implemented on `feature/all-product-form-steps` after B40 merged.
 Release build, full-solution formatting, all 761 unit/integration tests, 80 deployment-
 policy checks, and a complete 373-test Full browser run passed. Final affected-flow
-verification passed 59 Full and 44 Marketing browser checks, including additional
-download/grouped-answer regressions and explicit assertions for Marketing's existing
-payment/account restrictions. Desktop/mobile screenshots were reviewed. Local settings
-were restored. GitHub CI must pass before merging; no migration is required.
+verification passed 74 Full and 59 Marketing browser checks, including all nine staff
+editor/previews, form-gated download entrypoints, protected staff file inspection,
+grouped-answer validation, contact/result emails, and Marketing's existing payment/
+account restrictions. Local file-mail inspection ignores only unrelated in-flight files
+and serializes test cleanup; exact delivery assertions remain. Desktop/mobile screenshots
+were reviewed. Local settings were restored. PR #78 must pass its final GitHub CI before
+merging; no migration is required.
 
 - Apply the existing Signup product flow to every product with a configured form,
   regardless of product type: product details -> personal details -> product questions

@@ -7,6 +7,114 @@ namespace iD_Develops.E2ETests;
 
 public sealed class ProductFormFlowTests : DiagnosticPageTest
 {
+    [Fact]
+    public async Task StaffCanInspectAFormDownloadWithoutCreatingACustomerSubmission()
+    {
+        await using var data = await CatalogBrowsingFixture.CreateAsync(administrator: true);
+        await using var db = LocalTestApplication.CreateDbContext();
+        var product = await db.CatalogProducts.SingleAsync(item => item.Id == data.Standard.Id);
+        const string fileUrl = "https://downloads.example.invalid/guide.pdf";
+        product.ProductType = CatalogProductType.FreeDownload;
+        product.IncludedBookingBenefitUrl = fileUrl;
+        product.FormFields = [new CatalogProductFormField { Key = "goals", Label = "Goals", FieldType = CatalogFormFieldType.Text }];
+        await db.SaveChangesAsync();
+        var currentFile = Page.Locator($"form[data-product-id='{product.Id}'] [data-current-download-link]");
+        await BrowserLogin.SignInAsync(Page, data.User.Email!, data.Password, "/products/free-downloads/edit", currentFile);
+        var href = await currentFile.GetAttributeAsync("href");
+        Assert.StartsWith(LocalTestApplication.PortalBaseUrl + "/products/free-downloads/edit?", href);
+        var response = await Page.RunAndWaitForResponseAsync(
+            () => Page.EvaluateAsync("async url => { await fetch(url, {redirect:'manual'}); }", href),
+            response => response.Url == href);
+        Assert.Equal(302, response.Status);
+        Assert.Equal(fileUrl, await response.HeaderValueAsync("location"));
+        Assert.False(await db.ProductFormSubmissions.AnyAsync(item => item.FormName == product.Name));
+    }
+
+    [Theory]
+    [InlineData("en-us", true)]
+    [InlineData("nl-nl", true)]
+    [InlineData("en-us", false)]
+    [InlineData("nl-nl", false)]
+    public async Task DownloadCardsAndOlderLinksRespectConfiguredForms(string culture, bool hasForm)
+    {
+        await using var data = await CatalogBrowsingFixture.CreateAsync();
+        await using var db = LocalTestApplication.CreateDbContext();
+        var product = await db.CatalogProducts.SingleAsync(item => item.Id == data.Standard.Id);
+        const string fileUrl = "https://downloads.example.invalid/guide.pdf";
+        product.ProductType = CatalogProductType.FreeDownload;
+        product.WorkflowType = CatalogWorkflowType.ExternalBookingOnly;
+        product.IncludedBookingBenefitUrl = fileUrl;
+        product.FormFields = hasForm
+            ? [new CatalogProductFormField { Key = "goals", Label = "Goals", FieldType = CatalogFormFieldType.Text }]
+            : [];
+        await db.SaveChangesAsync();
+        await Page.GotoAsync($"{LocalTestApplication.PublicBaseUrl}/{culture}/free-downloads");
+        var card = Page.GetByRole(AriaRole.Article).Filter(new()
+        {
+            Has = Page.GetByRole(AriaRole.Heading, new() { Name = product.Name, Exact = true })
+        });
+        var action = card.GetByRole(AriaRole.Link);
+        var handlerUrl = $"{LocalTestApplication.PublicBaseUrl}/{culture}/free-downloads?handler=Download&id={product.Id}";
+        var response = await Page.RunAndWaitForResponseAsync(
+            () => Page.EvaluateAsync("async url => { await fetch(url, {redirect:'manual'}); }", handlerUrl),
+            response => response.Url == handlerUrl);
+        Assert.Equal(302, response.Status);
+        var destination = await response.HeaderValueAsync("location");
+        if (hasForm)
+        {
+            var expected = $"/{culture}/products/{product.Slug}";
+            await Expect(action).ToHaveAttributeAsync("href", expected);
+            Assert.Equal(expected, destination);
+            await action.ClickAsync();
+            await Expect(Page.Locator("[data-signup-step='0']")).ToBeVisibleAsync();
+            await Expect(Page).ToHaveURLAsync(LocalTestApplication.PublicBaseUrl + expected);
+        }
+        else
+        {
+            Assert.Equal(fileUrl, destination);
+            await Expect(action).ToHaveAttributeAsync("target", "_blank");
+        }
+        Assert.False(await db.ProductFormSubmissions.AnyAsync(item => item.FormName == product.Name));
+    }
+
+    [Fact]
+    public async Task StaffEditorAndPreviewUseTheSamePersonalDetailsAndQuestionsForEveryProductType()
+    {
+        await using var data = await CatalogBrowsingFixture.CreateAsync(administrator: true);
+        await using var db = LocalTestApplication.CreateDbContext();
+        var product = await db.CatalogProducts.SingleAsync(item => item.Id == data.Standard.Id);
+        product.FormFields =
+        [
+            new() { Key = "name", Label = "Your name", FieldType = CatalogFormFieldType.Text },
+            new() { Key = "email", Label = "Your email", FieldType = CatalogFormFieldType.Email },
+            new() { Key = "goals", Label = "Learning goals", FieldType = CatalogFormFieldType.Textarea }
+        ];
+        await db.SaveChangesAsync();
+        var editor = $"/products/{product.Slug}/edit";
+        await BrowserLogin.SignInAsync(Page, data.User.Email!, data.Password, editor, Page.Locator("#product-edit-form"));
+        foreach (var type in Enum.GetValues<CatalogProductType>())
+        {
+            Console.WriteLine($"Checking editor and preview for {type}.");
+            product.ProductType = type;
+            product.WorkflowType = type is CatalogProductType.Signup or CatalogProductType.Enrollment
+                ? CatalogWorkflowType.FormSubmission : type is CatalogProductType.Booking or CatalogProductType.ExternalBooking or CatalogProductType.FreeDownload
+                    ? CatalogWorkflowType.ExternalBookingOnly : CatalogWorkflowType.FormThenStripeCheckout;
+            await db.SaveChangesAsync();
+            await Page.GotoAsync(LocalTestApplication.PortalBaseUrl + editor);
+            await Expect(Page.Locator("[data-product-fixed-personal-details]")).ToContainTextAsync("Full name and email address are always required.");
+            await Expect(Page.Locator("[data-form-field-item]")).ToHaveCountAsync(1);
+            await Expect(Page.Locator("#EditInput_FormFields_0__Label")).ToHaveValueAsync("Learning goals");
+            await Page.GotoAsync($"{LocalTestApplication.PortalBaseUrl}{editor}?preview=true");
+            await Expect(Page.Locator("[data-signup-step='0']")).ToBeVisibleAsync();
+            await ProductFormSteps.PersonalAsync(Page, "Preview customer", data.User.Email!);
+            await ProductFormSteps.QuestionsAsync(Page);
+            await Expect(Page.GetByLabel("Learning goals", new() { Exact = true })).ToBeVisibleAsync();
+            await Expect(Page.Locator("#product-submit-form button[type=submit]")).ToBeDisabledAsync();
+        }
+        Assert.False(await db.ProductFormSubmissions.AnyAsync(item => item.FormName == product.Name));
+        Assert.False(await db.CatalogCheckoutAttempts.AnyAsync(item => item.CatalogProductId == product.Id));
+    }
+
     [Theory]
     [InlineData(CatalogFormFieldType.Checkbox)]
     [InlineData(CatalogFormFieldType.NumberedList)]
@@ -218,8 +326,7 @@ public sealed class ProductFormFlowTests : DiagnosticPageTest
             await db.ProductFormSubmissions.Where(item => item.FormName == product.Name).ExecuteDeleteAsync();
             var directory = Environment.GetEnvironmentVariable("IDDEVELOPS_E2E_FILE_MAIL_DIRECTORY");
             if (directory != null && Directory.Exists(directory))
-                foreach (var path in Directory.EnumerateFiles(directory, "*.html").Where(path => File.ReadAllText(path).Contains(product.Name, StringComparison.Ordinal)))
-                    File.Delete(path);
+                FileMailTestStore.DeleteMatching(directory, product.Name);
         }
     }
 }

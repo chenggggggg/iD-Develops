@@ -72,7 +72,7 @@ public sealed class PublicLevelTestSelectionTests : DiagnosticPageTest
                 await Page.Locator("#Email").FillAsync(email);
                 await Page.GetByRole(AriaRole.Button, new() { Name = culture == "nl-nl" ? "Stuur mijn resultaat!" : "Send my results!", Exact = true }).ClickAsync();
                 await Expect(Page.Locator("#Email")).ToHaveCountAsync(0);
-                var body = Directory.EnumerateFiles(directory, "*.html").Select(File.ReadAllText).Single(text => text.Contains($"To: {email}", StringComparison.Ordinal));
+                var body = FileMailTestStore.Matching(directory, $"To: {email}").Select(mail => mail.Body).Single();
                 Assert.Contains(exam.Name, body);
                 Assert.Contains($"{level.ToUpperInvariant()} {(culture == "nl-nl" ? "advies" : "guidance")}", body);
                 var link = Regex.Matches(body, "href=\"([^\"]+)\"").Select(match => WebUtility.HtmlDecode(match.Groups[1].Value))
@@ -90,8 +90,7 @@ public sealed class PublicLevelTestSelectionTests : DiagnosticPageTest
             }
             finally
             {
-                foreach (var path in Directory.EnumerateFiles(directory, "*.html").Where(path => File.ReadAllText(path).Contains($"To: {email}", StringComparison.Ordinal)))
-                    File.Delete(path);
+                FileMailTestStore.DeleteMatching(directory, $"To: {email}");
                 await using var cleanup = LocalTestApplication.CreateDbContext();
                 await cleanup.Prospects.Where(prospect => prospect.Email == email).ExecuteDeleteAsync();
             }

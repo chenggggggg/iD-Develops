@@ -66,12 +66,12 @@
                 var saveButtonLabel = download.Status == CatalogProductStatus.Published ? "Save" : "Publish";
                 var saveButtonIcon = download.Status == CatalogProductStatus.Published ? "fa-solid fa-floppy-disk" : "fa-solid fa-cloud-arrow-up";
                 var imageDisplayUrl = await Model.ResolvePublicAssetUrlAsync(download.ImageUrl);
-                var publicDownloadPath = Url.RouteUrl(
-                    "PublicFreeDownloads",
-                    new { culture = "en-us", handler = "Download", id = download.Id });
-                var downloadUrl = string.IsNullOrWhiteSpace(download.IncludedBookingBenefitUrl) || string.IsNullOrWhiteSpace(publicDownloadPath)
+                var downloadPath = Url.RouteUrl(
+                    "PortalFreeDownloadsEdit",
+                    new { handler = "Download", id = download.Id });
+                var downloadUrl = string.IsNullOrWhiteSpace(download.IncludedBookingBenefitUrl) || string.IsNullOrWhiteSpace(downloadPath)
                     ? null
-                    : ApplicationUrls.PublicUrl(publicDownloadPath);
+                    : ApplicationUrls.PortalUrl(downloadPath);
                 <div>
                     @if (Model.IsAdminEditMode)
                     {

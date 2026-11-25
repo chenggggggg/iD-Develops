@@ -98,8 +98,7 @@ public sealed class PublicProductActionsTests : DiagnosticPageTest
             await db.ProductFormSubmissions.Where(item => item.FormName == data.Standard.Name).ExecuteDeleteAsync();
             var directory = Environment.GetEnvironmentVariable("IDDEVELOPS_E2E_FILE_MAIL_DIRECTORY");
             if (directory != null && Directory.Exists(directory))
-                foreach (var path in Directory.EnumerateFiles(directory, "*.html").Where(path => File.ReadAllText(path).Contains(data.Standard.Name, StringComparison.Ordinal)))
-                    File.Delete(path);
+                FileMailTestStore.DeleteMatching(directory, data.Standard.Name);
         }
     }
 

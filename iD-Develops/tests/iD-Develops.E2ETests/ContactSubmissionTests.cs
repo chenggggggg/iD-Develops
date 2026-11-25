@@ -45,8 +45,7 @@ public sealed class ContactSubmissionTests : Microsoft.Playwright.Xunit.PageTest
         }
         finally
         {
-            foreach (var mail in MatchingMails(directory, marker))
-                File.Delete(mail.Path);
+            FileMailTestStore.DeleteMatching(directory, marker);
         }
     }
 
@@ -70,8 +69,7 @@ public sealed class ContactSubmissionTests : Microsoft.Playwright.Xunit.PageTest
         }
         finally
         {
-            foreach (var mail in MatchingMails(directory, marker))
-                File.Delete(mail.Path);
+            FileMailTestStore.DeleteMatching(directory, marker);
         }
     }
 
@@ -101,7 +99,5 @@ public sealed class ContactSubmissionTests : Microsoft.Playwright.Xunit.PageTest
     }
 
     private static List<(string Path, string Body)> MatchingMails(string directory, string marker)
-        => !Directory.Exists(directory) ? [] : Directory.EnumerateFiles(directory, "*.html")
-            .Select(path => (Path: path, Body: File.ReadAllText(path)))
-            .Where(mail => mail.Body.Contains(marker, StringComparison.Ordinal)).ToList();
+        => FileMailTestStore.Matching(directory, marker);
 }
