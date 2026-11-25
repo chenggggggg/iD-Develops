@@ -227,19 +227,12 @@
                     <section class="product-form-builder" data-form-builder>
                         <div class="product-form-builder-header">
                             <div>
-                                <div class="product-section-label">Signup form</div>
-                                @if (Model.Product.ProductType == CatalogProductType.Signup)
-                                {
-                                    <p>@Localizer["SignupEditorHelp"]</p>
-                                    <div class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-                                        <strong>@Localizer["SignupPersonalDetailsTitle"]</strong>
-                                        <p class="mt-1">@Localizer["SignupFixedFieldsHelp"]</p>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <p>Add a form when this product needs user details before checkout or booking.</p>
-                                }
+                                <div class="product-section-label">@Localizer["ProductFormHeading"]</div>
+                                <p>@Localizer["SignupEditorHelp"]</p>
+                                <div class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+                                    <strong>@Localizer["SignupPersonalDetailsTitle"]</strong>
+                                    <p class="mt-1">@Localizer["ProductFormFixedFieldsHelp"]</p>
+                                </div>
                             </div>
                         </div>
 
@@ -734,7 +727,7 @@
     {
         <partial name="_MarketingProductDetails" model="Model" />
     }
-    else if (Model.Product.ProductType == CatalogProductType.Signup)
+    else if (Model.Product.HasCustomerForm)
     {
         <partial name="_ProductSignupFlow" model="Model" />
     }

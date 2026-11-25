@@ -64,4 +64,11 @@
   <data name="IncludedExamLabel" xml:space="preserve"><value>Inbegrepen examen</value></data>
   <data name="UnlimitedPurchasedAttempts" xml:space="preserve"><value>Onbeperkt aantal pogingen per aankoop</value></data>
   <data name="PurchasedAttemptCount" xml:space="preserve"><value>{0} pogingen per aankoop</value></data>
+  <data name="ProductFormHeading" xml:space="preserve"><value>Productformulier</value></data>
+  <data name="ProductFormFixedFieldsHelp" xml:space="preserve"><value>Producten met een formulier beginnen altijd met persoonsgegevens: naam en e-mailadres zijn verplicht, telefoonnummer en adres zijn optioneel. Voeg hieronder alleen aanvullende vragen toe.</value></data>
+  <data name="ProductFormProgressLabel" xml:space="preserve"><value>Voortgang productformulier</value></data>
+  <data name="ProductFormQuestionsHelp" xml:space="preserve"><value>Vul de onderstaande vragen in en ga verder met dit product.</value></data>
+  <data name="ProductFormNoQuestions" xml:space="preserve"><value>Geen aanvullende vragen. Je kunt nu verdergaan.</value></data>
+  <data name="ProductFormConfirmationTitle" xml:space="preserve"><value>Aanvraag ontvangen</value></data>
+  <data name="ProductFormJavascriptRequired" xml:space="preserve"><value>Schakel JavaScript in om dit formulier in te vullen.</value></data>
 </root>

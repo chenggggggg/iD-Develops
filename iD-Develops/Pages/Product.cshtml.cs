@@ -195,7 +195,7 @@ namespace iD_Develops.Pages
                 return await ResumePendingCheckoutAsync(product, access, handoff.UserId, ct);
             }
 
-            SignupCompleted = product.ProductType == CatalogProductType.Signup &&
+            SignupCompleted = product.HasCustomerForm &&
                 !string.IsNullOrEmpty(signupReceipt) &&
                 string.Equals(TempData.Peek($"Catalog.SignupConfirmation.{product.Id}") as string,
                     signupReceipt, StringComparison.Ordinal);
@@ -232,7 +232,7 @@ namespace iD_Develops.Pages
 
             var submittedValues = CollectSubmittedValues(product, ParticipantCount);
             submittedValues["order_quantity"] = OrderQuantity.ToString();
-            if (product.ProductType == CatalogProductType.Signup)
+            if (product.HasCustomerForm)
             {
                 Signup.Normalize();
                 if (!SignupPersonalDetails.IsValidName(Signup.FullName))
@@ -359,7 +359,10 @@ namespace iD_Develops.Pages
                 return Redirect(product.ExternalBookingUrl);
             }
 
-            if (product.ProductType == CatalogProductType.Signup)
+            if (product.ProductType == CatalogProductType.FreeDownload && !string.IsNullOrWhiteSpace(ResolvedAttachmentUrl))
+                return Redirect(ResolvedAttachmentUrl);
+
+            if (product.HasCustomerForm)
             {
                 var receipt = Guid.NewGuid().ToString("N");
                 TempData[$"Catalog.SignupConfirmation.{product.Id}"] = receipt;
@@ -767,7 +770,7 @@ namespace iD_Develops.Pages
 
         private void ValidateProductSave(CatalogProduct product, CatalogProductStatus requestedStatus)
         {
-            if (product.ProductType == CatalogProductType.Signup && EditInput.FormFields.Any(question =>
+            if (EditInput.FormFields.Any(question =>
                     SignupPersonalDetails.IsPersonalField(new CatalogProductFormField
                     {
                         Key = question.Key,
@@ -987,7 +990,7 @@ namespace iD_Develops.Pages
                 .ToHashSet();
 
             foreach (var existing in product.FormFields.Where(f => !submittedIds.Contains(f.Id) &&
-                         (product.ProductType != CatalogProductType.Signup || !SignupPersonalDetails.IsPersonalField(f))).ToList())
+                         !SignupPersonalDetails.IsPersonalField(f)).ToList())
             {
                 await _catalogProductService.DeleteFieldAsync(product.Id, existing.Id, ct);
             }
@@ -1182,7 +1185,7 @@ namespace iD_Develops.Pages
             var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var field in product.FormFields
-                         .Where(field => product.ProductType != CatalogProductType.Signup || !SignupPersonalDetails.IsPersonalField(field))
+                         .Where(field => !SignupPersonalDetails.IsPersonalField(field))
                          .OrderBy(f => f.SortOrder).ThenBy(f => f.Label))
             {
                 var requestKey = GetFieldName(field, null);
@@ -1266,7 +1269,7 @@ namespace iD_Develops.Pages
 
         private string? ResolveCustomerEmail(CatalogProduct product, IDictionary<string, string> submittedValues)
         {
-            if (product.ProductType == CatalogProductType.Signup)
+            if (product.HasCustomerForm)
                 return submittedValues.TryGetValue(SignupPersonalDetails.EmailKey, out var signupEmail) ? signupEmail : null;
             var emailField = product.FormFields
                 .OrderBy(f => f.SortOrder)
@@ -1378,7 +1381,7 @@ namespace iD_Develops.Pages
                     .Select(inclusion => inclusion.IncludedCreditProductId)
                     .ToList(),
                 FormFields = product.FormFields
-                    .Where(field => product.ProductType != CatalogProductType.Signup || !SignupPersonalDetails.IsPersonalField(field))
+                    .Where(field => !SignupPersonalDetails.IsPersonalField(field))
                     .OrderBy(f => f.SortOrder)
                     .ThenBy(f => f.Label)
                     .Select(f => new ProductFormFieldInput

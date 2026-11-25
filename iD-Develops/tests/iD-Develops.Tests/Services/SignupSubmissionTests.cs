@@ -14,6 +14,46 @@ namespace iD_Develops.Tests.Services;
 
 public sealed class SignupSubmissionTests
 {
+    [Theory]
+    [InlineData(CatalogProductType.Standard)]
+    [InlineData(CatalogProductType.Credit)]
+    [InlineData(CatalogProductType.Booking)]
+    [InlineData(CatalogProductType.ExternalBooking)]
+    [InlineData(CatalogProductType.Enrollment)]
+    [InlineData(CatalogProductType.DigitalCourse)]
+    [InlineData(CatalogProductType.BookingAddOn)]
+    [InlineData(CatalogProductType.FreeDownload)]
+    public async Task EveryProductWithAFormRequiresAndStoresContactDetails(CatalogProductType type)
+    {
+        using var factory = new SqliteTestDbFactory();
+        await using var db = factory.CreateDbContext();
+        var options = Options.Create(new MailSettings { To = "owner@example.test" });
+        var service = new CatalogProductSubmissionService(new ProductFormSubmissionService(db), options, new(options));
+        var product = new CatalogProduct
+        {
+            Name = "Product with form",
+            ProductType = type,
+            FormFields = [new() { Key = "goals", Label = "Goals", FieldType = CatalogFormFieldType.Text }]
+        };
+        await Assert.ThrowsAsync<ArgumentException>(() => service.SubmitAsync(product,
+            new Dictionary<string, string> { ["goals"] = "Conversation" }, "customer@example.test", 1, 1));
+        Assert.Empty(await db.ProductFormSubmissions.ToListAsync());
+        var values = new SignupPersonalDetails { FullName = "Customer", Email = "customer@example.test" }.ToValues();
+        values["goals"] = "Conversation";
+        await service.SubmitAsync(product, values, "customer@example.test", 1, 1);
+        var submission = await db.ProductFormSubmissions.SingleAsync();
+        Assert.Contains("Customer", submission.SubmissionDataJson);
+        Assert.Contains("Conversation", submission.SubmissionDataJson);
+        var notifications = await db.CatalogCheckoutMails.ToListAsync();
+        Assert.Equal(2, notifications.Count);
+        Assert.All(notifications, notification =>
+        {
+            var model = JsonSerializer.Deserialize<CatalogProductSubmissionEmailModel>(notification.ModelJson)!;
+            Assert.Equal("Customer", model.PersonalDetails!.FullName);
+            Assert.DoesNotContain(model.SubmittedValues.Keys, SignupPersonalDetails.IsPersonalKey);
+        });
+    }
+
     [Fact]
     public void MvcRequiresContactIdentityButLeavesOptionalDetailsOptional()
     {

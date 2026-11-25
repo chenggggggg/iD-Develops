@@ -43,7 +43,8 @@ public sealed class PurchasedExamCheckoutTests : Microsoft.Playwright.Xunit.Page
         await Page.RouteAsync("https://challenges.cloudflare.com/**", route => route.AbortAsync());
         await Page.GotoAsync(data.PublicUrl);
         await Expect(Page.Locator("[data-purchased-exam-benefit]")).ToContainTextAsync(data.ExamName);
-        await Page.GetByLabel("Your email", new() { Exact = true }).FillAsync(data.Account.User.Email!);
+        await ProductFormSteps.PersonalAsync(Page, "Exam customer", data.Account.User.Email!);
+        await ProductFormSteps.QuestionsAsync(Page);
         await PublicProductSubmissionPacing.ReserveAsync();
         await Page.Locator("#product-submit-form button[type=submit]").ClickAsync();
         await Expect(Page).ToHaveURLAsync(new Regex("/register[?]"));

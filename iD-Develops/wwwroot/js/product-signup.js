@@ -26,9 +26,27 @@
     function validatePersonal() {
         const inputs = Array.from(personal.querySelectorAll("input"));
         inputs.forEach(input => { input.value = input.value.trim(); });
+        inputs.forEach(input => showFieldError(input, input.checkValidity() ? "" : input.dataset.validationError || input.validationMessage));
         const invalid = inputs.find(input => !input.checkValidity());
-        if (invalid) { show(1); invalid.reportValidity(); return false; }
+        if (invalid) { show(1); invalid.focus(); return false; }
         return true;
+    }
+
+    function showFieldError(input, message) {
+        const target = Array.from(form.querySelectorAll("[data-valmsg-for]"))
+            .find(item => item.dataset.valmsgFor === input.name)
+            || input.closest("[data-required-question]")?.querySelector("[data-valmsg-for]");
+        if (target) {
+            target.textContent = message;
+            target.id ||= `${input.id || input.name}-validation`;
+            target.setAttribute("aria-live", "polite");
+            const descriptions = new Set((input.getAttribute("aria-describedby") || "").split(" ").filter(Boolean));
+            descriptions.add(target.id);
+            input.setAttribute("aria-describedby", Array.from(descriptions).join(" "));
+        }
+        input.classList.toggle("input-validation-error", Boolean(message));
+        if (message) input.setAttribute("aria-invalid", "true");
+        else input.removeAttribute("aria-invalid");
     }
 
     function validateQuestions() {
@@ -41,7 +59,7 @@
             inputs[0].setCustomValidity(answered ? "" : row.dataset.requiredMessage);
         });
         const invalid = Array.from(panel.querySelectorAll("input, select, textarea")).find(input => !input.checkValidity());
-        if (invalid) { show(2); invalid.reportValidity(); return false; }
+        if (invalid) { show(2); showFieldError(invalid, invalid.validationMessage); invalid.focus(); return false; }
         return true;
     }
 
@@ -54,6 +72,11 @@
     form.addEventListener("input", event => {
         const row = event.target.closest("[data-required-question]");
         row?.querySelector("input, select, textarea")?.setCustomValidity("");
+        if (row) {
+            const first = row.querySelector("input, select, textarea");
+            if (first) showFieldError(first, "");
+        }
+        showFieldError(event.target, "");
     });
     // Validate before the Turnstile manager consumes a single-use token.
     window.addEventListener("submit", event => {

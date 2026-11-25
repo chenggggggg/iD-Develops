@@ -3,7 +3,7 @@
 Updated: 2026-11-25
 
 This is the combined planning backlog from the staging review and owner meeting.
-B01-B42 are planning IDs, not GitHub PR numbers. Current launch priorities are:
+B01-B43 are planning IDs, not GitHub PR numbers. Current launch priorities are:
 P0 marketing-release blockers, P1 supporting work, P2 post-launch improvements.
 This file does not authorize implementation, Git changes, or deployments.
 
@@ -13,6 +13,14 @@ change set, publish it, and confirm that PR is merged before beginning the next 
 Preserve uncommitted work and confirm the working tree is clean before switching tasks.
 Follow AGENTS.md for Git-operation approvals. B01 was explicitly started on 2026-10-31
 on fix/payment-fulfillment-audit.
+
+## High-priority implementation queue - 2026-11-25
+
+The user explicitly prioritized and authorized implementation, branches, publication,
+and merging for B40-B42, then added B43 to the same work. Process these as separate
+PRs in order, waiting for successful GitHub checks before every merge. B40 is merged
+as PR #77 and deployed to staging; B41 is verified locally and ready to publish. Production release remains
+a separate workflow.
 
 ## Marketing launch priority update - 2026-11-24
 
@@ -1451,7 +1459,9 @@ proceeds under the user's explicit approval; staging follows the normal main mer
 
 Estimated size: Medium. Implementation, branches, publishing, and merging B40-B42
 were explicitly authorized on 2026-11-25, one PR at a time after successful checks.
-B40 is implemented on `fix/signup-email-presentation`; verification is in progress.
+B40 is merged as PR #77 and deployed to staging. Build, full formatting, 753 unit/
+integration tests, 11 focused signup browser checks, and the full GitHub Full/Marketing
+browser suites passed. Older queued email payloads remain deliverable without migration.
 
 - Refresh the signup customer confirmation and company notification with the existing
   brand identity, clear product/contact/answer sections, readable spacing, and a layout
@@ -1488,7 +1498,13 @@ This inspection confirms the code path, not the presence of any particular produ
 ## B41 - P1 - Use stepped forms for every product with a form
 
 Estimated size: Medium-Large. High-priority implementation and Git workflow authorized
-on 2026-11-25; begin after B40 is verified and merged.
+on 2026-11-25. Implemented on `feature/all-product-form-steps` after B40 merged.
+Release build, full-solution formatting, all 761 unit/integration tests, 80 deployment-
+policy checks, and a complete 373-test Full browser run passed. Final affected-flow
+verification passed 59 Full and 44 Marketing browser checks, including additional
+download/grouped-answer regressions and explicit assertions for Marketing's existing
+payment/account restrictions. Desktop/mobile screenshots were reviewed. Local settings
+were restored. GitHub CI must pass before merging; no migration is required.
 
 - Apply the existing Signup product flow to every product with a configured form,
   regardless of product type: product details -> personal details -> product questions
@@ -1526,6 +1542,19 @@ earlier Preview Only behavior that hides/disables the product's primary action.
 - Verify public product actions for Signup, paid, and booking/link-based products,
   Preview Only on/off, English/Dutch, desktop/mobile, and Full/Marketing modes. Ensure
   the contact action creates no purchase, signup, booking, or submission records.
+
+## B43 - P1 - Link Free downloads from Pricing and the public footer
+
+Estimated size: Small. Saved and explicitly authorized for implementation and the
+same verified commit/push/PR/merge workflow on 2026-11-25, after B40-B42.
+
+- Add a clear reference link to the existing Free downloads page at the bottom of
+  Pricing and in the shared public footer; reuse the existing destination and localized
+  navigation conventions rather than introducing another download page.
+- Reorder the footer service links so NT2 & Integration is first and Pricing is last.
+  Place Free downloads before Pricing while retaining the other service links.
+- Preserve the selected English/Dutch language and verify the links and ordering on
+  desktop/mobile in Full and Marketing modes. Do not change download/product behavior.
 
 ## External references checked
 

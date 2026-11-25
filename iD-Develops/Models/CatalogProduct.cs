@@ -144,6 +144,9 @@ namespace iD_Develops.Models
 
         public ICollection<CatalogProductFormField> FormFields { get; set; } = new List<CatalogProductFormField>();
 
+        [NotMapped]
+        public bool HasCustomerForm => ProductType == CatalogProductType.Signup || FormFields.Count > 0;
+
         public ICollection<CatalogProductInvite> Invites { get; set; } = new List<CatalogProductInvite>();
 
         public ICollection<CatalogProductCreditGrant> CreditGrants { get; set; } = new List<CatalogProductCreditGrant>();

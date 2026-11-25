@@ -31,7 +31,11 @@ public sealed class ProductBrowsingTests : Microsoft.Playwright.Xunit.PageTest
 
         await Expect(Page).ToHaveURLAsync($"{CatalogBrowsingFixture.PublicBaseUrl}/{culture}/products/{data.Credit.Slug}");
         await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = data.Credit.Name, Exact = true })).ToBeVisibleAsync();
-        await Expect(Page.GetByLabel("Your name", new() { Exact = true })).ToHaveValueAsync(string.Empty);
+        await ProductFormSteps.PersonalAsync(Page);
+        await Expect(Page.Locator("[name='Signup.FullName']")).ToHaveValueAsync(string.Empty);
+        await Page.Locator("[name='Signup.FullName']").FillAsync("Catalog customer");
+        await Page.Locator("[name='Signup.Email']").FillAsync(data.User.Email!);
+        await ProductFormSteps.QuestionsAsync(Page);
         await Expect(Page.GetByLabel("Your message", new() { Exact = true })).ToHaveValueAsync(string.Empty);
         await Expect(Page.GetByLabel("Preferred format", new() { Exact = true })).ToHaveValueAsync(string.Empty);
         await Expect(Page.GetByRole(AriaRole.Checkbox, new() { Name = "Conversation", Exact = true })).Not.ToBeCheckedAsync();
@@ -46,8 +50,9 @@ public sealed class ProductBrowsingTests : Microsoft.Playwright.Xunit.PageTest
         await using var data = await CatalogBrowsingFixture.CreateAsync();
         var productUrl = $"{CatalogBrowsingFixture.PublicBaseUrl}/{culture}/products/{data.Credit.Slug}";
         await Page.GotoAsync(productUrl, new() { WaitUntil = WaitUntilState.DOMContentLoaded });
-        await Page.GetByLabel("Your name", new() { Exact = true }).FillAsync("Client <&> Name");
-        await Page.GetByLabel("Telephone", new() { Exact = true }).FillAsync("0123456789");
+        await ProductFormSteps.PersonalAsync(Page, "Client <&> Name", data.User.Email!);
+        await Page.Locator("[name='Signup.Phone']").FillAsync("0123456789");
+        await ProductFormSteps.QuestionsAsync(Page);
         await Page.GetByLabel("Your message", new() { Exact = true }).FillAsync("First line\nSecond line <&>");
         await Page.GetByLabel("Preferred format", new() { Exact = true }).SelectOptionAsync("In person");
         await Page.GetByRole(AriaRole.Checkbox, new() { Name = "Other topic", Exact = true }).CheckAsync();
@@ -55,17 +60,21 @@ public sealed class ProductBrowsingTests : Microsoft.Playwright.Xunit.PageTest
         await Page.GetByRole(AriaRole.Radio, new() { Name = "Evening", Exact = true }).CheckAsync();
         await Page.Locator("[name='items_0']").FillAsync("Speak confidently");
 
-        // Leave the required email empty so validation returns the form without sending email or starting checkout.
+        // Deliberately bypass client validation to verify that the server rejects
+        // missing personal details and preserves every posted answer.
+        await Page.EvaluateAsync("() => document.querySelector('[name=\"Signup.Email\"]').value = ''");
         await PublicProductSubmissionPacing.ReserveAsync();
         var response = await Page.RunAndWaitForResponseAsync(
-            () => Page.Locator("#product-submit-form").GetByRole(AriaRole.Button).ClickAsync(),
+            () => Page.EvaluateAsync("() => HTMLFormElement.prototype.submit.call(document.getElementById('product-submit-form'))"),
             response => response.Request.Method == "POST" && response.Url == productUrl);
 
         Assert.Equal(200, response.Status);
-        var validationMessage = culture == "nl-nl" ? "Your email is verplicht." : "Your email is required.";
-        await Expect(Page.Locator("#product-submit-form").GetByText(validationMessage, new() { Exact = true })).ToBeVisibleAsync();
-        await Expect(Page.GetByLabel("Your name", new() { Exact = true })).ToHaveValueAsync("Client <&> Name");
-        await Expect(Page.GetByLabel("Telephone", new() { Exact = true })).ToHaveValueAsync("0123456789");
+        await Expect(Page.Locator("[data-signup-step='1']")).ToBeVisibleAsync();
+        await Expect(Page.Locator("[data-valmsg-for='Signup.Email']")).Not.ToBeEmptyAsync();
+        await Expect(Page.Locator("[name='Signup.FullName']")).ToHaveValueAsync("Client <&> Name");
+        await Expect(Page.Locator("[name='Signup.Phone']")).ToHaveValueAsync("0123456789");
+        await Page.Locator("[name='Signup.Email']").FillAsync(data.User.Email!);
+        await ProductFormSteps.QuestionsAsync(Page);
         await Expect(Page.GetByLabel("Your message", new() { Exact = true })).ToHaveValueAsync("First line\nSecond line <&>");
         await Expect(Page.GetByLabel("Preferred format", new() { Exact = true })).ToHaveValueAsync("In person");
         await Expect(Page.GetByRole(AriaRole.Checkbox, new() { Name = "Other topic", Exact = true })).ToBeCheckedAsync();
