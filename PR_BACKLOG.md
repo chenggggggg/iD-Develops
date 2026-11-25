@@ -1,9 +1,9 @@
 ﻿# Planned PR backlog
 
-Updated: 2026-11-24
+Updated: 2026-11-25
 
 This is the combined planning backlog from the staging review and owner meeting.
-B01-B39 are planning IDs, not GitHub PR numbers. Current launch priorities are:
+B01-B42 are planning IDs, not GitHub PR numbers. Current launch priorities are:
 P0 marketing-release blockers, P1 supporting work, P2 post-launch improvements.
 This file does not authorize implementation, Git changes, or deployments.
 
@@ -1446,6 +1446,86 @@ browser checks, and 80 deployment-policy tests passed. The managed trace now cap
 the actual page/network rather than an unused context. Original local settings, Full
 mode, consent configuration, and public-test assignments were restored. Publishing
 proceeds under the user's explicit approval; staging follows the normal main merge.
+
+## B40 - P1 - Refresh signup emails and show readable question labels
+
+Estimated size: Medium. Implementation, branches, publishing, and merging B40-B42
+were explicitly authorized on 2026-11-25, one PR at a time after successful checks.
+B40 is implemented on `fix/signup-email-presentation`; verification is in progress.
+
+- Refresh the signup customer confirmation and company notification with the existing
+  brand identity, clear product/contact/answer sections, readable spacing, and a layout
+  that works in desktop and mobile email clients. Verify the logo asset and absolute URL.
+  Use email-compatible markup and styling rather than relying on application Tailwind
+  stylesheets or external web fonts being available in recipients' email clients.
+- Display the configured question labels in form order and the applicable submission
+  language, rather than internal keys such as `additional_remarks`. Snapshot labels,
+  ordering, and language when queuing notifications so later form edits do not change
+  the meaning of previously submitted answers. Support older queued payloads safely.
+- Format multiple selections and multiline answers as readable lists or line breaks.
+  Omit empty optional answer rows, and show personal details and quantity/participants
+  once without leaking internal submission metadata into the custom-answer table.
+- Preserve custom product subjects/introduction content, required company/customer
+  notifications, safe answer encoding, submission deduplication, and durable delivery
+  retries. Do not change signup workflow or create duplicate submission storage.
+- Verify rendered emails with short/long labels, English/Dutch text, special characters,
+  multiline/multiple-choice answers, blank optional fields, and legacy queued models;
+  add relevant rendering/notification regressions and inspect desktop/mobile layouts.
+
+Source-confirmed root cause: `wwwroot/templates/ProductEmailTemplate.cshtml` prints
+`SubmittedValues` dictionary keys and sorts them alphabetically. The queued email model
+currently contains the submitted key/value pairs without configured field-label metadata.
+The form definitions already have labels, translations, and a sort order.
+
+Signup registry status: `ProductFormSubmissions` already stores the form/product name,
+submission timestamp, email, deduplication key, and JSON containing submitted personal
+details and custom answers. Signup submission and notification queue rows are saved in
+one transaction by `ProductFormSubmissionService.SaveWithNotificationsAsync`. There is
+currently no Portal submission-list/detail interface referencing these records. A future
+Portal signup registry can reuse this storage; that interface is separate from this email PR.
+This inspection confirms the code path, not the presence of any particular production record.
+
+## B41 - P1 - Use stepped forms for every product with a form
+
+Estimated size: Medium-Large. High-priority implementation and Git workflow authorized
+on 2026-11-25; begin after B40 is verified and merged.
+
+- Apply the existing Signup product flow to every product with a configured form,
+  regardless of product type: product details -> personal details -> product questions
+  -> the appropriate checkout, booking, submission, or confirmation outcome.
+- Always include the personal-details step for products with a form. Require name and
+  a valid contact email; retain the existing optional phone/address field requirements
+  rather than making every personal-detail field mandatory. Avoid asking for the same
+  details again as custom questions.
+- Reuse and generalize the existing step navigation, validation, accessible labels,
+  progress feedback, and Back behavior instead of creating another form implementation.
+  Preserve entered values when navigating steps or correcting validation errors.
+- Preserve each product's configured payment/booking behavior and existing submission
+  persistence, notifications, and duplicate-submission protection. Do not show a success
+  confirmation before the relevant action succeeds. Products without a form retain
+  their current direct action; Preview Only products follow B42 instead.
+- Verify relevant product types in Full and Marketing modes, including required personal
+  details, custom validation, back navigation, desktop/mobile, and payment/booking handoff.
+  Coordinate with B40 so generalized submissions use readable email labels consistently.
+
+## B42 - P1 - Show a Contact Us action for Preview Only products
+
+Estimated size: Small-Medium. High-priority implementation and Git workflow authorized
+on 2026-11-25; begin after B41 is verified and merged. This replaces the
+earlier Preview Only behavior that hides/disables the product's primary action.
+
+- Keep a visible, enabled primary action in the usual payment/signup button position
+  for Preview Only products, but send it to the public Contact Us page rather than
+  starting checkout, signup, booking, or the product form flow.
+- Use clear localized Contact Us wording so the action describes its destination rather
+  than promising payment. Implement navigation as an anchor styled with the established
+  product button treatment, preserving the visitor's selected language.
+- Keep existing server-side Preview Only guards against direct checkout/signup attempts;
+  this changes the public enquiry route, not whether the product can be purchased.
+  Preserve normal actions when Preview Only is off and staff editor preview behavior.
+- Verify public product actions for Signup, paid, and booking/link-based products,
+  Preview Only on/off, English/Dutch, desktop/mobile, and Full/Marketing modes. Ensure
+  the contact action creates no purchase, signup, booking, or submission records.
 
 ## External references checked
 
