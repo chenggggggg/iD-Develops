@@ -168,7 +168,13 @@
                                 <div class="public-catalog-label">@Localizer["CardLabel"]</div>
                                 <h2 class="public-catalog-title">@download.Name</h2>
                                 <p class="public-catalog-summary">@download.Summary</p>
-                                @if (!string.IsNullOrWhiteSpace(downloadUrl))
+                                @if (download.IsPreviewOnly)
+                                {
+                                    <a class="public-btn public-btn-outline mt-6" data-product-contact-action asp-page="/Contact" asp-route-culture="@System.Globalization.CultureInfo.CurrentUICulture.Name.ToLowerInvariant()">
+                                        @Localizer["ContactAction"] <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                                    </a>
+                                }
+                                else if (!string.IsNullOrWhiteSpace(downloadUrl))
                                 {
                                     @if (download.HasCustomerForm)
                                     {

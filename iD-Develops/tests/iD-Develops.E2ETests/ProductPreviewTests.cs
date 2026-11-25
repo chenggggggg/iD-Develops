@@ -36,7 +36,9 @@ public sealed class ProductPreviewTests : DiagnosticPageTest
         await Expect(Page.Locator("[data-product-preview-only=true]")).ToBeVisibleAsync();
         await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = product.Name, Exact = true })).ToBeVisibleAsync();
         await Expect(Page.GetByText("Product information remains available.", new() { Exact = true })).ToBeVisibleAsync();
-        await Expect(Page.Locator("#product-submit-form, [data-signup-step], .product-cta")).ToHaveCountAsync(0);
+        await Expect(Page.Locator("#product-submit-form, [data-signup-step]")).ToHaveCountAsync(0);
+        await Expect(Page.Locator("[data-product-contact-action]")).ToBeVisibleAsync();
+        await Expect(Page.Locator("[data-product-contact-action]")).ToHaveAttributeAsync("href", "/en-us/contact");
         Assert.False(await db.CatalogCheckoutAttempts.AnyAsync(item => item.CatalogProductId == product.Id));
         Assert.False(await db.ProductFormSubmissions.AnyAsync(item => item.FormName == product.Name));
         product.IsPreviewOnly = false;

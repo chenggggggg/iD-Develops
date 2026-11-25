@@ -41,6 +41,8 @@ public sealed class PublicProductActionsTests : DiagnosticPageTest
                 await Expect(Page.GetByRole(AriaRole.Button, new() { Name = "Book a time", Exact = true })).ToBeDisabledAsync();
         }
         await Expect(Page.Locator("[data-product-preview-only=true]")).ToHaveCountAsync(preview ? 1 : 0);
+        if (preview)
+            await Expect(Page.Locator("[data-product-contact-action]")).ToHaveAttributeAsync("href", "/en-us/contact");
         Assert.False(await db.ProductFormSubmissions.AnyAsync(item => item.FormName == product.Name));
     }
 
