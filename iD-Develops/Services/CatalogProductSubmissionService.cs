@@ -37,7 +37,7 @@ namespace iD_Develops.Services
             if (product.IsPreviewOnly)
                 throw new InvalidOperationException("This product is available for information only.");
 
-            if (product.ProductType == CatalogProductType.Signup)
+            if (product.HasCustomerForm)
             {
                 if (!submittedValues.TryGetValue(SignupPersonalDetails.FullNameKey, out var name) ||
                     !SignupPersonalDetails.IsValidName(name) || !SignupPersonalDetails.IsValidEmail(customerEmail) ||
@@ -46,7 +46,7 @@ namespace iD_Develops.Services
                 if (SignupPersonalDetails.OptionalFields.Any(item =>
                         submittedValues.TryGetValue(item.Key, out var value) && !SignupPersonalDetails.IsValidOptionalValue(value, item.MaxLength)))
                     throw new ArgumentException("Signup personal details contain an invalid value.");
-                if (!SignupNotificationsConfigured)
+                if (product.ProductType == CatalogProductType.Signup && !SignupNotificationsConfigured)
                     throw new InvalidOperationException("Signup requires a configured company notification recipient.");
             }
             requestKey ??= Guid.NewGuid().ToString("N");
@@ -86,11 +86,10 @@ namespace iD_Develops.Services
                 Culture = System.Globalization.CultureInfo.CurrentUICulture.Name,
                 IsCompanyNotification = true,
                 Answers = BuildEmailAnswers(product, submittedValues),
-                SubmittedValues = submittedValues.Where(value => product.ProductType != CatalogProductType.Signup ||
-                        !SignupPersonalDetails.IsPersonalKey(value.Key))
+                SubmittedValues = submittedValues.Where(value => !SignupPersonalDetails.IsPersonalKey(value.Key))
                     .ToDictionary(value => value.Key, value => value.Value),
                 CustomerEmail = customerEmail,
-                PersonalDetails = product.ProductType == CatalogProductType.Signup ? SignupPersonalDetails.FromValues(submittedValues) : null,
+                PersonalDetails = submittedValues.ContainsKey(SignupPersonalDetails.EmailKey) ? SignupPersonalDetails.FromValues(submittedValues) : null,
                 CustomerName = submittedValues.TryGetValue(SignupPersonalDetails.FullNameKey, out var fullName) ? fullName : null,
                 OrderQuantity = orderQuantity,
                 ParticipantCount = participantCount,

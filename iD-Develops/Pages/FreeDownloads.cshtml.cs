@@ -78,6 +78,13 @@ namespace iD_Develops.Pages
                 return NotFound();
             }
 
+            if (product.HasCustomerForm && !CanManageProducts())
+                return RedirectToRoute(ApplicationHostPageRouteModelConvention.PublicProductRouteName, new
+                {
+                    culture = CatalogContentCulture.Normalize(System.Globalization.CultureInfo.CurrentUICulture.Name).ToLowerInvariant(),
+                    slug = product.Slug
+                });
+
             if (!_catalogProductFileStorageService.Exists(product.IncludedBookingBenefitUrl))
             {
                 return NotFound();

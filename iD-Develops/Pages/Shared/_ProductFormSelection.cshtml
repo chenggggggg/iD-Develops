@@ -1,0 +1,54 @@
+@using iD_Develops.Utilities
+@model iD_Develops.Pages.ProductModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<iD_Develops.Pages.ProductModel> Localizer
+@{
+    var variants = Model.Product.Variants.Where(variant => variant.IsActive)
+        .OrderBy(variant => variant.SortOrder).ThenBy(variant => variant.Name).ToList();
+    var selected = variants.FirstOrDefault(variant => variant.Id == Model.SelectedVariantId)
+        ?? variants.FirstOrDefault(variant => variant.IsDefault) ?? variants.FirstOrDefault();
+    var pricing = CatalogPricing.Calculate(Model.Product, Model.OrderQuantity, selected?.Price);
+    var currency = selected?.Currency ?? Model.Product.Currency;
+}
+<fieldset class="mx-0 min-w-0 space-y-3 border-0 p-0">
+    <legend class="mb-3 font-semibold">@Localizer["SelectionHeading"]</legend>
+    @foreach (var variant in variants)
+    {
+        <label class="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-slate-200 p-4 has-[:checked]:border-current">
+            <span class="flex min-w-0 items-center gap-3">
+                <input type="radio" name="selectedVariantId" value="@variant.Id" checked="@(variant == selected)"
+                       data-price="@CatalogPricing.DiscountedUnitPrice(Model.Product, Model.Product.BasePrice ?? variant.Price).ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                       data-original-price="@((Model.Product.BasePrice ?? variant.Price).ToString(System.Globalization.CultureInfo.InvariantCulture))"
+                       data-currency="@variant.Currency" />
+                <span class="break-words">@variant.Name</span>
+            </span>
+            <span class="shrink-0 text-sm">@variant.Currency @variant.Price.ToString("0.00")</span>
+        </label>
+    }
+    @if (Model.Product.DisplayPrice.HasValue)
+    {
+        <div class="space-y-2 rounded-xl bg-slate-50 p-4 text-sm" aria-live="polite">
+            <div class="flex items-baseline justify-between gap-4">
+                <span>@Localizer["PriceLabel"]</span>
+                <span class="text-right">
+                    <del id="product-original-unit-price" hidden="@(pricing.UnitPrice >= pricing.OriginalUnitPrice)" class="text-slate-500">@currency @pricing.OriginalUnitPrice.ToString("0.00")</del>
+                    <strong id="product-unit-price">@currency @pricing.UnitPrice.ToString("0.00")</strong>
+                </span>
+            </div>
+            @if (pricing.Fees > 0)
+            {
+                <div class="flex justify-between gap-4"><span>@Localizer["FeesLabel"]</span><span>@currency @pricing.Fees.ToString("0.00")</span></div>
+            }
+            @if (Model.Product.VatPercentage > 0)
+            {
+                <div class="flex justify-between gap-4"><span>@Localizer["VatLabel"]</span><span id="product-vat-price">@currency @pricing.Vat.ToString("0.00")</span></div>
+            }
+            <div class="flex items-baseline justify-between gap-4 border-t border-slate-200 pt-3 text-base">
+                <strong>@Localizer["TotalLabel"]</strong>
+                <span class="text-right">
+                    <del id="product-original-total-price" hidden="@(pricing.Total >= pricing.OriginalTotal)" class="text-sm text-slate-500">@currency @pricing.OriginalTotal.ToString("0.00")</del>
+                    <strong id="product-total-price">@currency @pricing.Total.ToString("0.00")</strong>
+                </span>
+            </div>
+        </div>
+    }
+</fieldset>

@@ -45,17 +45,21 @@ public sealed class PublicProductActionsTests : DiagnosticPageTest
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task PublicAndStaffBookingFormsSaveBeforeOpeningExternalCalendar(bool staff)
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public async Task ProductFormsSaveBeforeOpeningBookingOrDownloadDestination(bool staff, bool download)
     {
         await using var data = await CatalogBrowsingFixture.CreateAsync(administrator: staff);
         try
         {
             await using var db = LocalTestApplication.CreateDbContext();
             var product = await db.CatalogProducts.SingleAsync(item => item.Id == data.Standard.Id);
-            product.WorkflowType = CatalogWorkflowType.FormThenExternalBooking;
-            product.ExternalBookingUrl = BookingUrl;
+            var destination = download ? "https://downloads.example.invalid/guide.pdf" : BookingUrl;
+            if (download) product.ProductType = CatalogProductType.FreeDownload;
+            product.WorkflowType = download ? CatalogWorkflowType.ExternalBookingOnly : CatalogWorkflowType.FormThenExternalBooking;
+            product.ExternalBookingUrl = download ? null : destination;
+            product.IncludedBookingBenefitUrl = download ? destination : null;
             product.FormFields = [new CatalogProductFormField
             {
                 Key = "email", Label = "Booking email", FieldType = CatalogFormFieldType.Email, IsRequired = true
@@ -65,7 +69,8 @@ public sealed class PublicProductActionsTests : DiagnosticPageTest
                 await BrowserLogin.SignInAsync(Page, data.User.Email!, data.Password, "/profile", Page.Locator("[data-portal-page-content]"));
 
             await Page.GotoAsync($"{LocalTestApplication.PublicBaseUrl}/en-us/products/{product.Slug}");
-            await Page.GetByLabel("Booking email", new() { Exact = true }).FillAsync(data.User.Email!);
+            await ProductFormSteps.PersonalAsync(Page, "Booking customer", data.User.Email!);
+            await ProductFormSteps.QuestionsAsync(Page);
             await PublicProductSubmissionPacing.ReserveAsync();
             await Expect(Page.Locator("#product-submit-form button[type=submit]")).ToBeEnabledAsync();
             // Inspect the real POST and Location header without visiting a third-party
@@ -77,7 +82,7 @@ public sealed class PublicProductActionsTests : DiagnosticPageTest
                 }
                 """), response => response.Request.Method == "POST" && response.Url.Contains("/products/"));
             Assert.Equal(302, response.Status);
-            Assert.Equal(BookingUrl, await response.HeaderValueAsync("location"));
+            Assert.Equal(destination, await response.HeaderValueAsync("location"));
             var submission = await db.ProductFormSubmissions.SingleAsync(item => item.FormName == product.Name);
             Assert.Contains(data.User.Email!, submission.SubmissionDataJson);
             Assert.Equal(2, await db.CatalogCheckoutMails.CountAsync(item => item.StripeSessionId == "signup:" + submission.RequestKey));
@@ -93,8 +98,7 @@ public sealed class PublicProductActionsTests : DiagnosticPageTest
             await db.ProductFormSubmissions.Where(item => item.FormName == data.Standard.Name).ExecuteDeleteAsync();
             var directory = Environment.GetEnvironmentVariable("IDDEVELOPS_E2E_FILE_MAIL_DIRECTORY");
             if (directory != null && Directory.Exists(directory))
-                foreach (var path in Directory.EnumerateFiles(directory, "*.html").Where(path => File.ReadAllText(path).Contains(data.Standard.Name, StringComparison.Ordinal)))
-                    File.Delete(path);
+                FileMailTestStore.DeleteMatching(directory, data.Standard.Name);
         }
     }
 

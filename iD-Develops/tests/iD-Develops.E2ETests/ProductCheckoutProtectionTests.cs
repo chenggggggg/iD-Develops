@@ -15,7 +15,8 @@ public sealed class ProductCheckoutProtectionTests : Microsoft.Playwright.Xunit.
         try
         {
             await OpenAsync(fixture);
-            await Page.GetByLabel("Your email", new() { Exact = true }).FillAsync(fixture.User.Email!);
+            await Page.GetByLabel("Email address", new() { Exact = true }).FillAsync(fixture.User.Email!);
+            await ProductFormSteps.QuestionsAsync(Page);
             await PublicProductSubmissionPacing.ReserveAsync(2);
             var statuses = await Page.EvaluateAsync<int[]>("""
                 async () => {
@@ -43,8 +44,9 @@ public sealed class ProductCheckoutProtectionTests : Microsoft.Playwright.Xunit.
         await Page.RouteAsync("https://challenges.cloudflare.com/**", route => route.AbortAsync());
         await OpenAsync(fixture);
         await Expect(Page.Locator(".cf-turnstile, script[src*='challenges.cloudflare.com/turnstile']")).ToHaveCountAsync(0);
-        await Page.GetByLabel("Your name", new() { Exact = true }).FillAsync("Returning customer");
-        await Page.GetByLabel("Your email", new() { Exact = true }).FillAsync(fixture.User.Email!);
+        await Page.GetByLabel("Full name", new() { Exact = true }).FillAsync("Returning customer");
+        await Page.GetByLabel("Email address", new() { Exact = true }).FillAsync(fixture.User.Email!);
+        await ProductFormSteps.QuestionsAsync(Page);
         await Page.GetByLabel("Your message", new() { Exact = true }).FillAsync("Keep my details\nwhile I decide.");
         await Page.GetByLabel("Preferred format", new() { Exact = true }).SelectOptionAsync("In person");
         await Page.GetByRole(AriaRole.Checkbox, new() { Name = "Conversation", Exact = true }).CheckAsync();
@@ -52,9 +54,11 @@ public sealed class ProductCheckoutProtectionTests : Microsoft.Playwright.Xunit.
         await Page.GotoAsync($"{LocalTestApplication.PublicBaseUrl}/en-us/pricing");
         await OpenAsync(fixture);
         await Page.ReloadAsync();
-        await Expect(Page.Locator("[data-draft-ready=true]")).ToBeVisibleAsync();
-        await Expect(Page.GetByLabel("Your name", new() { Exact = true })).ToHaveValueAsync("Returning customer");
-        await Expect(Page.GetByLabel("Your email", new() { Exact = true })).ToHaveValueAsync(fixture.User.Email!);
+        await Expect(Page.Locator("#product-submit-form")).ToHaveAttributeAsync("data-draft-ready", "true");
+        await ProductFormSteps.PersonalAsync(Page);
+        await Expect(Page.GetByLabel("Full name", new() { Exact = true })).ToHaveValueAsync("Returning customer");
+        await Expect(Page.GetByLabel("Email address", new() { Exact = true })).ToHaveValueAsync(fixture.User.Email!);
+        await ProductFormSteps.QuestionsAsync(Page);
         await Expect(Page.GetByLabel("Your message", new() { Exact = true })).ToHaveValueAsync("Keep my details\nwhile I decide.");
         await Expect(Page.GetByLabel("Preferred format", new() { Exact = true })).ToHaveValueAsync("In person");
         await Expect(Page.GetByRole(AriaRole.Checkbox, new() { Name = "Conversation", Exact = true })).ToBeCheckedAsync();
@@ -75,9 +79,9 @@ public sealed class ProductCheckoutProtectionTests : Microsoft.Playwright.Xunit.
         try
         {
             await Page.GotoAsync($"{LocalTestApplication.PublicBaseUrl}/en-us/products/{fixture.Standard.Slug}");
-            if (!blockStorage) await Expect(Page.Locator("[data-draft-ready=true]")).ToBeVisibleAsync();
-            await Page.GetByLabel("Your name", new() { Exact = true }).FillAsync("Checkout customer");
-            await Page.GetByLabel("Your email", new() { Exact = true }).FillAsync(fixture.User.Email!);
+            if (!blockStorage) await Expect(Page.Locator("#product-submit-form")).ToHaveAttributeAsync("data-draft-ready", "true");
+            await ProductFormSteps.PersonalAsync(Page, "Checkout customer", fixture.User.Email!);
+            await ProductFormSteps.QuestionsAsync(Page);
             await Page.GetByLabel("Your message", new() { Exact = true }).FillAsync(new string('x', 1500));
             await PublicProductSubmissionPacing.ReserveAsync();
             await Page.Locator("#product-submit-form button[type=submit]").ClickAsync();
@@ -104,7 +108,8 @@ public sealed class ProductCheckoutProtectionTests : Microsoft.Playwright.Xunit.
         try
         {
             await OpenAsync(fixture);
-            await Page.GetByLabel("Your email", new() { Exact = true }).FillAsync(fixture.User.Email!);
+            await Page.GetByLabel("Email address", new() { Exact = true }).FillAsync(fixture.User.Email!);
+            await ProductFormSteps.QuestionsAsync(Page);
             await PublicProductSubmissionPacing.ReserveAsync();
             await Page.Locator("#product-submit-form button[type=submit]").ClickAsync();
             await Expect(Page).ToHaveURLAsync(new Regex("/payment-result[?].*local=true"));
@@ -164,7 +169,10 @@ public sealed class ProductCheckoutProtectionTests : Microsoft.Playwright.Xunit.
     {
         var response = await Page.GotoAsync($"{LocalTestApplication.PublicBaseUrl}/en-us/products/{fixture.Standard.Slug}");
         Assert.Equal(200, response!.Status);
-        await Expect(Page.Locator("[data-draft-ready=true]")).ToBeVisibleAsync();
+        await Expect(Page.Locator("#product-submit-form")).ToHaveAttributeAsync("data-draft-ready", "true");
+        await ProductFormSteps.PersonalAsync(Page);
+        if (string.IsNullOrEmpty(await Page.GetByLabel("Full name", new() { Exact = true }).InputValueAsync()))
+            await Page.GetByLabel("Full name", new() { Exact = true }).FillAsync("Checkout customer");
     }
 
     private static async Task<CatalogBrowsingFixture> PaidProductAsync()
