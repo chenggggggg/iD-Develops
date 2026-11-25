@@ -1,91 +1,118 @@
-@using iD_Develops.Models
+﻿@using iD_Develops.Models
 @model CatalogProductSubmissionEmailModel
-
+@{
+    var dutch = Model.Culture.StartsWith("nl", StringComparison.OrdinalIgnoreCase);
+    string Text(string english, string nl) => dutch ? nl : english;
+    var answers = Model.ReadableAnswers().Where(answer => !string.IsNullOrWhiteSpace(answer.Value)).ToList();
+    var details = Model.PersonalDetails;
+    var contactRows = new[]
+    {
+        (Text("Name", "Naam"), Model.CustomerName ?? details?.FullName),
+        (Text("Email", "E-mailadres"), Model.CustomerEmail ?? details?.Email),
+        (Text("Phone", "Telefoonnummer"), details?.Phone),
+        (Text("Street address", "Straat en huisnummer"), details?.StreetAddress),
+        (Text("Postal code", "Postcode"), details?.PostalCode),
+        (Text("City", "Woonplaats"), details?.City),
+        (Text("Country", "Land"), details?.Country)
+    };
+}
 <!DOCTYPE html>
-<html>
+<html lang="@(dutch ? "nl" : "en")">
 <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@Model.Product.Name</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
-<body style="font-family: 'Lato', sans-serif; color: #333; margin: 0; padding: 0;">
-    <div class="image-container" style="background-color: #fff; padding-top: 10px;">
-        <img src="@Model.Branding.LogoUrl" alt="@Model.Branding.SiteName" style="display: block; margin: 0 auto; width: 75%; max-width: 475px;">
-    </div>
-
-    <div class="header" style="background-color: #005190; color: white; text-align: center;">
-        <h1 style="margin: 0; font-weight: 700; padding: 10px 0;">@Model.Product.Name</h1>
-    </div>
-
-    <div class="centered-div" style="width: 75%; max-width: 475px; margin: 20px auto; padding: 20px;">
-        <div class="content-container" style="padding: 20px;">
-            @Html.Raw(Model.IntroHtml)
-
-            @if (!string.IsNullOrWhiteSpace(Model.CustomerName))
-            {
-                <p><strong>Name:</strong> @Model.CustomerName</p>
-            }
-            @if (!string.IsNullOrWhiteSpace(Model.CustomerEmail))
-            {
-                <p><strong>Email:</strong> <a href="mailto:@Model.CustomerEmail">@Model.CustomerEmail</a></p>
-            }
-
-            @if (Model.PersonalDetails is { } details)
-            {
-                @if (!string.IsNullOrWhiteSpace(details.Phone))
-                {
-                    <p><strong>Phone:</strong> @details.Phone</p>
-                }
-                @if (!string.IsNullOrWhiteSpace(details.StreetAddress))
-                {
-                    <p><strong>Street address:</strong> @details.StreetAddress</p>
-                }
-                @if (!string.IsNullOrWhiteSpace(details.PostalCode))
-                {
-                    <p><strong>Postal code:</strong> @details.PostalCode</p>
-                }
-                @if (!string.IsNullOrWhiteSpace(details.City))
-                {
-                    <p><strong>City:</strong> @details.City</p>
-                }
-                @if (!string.IsNullOrWhiteSpace(details.Country))
-                {
-                    <p><strong>Country:</strong> @details.Country</p>
-                }
-            }
-
-            <p style="text-align: left;"><strong>Quantity:</strong> @Model.OrderQuantity</p>
-            <p style="text-align: left;"><strong>Participants:</strong> @Model.ParticipantCount</p>
-
-            <table style="width: 100%; border-collapse: collapse; margin-top: 24px;">
-                <tbody>
-                @foreach (var item in Model.SubmittedValues.OrderBy(k => k.Key))
-                {
+@* Email clients do not load our Tailwind bundle reliably. Inline styles and presentation
+   tables keep the same layout usable in Outlook, Gmail, and narrow mobile mail clients. *@
+<body style="margin: 0; padding: 0; background-color: #f5f5f3; color: #172b41; font-family: Arial, Helvetica, sans-serif; font-size: 16px; line-height: 1.6;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; background-color: #f5f5f3;">
+        <tr>
+            <td align="center" style="padding: 24px 12px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff;">
                     <tr>
-                        <td style="padding: 10px 12px; border-top: 1px solid #e7ecf2; width: 35%; vertical-align: top;">
-                            <strong>@item.Key</strong>
-                        </td>
-                        <td style="padding: 10px 12px; border-top: 1px solid #e7ecf2;">
-                            @item.Value
+                        <td style="padding: 28px 24px; border-bottom: 1px solid #e7ecf2;">
+                            <a href="@Model.Branding.PublicBaseUrl" style="color: #005190; text-decoration: none;">
+                                <img src="@Model.Branding.LogoUrl" alt="@Model.Branding.SiteName" width="210" style="display: block; width: 210px; max-width: 100%; height: auto; border: 0;" />
+                            </a>
                         </td>
                     </tr>
-                }
-                </tbody>
-            </table>
-
-            <p style="text-align: left; margin-top: 20px;">Best regards,</p>
-            <p style="text-align: left;">@Model.Branding.SiteName</p>
-        </div>
-    </div>
-
-    <div class="footer" style="background-color: #f5f5f5; text-align: center; padding-top: 10px; padding-bottom: 30px;">
-        <p class="footer-text" style="font-size: 0.9em; color: #888;">Follow us on:</p>
-        <p style="font-size: 0.9em;">
-            <a href="@Model.Branding.LinkedInUrl" target="_blank" style="color: #005190; text-decoration: none; margin: 0 8px;">LinkedIn</a>
-            <a href="@Model.Branding.FacebookUrl" target="_blank" style="color: #005190; text-decoration: none; margin: 0 8px;">Facebook</a>
-        </p>
-    </div>
+                    <tr>
+                        <td style="padding: 28px 24px 12px;">
+                            <p style="margin: 0 0 8px; color: #005190; font-size: 14px; font-weight: 700;">
+                                @(Model.IsCompanyNotification ? Text("New submission", "Nieuwe aanmelding") : Text("Your confirmation", "Je bevestiging"))
+                            </p>
+                            <h1 style="margin: 0 0 20px; font-size: 28px; line-height: 1.25; font-weight: 700; overflow-wrap: anywhere;">@Model.Product.Name</h1>
+                            @Html.Raw(Model.IntroHtml)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px 24px 24px;">
+                            <h2 style="margin: 0 0 16px; font-size: 20px; line-height: 1.4;">@Text("Contact details", "Contactgegevens")</h2>
+                            @foreach (var row in contactRows.Where(row => !string.IsNullOrWhiteSpace(row.Item2)))
+                            {
+                                <p style="margin: 0 0 12px; overflow-wrap: anywhere; word-break: break-word;">
+                                    <strong style="color: #526274; font-size: 14px;">@row.Item1</strong><br />
+                                    @if (row.Item1 == Text("Email", "E-mailadres"))
+                                    {
+                                        <a href="mailto:@row.Item2" style="color: #005190;">@row.Item2</a>
+                                    }
+                                    else
+                                    {
+                                        @row.Item2
+                                    }
+                                </p>
+                            }
+                            <p style="margin: 20px 0 0; font-size: 14px; color: #526274;">
+                                @Text("Quantity", "Aantal"): @Model.OrderQuantity
+                                @if (Model.ParticipantCount > 0)
+                                {
+                                    <br />@Text("Participants", "Deelnemers")<text>: @Model.ParticipantCount</text>
+                                }
+                            </p>
+                        </td>
+                    </tr>
+                    @if (answers.Count > 0)
+                    {
+                        <tr>
+                            <td style="padding: 24px; border-top: 1px solid #e7ecf2;">
+                                <h2 style="margin: 0 0 20px; font-size: 20px; line-height: 1.4;">@Text("Form answers", "Antwoorden op het formulier")</h2>
+                                @foreach (var answer in answers)
+                                {
+                                    var lines = answer.Value.Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                                    <div style="margin: 0 0 24px; overflow-wrap: anywhere; word-break: break-word;">
+                                        <h3 style="margin: 0 0 8px; font-size: 16px; line-height: 1.5; font-weight: 700;">@answer.Label</h3>
+                                        @if (lines.Length > 1)
+                                        {
+                                            <ul style="margin: 0; padding-left: 20px;">
+                                                @foreach (var line in lines)
+                                                {
+                                                    <li style="margin-bottom: 4px;">@line</li>
+                                                }
+                                            </ul>
+                                        }
+                                        else
+                                        {
+                                            <p style="margin: 0;">@answer.Value</p>
+                                        }
+                                    </div>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    <tr>
+                        <td style="padding: 24px; border-top: 1px solid #e7ecf2;">
+                            <p style="margin: 0;">@Text("Best regards,", "Met vriendelijke groet,")<br /><strong>@Model.Branding.SiteName</strong></p>
+                        </td>
+                    </tr>
+                </table>
+                <p style="max-width: 552px; margin: 20px 0 0; color: #526274; font-size: 13px;">
+                    <a href="@Model.Branding.PublicBaseUrl" style="color: #005190;">@Model.Branding.SiteName</a><br />
+                    <a href="@Model.Branding.LinkedInUrl" style="color: #005190;">LinkedIn</a> &middot;
+                    <a href="@Model.Branding.FacebookUrl" style="color: #005190;">Facebook</a>
+                </p>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>

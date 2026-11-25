@@ -83,6 +83,9 @@ namespace iD_Develops.Services
             var model = new CatalogProductSubmissionEmailModel
             {
                 Product = new CatalogProduct { Name = product.Name },
+                Culture = System.Globalization.CultureInfo.CurrentUICulture.Name,
+                IsCompanyNotification = true,
+                Answers = BuildEmailAnswers(product, submittedValues),
                 SubmittedValues = submittedValues.Where(value => product.ProductType != CatalogProductType.Signup ||
                         !SignupPersonalDetails.IsPersonalKey(value.Key))
                     .ToDictionary(value => value.Key, value => value.Value),
@@ -107,6 +110,7 @@ namespace iD_Develops.Services
 
             if (!string.IsNullOrWhiteSpace(customerEmail))
             {
+                model.IsCompanyNotification = false;
                 model.IntroHtml = string.IsNullOrWhiteSpace(product.ConfirmationEmailBodyHtml)
                     ? BuildDefaultCustomerIntro(product) : product.ConfirmationEmailBodyHtml;
                 yield return Notification(customerEmail, string.IsNullOrWhiteSpace(product.ConfirmationEmailSubject)
@@ -122,14 +126,41 @@ namespace iD_Develops.Services
             };
         }
 
+        private static List<ProductEmailAnswer> BuildEmailAnswers(CatalogProduct product, IDictionary<string, string> values)
+        {
+            var answers = new List<ProductEmailAnswer>();
+            foreach (var field in product.FormFields.OrderBy(field => field.SortOrder).ThenBy(field => field.Id))
+            {
+                if (field.FieldType == CatalogFormFieldType.Note || CatalogProductSubmissionEmailModel.IsMetadata(field.Key) ||
+                    !values.TryGetValue(field.Key, out var value) || string.IsNullOrWhiteSpace(value)) continue;
+                var translation = field.Translations.FirstOrDefault(item =>
+                    string.Equals(item.Culture, System.Globalization.CultureInfo.CurrentUICulture.Name, StringComparison.OrdinalIgnoreCase));
+                answers.Add(new ProductEmailAnswer
+                {
+                    Label = string.IsNullOrWhiteSpace(translation?.Label) ? field.Label : translation.Label,
+                    Value = value
+                });
+            }
+            foreach (var item in values.Where(item => !CatalogProductSubmissionEmailModel.IsMetadata(item.Key) &&
+                         !string.IsNullOrWhiteSpace(item.Value) && !product.FormFields.Any(field => field.Key == item.Key)))
+                answers.Add(new ProductEmailAnswer { Label = CatalogProductSubmissionEmailModel.ReadableLabel(item.Key), Value = item.Value });
+            return answers;
+        }
+
         private static string BuildDefaultCustomerIntro(CatalogProduct product)
         {
+            if (System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "nl")
+                return $"<p>Bedankt voor je aanmelding voor <strong>{System.Net.WebUtility.HtmlEncode(product.Name)}</strong>.</p>" +
+                       "<p>We hebben je gegevens ontvangen en nemen binnenkort contact met je op.</p>";
             return $"<p>Thank you for your submission for <strong>{System.Net.WebUtility.HtmlEncode(product.Name)}</strong>.</p>" +
                    "<p>We have received your details and will get back to you shortly.</p>";
         }
 
         private static string BuildDefaultOwnerIntro(CatalogProduct product)
         {
+            if (System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "nl")
+                return $"<p>Er is een nieuwe aanmelding ontvangen voor <strong>{System.Net.WebUtility.HtmlEncode(product.Name)}</strong>.</p>" +
+                       "<p>Hieronder staan de ingevulde gegevens.</p>";
             return $"<p>A new submission was received for <strong>{System.Net.WebUtility.HtmlEncode(product.Name)}</strong>.</p>" +
                    "<p>The details are included below.</p>";
         }

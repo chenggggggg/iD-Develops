@@ -384,6 +384,10 @@ public sealed class SignupTurnstileTests : Microsoft.Playwright.Xunit.PageTest
             Assert.Contains("Signup customer", body);
             Assert.Contains("mailto:" + data.User.Email, body);
             Assert.Contains("Practise conversation", body);
+            Assert.Contains("Learning goals", body);
+            Assert.DoesNotContain("order_quantity", body);
+            Assert.DoesNotContain("signup_full_name", body);
+            Assert.DoesNotContain("fonts.googleapis.com", body);
             Assert.Contains("+31 20 123 4567", System.Net.WebUtility.HtmlDecode(body));
             Assert.Contains("Example Street 10", body);
             Assert.Contains("1234 AB", body);
