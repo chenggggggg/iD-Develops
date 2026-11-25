@@ -1,4 +1,4 @@
-﻿# Planned PR backlog
+# Planned PR backlog
 
 Updated: 2026-11-25
 
@@ -19,7 +19,7 @@ on fix/payment-fulfillment-audit.
 The user explicitly prioritized and authorized implementation, branches, publication,
 and merging for B40-B42, then added B43 to the same work. Process these as separate
 PRs in order, waiting for successful GitHub checks before every merge. B40 is merged
-as PR #77 and deployed to staging; B41 is verified locally and ready to publish. Production release remains
+as PR #77; B41 is merged as PR #78 after all GitHub checks passed. B42 is in progress. Production release remains
 a separate workflow.
 
 ## Marketing launch priority update - 2026-11-24
@@ -1506,8 +1506,8 @@ editor/previews, form-gated download entrypoints, protected staff file inspectio
 grouped-answer validation, contact/result emails, and Marketing's existing payment/
 account restrictions. Local file-mail inspection ignores only unrelated in-flight files
 and serializes test cleanup; exact delivery assertions remain. Desktop/mobile screenshots
-were reviewed. Local settings were restored. PR #78 must pass its final GitHub CI before
-merging; no migration is required.
+were reviewed. Local settings were restored. PR #78 passed final GitHub CI and is merged;
+no migration is required.
 
 - Apply the existing Signup product flow to every product with a configured form,
   regardless of product type: product details -> personal details -> product questions
@@ -1530,8 +1530,12 @@ merging; no migration is required.
 ## B42 - P1 - Show a Contact Us action for Preview Only products
 
 Estimated size: Small-Medium. High-priority implementation and Git workflow authorized
-on 2026-11-25; begin after B41 is verified and merged. This replaces the
-earlier Preview Only behavior that hides/disables the product's primary action.
+on 2026-11-25. Implemented on `fix/preview-products-contact` after B41 merged.
+Preview Only product pages and download cards now show localized Contact us links;
+staff previews link to the public host. Direct transaction/download guards remain.
+Release build, full formatting, 761 unit/integration tests, 80 deployment-policy checks,
+and 54 Full / 50 Marketing browser checks passed. No migration or configuration change.
+Wait for all GitHub checks before merging.
 
 - Keep a visible, enabled primary action in the usual payment/signup button position
   for Preview Only products, but send it to the public Contact Us page rather than

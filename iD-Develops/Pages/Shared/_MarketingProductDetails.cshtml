@@ -1,6 +1,12 @@
 @using System.Globalization
 @model iD_Develops.Pages.ProductModel
 @inject Microsoft.Extensions.Localization.IStringLocalizer<iD_Develops.Pages.ProductModel> Localizer
+@inject iD_Develops.Services.IApplicationUrlService ApplicationUrls
+@{
+    var culture = CultureInfo.CurrentUICulture.Name.ToLowerInvariant();
+    var contactPath = Url.Page("/Contact", new { culture }) ?? $"/{culture}/contact";
+    var contactUrl = ApplicationUrls.IsPortalRequest(Context.Request) ? ApplicationUrls.PublicUrl(contactPath) : contactPath;
+}
 
 <div data-marketing-product data-product-preview-only="@Model.Product.IsPreviewOnly.ToString().ToLowerInvariant()">
     <div class="product-page-header">
@@ -24,11 +30,8 @@
                 <img src="@Model.ResolvedImageUrl" alt="@Model.Product.Name" class="product-hero-image" />
             }
             <partial name="_CatalogPrice" model="Model.Product" />
-            @if (!Model.Product.IsPreviewOnly)
-            {
-                <p class="mt-5 text-base leading-7">@Localizer["MarketingProductContactMessage"]</p>
-                <a class="public-btn public-btn-primary product-cta" asp-page="/Contact" asp-route-culture="@CultureInfo.CurrentUICulture.Name.ToLowerInvariant()">@Localizer["MarketingProductContactAction"] <span aria-hidden="true">→</span></a>
-            }
+            <p class="mt-5 text-base leading-7">@Localizer["MarketingProductContactMessage"]</p>
+            <a class="public-btn public-btn-primary product-cta" data-product-contact-action href="@contactUrl">@Localizer["MarketingProductContactAction"] <span aria-hidden="true">→</span></a>
         </aside>
     </div>
 </div>
