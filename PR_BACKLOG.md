@@ -19,7 +19,7 @@ on fix/payment-fulfillment-audit.
 The user explicitly prioritized and authorized implementation, branches, publication,
 and merging for B40-B42, then added B43 to the same work. Process these as separate
 PRs in order, waiting for successful GitHub checks before every merge. B40 is merged
-as PR #77; B41 is merged as PR #78 after all GitHub checks passed. B42 is in progress. Production release remains
+as PR #77; B41 is merged as PR #78 after all GitHub checks passed. B42 is merged as PR #79; B43 is in progress. Production release remains
 a separate workflow.
 
 ## Marketing launch priority update - 2026-11-24
@@ -1535,7 +1535,7 @@ Preview Only product pages and download cards now show localized Contact us link
 staff previews link to the public host. Direct transaction/download guards remain.
 Release build, full formatting, 761 unit/integration tests, 80 deployment-policy checks,
 and 54 Full / 50 Marketing browser checks passed. No migration or configuration change.
-Wait for all GitHub checks before merging.
+PR #79 passed all GitHub checks and is merged.
 
 - Keep a visible, enabled primary action in the usual payment/signup button position
   for Preview Only products, but send it to the public Contact Us page rather than
@@ -1554,6 +1554,11 @@ Wait for all GitHub checks before merging.
 
 Estimated size: Small. Saved and explicitly authorized for implementation and the
 same verified commit/push/PR/merge workflow on 2026-11-25, after B40-B42.
+Implemented on `feature/free-downloads-navigation`: localized links at the bottom of
+Pricing and in the public footer, with NT2 first and Pricing last. Release build, full
+formatting, 761 unit/integration tests, 80 deployment-policy checks, and 26 Full / 25
+Marketing browser checks passed. English mobile and Dutch desktop screenshots reviewed.
+Local settings restored. Wait for successful GitHub CI before merging.
 
 - Add a clear reference link to the existing Free downloads page at the bottom of
   Pricing and in the shared public footer; reuse the existing destination and localized

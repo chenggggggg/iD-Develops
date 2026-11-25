@@ -46,5 +46,11 @@
                 }
             </div>
         }
+        <div class="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-slate-200 pt-6" data-pricing-free-downloads>
+            <p class="public-muted">@Localizer["PricingFreeDownloadsIntroduction"]</p>
+            <a class="public-btn public-btn-outline" asp-page="/FreeDownloads" asp-route-culture="@CultureInfo.CurrentUICulture.Name.ToLowerInvariant()">
+                @Localizer["PricingFreeDownloadsAction"] <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+            </a>
+        </div>
     </div>
 </section>
