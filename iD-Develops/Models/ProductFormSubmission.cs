@@ -12,6 +12,16 @@ namespace iD_Develops.Models
         [MaxLength(64)]
         public string? RequestKey { get; set; }
 
+        // Historical reference, deliberately without a cascading product relationship.
+        // Keep the original identity even if a product is later deleted.
+        public int? CatalogProductId { get; set; }
+
+        [MaxLength(200)]
+        public string? ProductSlug { get; set; }
+
+        [MaxLength(200)]
+        public string? CustomerName { get; set; }
+
         [Required]
         public string FormName { get; set; } // Identifier for the form type
 

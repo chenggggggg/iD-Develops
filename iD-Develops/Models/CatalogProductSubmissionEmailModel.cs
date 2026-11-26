@@ -22,7 +22,8 @@ namespace iD_Develops.Models
             .Select(item => new ProductEmailAnswer { Label = ReadableLabel(item.Key), Value = item.Value }).ToList();
 
         public static bool IsMetadata(string key) => SignupPersonalDetails.IsPersonalKey(key) ||
-            key is "order_quantity" or "participant_count" or "product_slug" or "workflow_type";
+            key is "order_quantity" or "participant_count" or "product_slug" or "workflow_type" or
+                ProductSubmissionSnapshot.ProductIdKey or ProductSubmissionSnapshot.FieldsKey;
 
         public static string ReadableLabel(string key) => string.Join(" ", key.Split(['_', '-'], StringSplitOptions.RemoveEmptyEntries));
     }

@@ -1,0 +1,153 @@
+@page
+@using iD_Develops.Services
+@model iD_Develops.Pages.Portal.Admin.Products.SignupsModel
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = "Signups";
+    var fieldClass = "min-h-11 w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)] sm:text-sm";
+}
+
+<section class="portal-page-shell space-y-5" data-signup-registry>
+    <header class="portal-page-header">
+        <div>
+            <p class="portal-eyebrow">Products</p>
+            <h1 class="portal-title-sm">Signups</h1>
+            <p class="portal-copy">Find a product or form, review its signups, and open the details to follow up.</p>
+        </div>
+        <a class="portal-btn portal-btn-outline" asp-page="/Portal/Admin/Products/Index"><i class="fa-solid fa-box-open" aria-hidden="true"></i>Products</a>
+    </header>
+
+    <form method="get" class="space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5" data-signup-filters>
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div class="min-w-0 sm:col-span-2">
+                <label for="Group" class="mb-1.5 block text-sm font-semibold text-slate-800">Product/form</label>
+                <select asp-for="Group" class="@fieldClass" aria-describedby="signup-group-help">
+                    <option value="">All signups (@Model.Groups.Sum(group => group.Count))</option>
+                    @foreach (var group in Model.Groups)
+                    {
+                        <option value="@group.Key">@group.Label (@group.Count)</option>
+                    }
+                </select>
+                <span id="signup-group-help" class="mt-1.5 block text-xs leading-5 text-slate-500">Counts include all recorded dates. Choose a form to keep its answers and customers together.</span>
+            </div>
+            <div class="min-w-0 sm:col-span-2">
+                <label asp-for="Q" class="mb-1.5 block text-sm font-semibold text-slate-800">Search customers</label>
+                <input asp-for="Q" type="search" maxlength="200" class="@fieldClass" placeholder="Name or email address" />
+            </div>
+        </div>
+        <details class="group" open="@(!ViewData.ModelState.IsValid)" data-signup-advanced>
+            <summary class="flex min-h-11 cursor-pointer list-none flex-wrap items-center justify-between gap-2 rounded-lg text-sm font-semibold text-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--id-blue)]">
+                <span>Date and sorting options</span>
+                <span class="flex flex-wrap items-center gap-2 text-xs font-normal text-slate-500">
+                    <span>@iD_Develops.Pages.Portal.Admin.Products.SignupsModel.SortOptions.GetValueOrDefault(Model.Sort ?? "newest")</span>
+                    @if (Model.From.HasValue || Model.To.HasValue) { <span class="rounded-full bg-slate-100 px-2 py-1">Dates applied</span> }
+                    <i class="fa-solid fa-chevron-down group-open:rotate-180" aria-hidden="true"></i>
+                </span>
+            </summary>
+            <div class="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <div class="min-w-0">
+                    <label asp-for="From" class="mb-1.5 block text-sm font-semibold text-slate-800">From date</label>
+                    <input asp-for="From" type="date" min="1900-01-01" max="9998-12-31" class="@fieldClass" />
+                </div>
+                <div class="min-w-0">
+                    <label asp-for="To" class="mb-1.5 block text-sm font-semibold text-slate-800">To date</label>
+                    <input asp-for="To" type="date" min="1900-01-01" max="9998-12-31" class="@fieldClass" />
+                </div>
+                <div class="min-w-0">
+                    <label asp-for="Sort" class="mb-1.5 block text-sm font-semibold text-slate-800">Sort by</label>
+                    <select asp-for="Sort" class="@fieldClass">
+                        @foreach (var sort in iD_Develops.Pages.Portal.Admin.Products.SignupsModel.SortOptions)
+                        {
+                            <option value="@sort.Key">@sort.Value</option>
+                        }
+                    </select>
+                </div>
+                <div class="min-w-0">
+                    <label asp-for="PageSize" class="mb-1.5 block text-sm font-semibold text-slate-800">Results per page</label>
+                    <select asp-for="PageSize" class="@fieldClass">
+                        <option value="25">25</option><option value="50">50</option><option value="100">100</option>
+                    </select>
+                </div>
+            </div>
+        </details>
+        <div asp-validation-summary="All" class="text-sm text-red-700" role="alert"></div>
+        <div class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
+            <p class="m-0 text-xs text-slate-500">Dates and times use Amsterdam time.</p>
+            <div class="flex gap-2">
+                <a asp-page="/Portal/Admin/Products/Signups" class="portal-btn portal-btn-outline">Clear filters</a>
+                <button type="submit" class="portal-btn portal-btn-primary">Apply filters</button>
+            </div>
+        </div>
+    </form>
+
+    @if (Model.SelectedGroup?.IsHistorical == true)
+    {
+        <p class="m-0 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950">This historical group uses the saved form name and slug. The original product ID was not recorded, so it has not been assigned to a current product.</p>
+    }
+
+    <section class="min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm" aria-labelledby="signup-list-title">
+        <div class="border-b border-slate-200 px-4 py-4 sm:px-5">
+            <h2 id="signup-list-title" class="m-0 break-words text-lg font-semibold text-slate-950">@(Model.SelectedGroup?.Label ?? "All signups")</h2>
+            <p class="mb-0 mt-1 text-sm text-slate-500" role="status" data-signup-count>@Model.TotalCount matching signups · Page @Model.PageNumber of @Model.TotalPages</p>
+        </div>
+        @if (Model.Rows.Count == 0)
+        {
+            <div class="px-5 py-12 text-center">
+                <i class="fa-solid fa-inbox text-2xl text-slate-300" aria-hidden="true"></i>
+                <p class="mb-0 mt-3 font-semibold text-slate-800">No signups match these filters.</p>
+                <p class="mb-0 mt-2 text-sm text-slate-500">Choose another product/form or adjust the search and dates.</p>
+            </div>
+        }
+        else
+        {
+            <div class="hidden overflow-x-auto md:block">
+                <table class="w-full table-fixed text-left text-sm" aria-label="Signups">
+                    <thead class="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-600">
+                        <tr>
+                            <th scope="col" class="w-1/4 px-5 py-3" aria-sort="@(Model.Sort == "name" ? "ascending" : Model.Sort == "name-desc" ? "descending" : "none")"><a class="text-inherit no-underline underline-offset-4 hover:underline focus-visible:outline-2" href="@Model.ListUrl(1, Model.ToggleSort("name"))">Customer</a></th>
+                            <th scope="col" class="w-1/4 px-4 py-3" aria-sort="@(Model.Sort == "product" ? "ascending" : Model.Sort == "product-desc" ? "descending" : "none")"><a class="text-inherit no-underline underline-offset-4 hover:underline focus-visible:outline-2" href="@Model.ListUrl(1, Model.ToggleSort("product"))">Product/form</a></th>
+                            <th scope="col" class="px-4 py-3" aria-sort="@(Model.Sort == "oldest" ? "ascending" : Model.Sort == "newest" ? "descending" : "none")"><a class="text-inherit no-underline underline-offset-4 hover:underline focus-visible:outline-2" href="@Model.ListUrl(1, Model.ToggleSort("date"))">Submitted</a></th>
+                            <th scope="col" class="px-4 py-3">Notifications</th>
+                            <th scope="col" class="w-24 px-4 py-3"><span class="sr-only">Details</span></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                    @foreach (var row in Model.Rows)
+                    {
+                        <tr data-signup-row="@row.Submission.Id" class="hover:bg-slate-50/60">
+                            <td class="break-words px-5 py-4 align-top"><span class="block font-semibold text-slate-900">@(row.Submission.CustomerName ?? "Name not recorded")</span><span class="mt-1 block text-slate-600">@row.Submission.UserEmail</span></td>
+                            <td class="break-words px-4 py-4 align-top"><span class="block font-medium text-slate-800">@row.Submission.FormName</span>@if (row.Submission.CatalogProductId.HasValue) { <span class="mt-1 block text-xs text-slate-500">Product #@row.Submission.CatalogProductId</span> }@if (row.Submission.CatalogProductId == null) { <span class="mt-1 block text-xs text-slate-500">Historical · @(row.Submission.ProductSlug ?? "Product not recorded")</span> }</td>
+                            <td class="px-4 py-4 align-top"><time class="text-slate-600" datetime="@row.Submission.SubmissionDate.ToString("O")">@SignupRegistryService.LocalTime(row.Submission.SubmissionDate)</time></td>
+                            <td class="px-4 py-4 align-top"><span class="inline-block rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700" title="@row.Notifications.Description">@row.Notifications.Label</span></td>
+                            <td class="px-4 py-4 align-top"><a class="portal-btn portal-btn-outline min-h-11 px-3" href="@Model.DetailUrl(row.Submission.Id)" aria-label="View signup from @(row.Submission.CustomerName ?? row.Submission.UserEmail)">View</a></td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+            <ul class="m-0 list-none divide-y divide-slate-200 p-0 md:hidden" aria-label="Signups">
+                @foreach (var row in Model.Rows)
+                {
+                    <li class="space-y-3 p-4" data-signup-row="@row.Submission.Id">
+                        <div class="min-w-0"><p class="m-0 break-words font-semibold text-slate-950">@(row.Submission.CustomerName ?? "Name not recorded")</p><p class="mb-0 mt-1 break-words text-sm text-slate-600">@row.Submission.UserEmail</p></div>
+                        <dl class="m-0 space-y-2 text-sm">
+                            <div><dt class="text-xs font-medium text-slate-500">Product/form</dt><dd class="m-0 break-words text-slate-800">@row.Submission.FormName</dd></div>
+                            <div><dt class="text-xs font-medium text-slate-500">Submitted · Amsterdam</dt><dd class="m-0 text-slate-800">@SignupRegistryService.LocalTime(row.Submission.SubmissionDate)</dd></div>
+                        </dl>
+                        @if (row.Submission.CatalogProductId.HasValue) { <p class="m-0 text-xs text-slate-500">Product #@row.Submission.CatalogProductId</p> }
+                        @if (row.Submission.CatalogProductId == null) { <p class="m-0 break-words text-xs text-slate-500">Historical · @(row.Submission.ProductSlug ?? "Product not recorded")</p> }
+                        <div class="flex flex-wrap items-center justify-between gap-3"><span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">@row.Notifications.Label</span><a class="portal-btn portal-btn-outline" href="@Model.DetailUrl(row.Submission.Id)" aria-label="View signup from @(row.Submission.CustomerName ?? row.Submission.UserEmail)">View details</a></div>
+                    </li>
+                }
+            </ul>
+        }
+        @if (Model.TotalPages > 1)
+        {
+            <nav aria-label="Signup pages" class="flex items-center justify-between gap-3 border-t border-slate-200 px-4 py-4">
+                @if (Model.PageNumber > 1) { <a class="portal-btn portal-btn-outline" href="@Model.ListUrl(Model.PageNumber - 1)" rel="prev">Previous</a> } else { <span class="text-sm text-slate-400" aria-disabled="true">Previous</span> }
+                <span class="text-sm text-slate-600">@Model.PageNumber / @Model.TotalPages</span>
+                @if (Model.PageNumber < Model.TotalPages) { <a class="portal-btn portal-btn-outline" href="@Model.ListUrl(Model.PageNumber + 1)" rel="next">Next</a> } else { <span class="text-sm text-slate-400" aria-disabled="true">Next</span> }
+            </nav>
+        }
+    </section>
+</section>

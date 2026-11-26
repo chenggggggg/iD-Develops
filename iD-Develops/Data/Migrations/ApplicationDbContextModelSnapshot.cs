@@ -2574,9 +2574,20 @@ namespace iD_Develops.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("CatalogProductId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("CustomerName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<string>("FormName")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<string>("ProductSlug")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("RequestKey")
                         .HasMaxLength(64)
@@ -2597,6 +2608,12 @@ namespace iD_Develops.Data.Migrations
 
                     b.HasIndex("RequestKey")
                         .IsUnique();
+
+                    b.HasIndex("ProductSlug", "SubmissionDate");
+
+                    b.HasIndex("SubmissionDate", "Id");
+
+                    b.HasIndex("CatalogProductId", "SubmissionDate", "Id");
 
                     b.ToTable("ProductFormSubmissions");
                 });

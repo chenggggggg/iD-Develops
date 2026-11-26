@@ -418,6 +418,7 @@ builder.Services.AddScoped<IRecordService, RecordService>();
 builder.Services.AddScoped<IStoragePublicUrlService, StoragePublicUrlService>();
 
 builder.Services.AddScoped<IProductFormSubmissionService, ProductFormSubmissionService>();
+builder.Services.AddScoped<SignupRegistryService>();
 builder.Services.AddScoped<IStripeWebhookService, StripeWebhookService>();
 builder.Services.AddHttpClient<ITurnstileService, TurnstileService>();
 builder.Services.AddScoped<ICatalogProductService, CatalogProductService>();

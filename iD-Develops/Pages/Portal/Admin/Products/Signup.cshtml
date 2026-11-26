@@ -1,0 +1,98 @@
+@page
+@using iD_Develops.Services
+@model iD_Develops.Pages.Portal.Admin.Products.SignupModel
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = "Signup details";
+    var optional = new Dictionary<string, string?>
+    {
+        ["Phone"] = Model.Personal.Phone, ["Street address"] = Model.Personal.StreetAddress,
+        ["Postal code"] = Model.Personal.PostalCode, ["City"] = Model.Personal.City, ["Country"] = Model.Personal.Country
+    };
+}
+
+<section class="portal-page-shell space-y-5" data-signup-details>
+    <header class="portal-page-header">
+        <div class="min-w-0">
+            <p class="portal-eyebrow">Signups · #@Model.Submission.Id</p>
+            <h1 class="portal-title-sm break-words">@Model.Submission.FormName</h1>
+            <p class="portal-copy">Submitted @SignupRegistryService.LocalTime(Model.Submission.SubmissionDate) · Amsterdam time</p>
+        </div>
+        <a class="portal-btn portal-btn-outline" href="@Model.BackUrl"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i>Back to signups</a>
+    </header>
+
+    @if (!Model.Snapshot.IsValid)
+    {
+        <p class="m-0 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950">The saved answers could not be read. The original submission is preserved; the contact and notification records are shown below.</p>
+    }
+    <div class="grid min-w-0 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+        <section class="min-w-0 rounded-xl border border-slate-200 bg-white p-5 shadow-sm" aria-labelledby="signup-contact-title">
+            <h2 id="signup-contact-title" class="m-0 text-lg font-semibold text-slate-950">Contact details</h2>
+            <dl class="mb-0 mt-5 space-y-4 text-sm">
+                <div><dt class="text-slate-500">Full name</dt><dd class="m-0 mt-1 break-words font-medium text-slate-900">@(string.IsNullOrWhiteSpace(Model.Personal.FullName) ? "Name not recorded" : Model.Personal.FullName)</dd></div>
+                <div><dt class="text-slate-500">Email</dt><dd class="m-0 mt-1 break-words">@if (iD_Develops.Models.SignupPersonalDetails.IsValidEmail(Model.Personal.Email)) { <a href="mailto:@Model.Personal.Email" class="font-medium text-[var(--id-blue)] underline underline-offset-4">@Model.Personal.Email</a> } else { @Model.Personal.Email }</dd></div>
+                @foreach (var item in optional.Where(item => !string.IsNullOrWhiteSpace(item.Value)))
+                {
+                    <div><dt class="text-slate-500">@item.Key</dt><dd class="m-0 mt-1 whitespace-pre-line break-words text-slate-900">@item.Value</dd></div>
+                }
+            </dl>
+            <div class="mt-6 border-t border-slate-100 pt-4 text-xs leading-5 text-slate-500">
+                @if (Model.Submission.CatalogProductId.HasValue)
+                {
+                    <p class="m-0">Product #@Model.Submission.CatalogProductId · Product name at submission shown above.</p>
+                }
+                else
+                {
+                    <p class="m-0">Historical submission. Its original product ID was not recorded.</p>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.Submission.ProductSlug)) { <p class="mb-0 mt-1 break-words">Saved slug: @Model.Submission.ProductSlug</p> }
+                @if (Model.Snapshot.Read("order_quantity") is string quantity) { <p class="mb-0 mt-2">Quantity: @quantity</p> }
+                @if (Model.Snapshot.Read("participant_count") is string participants) { <p class="mb-0 mt-1">Participants: @participants</p> }
+            </div>
+        </section>
+        <section class="min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm" aria-labelledby="signup-answers-title">
+            <div class="border-b border-slate-200 p-5">
+                <h2 id="signup-answers-title" class="m-0 text-lg font-semibold text-slate-950">Form answers</h2>
+                @if (Model.AnswerNotice != null) { <p class="mb-0 mt-2 text-sm leading-6 text-slate-500">@Model.AnswerNotice</p> }
+            </div>
+            @if (Model.Answers.Count == 0)
+            {
+                <p class="m-0 p-5 text-sm text-slate-500">No additional answers were recorded.</p>
+            }
+            else
+            {
+                <dl class="m-0 divide-y divide-slate-100" data-signup-answers>
+                    @foreach (var answer in Model.Answers)
+                    {
+                        <div class="p-5"><dt class="break-words text-sm font-semibold leading-6 text-slate-900">@answer.Label</dt><dd class="m-0 mt-2 whitespace-pre-line break-words text-sm leading-7 text-slate-700">@(string.IsNullOrWhiteSpace(answer.Value) ? "Not provided" : answer.Value)</dd></div>
+                    }
+                </dl>
+            }
+        </section>
+    </div>
+    <section class="min-w-0 rounded-xl border border-slate-200 bg-white p-5 shadow-sm" aria-labelledby="signup-notifications-title">
+        <h2 id="signup-notifications-title" class="m-0 text-lg font-semibold text-slate-950">Email notifications</h2>
+        <p class="mb-0 mt-2 text-sm leading-6 text-slate-500">Sent means accepted by the email service, not confirmed inbox delivery. Older notification records may no longer be retained.</p>
+        @if (Model.Notifications.Count == 0)
+        {
+            <p class="mb-0 mt-4 text-sm text-slate-600">No retained notification records are available for this signup.</p>
+        }
+        else
+        {
+            <ul class="mb-0 mt-4 list-none divide-y divide-slate-100 p-0">
+                @foreach (var mail in Model.Notifications)
+                {
+                    <li class="flex flex-col justify-between gap-3 py-4 sm:flex-row sm:items-start">
+                        <div class="min-w-0"><p class="m-0 break-words text-sm font-semibold text-slate-900">@mail.Recipient</p><p class="mb-0 mt-1 break-words text-sm text-slate-600">@mail.Subject</p></div>
+                        <div class="shrink-0 text-sm text-slate-600">
+                            @if (mail.SentAtUtc.HasValue) { <span>Sent @SignupRegistryService.LocalTime(mail.SentAtUtc.Value)</span> }
+                            else if (mail.LeaseUntilUtc > DateTime.UtcNow) { <span>Sending</span> }
+                            else if (mail.Attempts > 0) { <span>Retry scheduled · @SignupRegistryService.LocalTime(mail.NextAttemptAtUtc)</span> }
+                            else { <span>Pending</span> }
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+</section>

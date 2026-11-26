@@ -385,6 +385,9 @@ namespace iD_Develops.Data
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<ProductFormSubmission>().HasIndex(submission => submission.RequestKey).IsUnique();
+            modelBuilder.Entity<ProductFormSubmission>().HasIndex(submission => new { submission.CatalogProductId, submission.SubmissionDate, submission.Id });
+            modelBuilder.Entity<ProductFormSubmission>().HasIndex(submission => new { submission.ProductSlug, submission.SubmissionDate });
+            modelBuilder.Entity<ProductFormSubmission>().HasIndex(submission => new { submission.SubmissionDate, submission.Id });
             modelBuilder.Entity<CatalogCheckoutMail>().Property(mail => mail.CreatedAtUtc).HasDefaultValueSql("CURRENT_TIMESTAMP");
             modelBuilder.Entity<CatalogCheckoutAttempt>().HasIndex(a => a.RequestKey).IsUnique();
             modelBuilder.Entity<CatalogCheckoutAttempt>().HasIndex(a => a.StripeSessionId).IsUnique();
