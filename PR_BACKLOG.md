@@ -1,9 +1,9 @@
 # Planned PR backlog
 
-Updated: 2026-11-25
+Updated: 2026-11-26
 
 This is the combined planning backlog from the staging review and owner meeting.
-B01-B43 are planning IDs, not GitHub PR numbers. Current launch priorities are:
+B01-B44 are planning IDs, not GitHub PR numbers. Current launch priorities are:
 P0 marketing-release blockers, P1 supporting work, P2 post-launch improvements.
 This file does not authorize implementation, Git changes, or deployments.
 
@@ -19,7 +19,7 @@ on fix/payment-fulfillment-audit.
 The user explicitly prioritized and authorized implementation, branches, publication,
 and merging for B40-B42, then added B43 to the same work. Process these as separate
 PRs in order, waiting for successful GitHub checks before every merge. B40 is merged
-as PR #77; B41 is merged as PR #78 after all GitHub checks passed. B42 is merged as PR #79; B43 is in progress. Production release remains
+as PR #77; B41 is merged as PR #78 after all GitHub checks passed. B42 is merged as PR #79; B43 is merged as PR #80. B44 is in progress with separate implementation, publishing, and merge approval. Production release remains
 a separate workflow.
 
 ## Marketing launch priority update - 2026-11-24
@@ -1490,9 +1490,9 @@ The form definitions already have labels, translations, and a sort order.
 Signup registry status: `ProductFormSubmissions` already stores the form/product name,
 submission timestamp, email, deduplication key, and JSON containing submitted personal
 details and custom answers. Signup submission and notification queue rows are saved in
-one transaction by `ProductFormSubmissionService.SaveWithNotificationsAsync`. There is
-currently no Portal submission-list/detail interface referencing these records. A future
-Portal signup registry can reuse this storage; that interface is separate from this email PR.
+one transaction by `ProductFormSubmissionService.SaveWithNotificationsAsync`. There was
+no Portal submission-list/detail interface at the time of the B40 inspection. B44 adds
+that separate staff registry using the existing submission and notification storage.
 This inspection confirms the code path, not the presence of any particular production record.
 
 ## B41 - P1 - Use stepped forms for every product with a form
@@ -1558,7 +1558,7 @@ Implemented on `feature/free-downloads-navigation`: localized links at the botto
 Pricing and in the public footer, with NT2 first and Pricing last. Release build, full
 formatting, 761 unit/integration tests, 80 deployment-policy checks, and 26 Full / 25
 Marketing browser checks passed. English mobile and Dutch desktop screenshots reviewed.
-Local settings restored. Wait for successful GitHub CI before merging.
+Local settings restored. PR #80 passed GitHub CI and is merged.
 
 - Add a clear reference link to the existing Free downloads page at the bottom of
   Pricing and in the shared public footer; reuse the existing destination and localized
@@ -1567,6 +1567,39 @@ Local settings restored. Wait for successful GitHub CI before merging.
   Place Free downloads before Pricing while retaining the other service links.
 - Preserve the selected English/Dutch language and verify the links and ordering on
   desktop/mobile in Full and Marketing modes. Do not change download/product behavior.
+
+## B44 - P1 - Portal signup registry grouped by product and form
+
+Estimated size: Medium. Implementation, branch creation, commit/push, and merge after
+successful checks explicitly approved on 2026-11-25. Implemented on
+`feature/portal-signup-registry`. Release build, full formatting, all 771 unit/integration
+tests, 80 deployment-policy checks, migration/model consistency, and 69 Full / 67
+Marketing browser checks passed. Desktop/mobile screenshots reviewed; local settings
+restored. Implementation is complete; publish and merge only after successful GitHub CI.
+Includes an additive metadata/index migration and a safe backfill of stored names/slugs.
+Historical product IDs are not inferred from names or slugs. New submissions capture
+product identity and question labels; original answer JSON and existing mail delivery
+remain intact. No new environment variables are required.
+
+- Add an Admin/SuperAdmin Portal signup list and submission detail screen, reusing
+  existing ProductFormSubmissions and notification records, including older signups.
+- Make product/form organization central to the UI: offer a product/form selector with
+  signup counts and a clearly labelled list for the selected product/form. Provide an
+  All signups view with a visible, sortable product/form column rather than forcing
+  staff to read an undifferentiated list of unrelated forms.
+- Support filtering and sorting by product/form, searching by customer name/email,
+  date filtering, and pagination. Within a selected product/form, default to newest
+  submissions first and allow date/name sorting. Keep filters and sorting when paging
+  or returning from a submission detail screen.
+- Keep the list concise: submission date, customer name/email, product/form, and
+  notification status. Show full personal details and readable, ordered form answers
+  on the detail screen; do not expose internal field keys as question labels.
+- Preserve historical submission data and identify limitations in legacy product/form
+  associations before choosing grouping keys. Do not lose older records after renames
+  or combine unrelated products solely because their display names match.
+- Reuse existing Portal tables, filters, feedback, and responsive design conventions.
+  Verify role restrictions, product/form filtering and sorting, historical records,
+  pagination, detail navigation, and desktop/mobile readability.
 
 ## External references checked
 

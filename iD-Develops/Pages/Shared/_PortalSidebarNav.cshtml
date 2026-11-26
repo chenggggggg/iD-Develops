@@ -12,6 +12,7 @@
     var isMyExamsActive = IsPage("/Portal/Exams/List") || IsPage("/Portal/Examination");
     var isExamResultsActive = IsPage("/Portal/Exams/Results") || IsPage("/Portal/Exams/Record");
     var isProductsActive = IsPage("/Portal/Admin/Products");
+    var isSignupsActive = IsPage("/Portal/Admin/Products/Signup");
     var isAdminPanelActive = IsPage("/Portal/Admin") && !isProductsActive;
     var isManageUsersActive = IsPage("/Portal/Admin/Users");
     var isSystemOperationsActive = IsPage("/Portal/Admin/System");
@@ -63,10 +64,13 @@
 
     @if ((User.IsInRole("Admin") || User.IsInRole("SuperAdmin")))
     {
-        <a class="portal-nav-link @(isProductsActive ? "active" : null)" asp-page="/Portal/Admin/Products/Index">
+        <a class="portal-nav-link @(isProductsActive && !isSignupsActive ? "active" : null)" asp-page="/Portal/Admin/Products/Index">
             <i class="fa-solid fa-box-open"></i>
             <span>Products</span>
         </a>
+        <div class="portal-subnav-list">
+            <a class="portal-subnav-link @(isSignupsActive ? "active" : null)" asp-page="/Portal/Admin/Products/Signups" aria-current="@(isSignupsActive ? "page" : null)"><i class="fa-solid fa-inbox" aria-hidden="true"></i><span>Signups</span></a>
+        </div>
 
         <details class="portal-nav-group" @(isAdminPanelActive ? "open" : null)>
             <summary class="portal-nav-link portal-nav-group-toggle @(isAdminPanelActive ? "active" : null)">

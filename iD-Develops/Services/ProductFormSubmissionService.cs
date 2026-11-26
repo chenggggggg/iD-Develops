@@ -23,13 +23,9 @@ namespace iD_Develops.Services
                 await using var transaction = await _dbContext.Database.BeginTransactionAsync(ct);
                 await iD_Develops.Utilities.CheckoutDatabaseLock.AcquireTransactionAsync(_dbContext, "signup:" + requestKey, ct);
                 if (await _dbContext.ProductFormSubmissions.AnyAsync(row => row.RequestKey == requestKey, ct)) return;
-                _dbContext.ProductFormSubmissions.Add(new ProductFormSubmission
-                {
-                    FormName = formName,
-                    UserEmail = userEmail,
-                    RequestKey = requestKey,
-                    SubmissionDataJson = JsonSerializer.Serialize(formData)
-                });
+                var submission = CreateSubmission(formName, formData, userEmail);
+                submission.RequestKey = requestKey;
+                _dbContext.ProductFormSubmissions.Add(submission);
                 _dbContext.CatalogCheckoutMails.AddRange(notifications);
                 await _dbContext.SaveChangesAsync(ct);
                 await transaction.CommitAsync(ct);
@@ -38,16 +34,25 @@ namespace iD_Develops.Services
 
         public async Task SaveFormSubmissionAsync(string formName, Dictionary<string, object> formData, string userEmail)
         {
-            var formSubmission = new ProductFormSubmission
-            {
-                FormName = formName,
-                UserEmail = userEmail,
-                SubmissionDate = DateTime.UtcNow,
-                SubmissionDataJson = JsonSerializer.Serialize(formData)
-            };
+            var formSubmission = CreateSubmission(formName, formData, userEmail);
 
             _dbContext.ProductFormSubmissions.Add(formSubmission);
             await _dbContext.SaveChangesAsync();
+        }
+
+        private static ProductFormSubmission CreateSubmission(string formName, Dictionary<string, object> formData, string userEmail)
+        {
+            var json = JsonSerializer.Serialize(formData);
+            var snapshot = ProductSubmissionSnapshot.Parse(json);
+            return new()
+            {
+                FormName = formName,
+                UserEmail = userEmail,
+                CatalogProductId = snapshot.ProductId,
+                ProductSlug = snapshot.ProductSlug?[..Math.Min(snapshot.ProductSlug.Length, 200)],
+                CustomerName = snapshot.CustomerName?[..Math.Min(snapshot.CustomerName.Length, 200)],
+                SubmissionDataJson = json
+            };
         }
     }
 }

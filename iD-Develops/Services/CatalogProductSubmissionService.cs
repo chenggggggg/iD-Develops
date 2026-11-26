@@ -72,6 +72,13 @@ namespace iD_Develops.Services
             payload["order_quantity"] = quantity;
             payload["participant_count"] = participants;
             payload["product_slug"] = product.Slug;
+            payload[ProductSubmissionSnapshot.ProductIdKey] = product.Id;
+            payload[ProductSubmissionSnapshot.FieldsKey] = product.FormFields.OrderBy(field => field.SortOrder).ThenBy(field => field.Id)
+                .Where(field => !SignupPersonalDetails.IsPersonalField(field) &&
+                    !CatalogProductSubmissionEmailModel.IsMetadata(field.Key))
+                .Select(field => new ProductSubmissionField(field.Key, field.FieldType == CatalogFormFieldType.Note ? field.Key : field.Translations.FirstOrDefault(item =>
+                    string.Equals(item.Culture, System.Globalization.CultureInfo.CurrentUICulture.Name, StringComparison.OrdinalIgnoreCase))?.Label is { Length: > 0 } label
+                        ? label : field.Label, field.FieldType == CatalogFormFieldType.Note)).ToArray();
             payload["workflow_type"] = product.WorkflowType.ToString();
             return payload;
         }

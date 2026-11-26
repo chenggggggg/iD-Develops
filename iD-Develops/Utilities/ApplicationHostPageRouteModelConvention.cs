@@ -27,6 +27,8 @@ namespace iD_Develops.Utilities
                 ["/Portal/Examination/Index"] = "examination/{recordId:guid}",
                 ["/Portal/Examination/Edit"] = "exams/{examId:int}/edit",
                 ["/Portal/Admin/Products/Index"] = "products",
+                ["/Portal/Admin/Products/Signups"] = "products/signups",
+                ["/Portal/Admin/Products/Signup"] = "products/signups/{id:int}",
                 ["/Portal/Admin/AuditLog"] = "admin/audit-log",
                 ["/Portal/Examination/Completed"] = "examination/completed/{recordId:guid}"
             };
